@@ -1,0 +1,11 @@
+# development only
+node_modules
+src
+vite.config.js
+tsconfig.json
+package.json
+package-lock.json
+scripts
+.git
+.gitignore
+.eslintrc

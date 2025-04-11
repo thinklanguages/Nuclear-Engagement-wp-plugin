@@ -1,0 +1,364 @@
+/**
+ * nuclen-admin.css
+ *
+ * Plugin-wide admin CSS.
+ */
+
+/*--------------------------------------------------------------
+Nuclear Engagement Plugin Admin Styles
+This file provides a consistent set of classes to build the plugin's admin UI.
+--------------------------------------------------------------*/
+
+/*--------------------------------------------------------------
+#RESET/BASIC STYLES (Optional)
+You might include a basic reset or normalizing styles here.
+--------------------------------------------------------------*/
+/* Example (if desired):
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, font, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var, b, u, i,
+center, dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend, table, caption,
+tbody, tfoot, thead, tr, th, td {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	font-size: 100%;
+	vertical-align: baseline;
+}
+body {
+	font-family: Arial, sans-serif;
+	font-size: 14px;
+	linuclen-height: 1.5;
+}
+*/
+
+/*--------------------------------------------------------------
+#LAYOUT CLASSES
+Use these to structure your UI into containers, sections, rows, and columns.
+--------------------------------------------------------------*/
+
+.nuclen-quiz-metabox-question {
+	margin: 1em 0 0 0;
+	border: 1px solid #eee;
+	border-left: none;
+	border-bottom: none;
+	border-right: none;
+}
+
+#nuclen-quiz-data-meta-box .inside, #nuclen-summary-data-meta-box .inside {
+	max-height: 50vh;
+	display: flex;
+	overflow-y: scroll;
+	overflow-x: hidden;
+	padding: 1em;
+	gap: 1em;
+	flex-direction: column;
+}
+
+#nuclen-page-header {
+	margin: 20px 0 60px 0;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 10px;
+}
+
+.nuclen-container {
+	padding: 20px;
+}
+
+.nuclen-section {
+	width: fit-content;
+	border: 1px solid #ddd;
+	padding: 2rem;
+	background: #fff;
+}
+
+.nuclen-row {
+	display: flex;
+	gap: 2em;
+	flex-wrap: wrap;
+	margin-bottom: 1em;
+}
+
+.nuclen-column {
+	flex: 1;
+	min-width: 200px;
+	padding: 10px;
+}
+
+.nuclen-label-col {
+	min-width: 150px;
+	margin-right: 10px;
+	text-align: right;
+}
+.nuclen-input-col {
+	flex: 1;
+}
+
+/* setup page*/
+
+#nuclen-setup-step-1, #nuclen-setup-step-2 {
+	width: auto;
+}
+
+/*--------------------------------------------------------------
+#TYPOGRAPHY
+Headings, subheadings, muted text, and emphasis classes.
+--------------------------------------------------------------*/
+.nuclen-heading {
+	font-size: 1.5rem;
+	margin-bottom: 10px;
+	font-weight: 600;
+}
+
+.nuclen-subheading {
+	border-bottom: solid 0.1em #ddd;
+	padding: 1.5em 0 0.5em 0;
+	margin-bottom: 1em;
+}
+
+.nuclen-text-muted {
+	color: #666;
+}
+
+.nuclen-text-bold {
+	font-weight: 600;
+}
+
+/*--------------------------------------------------------------
+#FORMS & INPUTS
+Classes for form groups, labels, inputs, and buttons.
+--------------------------------------------------------------*/
+
+#nuclen-section th {
+	width: 100px;
+	text-align: right;
+}
+
+.nuclen-form-row {
+	margin: 1em 0;
+}
+
+.nuclen-form-group {
+	margin-bottom: 15px;
+}
+
+.nuclen-label {
+	display: block;
+	margin-bottom: 5px;
+	font-weight: 500;
+}
+
+.nuclen-input {
+	min-width: 200px;
+	width: fit-content;
+	padding: 8px 10px;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+	background: #fff;
+	font-size: 14px;
+}
+
+.nuclen-input:focus {
+	border-color: #007cba;
+	outline: none;
+}
+
+/* Buttons */
+.nuclen-button {
+	display: inlinuclen-block;
+	padding: 8px 12px;
+	border: none;
+	border-radius: 3px;
+	cursor: pointer;
+	font-size: 14px;
+	text-decoration: none;
+	text-align: center;
+}
+
+.nuclen-button-primary {
+	background: #007cba;
+	color: #fff;
+}
+
+.nuclen-button-secondary {
+	background: #f3f3f3;
+	color: #333;
+}
+
+.nuclen-button:disabled {
+	background: #ccc;
+	cursor: not-allowed;
+}
+
+/* checkboxes */
+.nuclen-checkbox {
+	margin-right: 8px;
+	width: auto;
+	height: auto;
+	cursor: pointer;
+	accent-color: #007cba;
+}
+
+.nuclen-checkbox-label {
+	cursor: pointer;
+	font-size: 14px;
+	/* any other label stylings you want */
+}
+
+/* tooltip */
+
+[nuclen-tooltip] {
+	align-self: center;
+	position: relative;
+	cursor: pointer;
+	}
+
+	/* The tooltip text */
+	[nuclen-tooltip]::after {
+	content: attr(nuclen-tooltip);
+	position: absolute;
+	bottom: -200%;
+	left: 50%;
+	transform: translateX(-50%);
+	padding: 6px 8px;
+	background: #333;
+	color: #fff;
+	border-radius: 4px;
+	white-space: normal;
+	font-size: 13px;
+	opacity: 0;
+	pointer-events: none;
+	transition: opacity 0.15s ease-out;
+	z-index: 9999;
+	width: 200px;
+	}
+
+	/* Arrow */
+	/*
+	[nuclen-tooltip]::before {
+	content: "";
+	position: absolute;
+	bottom: 110%;
+	left: 50%;
+	transform: translateX(-50%);
+	border: 6px solid transparent;
+	border-top-color: #333;
+	opacity: 0;
+	transition: opacity 0.15s ease-out;
+	pointer-events: none;
+	z-index: 9999;
+	}
+ */
+
+	/* Show the tooltip on hover */
+	[nuclen-tooltip]:hover::after,
+	[nuclen-tooltip]:hover::before {
+	opacity: 1;
+	}
+
+
+/*--------------------------------------------------------------
+#COMPONENTS
+Alerts, progress indicators, etc.
+--------------------------------------------------------------*/
+.nuclen-alert {
+	padding: 10px 15px;
+	border-radius: 3px;
+	margin-bottom: 15px;
+	font-size: 14px;
+}
+
+.nuclen-alert-success {
+	background: #e7f7e3;
+	border: 1px solid #b2d8b2;
+	color: #2d6a2d;
+}
+
+.nuclen-alert-error {
+	background: #fdd8d8;
+	border: 1px solid #f5a5a5;
+	color: #a33;
+}
+
+.nuclen-alert-info {
+	background: #eef5fd;
+	border: 1px solid #c7dbfc;
+	color: #245c99;
+}
+
+.nuclen-progress {
+	margin-bottom: 10px;
+	font-size: 14px;
+}
+
+/*--------------------------------------------------------------
+#GENERATION PROGRESS BAR
+--------------------------------------------------------------*/
+
+/* --- Progress Bar Container --- */
+.nuclen-step-bar {
+	display: flex;
+	gap: 2px;
+	margin-bottom: 1.5em;
+	width: 100%;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+	overflow: hidden;
+	}
+
+	/* --- Individual Step (shared base styles) --- */
+	.nuclen-step-bar-step {
+	flex: 1;
+	text-align: center;
+	color: #fff;
+	padding: 0.5em 0;
+	font-weight: bold;
+	transition: background-color 0.3s ease;
+	}
+
+	/* The default "todo" might be gray-ish */
+	.nuclen-step-todo {
+	background-color: #9ea1a6;
+	}
+
+	/* "current" stands out with a different color */
+	.nuclen-step-current {
+	background-color: #888800; /* WP admin blue or your brand color */
+	}
+
+	/* "done" could be green */
+	.nuclen-step-done {
+	background-color: #46b450;
+	}
+
+	/* "failed" could be red */
+	.nuclen-step-failed {
+	background-color: #dc3232;
+	}
+
+
+
+/*--------------------------------------------------------------
+#UTILITIES
+Quick helper classes for display, text alignment, etc.
+--------------------------------------------------------------*/
+.nuclen-hidden {
+	display: none !important;
+}
+
+.nuclen-inlinuclen-block {
+	display: inlinuclen-block;
+}
+
+.nuclen-float-right {
+	float: right;
+}
+
+.nuclen-center-text {
+	text-align: center;
+}

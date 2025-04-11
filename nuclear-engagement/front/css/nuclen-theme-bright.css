@@ -1,0 +1,48 @@
+/* front/css/nuclen-theme-bright.css */
+
+:root {
+	--nuclen-fg-color: #333333;
+	--nuclen-bg-color: #ffffff;
+
+	--nuclen-quiz-border-color: #000000;
+	--nuclen-quiz-border-style: solid;
+	--nuclen-quiz-border-width: 1px;
+	--nuclen-quiz-border-radius: 6px;
+	--nuclen-quiz-shadow-color: rgba(0,0,0,0.05);
+	--nuclen-quiz-shadow-blur: 8px;
+
+	--nuclen-quiz-button-bg: #94544A;
+	--nuclen-quiz-button-border-color: #94544A;
+	--nuclen-quiz-button-border-width: 2px;
+	--nuclen-quiz-button-border-radius: 4px;
+
+	--nuclen-quiz-progress-fg: #1B977D;
+	--nuclen-quiz-progress-bg: #e0e0e0;
+	--nuclen-quiz-progress-height: 10px;
+
+
+	--nuclen-summary-border-color: #000000;
+	--nuclen-summary-border-style: solid;
+	--nuclen-summary-border-width: 1px;
+	--nuclen-summary-border-radius: 6px;
+	--nuclen-summary-shadow-color: rgba(0,0,0,0.05);
+	--nuclen-summary-shadow-blur: 8px;
+	}
+
+	#nuclen-quiz-container {
+		background-color: var(--nuclen-bg-color);
+		border: var(--nuclen-quiz-border-width) var(--nuclen-quiz-border-style) var(--nuclen-quiz-border-color);
+		border-radius: var(--nuclen-quiz-border-radius);
+		box-shadow: 0 0 var(--nuclen-quiz-shadow-blur) var(--nuclen-quiz-shadow-color);
+	}
+
+	#nuclen-summary-container {
+		background-color: var(--nuclen-bg-color);
+		border: var(--nuclen-summary-border-width) var(--nuclen-summary-border-style) var(--nuclen-summary-border-color);
+		border-radius: var(--nuclen-summary-border-radius);
+		box-shadow: 0 0 var(--nuclen-summary-shadow-blur) var(--nuclen-summary-shadow-color);
+	}
+
+	.nuclen-fg {
+		color: var(--nuclen-fg-color);
+	}

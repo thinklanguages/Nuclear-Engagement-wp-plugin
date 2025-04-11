@@ -1,0 +1,277 @@
+/*
+* nuclen-front.css
+* Base styles applied regardless of the theme.
+*/
+
+#nuclen-quiz-container {
+	/* We no longer set background or border color here; they're set via theme variables. */
+	border-radius: 1em; /* fallback if no CSS var? Overridden by theme var. */
+	padding: 1em;
+	text-align: center;
+	width: 100%;
+}
+
+.nuclen-quiz-title {
+	font-size: 1.5em;
+	margin-bottom: 1em;
+}
+
+#nuclen-quiz-question-number {
+	font-size: 1.2em;
+	font-weight: bold;
+}
+
+/* Layout & Grid */
+#nuclen-quiz-answers-container {
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
+}
+
+/* Progress bar container */
+#nuclen-quiz-progress-bar-container {
+	background-color: var(--nuclen-quiz-progress-bg, #e0e0e0);
+	border-radius: 5px;
+	overflow: hidden;
+	margin-bottom: 20px;
+}
+
+#nuclen-quiz-progress-bar {
+	height: var(--nuclen-quiz-progress-height, 10px);
+	background-color: var(--nuclen-quiz-progress-fg, #1B977D);
+	width: 0%;
+	transition: width 0.3s;
+}
+
+/* Buttons & interactions */
+#nuclen-quiz-next-button,
+#nuclen-quiz-retake-button,
+.nuclen-quiz-result-tab {
+	color: var(--nuclen-fg-color, #000);
+	background-color: var(--nuclen-bg-color, #fff);
+	background-image: none;
+	padding: 0.5em 1em;
+	border-radius: 4px;
+	font-weight: bold;
+}
+
+#nuclen-quiz-next-button,
+#nuclen-quiz-retake-button {
+	border: 2px solid var(--nuclen-fg-color, #000);
+}
+
+.nuclen-quiz-result-tab {
+	border: 2px solid #666;
+	border-bottom: 0;
+}
+.nuclen-quiz-result-tab:hover {
+	background-color: #dcdcdc;
+}
+
+/* Answer button (now uses theme-based vars) */
+.nuclen-quiz-answer-button {
+	color: #fff;
+	background-color: var(--nuclen-quiz-button-bg, #94544A);
+	display: block;
+	width: 100%;
+	padding: 10px;
+	margin: 0;
+	border: var(--nuclen-quiz-button-border-width, 2px) solid var(--nuclen-quiz-button-border-color, #94544A);
+	border-radius: var(--nuclen-quiz-button-border-radius, 4px);
+	font-size: 16px;
+	font-weight: bold;
+	cursor: pointer;
+	transition: background-color 0.3s;
+	background-image: none;
+}
+
+.nuclen-quiz-answer-button:hover {
+	background-color: #dcdcdc;
+	color: #000;
+}
+
+.nuclen-quiz-answer-button:disabled {
+	cursor: not-allowed;
+}
+
+/* Answer states */
+.nuclen-quiz-answer-correct,
+.nuclen-quiz-answer-correct:hover,
+.nuclen-quiz-answer-correct:active,
+.nuclen-quiz-answer-correct:focus {
+	background-color: #1EA896;
+	color: #fff;
+}
+
+.nuclen-quiz-answer-wrong,
+.nuclen-quiz-answer-wrong:hover {
+	background-color: #FF715B;
+	color: #fff;
+}
+
+.nuclen-quiz-answer-not-selected,
+.nuclen-quiz-answer-not-selected:hover {
+	background-color: #dcdcdc;
+	opacity: 0.5;
+}
+
+/* Final result & details */
+#nuclen-quiz-final-result-container h2 {
+	font-size: 24px;
+	margin-bottom: 10px;
+}
+
+#nuclen-quiz-final-result-container p {
+	margin: 5px 0;
+}
+
+.nuclen-quiz-question-result.nuclen-quiz-question,
+.nuclen-quiz-question-result.nuclen-quiz-correct-answer {
+	font-size: 16px;
+}
+
+#nuclen-quiz-final-result-container .nuclen-quiz-question-result:last-child {
+	border-bottom: none;
+}
+
+.nuclen-quiz-detail-question {
+	font-weight: bold;
+}
+
+.nuclen-quiz-detail-answer {
+	font-size: 1.5em;
+	color: #1EA896;
+	font-weight: bold;
+}
+
+.nuclen-quiz-detail-explanation {
+	font-size: 1.2em;
+}
+
+.nuclen-quiz-explanation {
+	font-size: 14px;
+}
+
+#nuclen-quiz-final-result-container input[type="submit"] {
+	margin-top: 20px;
+	background-color: #4B6542;
+	color: white;
+	border: none;
+	cursor: pointer;
+	padding: 10px;
+	border-radius: 5px;
+	width: 100%;
+}
+
+#nuclen-quiz-final-result-container button:hover,
+#nuclen-quiz-final-result-container input[type="submit"]:hover {
+	background-color: #0e2506;
+}
+
+#nuclen-quiz-final-result-container input[type="text"],
+#nuclen-quiz-final-result-container input[type="email"] {
+	width: calc(100% - 20px);
+	padding: 10px;
+	margin: 10px 0;
+	border: 1px solid #e0e0e0;
+	border-radius: 5px;
+}
+
+/* Score area */
+#nuclen-quiz-results-title {
+	font-size: 1.5em;
+}
+
+#nuclen-quiz-results-score {
+	font-size: 2em;
+}
+
+#nuclen-quiz-score-comment {
+	font-size: 1.2em;
+	margin-bottom: 1em;
+}
+
+#nuclen-quiz-explanation-container {
+	font-size: 1.2em;
+	margin: 1em 0;
+}
+
+.nuclen-quiz-question-result.nuclen-quiz-correct-answer {
+	font-size: 1.5em;
+}
+
+/* Tabs container for results */
+#nuclen-quiz-result-tabs-container {
+	display: flex;
+	justify-content: center;
+	gap: 4px;
+}
+
+.nuclen-quiz-result-active-tab {
+	background-color: #1B977D;
+	color: white;
+}
+
+#nuclen-optin-container,
+#nuclen-quiz-result-details-container,
+#nuclen-quiz-end-message,
+#nuclen-quiz-start-message {
+	padding: 20px;
+	text-align: left;
+	margin-bottom: 40px;
+	border: 2px solid #666;
+	border-radius: 10px;
+}
+
+/* email optin */
+#nuclen-optin-container {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-self: center;
+	margin: 0 0 2em 0;
+	width: 300px;
+}
+#nuclen-optin-submit {
+	width: 100%;
+}
+
+/* Utility classes */
+.nuclen-quiz-hidden {
+	display: none;
+}
+
+.nuclen-quiz-pulse {
+	animation: nuclen-quiz-pulse-grow 1s;
+}
+
+@keyframes nuclen-quiz-pulse-grow {
+	0% {
+		transform: scale(1);
+	}
+	50% {
+		transform: scale(1.1);
+	}
+	100% {
+		transform: scale(1);
+	}
+}
+
+.nuclen-quiz-checkmark {
+	color: #4caf50;
+	font-weight: bold;
+	margin-left: 10px;
+}
+
+.nuclen-attribution {
+	margin-top: 0;
+	margin: 0 0 2em 2em;
+	font-size: x-small;
+}
+
+/* Summary container */
+#nuclen-summary-container {
+	font-size: 1.1em;
+	border-radius: 1em;
+	padding: 1em;
+}

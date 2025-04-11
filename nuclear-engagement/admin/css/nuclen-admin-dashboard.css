@@ -1,0 +1,49 @@
+/**
+ * All of the CSS for dashboard page.
+ */
+
+
+#nuclen-dashboard-wrapper {
+	display: flex;
+}
+.nuclen-dashboard-sidebar {
+	width: 200px;
+	border-right: 1px solid #ccc;
+}
+.nuclen-dashboard-sidebar ul {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+}
+.nuclen-dashboard-sidebar li {
+	margin: 0;
+	padding: 10px;
+	cursor: pointer;
+	border-bottom: 1px solid #eee;
+}
+.nuclen-dashboard-sidebar li:hover {
+	background: #f0f0f0;
+}
+.nuclen-dashboard-content {
+	flex: 1;
+	padding: 20px;
+}
+.nuclen-tab-content {
+	display: none;
+}
+.nuclen-tab-content.active {
+	display: block;
+}
+table.nuclen-stats-table {
+	border-collapse: collapse;
+	width: 100%;
+	margin-bottom: 20px;
+}
+table.nuclen-stats-table th, table.nuclen-stats-table td {
+	border: 1px solid #ccc;
+	padding: 8px;
+	text-align: left;
+}
+table.nuclen-stats-table th {
+	background: #f9f9f9;
+}
