@@ -74,7 +74,7 @@ export interface NuclenPointer {
       }).pointer('open');
     }
 
-    // Start the sequence
+    // Start the pointer sequence
     nuclenShowNextPointer();
   });
 })(window.jQuery);

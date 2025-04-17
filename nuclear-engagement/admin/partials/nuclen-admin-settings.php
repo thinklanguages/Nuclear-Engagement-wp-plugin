@@ -3,13 +3,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 /**
- * File: admin/partials/nuclen-admin-settings.php
- *
- * Changes:
- * - Removed color help text
- * - Using .nuclen-row, .nuclen-column, .nuclen-label-col, .nuclen-input-col for neat horizontal alignment
- * - Kept H3/H4/H5 headings for hierarchical grouping
- * - Full code with no omissions
+ * File: nuclear-engagement/admin/partials/nuclen-admin-settings.php
  *
  * @package NuclearEngagement\Admin
  */
@@ -26,13 +20,22 @@ if ( ! defined( 'ABSPATH' ) ) {
 			<a id="theme-tab" href="#theme" class="nav-tab"><?php esc_html_e( 'Theme', 'nuclear-engagement' ); ?></a>
 			<a id="display-tab" href="#display" class="nav-tab"><?php esc_html_e( 'Display', 'nuclear-engagement' ); ?></a>
 			<a id="optin-tab" href="#optin" class="nav-tab"><?php esc_html_e( 'Opt-In', 'nuclear-engagement' ); ?></a>
-			<a id="generation-tab" href="#generation" class="nav-tab"><?php esc_html_e( 'Generation', 'nuclear-engagement' ); ?></a>
+
+			<?php
+			/**
+			 * Let the Pro plugin inject additional tabs if active (e.g. "Generation").
+			 */
+			do_action( 'nuclear_engagement_admin_settings_tabs' );
+			?>
 		</div>
 
 		<!-- PLACEMENT TAB -->
 		<div id="placement" class="nuclen-tab-content nuclen-section" style="display:block;">
 			<h2 class="nuclen-subheading"><?php esc_html_e( 'Placement', 'nuclear-engagement' ); ?></h2>
-			<p><?php esc_html_e( 'Choose how and where to display quizzes and summaries.', 'nuclear-engagement' ); ?></p>
+			<p>
+				<?php esc_html_e( 'Choose how and where to display quizzes and summaries.', 'nuclear-engagement' ); ?>
+				<span nuclen-tooltip="<?php esc_attr_e('Shortcodes are the most versatile method. If your theme or page builder lacks slots for custom HTML in the single post template, you can only automatically append sections to the post content.', 'nuclear-engagement'); ?>">🛈</span>
+			</p>
 
 			<!-- Display Summary -->
 			<div class="nuclen-form-group nuclen-row">
@@ -409,7 +412,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 		<!-- DISPLAY TAB -->
 		<div id="display" class="nuclen-tab-content nuclen-section" style="display:none;">
 			<h2 class="nuclen-subheading"><?php esc_html_e( 'Number of Quiz Questions, Answers', 'nuclear-engagement' ); ?></h2>
-			<p><?php esc_html_e( 'Choose how many questions and answers to display per quiz.', 'nuclear-engagement' ); ?></p>
+			<p>
+				<?php esc_html_e( 'Choose how many questions and answers to display per quiz.', 'nuclear-engagement' ); ?>
+				<span nuclen-tooltip="<?php esc_attr_e('NE always generates 10 questions and 4 answers. These settings only control how many you show. You can change them at any time.', 'nuclear-engagement'); ?>">
+                    🛈
+                </span>
+			</p>
 
 			<div class="nuclen-form-group nuclen-row">
 				<div class="nuclen-column nuclen-label-col">
@@ -432,7 +440,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 			</div>
 
 			<h2 class="nuclen-subheading"><?php esc_html_e( 'Quiz Custom Text', 'nuclear-engagement' ); ?></h2>
-
+			<p>
+                <?php esc_html_e('Display custom content before or after the quiz.', 'nuclear-engagement'); ?>
+                <span nuclen-tooltip="<?php esc_attr_e('Useful for coupons, disclaimers, etc.', 'nuclear-engagement'); ?>">🛈</span>
+            </p>
 			<div class="nuclen-form-group nuclen-row">
 				<div class="nuclen-column nuclen-label-col">
 					<label for="custom_quiz_html_before" class="nuclen-label"><?php esc_html_e( 'Message before quiz start', 'nuclear-engagement' ); ?></label>
@@ -472,7 +483,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 			<h2 class="nuclen-subheading"><?php esc_html_e( 'Section Titles', 'nuclear-engagement' ); ?></h2>
 			<div class="nuclen-form-group nuclen-row">
 				<div class="nuclen-column nuclen-label-col">
-					<label for="quiz_title" class="nuclen-label"><?php esc_html_e( 'Quiz Title', 'nuclear-engagement' ); ?></label>
+					<label for="quiz_title" class="nuclen-label"><?php esc_html_e( 'Quiz Title', 'nuclear-engagement' ); ?>
+						<span nuclen-tooltip="<?php esc_attr_e('Examples: \"Test your knowledge,\" \"Can you pass this test?\"', 'nuclear-engagement'); ?>">🛈</span>
+					</label>
 				</div>
 				<div class="nuclen-column nuclen-input-col">
 					<input type="text" class="nuclen-input" name="quiz_title" id="quiz_title"
@@ -482,7 +495,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 			<div class="nuclen-form-group nuclen-row">
 				<div class="nuclen-column nuclen-label-col">
-					<label for="summary_title" class="nuclen-label"><?php esc_html_e( 'Summary Title', 'nuclear-engagement' ); ?></label>
+					<label for="summary_title" class="nuclen-label"><?php esc_html_e( 'Summary Title', 'nuclear-engagement' ); ?>
+					<span nuclen-tooltip="<?php esc_attr_e('Examples: \"Summary,\" \"Key Concepts.\"', 'nuclear-engagement'); ?>">🛈</span>
+					</label>
 				</div>
 				<div class="nuclen-column nuclen-input-col">
 					<input type="text" class="nuclen-input" name="summary_title" id="summary_title"
@@ -493,7 +508,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 			<!-- Show Attribution -->
 			<div class="nuclen-form-group nuclen-row">
 				<div class="nuclen-column nuclen-label-col">
-					<label for="nuclen_show_attribution" class="nuclen-label"><?php esc_html_e( 'Display Attribution Link', 'nuclear-engagement' ); ?></label>
+					<label for="nuclen_show_attribution" class="nuclen-label"><?php esc_html_e( 'Display Attribution Link', 'nuclear-engagement' ); ?>
+					<span nuclen-tooltip="<?php esc_attr_e( 'Help spread the word with a small link under the NE sections.', 'nuclear-engagement' ); ?>">🛈</span>
+					</label>
 				</div>
 				<div class="nuclen-column nuclen-input-col">
 					<input type="checkbox" name="show_attribution" id="nuclen_show_attribution" value="1"
@@ -508,7 +525,21 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 			<div class="nuclen-form-group nuclen-row">
 				<div class="nuclen-column nuclen-label-col">
-					<label for="enable_optin" class="nuclen-label"><?php esc_html_e( 'Enable Opt-In', 'nuclear-engagement' ); ?></label>
+					<label for="enable_optin" class="nuclen-label"><?php esc_html_e( 'Enable Opt-In', 'nuclear-engagement' ); ?>
+						<span nuclen-tooltip="<?php echo wp_kses( 
+							sprintf( 
+								__( 'Display an opt-in form at the end of the quiz to capture name and email. Tutorial: %s', 'nuclear-engagement' ), 
+								'<a href="https://www.youtube.com/watch?v=z39FJEFNKVM" target="_blank" rel="noopener noreferrer">' . esc_html__( 'YouTube', 'nuclear-engagement' ) . '</a>' 
+							), 
+							array( 
+								'a' => array( 
+									'href' => array(), 
+									'target' => array(), 
+									'rel' => array() 
+								) 
+							) 
+						); ?>">🛈</span>
+					</label>
 				</div>
 				<div class="nuclen-column nuclen-input-col">
 					<input type="checkbox" class="nuclen-checkbox" name="enable_optin" id="enable_optin" value="1"
@@ -518,7 +549,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 			<div class="nuclen-form-group nuclen-row">
 				<div class="nuclen-column nuclen-label-col">
-					<label for="optin_webhook" class="nuclen-label"><?php esc_html_e( 'Webhook URL', 'nuclear-engagement' ); ?></label>
+					<label for="optin_webhook" class="nuclen-label"><?php esc_html_e( 'Webhook URL', 'nuclear-engagement' ); ?>
+						<span nuclen-tooltip="<?php esc_attr_e( 'For Zapier/Make/IFTTT, paste your webhook here.', 'nuclear-engagement' ); ?>">🛈</span>
+					</label>
 				</div>
 				<div class="nuclen-column nuclen-input-col">
 					<input type="url" class="nuclen-input" name="optin_webhook" id="optin_webhook"
@@ -537,74 +570,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 			</div>
 		</div>
 
-		<!-- GENERATION TAB -->
-		<div id="generation" class="nuclen-tab-content nuclen-section" style="display:none;">
-			<h2 class="nuclen-subheading"><?php esc_html_e( 'Generation', 'nuclear-engagement' ); ?></h2>
-
-			<div class="nuclen-form-group nuclen-row">
-				<div class="nuclen-column nuclen-label-col">
-					<label for="update_last_modified" class="nuclen-label"><?php esc_html_e( 'Update "Last Modified" date', 'nuclear-engagement' ); ?></label>
-				</div>
-				<div class="nuclen-column nuclen-input-col">
-					<input type="checkbox" class="nuclen-checkbox" name="update_last_modified" id="update_last_modified" value="1"
-							<?php checked( $settings['update_last_modified'], 1 ); ?>>
-				</div>
-			</div>
-
-			<div class="nuclen-form-group nuclen-row">
-				<div class="nuclen-column nuclen-label-col">
-					<label for="auto_generate_quiz_on_publish" class="nuclen-label"><?php esc_html_e( 'Auto-generate Quiz on publish', 'nuclear-engagement' ); ?></label>
-				</div>
-				<div class="nuclen-column nuclen-input-col">
-					<input type="checkbox" class="nuclen-checkbox" name="auto_generate_quiz_on_publish" id="auto_generate_quiz_on_publish" value="1"
-							<?php checked( $settings['auto_generate_quiz_on_publish'], 1 ); ?>>
-				</div>
-			</div>
-
-			<div class="nuclen-form-group nuclen-row">
-				<div class="nuclen-column nuclen-label-col">
-					<label for="auto_generate_summary_on_publish" class="nuclen-label"><?php esc_html_e( 'Auto-generate Summary on publish', 'nuclear-engagement' ); ?></label>
-				</div>
-				<div class="nuclen-column nuclen-input-col">
-					<input type="checkbox" class="nuclen-checkbox" name="auto_generate_summary_on_publish" id="auto_generate_summary_on_publish" value="1"
-							<?php checked( $settings['auto_generate_summary_on_publish'], 1 ); ?>>
-				</div>
-			</div>
-
-			<h2 class="nuclen-subheading"><?php esc_html_e( 'Allowed Post Types', 'nuclear-engagement' ); ?></h2>
-			<div class="nuclen-form-group nuclen-row">
-				<div class="nuclen-column nuclen-label-col">
-					<label for="nuclen_generation_post_types" class="nuclen-label"><?php esc_html_e( 'Select Post Types', 'nuclear-engagement' ); ?></label>
-				</div>
-				<div class="nuclen-column nuclen-input-col">
-					<?php
-					$all_post_types   = get_post_types( array( 'public' => true ), 'objects' );
-					$excluded         = array(
-						'attachment',
-						'revision',
-						'nav_menu_item',
-						'custom_css',
-						'customize_changeset',
-						'oembed_cache',
-						'user_request',
-						'wp_block',
-						'wp_template',
-						'wp_template_part',
-					);
-					$saved_post_types = $settings['generation_post_types'] ?? array( 'post' );
-					echo '<select name="nuclen_generation_post_types[]" id="nuclen_generation_post_types" multiple style="height:6em;">';
-					foreach ( $all_post_types as $pt_key => $pt_obj ) {
-						if ( in_array( $pt_key, $excluded ) ) {
-							continue;
-						}
-						echo '<option value="' . esc_attr( $pt_key ) . '" ' . selected( in_array( $pt_key, $saved_post_types ), true, false ) . '>'
-							. esc_html( $pt_obj->labels->name ) . '</option>';
-					}
-					echo '</select>';
-					?>
-				</div>
-			</div>
-		</div>
+		<?php
+		/**
+		 * Let the Pro plugin display its “Generation” tab content here if active.
+		 * We pass $settings so the Pro partial can show current values.
+		 */
+		do_action( 'nuclear_engagement_admin_settings_content', $settings );
+		?>
 
 		<!-- Save Button -->
 		<div>
@@ -615,6 +587,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 				'nuclen_save_settings'
 			);
 			?>
+			<span nuclen-tooltip="<?php esc_attr_e('Updates all settings at once (all tabs).', 'nuclear-engagement'); ?>">🛈</span>
 		</div>
 	</form>
 </div>

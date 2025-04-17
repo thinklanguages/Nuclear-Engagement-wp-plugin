@@ -73,7 +73,7 @@ trait Admin_Assets {
 				'ajax_url'             => admin_url( 'admin-ajax.php' ),
 				'security'             => wp_create_nonce( 'nuclen_admin_ajax_nonce' ),
 				'rest_nonce'           => wp_create_nonce( 'wp_rest' ), // For X-WP-Nonce header
-				'rest_receive_content' => rest_url( 'nuclear-engagement/v1/receive-content' ),
+				'rest_receive_content' => rest_url( 'nuclear-engagement/v1/receive-content' ), // for AI content generation
 			)
 		);
 

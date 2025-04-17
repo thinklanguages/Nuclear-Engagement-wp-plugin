@@ -7,13 +7,21 @@ export function nuclearEngagementInitQuiz() {
   const maxQuestions = parseInt((window as any).NuclenSettings?.questions_per_quiz, 10) || 10;
   const maxAnswers   = parseInt((window as any).NuclenSettings?.answers_per_question, 10) || 4;
 
-  // 2) Create a truncated copy of postQuizData
+  // 2) Filter out questions with empty text; filter out empty answers; then truncate.
   const truncatedPostQuizData = postQuizData
-      .slice(0, maxQuestions)
-      .map((q) => ({
-          ...q,
-          answers: q.answers.slice(0, maxAnswers)
-      }));
+    .filter(q => q.question && q.question.trim().length > 0) // Skip if question is empty
+    .map(q => {
+      const filteredAnswers = q.answers
+        .filter(a => a && a.trim().length > 0) // Skip empty answers
+        .slice(0, maxAnswers);
+
+      return {
+        ...q,
+        answers: filteredAnswers
+      };
+    })
+    .filter(q => q.answers.length > 0) // Skip if no valid answers remain
+    .slice(0, maxQuestions);
 
   let currentQuestionIndex = 0;
   let quizScore = 0;
