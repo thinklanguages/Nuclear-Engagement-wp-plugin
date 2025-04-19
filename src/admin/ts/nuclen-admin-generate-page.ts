@@ -1,5 +1,5 @@
 /**
- * nuclen-admin-generate-page.ts
+ * file: nuclen-admin-generate-page.ts
  *
  * This file wires up the "Generate content" page in the WordPress admin (the multi-step form).
  */
@@ -273,6 +273,7 @@ import {
             }
           } else {
             if (submitBtn) {
+              nuclenShowElement(submitBtn);
               submitBtn.disabled = false;
             }
           }

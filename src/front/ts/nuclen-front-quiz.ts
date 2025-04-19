@@ -1,3 +1,5 @@
+// file: src/front/ts/nuclen-front-quiz.ts
+
 /*************************************************
  * 3) The Main Quiz Code (uses question, answers, explanation)
  *************************************************/
@@ -7,8 +9,12 @@ export function nuclearEngagementInitQuiz() {
   const maxQuestions = parseInt((window as any).NuclenSettings?.questions_per_quiz, 10) || 10;
   const maxAnswers   = parseInt((window as any).NuclenSettings?.answers_per_question, 10) || 4;
 
-  // 2) Create a truncated copy of postQuizData
+  // 2) Filter and truncate postQuizData: 
+  //    - Skip any questions with an empty question text
+  //    - Ensure the correct answer (first answer) is not empty
+  //    - Limit the total number of questions to maxQuestions
   const truncatedPostQuizData = postQuizData
+      .filter(q => q.question.trim() !== '' && q.answers[0] && q.answers[0].trim() !== '')
       .slice(0, maxQuestions)
       .map((q) => ({
           ...q,
@@ -195,7 +201,7 @@ export function nuclearEngagementInitQuiz() {
     const resultDetailsContainer = document.getElementById('nuclen-quiz-result-details-container');
     if (!resultDetailsContainer) return;
 
-    // The correct answer is answers[0]. If userAnswerOriginalIndex===0 => correct
+    // The correct answer is at original index 0. If userAnswerOriginalIndex === 0, then correct.
     let html = `
       <p class="nuclen-quiz-detail-question">${q.question}</p>
       <p class="nuclen-quiz-detail-correct"><strong>Correct answer:</strong> ${q.answers[0]}</p>
@@ -301,11 +307,10 @@ export function nuclearEngagementInitQuiz() {
       `;
     }
 
-    // Build array for randomizing
-    const answersWithIndices = qData.answers.map((answer, idx) => ({
-      answer,
-      originalIndex: idx
-    }));
+    // Build array for randomizing and filter out empty answers
+    const answersWithIndices = qData.answers
+        .map((answer, idx) => ({ answer, originalIndex: idx }))
+        .filter(item => item.answer.trim() !== '');
     answersWithIndices.sort(() => Math.random() - 0.5);
 
     if (answersContainer) {

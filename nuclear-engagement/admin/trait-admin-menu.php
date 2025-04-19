@@ -1,8 +1,9 @@
 <?php
 /**
  * File: admin/trait-admin-menu.php
- * Implementation of changes required by WordPress.org guidelines:
- * - Internationalize menu labels.
+ *
+ * Adds the Nuclear Engagement admin menu and hides the “Generate” page
+ * until **both** setup steps are finished (API key + WP App Password).
  *
  * @package NuclearEngagement\Admin
  */
@@ -13,13 +14,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-
 use NuclearEngagement\Admin\Settings;
 
 trait Admin_Menu {
 
 	/**
-	 * Add the plugin admin menu & submenus.
+	 * Register top‑level menu and sub‑pages.
 	 */
 	public function nuclen_add_admin_menu() {
 		add_menu_page(
@@ -34,7 +34,7 @@ trait Admin_Menu {
 
 		add_submenu_page(
 			'nuclear-engagement',
-			esc_html__( 'Nuclear Engagement - Dashboard', 'nuclear-engagement' ),
+			esc_html__( 'Nuclear Engagement – Dashboard', 'nuclear-engagement' ),
 			esc_html__( 'Dashboard', 'nuclear-engagement' ),
 			'manage_options',
 			'nuclear-engagement',
@@ -43,7 +43,7 @@ trait Admin_Menu {
 
 		add_submenu_page(
 			'nuclear-engagement',
-			esc_html__( 'Nuclear Engagement - Generate Content', 'nuclear-engagement' ),
+			esc_html__( 'Nuclear Engagement – Generate Content', 'nuclear-engagement' ),
 			esc_html__( 'Generate', 'nuclear-engagement' ),
 			'manage_options',
 			'nuclear-engagement-generate',
@@ -53,7 +53,7 @@ trait Admin_Menu {
 		$settings = new Settings();
 		add_submenu_page(
 			'nuclear-engagement',
-			esc_html__( 'Nuclear Engagement Settings', 'nuclear-engagement' ),
+			esc_html__( 'Nuclear Engagement – Settings', 'nuclear-engagement' ),
 			esc_html__( 'Settings', 'nuclear-engagement' ),
 			'manage_options',
 			'nuclear-engagement-settings',
@@ -61,21 +61,32 @@ trait Admin_Menu {
 		);
 	}
 
-	/**
-	 * Display the main Dashboard page.
-	 */
+	/** Dashboard page callback */
 	public function nuclen_display_dashboard() {
 		include plugin_dir_path( __FILE__ ) . 'Dashboard.php';
 	}
 
 	/**
-	 * Display the "Generate" page.
+	 * “Generate” page callback.
+	 *
+	 * Shows only an admin notice until **both** setup steps are done.
 	 */
 	public function nuclen_display_generate_page() {
-		$app_setup = get_option( 'nuclear_engagement_setup', array( 'connected' => false ) );
-		if ( ! $app_setup['connected'] ) {
+		$app_setup = get_option(
+			'nuclear_engagement_setup',
+			array(
+				'connected'           => false,
+				'wp_app_pass_created' => false,
+			)
+		);
+
+		// Block access unless the API key **and** WP App Password are present.
+		if ( empty( $app_setup['connected'] ) || empty( $app_setup['wp_app_pass_created'] ) ) {
 			echo '<div class="notice notice-warning"><p>'
-				. esc_html__( 'Please complete the plugin setup before generating content. Go to the Setup page.', 'nuclear-engagement' )
+				. esc_html__(
+					'Please finish the plugin setup (Step 1: API key and Step 2: WP App Password) before generating content. Go to the Setup page to complete the configuration.',
+					'nuclear-engagement'
+				)
 				. '</p></div>';
 			return;
 		}
@@ -84,7 +95,10 @@ trait Admin_Menu {
 	}
 
 	/**
-	 * Helper to render quiz stats table (example).
+	 * Helper: build a small “with / without” stats table.
+	 *
+	 * @param array $data Stats array.
+	 * @return string HTML table.
 	 */
 	private function nuclen_render_dashboard_stats_table( $data ) {
 		if ( empty( $data ) ) {
@@ -93,6 +107,7 @@ trait Admin_Menu {
 
 		$html  = '<table class="nuclen-stats-table">';
 		$html .= '<tr><th></th><th>' . esc_html__( 'With', 'nuclear-engagement' ) . '</th><th>' . esc_html__( 'Without', 'nuclear-engagement' ) . '</th></tr>';
+
 		foreach ( $data as $name => $counts ) {
 			$total = $counts['with'] + $counts['without'];
 			if ( $total > 0 ) {
@@ -103,6 +118,7 @@ trait Admin_Menu {
 				$html .= '</tr>';
 			}
 		}
+
 		$html .= '</table>';
 		return $html;
 	}

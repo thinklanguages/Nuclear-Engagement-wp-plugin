@@ -55,8 +55,8 @@ class Defaults {
 			'answers_per_question'             => '4',
 
 			// Display
-			'display_summary'                  => 'manual',
-			'display_quiz'                     => 'manual',
+			'display_summary'                  => 'before',
+			'display_quiz'                     => 'after',
 			'custom_quiz_html_before'          => '',
 			'custom_quiz_html_after'           => '',
 			'quiz_title'                       => 'Test your knowledge',
