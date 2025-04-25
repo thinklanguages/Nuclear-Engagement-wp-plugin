@@ -1,5 +1,4 @@
 <?php
-
 /**
  * File: admin/Admin.php
  *
@@ -45,47 +44,36 @@ class Admin {
 		$this->version     = $version;
 		$this->utils       = new Utils();
 
-		// Hook to add the quiz meta box
+		// Meta‑boxes
 		add_action( 'add_meta_boxes', array( $this, 'nuclen_add_quiz_data_meta_box' ) );
-		// Hook to save the quiz data
-		add_action( 'save_post', array( $this, 'nuclen_save_quiz_data_meta' ) );
-
-		// Summary data
+		add_action( 'save_post',      array( $this, 'nuclen_save_quiz_data_meta' ) );
 		add_action( 'add_meta_boxes', array( $this, 'nuclen_add_summary_data_meta_box' ) );
-		add_action( 'save_post', array( $this, 'nuclen_save_summary_data_meta' ) );
+		add_action( 'save_post',      array( $this, 'nuclen_save_summary_data_meta' ) );
 
-		// Existing app updates fetch
+		// AJAX & assets
 		add_action( 'wp_ajax_nuclen_fetch_app_updates', array( $this, 'nuclen_fetch_app_updates' ) );
-
-		// Enqueue admin scripts/styles
 		add_action( 'admin_enqueue_scripts', array( $this, 'wp_enqueue_scripts' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'wp_enqueue_styles' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'nuclen_enqueue_dashboard_styles' ) );
 
-		// Add admin menu
+		// Admin menu
 		add_action( 'admin_menu', array( $this, 'nuclen_add_admin_menu' ) );
 
-		// => ADDED HOOK to auto-generate on publish (including scheduled)
+		// Auto‑generation on publish
 		add_action( 'transition_post_status', array( $this, 'nuclen_auto_generate_on_publish' ), 10, 3 );
+
+		// Register the WP‑Cron polling hook
+		$this->nuclen_register_autogen_cron_hook();
 	}
 
-	/**
-	 * Getter for plugin_name
-	 */
+	/* --------------------------------‑ getters ---------------------------- */
+
 	public function nuclen_get_plugin_name() {
 		return $this->plugin_name;
 	}
-
-	/**
-	 * Getter for version
-	 */
 	public function nuclen_get_version() {
 		return $this->version;
 	}
-
-	/**
-	 * Getter for utils
-	 */
 	public function nuclen_get_utils() {
 		return $this->utils;
 	}

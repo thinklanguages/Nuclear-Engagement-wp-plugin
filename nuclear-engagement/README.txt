@@ -246,6 +246,8 @@ Yes, this plugin gets the job done. Some functionalities and user interface stil
 = 0.7.1 =
 - Content generation metaboxes in post editor now apply to all allowed post types
 - Fixed quiz start message style
+- Fixed autogenerate content upon post publish
+- Fixed display of empty sections in frontend
 
 = 0.7 =
 - Changed content default placement

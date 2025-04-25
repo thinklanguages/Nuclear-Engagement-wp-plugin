@@ -24,7 +24,7 @@ if ( ! defined( 'WPINC' ) ) {
 
 define( 'NUCLEN_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'NUCLEN_PLUGIN_VERSION', '0.7.1' );
-define( 'NUCLEN_ASSET_VERSION', '250425-1' );
+define( 'NUCLEN_ASSET_VERSION', '250425-2' );
 
 /**
  * Simple autoloader for our plugin classes (PSR‑4‑ish).

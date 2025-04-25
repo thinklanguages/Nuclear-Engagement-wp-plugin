@@ -323,6 +323,9 @@ class FrontClass {
 		if ( empty( $quiz_data ) ) {
 			return '';
 		}
+		if ( empty( $quiz_data['questions'] ) ) {
+			return '';
+		}
 
 		$options     = get_option( 'nuclear_engagement_settings', array() );
 		$quiz_title  = isset( $options['quiz_title'] ) ? $options['quiz_title'] : __( 'Test your knowledge', 'nuclear-engagement' );
@@ -360,6 +363,9 @@ class FrontClass {
 		$post_id      = get_the_ID();
 		$summary_data = get_post_meta( $post_id, 'nuclen-summary-data', true );
 		if ( empty( $summary_data ) ) {
+			return '';
+		}
+		if ( empty( trim( $summary_data['summary'] ?? '' ) ) ) {
 			return '';
 		}
 

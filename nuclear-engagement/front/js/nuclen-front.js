@@ -8,7 +8,7 @@ window.NuclenLazyLoadComponent=function(z,d=null){const i=document.getElementByI
         >
           ${n+1}
         </button>`}),e+="</div>",e+='<div id="nuclen-quiz-result-details-container" class="nuclen-fg dashboard-box"></div>',typeof NuclenCustomQuizHtmlAfter=="string"&&NuclenCustomQuizHtmlAfter.trim()!==""&&(e+=`
-        <div id="nuclen-quiz-end-message" class="nuclen-fg">
+        <div id="nuclen-quiz-end-message" class="nuclen-fg">  
           ${NuclenCustomQuizHtmlAfter}
         </div>
       `),window.NuclenOptinEnabled&&window.NuclenOptinWebhook&&(e+=`

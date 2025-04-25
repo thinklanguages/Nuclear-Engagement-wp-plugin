@@ -2,7 +2,12 @@
 /**
  * File: admin/trait-admin-autogenerate.php
  *
- * Handles auto-generation on Publish
+ * Auto-generation on publish **with WP-Cron polling**.
+ *
+ * v3 – 25 Apr 2025
+ * ----------------
+ * • Adds `protected` checks to skip regeneration if quiz/summary is marked protected
+ * • Maintains polling, result storage with guaranteed date
  */
 
 namespace NuclearEngagement\Admin;
@@ -13,55 +18,79 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 trait Admin_AutoGenerate {
 
-    /**
-     * => NEW METHOD to auto-generate quiz/summary on publish (including scheduled)
-     */
+    /*──────────────────────────────────────────────────────────
+      Register the WP-Cron action (called from Admin::__construct())
+     ──────────────────────────────────────────────────────────*/
+    public function nuclen_register_autogen_cron_hook() {
+        add_action(
+            'nuclen_poll_generation',
+            array( $this, 'nuclen_cron_poll_generation' ),
+            10,
+            4 // generation_id, workflow_type, post_id, attempt
+        );
+    }
+
+    /*──────────────────────────────────────────────────────────
+      Hook: post transitions to “publish”
+     ──────────────────────────────────────────────────────────*/
     public function nuclen_auto_generate_on_publish( $new_status, $old_status, $post ) {
-        // Only run if post transitions from something to "publish"
+        // Only when we enter publish
         if ( $old_status === 'publish' || $new_status !== 'publish' ) {
             return;
         }
 
-        // Fetch plugin settings
-        $nuclen_settings = get_option( 'nuclear_engagement_settings', array() );
-
-        // Allowed post types from settings (fallback to ['post'] if empty)
-        $allowed_post_types = $nuclen_settings['generation_post_types'] ?? array( 'post' );
-
-        // If this post type is not in the allowed list, skip
+        $settings           = get_option( 'nuclear_engagement_settings', array() );
+        $allowed_post_types = $settings['generation_post_types'] ?? array( 'post' );
         if ( ! in_array( $post->post_type, $allowed_post_types, true ) ) {
             return;
         }
 
-        $quiz_enabled    = ! empty( $nuclen_settings['auto_generate_quiz_on_publish'] ) && (int) $nuclen_settings['auto_generate_quiz_on_publish'] === 1;
-        $summary_enabled = ! empty( $nuclen_settings['auto_generate_summary_on_publish'] ) && (int) $nuclen_settings['auto_generate_summary_on_publish'] === 1;
-
-        if ( ! $quiz_enabled && ! $summary_enabled ) {
+        $gen_quiz    = ! empty( $settings['auto_generate_quiz_on_publish'] );
+        $gen_summary = ! empty( $settings['auto_generate_summary_on_publish'] );
+        if ( ! $gen_quiz && ! $gen_summary ) {
             return;
         }
 
-        // Generate quiz if needed
-        if ( $quiz_enabled ) {
-            $this->nuclen_generate_single( $post->ID, 'quiz' );
+        // Auto-generate quiz
+        if ( $gen_quiz ) {
+            // Skip if quiz is protected
+            $protected = get_post_meta( $post->ID, 'nuclen_quiz_protected', true );
+            if ( ! $protected ) {
+                $this->nuclen_generate_single( $post->ID, 'quiz' );
+            }
         }
 
-        // Generate summary if needed
-        if ( $summary_enabled ) {
-            $this->nuclen_generate_single( $post->ID, 'summary' );
+        // Auto-generate summary
+        if ( $gen_summary ) {
+            // Skip if summary is protected
+            $protected = get_post_meta( $post->ID, 'nuclen_summary_protected', true );
+            if ( ! $protected ) {
+                $this->nuclen_generate_single( $post->ID, 'summary' );
+            }
         }
     }
 
-    /**
-     * => HELPER to replicate single-generation logic for one post
-     */
+    /*──────────────────────────────────────────────────────────
+      Send post to SaaS & schedule polling
+     ──────────────────────────────────────────────────────────*/
     private function nuclen_generate_single( $post_id, $workflow_type ) {
         $post = get_post( $post_id );
         if ( ! $post ) {
             return;
         }
 
-        // Build the data to send
-        $posts_data = array(
+        // Skip if protected (double-check)
+        if ( $workflow_type === 'quiz' ) {
+            if ( get_post_meta( $post_id, 'nuclen_quiz_protected', true ) ) {
+                return;
+            }
+        } else {
+            if ( get_post_meta( $post_id, 'nuclen_summary_protected', true ) ) {
+                return;
+            }
+        }
+
+        $post_payload = array(
             array(
                 'id'      => $post_id,
                 'title'   => get_the_title( $post_id ),
@@ -69,68 +98,120 @@ trait Admin_AutoGenerate {
             ),
         );
 
-        // For summary, pick some defaults
-        $summary_format = 'paragraph';
-        $summary_length = 30;
-        $summary_items  = 3;
-
-        // Construct a workflow
         $workflow = array(
-            'type'                    => $workflow_type, // quiz or summary
-            'summary_format'          => $summary_format,
-            'summary_length'          => $summary_length,
-            'summary_number_of_items' => $summary_items,
+            'type'                    => $workflow_type,
+            'summary_format'          => 'paragraph',
+            'summary_length'          => 30,
+            'summary_number_of_items' => 3,
         );
 
-        // Add a generation ID for this auto-generation
-        $data_to_send = array(
-            'posts'         => $posts_data,
+        $generation_id = 'auto_' . $post_id . '_' . time();
+
+        $data = array(
+            'posts'         => $post_payload,
             'workflow'      => $workflow,
-            'generation_id' => 'auto_' . $post_id . '_' . time(), // Generates a unique generation_id
+            'generation_id' => $generation_id,
         );
 
-        // Send to remote
-        $public_class = new \NuclearEngagement\Front\FrontClass( $this->nuclen_get_plugin_name(), $this->nuclen_get_version() );
-        $result       = $public_class->nuclen_send_posts_to_app_backend( $data_to_send );
-
-        // If request entirely failed:
+        $front  = new \NuclearEngagement\Front\FrontClass(
+            $this->nuclen_get_plugin_name(),
+            $this->nuclen_get_version()
+        );
+        $result = $front->nuclen_send_posts_to_app_backend( $data );
         if ( $result === false ) {
             return;
         }
 
-        // === MAIN CHANGE: Check "results" instead of "posts"
-        if ( empty( $result['results'] ) || ! is_array( $result['results'] ) ) {
-            // No data returned
+        // If SaaS returns synchronously
+        if ( ! empty( $result['results'] ) && is_array( $result['results'] ) ) {
+            $this->nuclen_store_results( $result['results'], $workflow_type );
             return;
         }
 
-        // The remote returns e.g. "results" => [ "123" => [ "questions" => [...], ... ] ]
-        foreach ( $result['results'] as $pid_str => $generated_post_data ) {
+        // Otherwise, schedule first poll in 30s
+        wp_schedule_single_event(
+            time() + 30,
+            'nuclen_poll_generation',
+            array( $generation_id, $workflow_type, $post_id, 1 )
+        );
+    }
+
+    /*──────────────────────────────────────────────────────────
+      Cron callback: poll SaaS /updates
+     ──────────────────────────────────────────────────────────*/
+    public function nuclen_cron_poll_generation( $generation_id, $workflow_type, $post_id, $attempt ) {
+        $max_attempts = 10;
+        $retry_delay  = 30;
+
+        $app_setup = get_option( 'nuclear_engagement_setup', array() );
+        $api_key   = $app_setup['api_key'] ?? '';
+
+        $response = wp_remote_post(
+            'https://app.nuclearengagement.com/api/updates',
+            array(
+                'headers' => array(
+                    'Content-Type' => 'application/json',
+                    'X-API-Key'    => $api_key,
+                ),
+                'body'    => wp_json_encode(
+                    array(
+                        'siteUrl'       => get_site_url(),
+                        'generation_id' => $generation_id,
+                    )
+                ),
+                'timeout' => 30,
+            )
+        );
+
+        if ( ! is_wp_error( $response ) ) {
+            $code = wp_remote_retrieve_response_code( $response );
+            $body = json_decode( wp_remote_retrieve_body( $response ), true );
+
+            if ( $code === 200 && ! empty( $body['results'] ) ) {
+                $this->nuclen_store_results( $body['results'], $workflow_type );
+                return;
+            }
+        }
+
+        if ( $attempt < $max_attempts ) {
+            wp_schedule_single_event(
+                time() + $retry_delay,
+                'nuclen_poll_generation',
+                array( $generation_id, $workflow_type, $post_id, $attempt + 1 )
+            );
+        } else {
+            $this->nuclen_get_utils()->nuclen_log(
+                "Polling aborted after $max_attempts attempts for post $post_id ($workflow_type)"
+            );
+        }
+    }
+
+    /*──────────────────────────────────────────────────────────
+      Persist results + ensure date
+     ──────────────────────────────────────────────────────────*/
+    private function nuclen_store_results( array $results, string $workflow_type ) {
+        $date_now = current_time( 'mysql' );
+
+        foreach ( $results as $pid_str => $data ) {
             $pid = (int) $pid_str;
 
-            if ( $pid === $post_id ) {
-                // For quiz or summary, store the entire array
-                if ( $workflow_type === 'quiz' ) {
-                    update_post_meta( $pid, 'nuclen-quiz-data', $generated_post_data );
-                    clean_post_cache( $pid );
-                } else {
-                    update_post_meta( $pid, 'nuclen-summary-data', $generated_post_data );
-                    clean_post_cache( $pid );
-                }
-
-                // Then maybe update last_modified
-                $nuclen_settings = get_option( 'nuclear_engagement_settings', array() );
-                if ( isset( $nuclen_settings['update_last_modified'] ) && (int) $nuclen_settings['update_last_modified'] === 1 ) {
-                    $time      = current_time( 'mysql' );
-                    $post_data = array(
-                        'ID'                => $pid,
-                        'post_modified'     => $time,
-                        'post_modified_gmt' => get_gmt_from_date( $time ),
-                    );
-                    wp_update_post( $post_data );
-                    clean_post_cache( $pid );
-                }
+            // Ensure date is set
+            if ( empty( $data['date'] ) ) {
+                $data['date'] = $date_now;
             }
+
+            if ( $workflow_type === 'quiz' ) {
+                update_post_meta( $pid, 'nuclen-quiz-data', $data );
+            } else {
+                // Legacy: if summary under 'content'
+                if ( ! isset( $data['summary'] ) && isset( $data['content'] ) ) {
+                    $data['summary'] = $data['content'];
+                    unset( $data['content'] );
+                }
+                update_post_meta( $pid, 'nuclen-summary-data', $data );
+            }
+
+            clean_post_cache( $pid );
         }
     }
 }
