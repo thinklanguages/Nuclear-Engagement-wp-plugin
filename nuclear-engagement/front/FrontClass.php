@@ -319,11 +319,18 @@ class FrontClass {
 
 	public function nuclen_render_quiz_shortcode() {
 		$post_id   = get_the_ID();
-		$quiz_data = get_post_meta( $post_id, 'nuclen-quiz-data', true );
-		if ( empty( $quiz_data ) ) {
+		$quiz_meta   = get_post_meta( $post_id, 'nuclen-quiz-data', true );
+		$quiz_data   = maybe_unserialize( $quiz_meta );
+		if ( ! is_array( $quiz_data ) || empty( $quiz_data['questions'] ) ) {
 			return '';
 		}
-		if ( empty( $quiz_data['questions'] ) ) {
+		$valid_questions = array_filter(
+			$quiz_data['questions'],
+			function ( $q ) {
+				return isset( $q['question'] ) && trim( $q['question'] ) !== '';
+			}
+		);
+		if ( empty( $valid_questions ) ) {
 			return '';
 		}
 
