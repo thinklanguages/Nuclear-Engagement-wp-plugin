@@ -18,31 +18,45 @@ trait Admin_Metaboxes {
 	 * ---------------------------------------------------------------------- */
 
 	/**
-	 * Add the quiz meta box to the post editor screen.
+	 * Add the quiz meta box to the editor screens for allowed post types.
 	 */
 	public function nuclen_add_quiz_data_meta_box() {
-		add_meta_box(
-			'nuclen-quiz-data-meta-box',
-			'Quiz',
-			array( $this, 'nuclen_render_quiz_data_meta_box' ),
-			'post',
-			'normal',
-			'default'
-		);
+		$settings   = get_option( 'nuclear_engagement_settings', array() );
+		$post_types = isset( $settings['generation_post_types'] ) && is_array( $settings['generation_post_types'] )
+			? $settings['generation_post_types']
+			: array( 'post' );
+
+		foreach ( $post_types as $post_type ) {
+			add_meta_box(
+				'nuclen-quiz-data-meta-box',
+				'Quiz',
+				array( $this, 'nuclen_render_quiz_data_meta_box' ),
+				$post_type,
+				'normal',
+				'default'
+			);
+		}
 	}
 
 	/**
-	 * Add the summary meta box to the post editor screen.
+	 * Add the summary meta box to the editor screens for allowed post types.
 	 */
 	public function nuclen_add_summary_data_meta_box() {
-		add_meta_box(
-			'nuclen-summary-data-meta-box',
-			'Summary',
-			array( $this, 'nuclen_render_summary_data_meta_box' ),
-			'post',
-			'normal',
-			'default'
-		);
+		$settings   = get_option( 'nuclear_engagement_settings', array() );
+		$post_types = isset( $settings['generation_post_types'] ) && is_array( $settings['generation_post_types'] )
+			? $settings['generation_post_types']
+			: array( 'post' );
+
+		foreach ( $post_types as $post_type ) {
+			add_meta_box(
+				'nuclen-summary-data-meta-box',
+				'Summary',
+				array( $this, 'nuclen_render_summary_data_meta_box' ),
+				$post_type,
+				'normal',
+				'default'
+			);
+		}
 	}
 
 	/* -------------------------------------------------------------------------
@@ -89,18 +103,25 @@ trait Admin_Metaboxes {
 		echo '</div>';
 
 		// *** Single‑Generate Quiz button ***
-		echo '<div><button type="button" 
-                id="nuclen-generate-quiz-single" 
-                class="button nuclen-generate-single"
-                data-post-id="' . esc_attr( $post->ID ) . '" 
-                data-workflow="quiz"
-              >
-                Generate Quiz with AI
-              </button>
-              <span nuclen-tooltip="(re)Generate. Data will be stored automatically (no need to save post).">🛈</span></div>';
+		echo '<div>
+			<button type="button"
+					id="nuclen-generate-quiz-single"
+					class="button nuclen-generate-single"
+					data-post-id="' . esc_attr( $post->ID ) . '"
+					data-workflow="quiz"
+			>
+				Generate Quiz with AI
+			</button>
+			<span nuclen-tooltip="(re)Generate. Data will be stored automatically (no need to save post).">🛈</span>
+		</div>';
 
 		echo '<p><strong>Date</strong><br>';
-		echo '<input type="text" name="nuclen_quiz_data[date]" value="' . esc_attr( $date ) . '" readonly style="width:100%; background:#f9f9f9;" />';
+		echo '<input type="text"
+					name="nuclen_quiz_data[date]"
+					value="' . esc_attr( $date ) . '"
+					readonly
+					style="width:100%; background:#f9f9f9;"
+			  />';
 		echo '</p>';
 
 		// Render exactly 10 question blocks
@@ -123,30 +144,31 @@ trait Admin_Metaboxes {
 			echo '<div class="nuclen-quiz-metabox-question">';
 			echo '<h4>Question ' . absint( $q_index + 1 ) . '</h4>';
 
-			echo '<input type="text" 
-                        name="nuclen_quiz_data[questions][' . absint( $q_index ) . '][question]" 
-                        value="' . esc_attr( $question_text ) . '" 
-                        style="width:100%;" />';
+			echo '<input type="text"
+						name="nuclen_quiz_data[questions][' . absint( $q_index ) . '][question]"
+						value="' . esc_attr( $question_text ) . '"
+						style="width:100%;"
+				  />';
 
 			echo '<p><strong>Answers</strong></p>';
 			foreach ( $answers as $a_index => $answer ) {
-				// style the first answer
 				$style = $a_index === 0 ? 'font-weight:bold; background:#e6ffe6;' : '';
 				echo '<p style="' . esc_attr( $style ) . '">';
 				echo 'Answer ' . absint( $a_index + 1 ) . '<br>';
-				echo '<input type="text" 
-                            name="nuclen_quiz_data[questions][' . absint( $q_index ) . '][answers][' . absint( $a_index ) . ']" 
-                            value="' . esc_attr( $answer ) . '" 
-                            style="width:100%;" />';
+				echo '<input type="text"
+							name="nuclen_quiz_data[questions][' . absint( $q_index ) . '][answers][' . absint( $a_index ) . ']"
+							value="' . esc_attr( $answer ) . '"
+							style="width:100%;"
+					  />';
 				echo '</p>';
 			}
 
 			echo '<p><strong>Explanation</strong><br>';
-			echo '<textarea 
-                    name="nuclen_quiz_data[questions][' . absint( $q_index ) . '][explanation]" 
-                    style="width:100%;" rows="3">' .
-				esc_textarea( $explanation ) .
-				'</textarea>';
+			echo '<textarea
+						name="nuclen_quiz_data[questions][' . absint( $q_index ) . '][explanation]"
+						style="width:100%;"
+						rows="3"
+				  >' . esc_textarea( $explanation ) . '</textarea>';
 			echo '</p>';
 			echo '</div>';
 		}
@@ -188,26 +210,28 @@ trait Admin_Metaboxes {
 		echo '</label>';
 		echo '</div>';
 
-		echo '<div><button 
-                type="button" 
-                id="nuclen-generate-summary-single" 
-                class="button nuclen-generate-single"
-                data-post-id="' . esc_attr( $post->ID ) . '"
-                data-workflow="summary"
-              >
-                Generate Summary with AI
-              </button>
-              <span nuclen-tooltip="(re)Generate. Data will be stored automatically (no need to save post).">🛈</span></div>';
+		echo '<div>
+			<button
+				type="button"
+				id="nuclen-generate-summary-single"
+				class="button nuclen-generate-single"
+				data-post-id="' . esc_attr( $post->ID ) . '"
+				data-workflow="summary"
+			>
+				Generate Summary with AI
+			</button>
+			<span nuclen-tooltip="(re)Generate. Data will be stored automatically (no need to save post).">🛈</span>
+		</div>';
 
 		// 4) The date field (read‑only by default)
 		echo '<p><strong>Date</strong><br>';
 		echo '<input
-                type="text"
-                name="nuclen_summary_data[date]"
-                value="' . esc_attr( $date ) . '"
-                readonly
-                style="width:100%; background:#f9f9f9;"
-              />';
+				type="text"
+				name="nuclen_summary_data[date]"
+				value="' . esc_attr( $date ) . '"
+				readonly
+				style="width:100%; background:#f9f9f9;"
+			  />';
 		echo '</p>';
 
 		// 5) The main summary textarea
@@ -220,7 +244,6 @@ trait Admin_Metaboxes {
 				'textarea_rows' => 5,
 				'media_buttons' => false,
 				'teeny'         => true,
-				array( '__back_compat_meta_box' => true ),
 			)
 		);
 		echo '</p>';
@@ -258,7 +281,7 @@ trait Admin_Metaboxes {
 		);
 		$raw_quiz_data = $raw_quiz_data ? wp_unslash( $raw_quiz_data ) : array();
 
-		if ( is_array( $raw_quiz_data ) ) {
+		if ( is_array( $raw_quiz_data ) ) {		
 			$date      = isset( $raw_quiz_data['date'] )
 				? sanitize_text_field( $raw_quiz_data['date'] )
 				: gmdate( 'Y-m-d H:i:s' );
@@ -386,7 +409,6 @@ trait Admin_Metaboxes {
 			$nuclen_settings = get_option( 'nuclear_engagement_settings', array() );
 			if ( isset( $nuclen_settings['update_last_modified'] ) && (int) $nuclen_settings['update_last_modified'] === 1 ) {
 
-				/* Temporarily un‑hook both save callbacks before updating */
 				remove_action( 'save_post', array( $this, 'nuclen_save_quiz_data_meta' ), 10 );
 				remove_action( 'save_post', array( $this, 'nuclen_save_summary_data_meta' ), 10 );
 
@@ -398,13 +420,10 @@ trait Admin_Metaboxes {
 				);
 				wp_update_post( $post_data );
 
-				/* Re‑hook the callbacks */
 				add_action( 'save_post', array( $this, 'nuclen_save_quiz_data_meta' ), 10, 1 );
 				add_action( 'save_post', array( $this, 'nuclen_save_summary_data_meta' ), 10, 1 );
 			}
 		}
-
-		/* ---- Protected checkbox ------------------------------------------ */
 
 		$protected = isset( $_POST['nuclen_summary_protected'] )
 			? sanitize_text_field( wp_unslash( $_POST['nuclen_summary_protected'] ) )
@@ -416,4 +435,5 @@ trait Admin_Metaboxes {
 			delete_post_meta( $post_id, 'nuclen_summary_protected' );
 		}
 	}
+
 }

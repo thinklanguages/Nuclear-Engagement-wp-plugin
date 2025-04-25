@@ -8,7 +8,7 @@ Tags: AI, quiz, summary, email optin, content generation
 Requires at least: 5.6
 Tested up to: 6.8
 Requires PHP: 7.3
-Stable tag: 0.7
+Stable tag: 0.7.1
 License: GPL-2.0+
 License URI: http://www.gnu.org/licenses/gpl-2.0.txt
 Donate link: https://buy.stripe.com/3csg1Tdn0a9h3ss288
@@ -27,6 +27,11 @@ I called it Nuclear Engagement because it is the nuclear option to boost blog en
 
 With NE, you can **bulk generate engaging content like quizzes and summaries from your blog posts using AI**. The generated content is stored in post meta fields, which you can display via shortcodes or automatic insertion.
 
+🚀 **3× Longer Visits** with instant AI quizzes & summaries  
+⚙️ **1‑Click, Sitewide**: Bulk process 100+ posts in seconds  
+🔒 **No Coding Needed**: Auto‑insert via shortcode or auto‑append  
+📈 **Lead Capture**: Built‑in email opt‑in via Zapier & Make  
+
 #### Why Nuclear Engagement
 What sets it apart from other quiz plugins and summarizers is the option to **process every post in one run**. As a result, you get a sitewide content upgrade in a matter of seconds. No manual writing, editing, settings, or placement is needed. The process is **fully automated**.
 This makes NE especially appealing to **large blogs** (100+ posts).
@@ -35,7 +40,7 @@ In short, NE is the only solution to:
 - **Generate** AI summaries and quizzes from blog post content
 - **Fully automate** the process from input, through creation and storage, all the way to display
 - **Process** posts in **batches** (not one by one)
-When I say "the only solution", I mean it. This plugin is crated from my own custom code that I had to write because I couldn't find any plugin or tool that does that.
+When I say "the only solution", I mean it. This plugin is created from my own custom code that I had to write because I couldn't find any plugin or tool that does that.
 
 #### Automated Process
 **Creation** => **Storage** => **Display**
@@ -143,7 +148,7 @@ I'm also looking forward to get feature requests and suggestions. Help me make N
 [youtube https://www.youtube.com/watch?v=w7B81SLUddA]
 
 == Donate ==
-NE is taking me months of work. Will you show you appreciation? You get to request features and enjoy priority support. Support NE development today to **get results faster**!
+NE is taking me months of work. Will you show your appreciation? You get to request features and enjoy priority support. Support NE development today to **get results faster**!
 [Donate Now via Stripe](https://buy.stripe.com/3csg1Tdn0a9h3ss288)
 
 == External Data Disclosure ==
@@ -152,7 +157,7 @@ That's why this plugin connects to the [Nuclear Engagement app](https://app.nucl
 
 When you use Nuclear Engagement, selected post data is sent to an external app. Neither the plugin nor the app store or transmit any data beyond what is necessary for generating and returning the quiz or summary content.
 - Data sent: post content, post title, post id, post metadata
-- When: Whenever the user triggers content generation on the plugin's generation page, on the WP post editor, or upon post update (if autogeneration is enabled)
+- When: Whenever the user triggers content generation on the plugin's generation page, on the WP post editor
 - Why: To generate AI content based on the post content
 - [Privacy Policy](https://www.nuclearengagement.com/privacy-policy?ref=wp_listing&link=privacy_policy)
 - [Terms of Service](https://www.nuclearengagement.com/terms-and-conditions?ref=wp_listing&link=terms_of_service)
@@ -174,23 +179,23 @@ By installing and activating the plugin, you agree to the above third-party usag
 = Is Nuclear Engagement really free? =
 With a free account, you can use every feature included in the plugin. Manual content creation is unlimited, while AI generation uses credits. When you create a free account, you get free credits to use right away. In any case, the content that you generate is yours forever and you can keep displaying it with a free account.
 
-= What is Nuclear Engagement and how does it work? =
-Nuclear Engagement is a WordPress plugin that uses AI to generate engaging quizzes and summaries from your blog posts by sending selected post content to an external AI service.
+= How does Nuclear Engagement work? =
+Nuclear Engagement uses AI to generate engaging quizzes and summaries from your blog posts by sending selected post content to an external AI service.
 
 = How quickly can I start seeing results? =  
 You’ll likely notice changes in engagement metrics (e.g., time on page, bounce rate) within a day or two, as soon as quizzes or summaries are visible. Check NE’s analytics or Google Analytics in real time.
 
-= Why are quizzes good for engagement? =  
+= Why are quizzes good for reader engagement? =  
 They prompt visitors to interact, increasing on-page time and pages viewed. This is especially effective if your content is educational or problem-solving in nature.
 
-= Why are summaries good for engagement? =  
+= Why are summaries good for reader engagement? =  
 They help readers quickly grasp key points. If visitors see value up front, they’re more likely to stay for the full post (rather than bouncing).
 
 = Is the AI content good enough? = 
-Yes! The latest models are smarters than even and, combined with the right prompt, they give excellent results. There's virtually no need for manual editing or regeneration.
+Yes! The latest models are smarter than ever and, combined with the right prompt, they give excellent results. There's virtually no need for manual editing or regeneration.
 
 = Is AI Content Good for SEO? =
-Google cares about **helpful content**, regardless of whether it’s AI-generated or human-written. Longer stay times and lower bounce rates generally signal positive user experience—benefitting SEO.
+Google cares about **helpful content**, whether it’s AI-generated or human-written. Longer stay times and lower bounce rates generally signal positive user experience—benefitting SEO.
 
 = Can I edit the generated content? =
 Yes, you can manually edit the content from the post editor or regenerate it from the post editor or the plugin's generation page.
@@ -206,12 +211,6 @@ Yes, you can adjust styling options to ensure that quizzes and summaries blend s
 
 = How does the AI-generated content benefit my site's SEO? =
 By increasing reader engagement and encouraging longer visits, the interactive content helps improve user signals—an important factor for SEO.
-
-= What post data is sent to the external AI service? =
-Only essential data—such as the post title, content, ID, and metadata—is transmitted to generate the quizzes and summaries.
-
-= Is my content secure when using Nuclear Engagement? =
-Yes, the plugin transmits minimal required data only and follows strict privacy guidelines as outlined in its privacy policy.
 
 = How long does it take to generate content? =
 It only takes a minute or so to process hundreds of posts. Generation starts right when you trigger it.
@@ -232,7 +231,7 @@ No. No coding is needed. It only takes a few clicks to set up and a few more to 
 The generated content is stored in post meta fields in your WordPress site's database. Yes, that's yours forever.
 
 = Do I need to keep the plugin active after generating content? =
-Yes, you still need the plugin to display the generated content.
+Yes, you still need the plugin to display the generated content. Free, forever!
 
 = Do I need an account on OpenAI? =
 No. Generation is done via the NE app. You only need a free account on the NE app.
@@ -241,9 +240,13 @@ No. Generation is done via the NE app. You only need a free account on the NE ap
 The tiny codebase and lazy loading assure fast loading, both in admin and on frontend. You won't even notice it's active. While it's still under development, no conflicts are know to occur. If they do, I'll fix them right away.
 
 = Is this a working version? =
-Yes, this plugin is already working for many pilot users. Some functionalities and user interface still need to be polished and expanded, but everything needed to generate and display content is there.
+Yes, this plugin gets the job done. Some functionalities and user interface still need to be polished and expanded, but everything needed to generate and display content is there.
 
 == Changelog ==
+= 0.7.1 =
+- Content generation metaboxes in post editor now apply to all allowed post types
+- Fixed quiz start message style
+
 = 0.7 =
 - Changed content default placement
 - Improved authentication flow
@@ -282,7 +285,6 @@ Yes, this plugin is already working for many pilot users. Some functionalities a
 
 = 0.3.1 =
 - Plugin update checker.
-- Generate sections on post publish.
 - Support for WP custom post types.
 - Added option to update post “last modified” date upon storage to signal new content to search engines and visitors.
 - Added metrics to analytics dashboard: quiz start/quiz view %, quiz answers/quiz start %, quiz end/quiz start %, quiz optin/quiz end %.

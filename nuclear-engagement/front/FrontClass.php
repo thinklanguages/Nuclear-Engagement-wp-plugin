@@ -330,7 +330,7 @@ class FrontClass {
 
 		$html = '<section id="nuclen-quiz-container">';
 		if ( ! empty( trim( $html_before ) ) ) {
-			$html .= '<div id="nuclen-quiz-start-message">' . shortcode_unautop( $html_before ) . '</div>';
+			$html .= '<div id="nuclen-quiz-start-message" class="nuclen-fg">' . shortcode_unautop( $html_before ) . '</div>';
 		}
 
 		$html .= '

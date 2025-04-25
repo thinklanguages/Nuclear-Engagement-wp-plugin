@@ -109,7 +109,7 @@ export function nuclearEngagementInitQuiz() {
     // Custom HTML after quiz
     if (typeof NuclenCustomQuizHtmlAfter === 'string' && NuclenCustomQuizHtmlAfter.trim() !== '') {
       finalHTML += `
-        <div id="nuclen-quiz-end-message" class="nuclen-fg">
+        <div id="nuclen-quiz-end-message" class="nuclen-fg">  
           ${NuclenCustomQuizHtmlAfter}
         </div>
       `;
