@@ -4,11 +4,11 @@
 */
 
 #nuclen-quiz-container {
-	/* We no longer set background or border color here; they're set via theme variables. */
-	border-radius: 1em; /* fallback if no CSS var? Overridden by theme var. */
+	border-radius: 1em;
 	padding: 1em;
 	text-align: center;
 	width: 100%;
+	margin: 1em 0;
 }
 
 .nuclen-quiz-title {
@@ -274,4 +274,5 @@
 	font-size: 1.1em;
 	border-radius: 1em;
 	padding: 1em;
+	margin: 1em 0;
 }

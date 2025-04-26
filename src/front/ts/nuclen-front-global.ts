@@ -10,7 +10,10 @@ declare global {
       answers: string[];     // answers, with answers[0] = correct
       explanation: string;   // explanation
     }>;
-  
+    
+    const NuclenOptinPosition: string;   // 'with_results' | 'before_results'
+    const NuclenOptinMandatory: boolean;
+    
     // Custom quiz HTML after the results
     const NuclenCustomQuizHtmlAfter: string;
   

@@ -66,6 +66,8 @@ class Defaults {
 			'enable_optin'                     => false,
 			'optin_webhook'                    => '',
 			'optin_success_message'            => 'Thank you, your submission was successful!',
+			'optin_position'                   => 'with_results',
+			'optin_mandatory'                  => false,
 
 			'update_last_modified'             => false,
 			'auto_generate_quiz_on_publish'    => 0,
