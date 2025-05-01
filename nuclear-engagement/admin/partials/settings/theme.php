@@ -100,7 +100,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 		<h3 class="nuclen-subheading"><?php esc_html_e( 'Quiz Progress Bar', 'nuclear-engagement' ); ?></h3>
 		<div class="nuclen-row">
 			<div class="nuclen-column nuclen-label-col"><label for="nuclen_quiz_progress_bar_fg_color" class="nuclen-label"><?php esc_html_e( 'Progress Foreground Color', 'nuclear-engagement' ); ?></label></div>
-			<div class="nuclen-column nuclen-input-col"><input type="text" class="nuclen-input wp-color-picker-field" name="nuclен_quiz_progress_bar_fg_color" id="nuclen_quiz_progress_bar_fg_color" value="<?php echo esc_attr( $settings['quiz_progress_bar_fg_color'] ); ?>"></div>
+			<div class="nuclen-column nuclen-input-col"><input type="text" class="nuclen-input wp-color-picker-field" name="nuclen_quiz_progress_bar_fg_color" id="nuclen_quiz_progress_bar_fg_color" value="<?php echo esc_attr( $settings['quiz_progress_bar_fg_color'] ); ?>"></div>
 		</div>
 		<div class="nuclen-row">
 			<div class="nuclen-column nuclen-label-col"><label for="nuclen_quiz_progress_bar_bg_color" class="nuclen-label"><?php esc_html_e( 'Progress Background Color', 'nuclear-engagement' ); ?></label></div>

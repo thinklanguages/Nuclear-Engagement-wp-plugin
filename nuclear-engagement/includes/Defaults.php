@@ -62,13 +62,15 @@ class Defaults {
 			'quiz_title'                       => 'Test your knowledge',
 			'summary_title'                    => 'Key Facts',
 
-			// Optin
+			// Opt-in
 			'enable_optin'                     => false,
 			'optin_webhook'                    => '',
-			'optin_success_message'            => 'Thank you, your submission was successful!',
 			'optin_position'                   => 'with_results',
 			'optin_mandatory'                  => false,
+			'optin_prompt_text'                => 'Please enter your details to view your score:',
+			'optin_button_text'                => 'Submit',
 
+			// Generation
 			'update_last_modified'             => false,
 			'auto_generate_quiz_on_publish'    => 0,
 			'auto_generate_summary_on_publish' => 0,

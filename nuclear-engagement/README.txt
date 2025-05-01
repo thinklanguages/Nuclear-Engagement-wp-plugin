@@ -4,11 +4,11 @@ Plugin URI: https://www.nuclearengagement.com?ref=wp_listing&link=plugin_uri
 Author: Stefano Lodola
 Author URI: https://www.nuclearengagement.com/about?ref=wp_listing&link=author_uri
 Contributors: stefanolodola
-Tags: AI, quiz, summary, email optin, content generation
+Tags: AI, quiz, summary, email optin, AI writer
 Requires at least: 5.6
 Tested up to: 6.8
 Requires PHP: 7.3
-Stable tag: 0.7.2
+Stable tag: 0.8.1
 License: GPL-2.0+
 License URI: http://www.gnu.org/licenses/gpl-2.0.txt
 Donate link: https://buy.stripe.com/3csg1Tdn0a9h3ss288
@@ -243,6 +243,15 @@ The tiny codebase and lazy loading assure fast loading, both in admin and on fro
 Yes, this plugin gets the job done. Some functionalities and user interface still need to be polished and expanded, but everything needed to generate and display content is there.
 
 == Changelog ==
+= 0.8.1 =
+- Fixed styling settings
+
+= 0.8 =
+- Added: Display email opt-in form before or with results
+- Added: Set opt-in as mandatory or optional
+- Added: Store opt-in data in database
+- Added: Export opt-in data to CSV
+
 = 0.7.2 =
 - Fixed display of empty sections in frontend
 

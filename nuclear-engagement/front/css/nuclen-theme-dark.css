@@ -43,6 +43,6 @@
 		box-shadow: 0 0 var(--nuclen-summary-shadow_blur, 8px) var(--nuclen-summary-shadow-color, rgba(255,255,255,0.1));
 	}
 
-	.nuclen-fg {
+	section .nuclen-fg {
 		color: var(--nuclen-fg-color);
 	}
