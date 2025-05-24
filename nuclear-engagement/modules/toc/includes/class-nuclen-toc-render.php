@@ -63,6 +63,12 @@ final class Nuclen_TOC_Render {
 			return ''; 
 		}
 
+		// Get sticky setting if not explicitly set in shortcode
+		if ( ! isset( $atts['sticky'] ) ) {
+			$ne_settings = get_option( 'nuclear_engagement_settings', array() );
+			$atts['sticky'] = ! empty( $ne_settings['toc_sticky'] );
+		}
+
 		// Only enqueue assets if we have valid headings to display
 		$this->enqueue_assets( $atts );
 
@@ -78,10 +84,31 @@ final class Nuclen_TOC_Render {
 		/* ---------- build HTML ---------- */
 		$nav_id = esc_attr( wp_unique_id( 'nuclen-toc-' ) );
 		$hidden = ( $atts['toggle'] === 'true' && $atts['collapsed'] === 'true' );
-		$theme  = in_array( $atts['theme'], [ 'dark', 'auto' ], true ) ? ' nuclen-toc-' . $atts['theme'] : '';
-
-		$out  = '<section class="nuclen-toc-wrapper' . $theme .
-		        ( $atts['highlight'] === 'true' ? ' nuclen-has-highlight' : '' ) . '">';
+		// Build the TOC wrapper class
+		$wrapper_classes = array( 'nuclen-toc-wrapper' );
+		
+		// Add theme class if needed
+		if ( in_array( $atts['theme'], array( 'dark', 'auto' ), true ) ) {
+			$wrapper_classes[] = 'nuclen-toc-' . $atts['theme'];
+		}
+		
+		// Add sticky class if enabled
+		if ( ! empty( $atts['sticky'] ) ) {
+			$wrapper_classes[] = 'nuclen-toc-sticky';
+		}
+		
+		// Add highlight class if enabled
+		if ( $atts['highlight'] === 'true' ) {
+			$wrapper_classes[] = 'nuclen-has-highlight';
+		}
+		
+		// Build the output
+		$out = '<section id="' . esc_attr( $nav_id ) . '-wrapper" class="' . esc_attr( implode( ' ', $wrapper_classes ) ) . '">';
+		
+		// Add the TOC content wrapper if sticky is enabled
+		if ( ! empty( $atts['sticky'] ) ) {
+			$out .= '<div class="nuclen-toc-content">';
+		}
 
 		if ( $atts['toggle'] === 'true' ) {
 			$exp = $hidden ? 'false' : 'true';
@@ -111,7 +138,19 @@ final class Nuclen_TOC_Render {
 		}
 		while ( $stack ) { $out .= '</li></' . $list . '>'; array_pop( $stack ); }
 
-		return $out . '</nav></section>';
+		// Close the content wrapper if sticky is enabled
+		if ( ! empty( $atts['sticky'] ) ) {
+			$out .= '</div>'; // Close .nuclen-toc-content
+		}
+
+		$out .= '</section>';
+
+		// Enqueue the necessary scripts
+		if ( ! wp_script_is( 'nuclen-toc-front', 'enqueued' ) ) {
+			wp_enqueue_script( 'nuclen-toc-front' );
+		}
+
+		return $out;
 	}
 
 	/* ───────────────── heading-ID injector ───────────────────── */

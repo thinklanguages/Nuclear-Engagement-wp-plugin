@@ -86,4 +86,20 @@ if ( ! defined( 'ABSPATH' ) ) {
 			</p>
 		</div>
 	</div>
+
+	<!-- Sticky TOC -->
+	<div class="nuclen-form-group nuclen-row">
+		<div class="nuclen-column nuclen-label-col">
+			<label for="nuclen_toc_sticky" class="nuclen-label"><?php esc_html_e( 'Sticky TOC', 'nuclear-engagement' ); ?></label>
+		</div>
+		<div class="nuclen-column nuclen-input-col">
+			<label class="nuclen-checkbox-label">
+				<input type="checkbox" name="toc_sticky" id="nuclen_toc_sticky" value="1" <?php checked( '1', $settings['toc_sticky'] ?? '0' ); ?> />
+				<?php esc_html_e( 'Make Table of Contents sticky when scrolling', 'nuclear-engagement' ); ?>
+			</label>
+			<p class="description">
+				<?php esc_html_e( 'When enabled, the TOC will stick to the top of the viewport when scrolling down the page.', 'nuclear-engagement' ); ?>
+			</p>
+		</div>
+	</div>
 </div>

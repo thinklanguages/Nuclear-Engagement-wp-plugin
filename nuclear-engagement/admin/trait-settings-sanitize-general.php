@@ -32,6 +32,7 @@ trait SettingsSanitizeGeneralTrait {
 		$d_sum = in_array( $in['display_summary'] ?? 'manual', $disp, true ) ? $in['display_summary'] : 'manual';
 		$d_q   = in_array( $in['display_quiz']    ?? 'manual', $disp, true ) ? $in['display_quiz']    : 'manual';
 		$d_toc = in_array( $in['display_toc']     ?? 'manual', $disp, true ) ? $in['display_toc']     : 'manual';
+		$toc_sticky = ! empty( $in['toc_sticky'] ) ? '1' : '0';
 
 		/* Custom HTML / titles */
 		$html_before = isset( $in['custom_quiz_html_before'] ) ? wp_kses_post( $in['custom_quiz_html_before'] ) : '';
@@ -64,6 +65,7 @@ trait SettingsSanitizeGeneralTrait {
 			'display_summary'                  => $d_sum,
 			'display_quiz'                     => $d_q,
 			'display_toc'                      => $d_toc,
+			'toc_sticky'                       => $toc_sticky,
 
 			'custom_quiz_html_before'          => $html_before,
 			'custom_quiz_html_after'           => $html_after,

@@ -27,7 +27,7 @@ trait SettingsSanitizeCoreTrait {
 	private function nuclen_sanitize_core( array $input ): array {
 		return array_merge(
 			$this->nuclen_sanitize_general( $input ),
-			$this->nuclen_sanitize_style(   $input ),
+			$this->nuclen_sanitize_style(   $input )
 		);
 	}
 }

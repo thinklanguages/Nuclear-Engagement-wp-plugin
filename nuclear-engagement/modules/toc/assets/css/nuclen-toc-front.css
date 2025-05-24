@@ -31,6 +31,129 @@
 
 /* Front-end TOC styles (leveraging root variables) */
 
+/* Sticky TOC styles */
+.nuclen-toc-wrapper.nuclen-toc-sticky {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 100;
+    transition: all 0.3s ease;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    max-width: 300px;
+    background: #fff;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    border-radius: 4px;
+    padding: 15px;
+    box-sizing: border-box;
+    overflow: hidden; /* Prevent content from overflowing */
+}
+
+/* Collapsed state */
+.nuclen-toc-sticky.nuclen-toc-collapsed {
+    width: 40px;
+    height: 40px;
+    opacity: 0.8;
+    overflow: hidden;
+    border-radius: 50%;
+    background-color: #f5f5f5;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    cursor: pointer;
+}
+
+.nuclen-toc-sticky.nuclen-toc-collapsed .nuclen-toc-toggle {
+    display: none;
+}
+
+.nuclen-toc-sticky.nuclen-toc-collapsed .nuclen-toc-content {
+    display: none;
+}
+
+.nuclen-toc-sticky .nuclen-toc-content {
+    flex: 1;
+    overflow-y: auto;
+    max-height: calc(90vh - 50px); /* Account for the toggle button height */
+    padding-right: 5px; /* Add some space for the scrollbar */
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0,0,0,0.2) transparent;
+}
+
+/* Webkit scrollbar styling */
+.nuclen-toc-sticky .nuclen-toc-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.nuclen-toc-sticky .nuclen-toc-content::-webkit-scrollbar-track {
+    background: transparent;
+    margin: 5px 0;
+}
+
+.nuclen-toc-sticky .nuclen-toc-content::-webkit-scrollbar-thumb {
+    background-color: rgba(0,0,0,0.2);
+    border-radius: 3px;
+}
+
+.nuclen-toc-sticky .nuclen-toc-content::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(0,0,0,0.3);
+}
+
+/* Toggle button */
+.nuclen-toc-collapse-toggle {
+    display: none;
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 40px;
+    height: 40px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    z-index: 101;
+    padding: 0;
+    color: #333;
+}
+
+.nuclen-toc-sticky .nuclen-toc-collapse-toggle {
+    display: block;
+}
+
+.nuclen-toc-collapse-toggle:before {
+    content: '\2630';
+    font-size: 24px;
+    line-height: 40px;
+}
+
+.nuclen-toc-sticky:not(.nuclen-toc-collapsed) .nuclen-toc-collapse-toggle:before {
+    content: '×';
+    font-size: 32px;
+    line-height: 36px;
+}
+
+/* TOC content wrapper */
+.nuclen-toc-content {
+    transition: all 0.3s ease;
+}
+
+.nuclen-toc-wrapper.nuclen-toc-sticky .nuclen-toc {
+    position: relative;
+}
+
+.nuclen-toc-wrapper.nuclen-toc-sticky.nuclen-toc-stuck .nuclen-toc {
+    position: fixed;
+    top: 20px; /* Adjust this value to control the offset from the top */
+    max-height: calc(100vh - 40px); /* Viewport height minus top and bottom padding */
+    overflow-y: auto;
+    width: auto;
+    max-width: 300px; /* Adjust based on your design */
+    z-index: 100;
+}
+
+/* Ensure the TOC stays within its parent width when sticky */
+.nuclen-toc-stuck {
+    max-width: 100% !important;
+}
+
 .nuclen-toc-wrapper{
 	background:var(--nuclen-toc-bg-color);
 	color:var(--nuclen-toc-font-color);

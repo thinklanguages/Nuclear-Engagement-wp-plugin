@@ -99,6 +99,7 @@ trait SettingsPageSaveTrait {
 			'nuclen_display_summary'                  => 'display_summary',
 			'nuclen_display_quiz'                     => 'display_quiz',
 			'nuclen_display_toc'                      => 'display_toc',
+			'toc_sticky'                              => 'toc_sticky',
 		);
 
 		foreach ( $field_map as $post_key => $opt_key ) {

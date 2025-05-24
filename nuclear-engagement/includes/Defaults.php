@@ -68,6 +68,7 @@ class Defaults {
 			'display_summary'                  => 'before',
 			'display_quiz'                     => 'after',
 			'display_toc'                      => 'manual',
+			'toc_sticky'                       => false, // Whether to make TOC sticky when scrolling
 			'custom_quiz_html_before'          => '',
 			'custom_quiz_html_after'           => '',
 			'quiz_title'                       => 'Test your knowledge',
