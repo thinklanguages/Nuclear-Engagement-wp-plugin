@@ -48,6 +48,10 @@ class Plugin {
 		// - At the end of that file, OptinData::init() is called,
 		//   registering AJAX actions for every request.
 
+		// TOC module
+		require_once plugin_dir_path( __FILE__ ) . '../modules/toc/loader.php';
+
+
 		$this->loader = new Loader();
 	}
 

@@ -75,7 +75,7 @@ class Utils {
 
 		$base_css_file_name = 'nuclen-theme-custom.css';
 		$custom_css_path    = $custom_dir . '/' . $base_css_file_name;
-		$version            = file_exists( $custom_css_path ) ? filemtime( $custom_css_path ) : time();
+		$version            = time();
 
 		$custom_css_url = $upload_dir['baseurl'] . '/nuclear-engagement/' . $base_css_file_name . '?v=' . $version;
 

@@ -31,6 +31,7 @@ trait SettingsSanitizeGeneralTrait {
 		$disp = array( 'manual', 'before', 'after' );
 		$d_sum = in_array( $in['display_summary'] ?? 'manual', $disp, true ) ? $in['display_summary'] : 'manual';
 		$d_q   = in_array( $in['display_quiz']    ?? 'manual', $disp, true ) ? $in['display_quiz']    : 'manual';
+		$d_toc = in_array( $in['display_toc']     ?? 'manual', $disp, true ) ? $in['display_toc']     : 'manual';
 
 		/* Custom HTML / titles */
 		$html_before = isset( $in['custom_quiz_html_before'] ) ? wp_kses_post( $in['custom_quiz_html_before'] ) : '';
@@ -38,6 +39,7 @@ trait SettingsSanitizeGeneralTrait {
 
 		$quiz_title    = sanitize_text_field( $in['quiz_title']    ?? 'Test your knowledge' );
 		$summary_title = sanitize_text_field( $in['summary_title'] ?? 'Key Facts' );
+		$toc_title     = sanitize_text_field( $in['toc_title']     ?? 'Table of Contents' );
 
 		/* Generation */
 		$gen_pt = is_array( $in['generation_post_types'] ?? null ) ? $in['generation_post_types'] : array( 'post' );
@@ -61,12 +63,14 @@ trait SettingsSanitizeGeneralTrait {
 			/* display */
 			'display_summary'                  => $d_sum,
 			'display_quiz'                     => $d_q,
+			'display_toc'                      => $d_toc,
 
 			'custom_quiz_html_before'          => $html_before,
 			'custom_quiz_html_after'           => $html_after,
 
 			'quiz_title'                       => $quiz_title,
 			'summary_title'                    => $summary_title,
+			'toc_title'                        => $toc_title,
 
 			/* generation */
 			'generation_post_types'            => $gen_pt,

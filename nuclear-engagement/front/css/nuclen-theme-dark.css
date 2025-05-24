@@ -26,6 +26,16 @@
 	--nuclen-summary-border-radius: 6px;
 	--nuclen-summary-shadow-color: rgba(255,255,255,0.1);
 	--nuclen-summary-shadow_blur: 8px;
+
+	/* TOC */
+	--nuclen-toc-font-color:#ffffff;
+	--nuclen-toc-bg-color:#333333;
+	--nuclen-toc-border-color:#ffffff;
+	--nuclen-toc-border-style:solid;
+	--nuclen-toc-border-width:1px;
+	--nuclen-toc-border-radius:6px;
+	--nuclen-toc-shadow-color:rgba(255,255,255,0.1);
+	--nuclen-toc-shadow-blur:8px;
 	}
 
 	#nuclen-quiz-container {

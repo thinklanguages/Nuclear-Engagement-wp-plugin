@@ -1,0 +1,11 @@
+/* File: modules/toc/assets/css/nuclen-toc-admin.css */
+/* ---------- Nuclen TOC – admin generator styles ---------- */
+
+#nuclen-shortcode-preview{
+	font-family:monospace;
+	padding:2px 4px;
+	background:#f1f1f1;
+	border:1px solid #ccc;
+	border-radius:3px;
+	word-break:break-all;
+}

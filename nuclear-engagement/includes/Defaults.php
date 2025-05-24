@@ -2,8 +2,6 @@
 /**
  * File: includes/Defaults.php
  *
- * Full code with no omissions.
- *
  * @package NuclearEngagement
  */
 
@@ -19,7 +17,7 @@ class Defaults {
 		return array(
 			'theme'                            => 'bright',
 
-			// Quiz styling
+			/* ───── Quiz styling ───── */
 			'font_size'                        => '16',
 			'font_color'                       => '#000000',
 			'bg_color'                         => '#ffffff',
@@ -39,7 +37,7 @@ class Defaults {
 			'quiz_progress_bar_bg_color'       => '#e0e0e0',
 			'quiz_progress_bar_height'         => '10',
 
-			// Summary styling
+			/* ───── Summary styling ───── */
 			'summary_font_size'                => '16',
 			'summary_font_color'               => '#000000',
 			'summary_bg_color'                 => '#ffffff',
@@ -50,19 +48,33 @@ class Defaults {
 			'summary_shadow_color'             => 'rgba(0,0,0,0.15)',
 			'summary_shadow_blur'              => '8',
 
-			// Quiz items
+			/* ───── TOC styling ───── */
+			'toc_font_size'        => '16',
+			'toc_font_color'       => '#000000',
+			'toc_bg_color'         => '#ffffff',
+			'toc_border_color'     => '#000000',
+			'toc_border_style'     => 'solid',
+			'toc_border_width'     => '1',
+			'toc_border_radius'    => '6',
+			'toc_shadow_color'     => 'rgba(0,0,0,0.05)',
+			'toc_shadow_blur'      => '8',
+			'toc_link_color'       => '#1e73be',
+
+			/* ───── Quiz items ───── */
 			'questions_per_quiz'               => '10',
 			'answers_per_question'             => '4',
 
-			// Display
+			/* ───── Display ───── */
 			'display_summary'                  => 'before',
 			'display_quiz'                     => 'after',
+			'display_toc'                      => 'manual',
 			'custom_quiz_html_before'          => '',
 			'custom_quiz_html_after'           => '',
 			'quiz_title'                       => 'Test your knowledge',
 			'summary_title'                    => 'Key Facts',
+			'toc_title'                        => 'Table of Contents',
 
-			// Opt-in
+			/* ───── Opt-in ───── */
 			'enable_optin'                     => false,
 			'optin_webhook'                    => '',
 			'optin_position'                   => 'with_results',
@@ -70,23 +82,14 @@ class Defaults {
 			'optin_prompt_text'                => 'Please enter your details to view your score:',
 			'optin_button_text'                => 'Submit',
 
-			// Generation
+			/* ───── Generation ───── */
 			'update_last_modified'             => false,
 			'auto_generate_quiz_on_publish'    => 0,
 			'auto_generate_summary_on_publish' => 0,
 			'generation_post_types'            => array( 'post' ),
 
-			// Show attribution
+			/* ───── Attribution ───── */
 			'show_attribution'                 => false,
-		);
-	}
-
-	public static function nuclen_get_default_setup() {
-		return array(
-			'api_key'             => '',
-			'connected'           => false,
-			'wp_app_pass_created' => false,
-			'wp_app_pass_uuid'    => '',
 		);
 	}
 }

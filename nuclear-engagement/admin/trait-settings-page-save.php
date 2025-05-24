@@ -74,6 +74,18 @@ trait SettingsPageSaveTrait {
 			'nuclen_summary_shadow_color'             => 'summary_shadow_color',
 			'nuclen_summary_shadow_blur'              => 'summary_shadow_blur',
 
+			/* —— TOC style —— */
+			'nuclen_toc_font_color'       => 'toc_font_color',
+			'nuclen_toc_bg_color'         => 'toc_bg_color',
+			'nuclen_toc_border_color'     => 'toc_border_color',
+			'nuclen_toc_border_style'     => 'toc_border_style',
+			'nuclen_toc_border_width'     => 'toc_border_width',
+			'nuclen_toc_border_radius'    => 'toc_border_radius',
+			'nuclen_toc_shadow_color'     => 'toc_shadow_color',
+			'nuclen_toc_shadow_blur'      => 'toc_shadow_blur',
+			'nuclen_toc_link_color'       => 'toc_link_color',
+			'nuclen_toc_title'            => 'toc_title',
+
 			/* —— Legacy generic —— */
 			'nuclen_border_color'                     => 'border_color',
 			'nuclen_border_style'                     => 'border_style',
@@ -86,6 +98,7 @@ trait SettingsPageSaveTrait {
 			/* —— Placement —— */
 			'nuclen_display_summary'                  => 'display_summary',
 			'nuclen_display_quiz'                     => 'display_quiz',
+			'nuclen_display_toc'                      => 'display_toc',
 		);
 
 		foreach ( $field_map as $post_key => $opt_key ) {
@@ -135,10 +148,29 @@ trait SettingsPageSaveTrait {
 
 		/* ───────── 2) SANITIZE & SAVE ───────── */
 		$new_settings = $this->nuclen_sanitize_settings( $raw );
+
+		/* Ensure newly-added TOC keys survive even if the sanitizer
+		   hasn’t been updated yet. */
+		$toc_keys = array(
+			'toc_font_color', 'toc_bg_color', 'toc_border_color', 'toc_border_style',
+			'toc_border_width', 'toc_border_radius', 'toc_shadow_color', 'toc_shadow_blur',
+			'toc_link_color',
+		);
+		foreach ( $toc_keys as $k ) {
+			if ( isset( $raw[ $k ] ) && $raw[ $k ] !== '' ) {
+				$new_settings[ $k ] = $raw[ $k ];
+			}
+		}
+
 		update_option( 'nuclear_engagement_settings', $new_settings );
 
-		// update $settings (by ref) so UI shows saved values immediately
+		/* update $settings (by ref) so UI shows saved values immediately */
 		$settings = wp_parse_args( $new_settings, $defaults );
+
+		/* Immediately regenerate the custom CSS when the user is on a custom theme */
+		if ( 'custom' === $settings['theme'] && method_exists( $this, 'nuclen_write_custom_css' ) ) {
+			$this->nuclen_write_custom_css( $settings );
+		}
 
 		echo '<div class="notice notice-success"><p>' .
 		     esc_html__( 'Settings saved.', 'nuclear-engagement' ) .

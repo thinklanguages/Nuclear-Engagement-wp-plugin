@@ -8,7 +8,7 @@ Tags: AI, quiz, summary, email optin, AI writer
 Requires at least: 5.6
 Tested up to: 6.8
 Requires PHP: 7.3
-Stable tag: 0.8.1
+Stable tag: 0.9
 License: GPL-2.0+
 License URI: http://www.gnu.org/licenses/gpl-2.0.txt
 Donate link: https://buy.stripe.com/3csg1Tdn0a9h3ss288
@@ -243,6 +243,9 @@ The tiny codebase and lazy loading assure fast loading, both in admin and on fro
 Yes, this plugin gets the job done. Some functionalities and user interface still need to be polished and expanded, but everything needed to generate and display content is there.
 
 == Changelog ==
+= 0.9 =
+- Added: gamified TOC module (table of contents)
+
 = 0.8.1 =
 - Fixed styling settings
 

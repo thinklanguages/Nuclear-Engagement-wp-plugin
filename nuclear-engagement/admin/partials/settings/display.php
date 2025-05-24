@@ -98,6 +98,15 @@ if ( ! defined( 'ABSPATH' ) ) {
 		</div>
 	</div>
 
+	<div class="nuclen-form-group nuclen-row">
+		<div class="nuclen-column nuclen-label-col">
+			<label for="nuclen_toc_title" class="nuclen-label"><?php esc_html_e( 'TOC Title', 'nuclear-engagement' ); ?></label>
+		</div>
+		<div class="nuclen-column nuclen-input-col">
+			<input type="text" class="nuclen-input" name="nuclen_toc_title" id="nuclen_toc_title" value="<?php echo esc_attr( $settings['toc_title'] ); ?>">
+		</div>
+	</div>
+
 	<!-- Show Attribution -->
 	<div class="nuclen-form-group nuclen-row">
 		<div class="nuclen-column nuclen-label-col">

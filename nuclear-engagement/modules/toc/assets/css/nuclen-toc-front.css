@@ -1,0 +1,72 @@
+/*
+ * File: modules/toc/assets/css/nuclen-toc-front.css
+ *
+ */
+/* ---------- Nuclen TOC – public styles ---------- */
+
+/* base palette – override in theme or via shortcode `theme="dark"` */
+:root{
+	--nuclen-toc-link:inherit;
+	--nuclen-toc-link-active:#000;
+	--nuclen-toc-offset:72px;
+}
+
+.nuclen-toc {
+	font-size:.9em;
+}
+.nuclen-toc li{margin:.25em 0}
+
+.nuclen-toc a{
+	text-decoration:none;
+	color:var(--nuclen-toc-link);
+}
+.nuclen-toc a.is-active[aria-current="location"]{
+	font-weight:700;
+}
+
+.toc-title{display:block;margin-bottom:.5em;font-weight:600}
+
+/* anchor offset for sticky headers – value injected via inline style */
+:target{scroll-margin-top:var(--nuclen-toc-offset)}
+
+/* Front-end TOC styles (leveraging root variables) */
+
+.nuclen-toc-wrapper{
+	background:var(--nuclen-toc-bg-color);
+	color:var(--nuclen-toc-font-color);
+	border:var(--nuclen-toc-border-width) var(--nuclen-toc-border-style) var(--nuclen-toc-border-color);
+	border-radius:var(--nuclen-toc-border-radius);
+	box-shadow:0 0 var(--nuclen-toc-shadow-blur) var(--nuclen-toc-shadow-color);
+	padding:1rem;
+	margin-bottom:1.5rem;
+	font-size:0.9em;
+}
+
+.nuclen-toc ul,
+.nuclen-toc ol{
+	list-style: none;
+	margin:0;
+	padding:0;
+}
+
+.nuclen-toc a:hover,
+.nuclen-toc a:focus{
+	text-decoration:underline;
+}
+
+.nuclen-toc-toggle{
+    background: none;
+    color: inherit;
+    cursor: pointer;
+    font-size: 0.7em;
+    margin-bottom: 0.5em;
+    padding: 0.2em;
+    border: 1px solid;
+    border-radius: 0.2em;
+}
+
+.nuclen-has-highlight [data-highlight="true"] a.nuclen-current,
+.nuclen-has-highlight [data-highlight="true"] a.nuclen-current:hover{
+	font-weight:bold;
+	text-decoration:underline;
+}

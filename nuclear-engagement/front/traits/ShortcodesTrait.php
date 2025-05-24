@@ -22,28 +22,61 @@ trait ShortcodesTrait {
 		$options          = get_option( 'nuclear_engagement_settings', array() );
 		$summary_position = $options['display_summary'] ?? 'none';
 		$quiz_position    = $options['display_quiz']   ?? 'none';
+		$toc_position     = $options['display_toc']    ?? 'manual';
 
-		if ( $summary_position === $quiz_position && in_array( $summary_position, array( 'before', 'after' ), true ) ) {
-			// Both sections same position
-			if ( $summary_position === 'before' ) {
-				return do_shortcode( '[nuclear_engagement_summary]' ) . do_shortcode( '[nuclear_engagement_quiz]' ) . $content;
-			}
-			return $content . do_shortcode( '[nuclear_engagement_summary]' ) . do_shortcode( '[nuclear_engagement_quiz]' );
+		// Collect all elements with their positions
+		$elements = [
+			'summary' => [
+				'position' => $summary_position,
+				'shortcode' => '[nuclear_engagement_summary]',
+			],
+			'quiz' => [
+				'position' => $quiz_position,
+				'shortcode' => '[nuclear_engagement_quiz]',
+			],
+			'toc' => [
+				'position' => $toc_position,
+				'shortcode' => '[nuclear_engagement_toc]',
+			],
+		];
+
+		// Process elements that should appear before content
+		$before_content = '';
+		
+		// First add summary if set to before
+		if ( $elements['summary']['position'] === 'before' ) {
+			$before_content .= do_shortcode( $elements['summary']['shortcode'] );
+		}
+		
+		// Then add TOC if set to before (right after summary)
+		if ( $elements['toc']['position'] === 'before' ) {
+			$before_content .= do_shortcode( $elements['toc']['shortcode'] );
+		}
+		
+		// Then add quiz if set to before (after summary and TOC)
+		if ( $elements['quiz']['position'] === 'before' ) {
+			$before_content .= do_shortcode( $elements['quiz']['shortcode'] );
 		}
 
-		if ( $quiz_position === 'before' ) {
-			$content = do_shortcode( '[nuclear_engagement_quiz]' ) . $content;
+		// Process elements that should appear after content
+		$after_content = '';
+		
+		// First add summary if set to after
+		if ( $elements['summary']['position'] === 'after' ) {
+			$after_content .= do_shortcode( $elements['summary']['shortcode'] );
 		}
-		if ( $summary_position === 'before' ) {
-			$content = do_shortcode( '[nuclear_engagement_summary]' ) . $content;
+		
+		// Then add TOC if set to after (right after summary)
+		if ( $elements['toc']['position'] === 'after' ) {
+			$after_content .= do_shortcode( $elements['toc']['shortcode'] );
 		}
-		if ( $quiz_position === 'after' ) {
-			$content .= do_shortcode( '[nuclear_engagement_quiz]' );
+		
+		// Then add quiz if set to after (after summary and TOC)
+		if ( $elements['quiz']['position'] === 'after' ) {
+			$after_content .= do_shortcode( $elements['quiz']['shortcode'] );
 		}
-		if ( $summary_position === 'after' ) {
-			$content .= do_shortcode( '[nuclear_engagement_summary]' );
-		}
-		return $content;
+
+		return $before_content . $content . $after_content;
 	}
 
 	/* ---------- Shortcode registrations ---------- */
@@ -84,7 +117,7 @@ trait ShortcodesTrait {
 		}
 
 		$html .= '
-				<h2 class="nuclen-fg">' . esc_html( $quiz_title ) . '</h2>
+				<h2 id="nuclen-quiz-title" class="nuclen-fg">' . esc_html( $quiz_title ) . '</h2>
 				<div id="nuclen-quiz-progress-bar-container"><div id="nuclen-quiz-progress-bar"></div></div>
 				<div id="nuclen-quiz-question-container" class="nuclen-fg"></div>
 				<div id="nuclen-quiz-answers-container" class="nuclen-quiz-answers-grid"></div>
@@ -118,7 +151,7 @@ trait ShortcodesTrait {
 		$summary_content = wp_kses_post( $summary_data['summary'] );
 
 		$html = '<section id="nuclen-summary-container" class="nuclen-summary">
-				<h2 class="nuclen-fg">' . esc_html( $summary_title ) . '</h2>
+				<h2 id="nuclen-summary-title" class="nuclen-fg">' . esc_html( $summary_title ) . '</h2>
 				<div class="nuclen-fg" id="nuclen-summary-body">' . $summary_content . '</div>
 			</section>';
 

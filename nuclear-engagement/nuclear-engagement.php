@@ -6,7 +6,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Plugin Name:       Nuclear Engagement
  * Plugin URI:        https://www.nuclearengagement.com
  * Description:       Bulk generate engaging content for your blog posts with AI in one click.
- * Version:           0.8.1
+ * Version:           0.9
  * Author:            Stefano Lodola
  * Requires at least: 5.6
  * Tested up to:      6.8
@@ -23,8 +23,8 @@ if ( ! defined( 'WPINC' ) ) {
 }
 
 define( 'NUCLEN_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
-define( 'NUCLEN_PLUGIN_VERSION', '0.8.1' );
-define( 'NUCLEN_ASSET_VERSION', '250501-1' );
+define( 'NUCLEN_PLUGIN_VERSION', '0.9' );
+define( 'NUCLEN_ASSET_VERSION', '250524-3' );
 
 /**
  * Simple autoloader for our plugin classes (PSR‑4‑ish).

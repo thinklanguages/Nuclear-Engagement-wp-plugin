@@ -2,7 +2,7 @@
 /**
  * File: admin/trait-settings-custom-css.php
  *
- * Generates / writes the custom‑theme CSS file.
+ * Generates / writes the custom-theme CSS file.
  *
  * @package NuclearEngagement\Admin
  */
@@ -16,11 +16,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 trait SettingsPageCustomCSSTrait {
 
 	/**
-	 * Write (or overwrite) the custom‑theme CSS file.
+	 * Write (or overwrite) the custom-theme CSS file.
 	 *
 	 * @param array $s Sanitised settings array.
 	 */
 	protected function nuclen_write_custom_css( array $s ): void {
+
+		/* ── Fill any missing values so we never output empty CSS vars ── */
+		$s = wp_parse_args( $s, \NuclearEngagement\Defaults::nuclen_get_default_settings() );
 
 		$css = <<<CSS
 :root{
@@ -55,6 +58,18 @@ trait SettingsPageCustomCSSTrait {
 	--nuclen-summary-shadow-color: {$s['summary_shadow_color']};
 	--nuclen-summary-shadow-blur: {$s['summary_shadow_blur']}px;
 
+	/* ───── TOC container ───── */
+	--nuclen-toc-font-size: {$s['toc_font_size']}px;
+	--nuclen-toc-font-color: {$s['toc_font_color']};
+	--nuclen-toc-bg-color: {$s['toc_bg_color']};
+	--nuclen-toc-border-color: {$s['toc_border_color']};
+	--nuclen-toc-border-style: {$s['toc_border_style']};
+	--nuclen-toc-border-width: {$s['toc_border_width']}px;
+	--nuclen-toc-border-radius: {$s['toc_border_radius']}px;
+	--nuclen-toc-shadow-color: {$s['toc_shadow_color']};
+	--nuclen-toc-shadow-blur: {$s['toc_shadow_blur']}px;
+	--nuclen-toc-link: {$s['toc_link_color']};
+
 	/* ───── Legacy fallbacks ───── */
 	--nuclen-border-color: var(--nuclen-quiz-border-color);
 	--nuclen-border-style: var(--nuclen-quiz-border-style);
@@ -79,6 +94,18 @@ trait SettingsPageCustomCSSTrait {
 	box-shadow: 0 0 var(--nuclen-summary-shadow-blur) var(--nuclen-summary-shadow-color);
 	background: var(--nuclen-summary-bg-color);
 	color: var(--nuclen-summary-font-color);
+}
+
+.nuclen-toc-wrapper{
+	font-size: var(--nuclen-toc-font-size);
+	border: var(--nuclen-toc-border-width) var(--nuclen-toc-border-style) var(--nuclen-toc-border-color);
+	border-radius: var(--nuclen-toc-border-radius);
+	box-shadow: 0 0 var(--nuclen-toc-shadow-blur) var(--nuclen-toc-shadow-color);
+	background: var(--nuclen-toc-bg-color);
+	color: var(--nuclen-toc-font-color);
+}
+.nuclen-toc-wrapper a{
+	color: var(--nuclen-toc-link);
 }
 
 #nuclen-quiz-progress-bar-container{
