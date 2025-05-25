@@ -112,7 +112,7 @@ final class Nuclen_TOC_Render {
 
 		if ( $atts['toggle'] === 'true' ) {
 			$exp = $hidden ? 'false' : 'true';
-			$lbl = $hidden ? __( 'Show table of contents', 'nuclen-toc-shortcode' ) : __( 'Hide', 'nuclen-toc-shortcode' );
+			$lbl = $hidden ? __( 'Show', 'nuclen-toc-shortcode' ) : __( 'Hide', 'nuclen-toc-shortcode' );
 			$out .= '<button type="button" class="nuclen-toc-toggle" aria-controls="' . $nav_id .
 			        '" aria-expanded="' . esc_attr( $exp ) . '">' . esc_html( $lbl ) . '</button>';
 		}
@@ -243,7 +243,7 @@ final class Nuclen_TOC_Render {
 		// Localize the script with translated strings
 		wp_localize_script( 'nuclen-toc-front', 'nuclenTocL10n', [
 			'hide' => __( 'Hide', 'nuclen-toc-shortcode' ),
-			'show' => __( 'Show table of contents', 'nuclen-toc-shortcode' ),
+			'show' => __( 'Show', 'nuclen-toc-shortcode' ),
 		] );
 	}
 }
