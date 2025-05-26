@@ -163,6 +163,8 @@ trait SetupHandlersTrait {
 				'headers' => array( 'Content-Type' => 'application/json' ),
 				'body'    => wp_json_encode( array( 'appApiKey' => $api_key ) ),
 				'timeout' => 30,
+				'reject_unsafe_urls' => true,
+				'user-agent' => 'NuclearEngagement/' . NUCLEN_PLUGIN_VERSION,
 			)
 		);
 
@@ -182,6 +184,8 @@ trait SetupHandlersTrait {
 				'headers' => array( 'Content-Type' => 'application/json' ),
 				'body'    => wp_json_encode( $data ),
 				'timeout' => 30,
+				'reject_unsafe_urls' => true,
+				'user-agent' => 'NuclearEngagement/' . NUCLEN_PLUGIN_VERSION,
 			)
 		);
 

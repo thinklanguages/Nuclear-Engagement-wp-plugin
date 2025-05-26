@@ -75,6 +75,7 @@ trait SettingsPageSaveTrait {
 			'nuclen_summary_shadow_blur'              => 'summary_shadow_blur',
 
 			/* —— TOC style —— */
+			'nuclen_toc_font_size'               => 'toc_font_size',
 			'nuclen_toc_font_color'              => 'toc_font_color',
 			'nuclen_toc_bg_color'                => 'toc_bg_color',
 			'nuclen_toc_border_color'            => 'toc_border_color',

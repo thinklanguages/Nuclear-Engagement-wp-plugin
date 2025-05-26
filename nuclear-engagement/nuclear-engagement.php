@@ -24,7 +24,7 @@ if ( ! defined( 'WPINC' ) ) {
 
 define( 'NUCLEN_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'NUCLEN_PLUGIN_VERSION', '0.9' );
-define( 'NUCLEN_ASSET_VERSION', '250525-43' );
+define( 'NUCLEN_ASSET_VERSION', '250526-1' );
 
 /**
  * Simple autoloader for our plugin classes (PSR‑4‑ish).
@@ -111,7 +111,7 @@ function nuclen_migrate_app_password() {
 	);
 
 	// We need to migrate if the old flag is set, but no plugin_password yet.
-	if ( empty( $app_setup['wp_app_pass_created'] ) || ! empty( $app_setup['plugin_password'] ) ) {
+	if ( ! empty( $app_setup['wp_app_pass_created'] ) && ! empty( $app_setup['plugin_password'] ) ) {
 		update_option( 'nuclen_app_pass_migration_done', true ); // nothing to do
 		return;
 	}
@@ -149,6 +149,8 @@ function nuclen_migrate_app_password() {
 			'headers' => array( 'Content-Type' => 'application/json' ),
 			'body'    => wp_json_encode( $payload ),
 			'timeout' => 30,
+			'reject_unsafe_urls' => true,
+			'user-agent' => 'NuclearEngagement/' . NUCLEN_PLUGIN_VERSION,
 		)
 	);
 

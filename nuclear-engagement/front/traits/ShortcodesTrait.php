@@ -80,7 +80,7 @@ trait ShortcodesTrait {
 	}
 
 	/* ---------- Shortcode registrations ---------- */
-	public function nuclen_register_quiz_shortcodeodes() { // (legacy typo retained)
+	public function nuclen_register_quiz_shortcode() {
 		add_shortcode( 'nuclear_engagement_quiz', array( $this, 'nuclen_render_quiz_shortcode' ) );
 	}
 

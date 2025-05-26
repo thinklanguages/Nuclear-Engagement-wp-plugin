@@ -1,204 +1,176 @@
 <?php
-if ( ! defined( 'ABSPATH' ) ) {
-	exit;
-}
 /**
  * admin/Dashboard.php
  *
- * Nuclear Engagement Admin Dashboard
+ * Dashboard data-prep: now uses direct SQL GROUP BY queries instead of
+ * WP_Query/-1 + meta-cache, so it can handle very large sites without
+ * running out of memory or timing out.
+ *
+ * @package NuclearEngagement\Admin
  */
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
 
 use NuclearEngagement\Utils;
 
-// 1) Get which post types are allowed
+global $wpdb;
+
+/* ──────────────────────────────────────────────────────────────
+ * 1. Determine which post-types we need to examine
+ * ──────────────────────────────────────────────────────────── */
 $settings           = get_option( 'nuclear_engagement_settings', array() );
 $allowed_post_types = $settings['generation_post_types'] ?? array( 'post' );
 
-// 2) Query all posts for these allowed types
-$all_posts_query = new WP_Query(
-	array(
-		'post_type'      => $allowed_post_types,
-		'post_status'    => array( 'publish', 'pending', 'draft', 'future' ),
-		'fields'         => 'ids',
-		'posts_per_page' => -1,
-	)
+/* ──────────────────────────────────────────────────────────────
+ * 2. Convenience helpers
+ * ──────────────────────────────────────────────────────────── */
+
+/**
+ * Run a grouped count query (status, post-type, author, etc.).
+ *
+ * @param  string $group_by    Column to group by (already prefixed, e.g. "p.post_status").
+ * @param  string $meta_key    Meta key to test for existence (quiz / summary).
+ * @param  array  $post_types  Allowed post-types.
+ * @param  array  $statuses    Allowed post-statuses.
+ * @return array               Rows: [ [ g => value, w => 'with|without', c => count ], … ]
+ */
+function nuclen_get_group_counts( string $group_by, string $meta_key, array $post_types, array $statuses ): array {
+	global $wpdb;
+
+	// Sanitize post types and statuses
+	$post_types = array_map( 'sanitize_key', $post_types );
+	$statuses   = array_map( 'sanitize_key', $statuses );
+
+	// Create placeholders for the IN clauses
+	$placeholders_pt = implode( ',', array_fill( 0, count( $post_types ), '%s' ) );
+	$placeholders_st = implode( ',', array_fill( 0, count( $statuses ), '%s' ) );
+
+	// Prepare the query with placeholders
+	$sql = $wpdb->prepare(
+		"SELECT $group_by               AS g,
+		       CASE WHEN pm.meta_id IS NULL THEN 'without' ELSE 'with' END AS w,
+		       COUNT(*)                 AS c
+		FROM {$wpdb->posts} p
+		LEFT JOIN {$wpdb->postmeta} pm
+		  ON  pm.post_id = p.ID
+		  AND pm.meta_key = %s
+		WHERE p.post_type  IN ($placeholders_pt)
+		  AND p.post_status IN ($placeholders_st)
+		GROUP BY $group_by, w",
+		array_merge( [ $meta_key ], $post_types, $statuses )
+	);
+
+	return $wpdb->get_results( $sql, ARRAY_A );
+}
+
+/* ──────────────────────────────────────────────────────────────
+ * 3. Build every stats table we need (quiz + summary)
+ * ──────────────────────────────────────────────────────────── */
+$post_statuses = array( 'publish', 'pending', 'draft', 'future' );
+
+/* — By Post Status — */
+$status_quiz_rows    = nuclen_get_group_counts( 'p.post_status', 'nuclen-quiz-data',    $allowed_post_types, $post_statuses );
+$status_summary_rows = nuclen_get_group_counts( 'p.post_status', 'nuclen-summary-data', $allowed_post_types, $post_statuses );
+
+$status_objects      = get_post_stati( array(), 'objects' );
+$by_status_quiz      = $by_status_summary = array();
+
+foreach ( $status_quiz_rows as $r ) {
+	$label = $status_objects[ $r['g'] ]->label ?? ucfirst( $r['g'] );
+	$by_status_quiz[ $label ][ $r['w'] ] = (int) $r['c'];
+}
+foreach ( $status_summary_rows as $r ) {
+	$label = $status_objects[ $r['g'] ]->label ?? ucfirst( $r['g'] );
+	$by_status_summary[ $label ][ $r['w'] ] = (int) $r['c'];
+}
+
+/* — By Post Type — */
+$ptype_quiz_rows    = nuclen_get_group_counts( 'p.post_type', 'nuclen-quiz-data',    $allowed_post_types, $post_statuses );
+$ptype_summary_rows = nuclen_get_group_counts( 'p.post_type', 'nuclen-summary-data', $allowed_post_types, $post_statuses );
+
+$by_post_type_quiz    = $by_post_type_summary = array();
+foreach ( $ptype_quiz_rows as $r ) {
+	$pt_obj = get_post_type_object( $r['g'] );
+	$label  = $pt_obj->labels->name ?? ucfirst( $r['g'] );
+	$by_post_type_quiz[ $label ][ $r['w'] ] = (int) $r['c'];
+}
+foreach ( $ptype_summary_rows as $r ) {
+	$pt_obj = get_post_type_object( $r['g'] );
+	$label  = $pt_obj->labels->name ?? ucfirst( $r['g'] );
+	$by_post_type_summary[ $label ][ $r['w'] ] = (int) $r['c'];
+}
+
+/* — By Author — */
+$author_quiz_rows    = nuclen_get_group_counts( 'p.post_author', 'nuclen-quiz-data',    $allowed_post_types, $post_statuses );
+$author_summary_rows = nuclen_get_group_counts( 'p.post_author', 'nuclen-summary-data', $allowed_post_types, $post_statuses );
+
+$by_author_quiz    = $by_author_summary = array();
+foreach ( $author_quiz_rows as $r ) {
+	$name = get_the_author_meta( 'display_name', (int) $r['g'] ) ?: __( 'Unknown Author', 'nuclear-engagement' );
+	$by_author_quiz[ $name ][ $r['w'] ] = (int) $r['c'];
+}
+foreach ( $author_summary_rows as $r ) {
+	$name = get_the_author_meta( 'display_name', (int) $r['g'] ) ?: __( 'Unknown Author', 'nuclear-engagement' );
+	$by_author_summary[ $name ][ $r['w'] ] = (int) $r['c'];
+}
+
+/* — By Category — (only for post-types that use the “category” taxonomy) */
+$with_cat_pt = array_filter(
+	$allowed_post_types,
+	fn( $pt ) => in_array( 'category', get_object_taxonomies( $pt ), true )
 );
-$post_ids        = $all_posts_query->posts;
+$by_category_quiz = $by_category_summary = array();
 
-if ( empty( $post_ids ) ) {
-	echo '<div class="wrap">';
-	echo '<h1>Nuclear Engagement</h1>';
-	echo '<p>' . esc_html__( 'No posts found in these post types.', 'nuclear-engagement' ) . '</p>';
-	echo '</div>';
-	return;
-}
+if ( $with_cat_pt ) {
+	$in_cat_pt  = "'" . implode( "','", array_map( 'esc_sql', $with_cat_pt ) ) . "'";
+	$in_st      = "'" . implode( "','", $post_statuses ) . "'";
+	$sql_cat = "
+		SELECT t.term_id,
+		       t.name               AS cat_name,
+		       CASE WHEN pm.meta_id IS NULL THEN 'without' ELSE 'with' END AS w,
+		       COUNT(*)             AS c
+		FROM {$wpdb->posts} p
+		JOIN {$wpdb->term_relationships} tr ON tr.object_id = p.ID
+		JOIN {$wpdb->term_taxonomy}  tt ON tt.term_taxonomy_id = tr.term_taxonomy_id AND tt.taxonomy = 'category'
+		JOIN {$wpdb->terms}          t  ON t.term_id = tt.term_id
+		LEFT JOIN {$wpdb->postmeta}  pm ON pm.post_id = p.ID AND pm.meta_key = %s
+		WHERE p.post_type  IN ($in_cat_pt)
+		  AND p.post_status IN ($in_st)
+		GROUP BY t.term_id, w
+	";
+	$cat_quiz_rows    = $wpdb->get_results( $wpdb->prepare( $sql_cat, 'nuclen-quiz-data' ),    ARRAY_A );
+	$cat_summary_rows = $wpdb->get_results( $wpdb->prepare( $sql_cat, 'nuclen-summary-data' ), ARRAY_A );
 
-// 3) Cache postmeta for all
-update_postmeta_cache( $post_ids );
-
-// 4) If ANY post type has the "category" taxonomy, update object term cache
-// so we can quickly fetch categories (only for those that support them).
-$all_post_type_slugs  = array_unique(
-	array_map(
-		function ( $pid ) {
-			$p = get_post( $pid );
-			return $p ? $p->post_type : '';
-		},
-		$post_ids
-	)
-);
-$any_has_category_tax = false;
-foreach ( $all_post_type_slugs as $pt_slug ) {
-	$taxes = get_object_taxonomies( $pt_slug );
-	if ( in_array( 'category', $taxes, true ) ) {
-		$any_has_category_tax = true;
-		break;
+	foreach ( $cat_quiz_rows as $r ) {
+		$by_category_quiz[ $r['cat_name'] ][ $r['w'] ] = (int) $r['c'];
 	}
-}
-if ( $any_has_category_tax ) {
-	update_object_term_cache( $post_ids, 'category' );
-}
-
-// ---------------------------------------------
-// Data structures to count QUIZ vs. SUMMARY
-// ---------------------------------------------
-$by_status_quiz    = array();
-$by_category_quiz  = array();
-$by_author_quiz    = array();
-$by_post_type_quiz = array();
-
-$by_status_summary    = array();
-$by_category_summary  = array();
-$by_author_summary    = array();
-$by_post_type_summary = array();
-
-// ----------------------
-// Populate those arrays
-// ----------------------
-foreach ( $post_ids as $post_id ) {
-	$post = get_post( $post_id );
-	if ( ! $post ) {
-		continue;
-	}
-
-	$post_type   = $post->post_type;
-	$post_status = get_post_status( $post_id );
-
-	// Check quiz meta
-	$quiz_data = get_post_meta( $post_id, 'nuclen-quiz-data', true );
-	$has_quiz  = ! empty( $quiz_data );
-
-	// Check summary meta
-	$summary_data = get_post_meta( $post_id, 'nuclen-summary-data', true );
-	$has_summary  = ( ! empty( $summary_data ) && ! empty( $summary_data['summary'] ) );
-
-	// Status
-	$status_obj   = get_post_status_object( $post_status );
-	$status_label = ( $status_obj && isset( $status_obj->label ) ) ? $status_obj->label : ucfirst( $post_status );
-
-	if ( ! isset( $by_status_quiz[ $status_label ] ) ) {
-		$by_status_quiz[ $status_label ] = array(
-			'with'    => 0,
-			'without' => 0,
-		);
-	}
-	++$by_status_quiz[ $status_label ][ $has_quiz ? 'with' : 'without' ];
-
-	if ( ! isset( $by_status_summary[ $status_label ] ) ) {
-		$by_status_summary[ $status_label ] = array(
-			'with'    => 0,
-			'without' => 0,
-		);
-	}
-	++$by_status_summary[ $status_label ][ $has_summary ? 'with' : 'without' ];
-
-	// Post type label
-	$ptype_obj   = get_post_type_object( $post_type );
-	$ptype_label = ( $ptype_obj && isset( $ptype_obj->labels->name ) )
-		? $ptype_obj->labels->name
-		: ucfirst( $post_type );
-
-	if ( ! isset( $by_post_type_quiz[ $ptype_label ] ) ) {
-		$by_post_type_quiz[ $ptype_label ] = array(
-			'with'    => 0,
-			'without' => 0,
-		);
-	}
-	++$by_post_type_quiz[ $ptype_label ][ $has_quiz ? 'with' : 'without' ];
-
-	if ( ! isset( $by_post_type_summary[ $ptype_label ] ) ) {
-		$by_post_type_summary[ $ptype_label ] = array(
-			'with'    => 0,
-			'without' => 0,
-		);
-	}
-	++$by_post_type_summary[ $ptype_label ][ $has_summary ? 'with' : 'without' ];
-
-	// Author (only if post type supports it)
-	if ( post_type_supports( $post_type, 'author' ) ) {
-		$post_author = $post->post_author;
-		$author_name = get_the_author_meta( 'display_name', $post_author );
-		if ( ! $author_name ) {
-			$author_name = esc_html__( 'Unknown Author', 'nuclear-engagement' );
-		}
-
-		if ( ! isset( $by_author_quiz[ $author_name ] ) ) {
-			$by_author_quiz[ $author_name ] = array(
-				'with'    => 0,
-				'without' => 0,
-			);
-		}
-		++$by_author_quiz[ $author_name ][ $has_quiz ? 'with' : 'without' ];
-
-		if ( ! isset( $by_author_summary[ $author_name ] ) ) {
-			$by_author_summary[ $author_name ] = array(
-				'with'    => 0,
-				'without' => 0,
-			);
-		}
-		++$by_author_summary[ $author_name ][ $has_summary ? 'with' : 'without' ];
-	}
-
-	// Categories (only if this post type has "category" in its taxonomies)
-	$taxonomies_for_pt = get_object_taxonomies( $post_type );
-	if ( in_array( 'category', $taxonomies_for_pt, true ) ) {
-		$cats = get_the_terms( $post_id, 'category' );
-		if ( $cats && ! is_wp_error( $cats ) ) {
-			foreach ( $cats as $cat ) {
-				if ( ! isset( $by_category_quiz[ $cat->name ] ) ) {
-					$by_category_quiz[ $cat->name ] = array(
-						'with'    => 0,
-						'without' => 0,
-					);
-				}
-				++$by_category_quiz[ $cat->name ][ $has_quiz ? 'with' : 'without' ];
-
-				if ( ! isset( $by_category_summary[ $cat->name ] ) ) {
-					$by_category_summary[ $cat->name ] = array(
-						'with'    => 0,
-						'without' => 0,
-					);
-				}
-				++$by_category_summary[ $cat->name ][ $has_summary ? 'with' : 'without' ];
-			}
-		}
+	foreach ( $cat_summary_rows as $r ) {
+		$by_category_summary[ $r['cat_name'] ][ $r['w'] ] = (int) $r['c'];
 	}
 }
 
-// -----------------------------------
-// Filter out zero-usage items
-// -----------------------------------
-$by_status_quiz    = array_filter( $by_status_quiz, fn( $c ) => ( $c['with'] + $c['without'] ) > 0 );
-$by_category_quiz  = array_filter( $by_category_quiz, fn( $c ) => ( $c['with'] + $c['without'] ) > 0 );
-$by_author_quiz    = array_filter( $by_author_quiz, fn( $c ) => ( $c['with'] + $c['without'] ) > 0 );
-$by_post_type_quiz = array_filter( $by_post_type_quiz, fn( $c ) => ( $c['with'] + $c['without'] ) > 0 );
+/* ──────────────────────────────────────────────────────────────
+ * 4. Drop any rows where total = 0
+ * ──────────────────────────────────────────────────────────── */
+$drop_zeros = static function ( array $arr ) {
+	return array_filter(
+		$arr,
+		static fn ( $c ) => ( ( $c['with'] ?? 0 ) + ( $c['without'] ?? 0 ) ) > 0
+	);
+};
 
-$by_status_summary    = array_filter( $by_status_summary, fn( $c ) => ( $c['with'] + $c['without'] ) > 0 );
-$by_category_summary  = array_filter( $by_category_summary, fn( $c ) => ( $c['with'] + $c['without'] ) > 0 );
-$by_author_summary    = array_filter( $by_author_summary, fn( $c ) => ( $c['with'] + $c['without'] ) > 0 );
-$by_post_type_summary = array_filter( $by_post_type_summary, fn( $c ) => ( $c['with'] + $c['without'] ) > 0 );
+$by_status_quiz       = $drop_zeros( $by_status_quiz );
+$by_status_summary    = $drop_zeros( $by_status_summary );
+$by_post_type_quiz    = $drop_zeros( $by_post_type_quiz );
+$by_post_type_summary = $drop_zeros( $by_post_type_summary );
+$by_author_quiz       = $drop_zeros( $by_author_quiz );
+$by_author_summary    = $drop_zeros( $by_author_summary );
+$by_category_quiz     = $drop_zeros( $by_category_quiz );
+$by_category_summary  = $drop_zeros( $by_category_summary );
 
-// --------------------------------------------
-// Include the partial for rendering the tables
-// --------------------------------------------
+/* ──────────────────────────────────────────────────────────────
+ * 5. Render dashboard (same partial as before)
+ * ──────────────────────────────────────────────────────────── */
 require plugin_dir_path( __FILE__ ) . 'partials/nuclen-dashboard-page.php';

@@ -20,9 +20,9 @@ trait Admin_Assets {
 	public function wp_enqueue_styles() {
 		wp_enqueue_style(
 			$this->nuclen_get_plugin_name(),
-			plugin_dir_url( __FILE__ ) . 'css/nuclen-admin.css?v=' . NUCLEN_ASSET_VERSION,
+			plugin_dir_url( __FILE__ ) . 'css/nuclen-admin.css',
 			array(),
-			NUCLEN_ASSET_VERSION,
+			filemtime( plugin_dir_path( __FILE__ ) . 'css/nuclen-admin.css' ),
 			'all'
 		);
 	}

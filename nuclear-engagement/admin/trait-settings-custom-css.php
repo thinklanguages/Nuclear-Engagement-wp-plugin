@@ -144,7 +144,13 @@ CSS;
 				     '</p></div>';
 				return;
 			}
-			$wp_filesystem->put_contents( $custom_css_path, $css );
+			if ($wp_filesystem->put_contents( $custom_css_path, $css ) !== false) {
+				// Update the version hash when the file is successfully saved
+				$file_mtime = time();
+				$file_hash = md5($css);
+				$version = $file_mtime . '-' . substr($file_hash, 0, 8);
+				update_option('nuclen_custom_css_version', $version);
+			}
 		} else {
 			/* fallback */
 			if ( ! file_exists( $custom_dir ) && ! wp_mkdir_p( $custom_dir ) ) {
@@ -153,7 +159,13 @@ CSS;
 				     '</p></div>';
 				return;
 			}
-			if ( false === @file_put_contents( $custom_css_path, $css ) ) {
+			if ( false !== @file_put_contents( $custom_css_path, $css, LOCK_EX ) ) {
+				// Update the version hash when the file is successfully saved (fallback)
+				$file_mtime = time();
+				$file_hash = md5($css);
+				$version = $file_mtime . '-' . substr($file_hash, 0, 8);
+				update_option('nuclen_custom_css_version', $version);
+			} else {
 				echo '<div class="notice notice-error"><p>' .
 				     esc_html__( 'Could not write custom CSS file.', 'nuclear-engagement' ) .
 				     '</p></div>';

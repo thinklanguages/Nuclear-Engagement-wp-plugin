@@ -109,12 +109,14 @@ trait Admin_Menu {
 		$html .= '<tr><th></th><th>' . esc_html__( 'With', 'nuclear-engagement' ) . '</th><th>' . esc_html__( 'Without', 'nuclear-engagement' ) . '</th></tr>';
 
 		foreach ( $data as $name => $counts ) {
-			$total = $counts['with'] + $counts['without'];
+			$with = isset($counts['with']) ? (int)$counts['with'] : 0;
+			$without = isset($counts['without']) ? (int)$counts['without'] : 0;
+			$total = $with + $without;
 			if ( $total > 0 ) {
 				$html .= '<tr>';
 				$html .= '<td>' . esc_html( $name ) . '</td>';
-				$html .= '<td>' . (int) $counts['with'] . '</td>';
-				$html .= '<td>' . (int) $counts['without'] . '</td>';
+				$html .= '<td>' . $with . '</td>';
+				$html .= '<td>' . $without . '</td>';
 				$html .= '</tr>';
 			}
 		}

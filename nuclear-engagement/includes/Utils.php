@@ -44,13 +44,15 @@ class Utils {
 
 		if ( ! file_exists( $log_file ) ) {
 			$timestamp = gmdate( 'Y-m-d H:i:s' );
-			if ( file_put_contents( $log_file, "[$timestamp] Log file created\n", FILE_APPEND ) === false ) {
+			if ( file_put_contents( $log_file, "[$timestamp] Log file created\n", FILE_APPEND | LOCK_EX ) === false ) {
 				return;
 			}
 		}
 
 		$timestamp = gmdate( 'Y-m-d H:i:s' );
-		file_put_contents( $log_file, "[$timestamp] $message\n", FILE_APPEND );
+		if ( file_put_contents( $log_file, "[$timestamp] $message\n", FILE_APPEND | LOCK_EX ) === false ) {
+			error_log( 'Failed to write to log file: ' . $log_file );
+		}
 	}
 
 	public function display_nuclen_page_header() {
@@ -75,7 +77,14 @@ class Utils {
 
 		$base_css_file_name = 'nuclen-theme-custom.css';
 		$custom_css_path    = $custom_dir . '/' . $base_css_file_name;
-		$version            = time();
+
+		// Get the stored version hash or generate a new one if the file exists
+		$version = get_option('nuclen_custom_css_version', '');
+		if (file_exists($custom_css_path)) {
+			$file_mtime = filemtime($custom_css_path);
+			$file_hash = md5_file($custom_css_path);
+			$version = $file_mtime . '-' . substr($file_hash, 0, 8);
+		}
 
 		$custom_css_url = $upload_dir['baseurl'] . '/nuclear-engagement/' . $base_css_file_name . '?v=' . $version;
 

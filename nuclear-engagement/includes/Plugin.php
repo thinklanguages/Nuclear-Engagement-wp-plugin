@@ -111,9 +111,9 @@ class Plugin {
 		$this->loader->nuclen_add_action( 'wp_enqueue_scripts', $plugin_public, 'wp_enqueue_styles' );
 		$this->loader->nuclen_add_action( 'wp_enqueue_scripts', $plugin_public, 'wp_enqueue_scripts' );
 		$this->loader->nuclen_add_action( 'rest_api_init',      $plugin_public, 'nuclen_register_content_endpoint' );
-		$this->loader->nuclen_add_action( 'init',               $plugin_public, 'nuclen_register_quiz_shortcodeodes' );
+		$this->loader->nuclen_add_action( 'init',               $plugin_public, 'nuclen_register_quiz_shortcode' );
 		$this->loader->nuclen_add_action( 'init',               $plugin_public, 'nuclen_register_summary_shortcode' );
-		$this->loader->nuclen_add_filter( 'the_content',        $plugin_public, 'nuclen_auto_insert_shortcodes' );
+		$this->loader->nuclen_add_filter( 'the_content',        $plugin_public, 'nuclen_auto_insert_shortcodes', 50 );
 	}
 
 	/* ─────────────────────────────────────────────

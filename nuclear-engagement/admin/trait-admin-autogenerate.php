@@ -160,13 +160,29 @@ trait Admin_AutoGenerate {
                     )
                 ),
                 'timeout' => 30,
+                'reject_unsafe_urls' => true,
+                'user-agent' => 'NuclearEngagement/' . NUCLEN_PLUGIN_VERSION,
             )
         );
 
-        if ( ! is_wp_error( $response ) ) {
+        if ( is_wp_error( $response ) ) {
+            // Continue to retry on WP_Error
+            $this->nuclen_get_utils()->nuclen_log(
+                "Polling error for post $post_id ($workflow_type): " . $response->get_error_message()
+            );
+        } else {
             $code = wp_remote_retrieve_response_code( $response );
             $body = json_decode( wp_remote_retrieve_body( $response ), true );
 
+            // On auth errors, log and abort immediately
+            if ( in_array( $code, [401, 403], true ) ) {
+                $this->nuclen_get_utils()->nuclen_log(
+                    "Polling aborted due to authentication error ($code) for post $post_id ($workflow_type)"
+                );
+                return;
+            }
+
+            // On success, store results and return
             if ( $code === 200 && ! empty( $body['results'] ) ) {
                 $this->nuclen_store_results( $body['results'], $workflow_type );
                 return;

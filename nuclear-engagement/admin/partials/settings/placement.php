@@ -18,7 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 		<span nuclen-tooltip="<?php esc_attr_e( 'Shortcodes are the most versatile method. If your theme or page-builder lacks suitable slots you can append sections automatically.', 'nuclear-engagement' ); ?>">🛈</span>
 	</p>
 
-	<!-- ───────────────── Display positions ────────────────── -->
+	<!-- ───────────── Display positions ───────────── -->
 
 	<!-- SUMMARY -->
 	<div class="nuclen-form-group nuclen-row">
@@ -31,7 +31,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 				<option value="before" <?php selected( $settings['display_summary'], 'before' ); ?>><?php esc_html_e( 'Before post content',     'nuclear-engagement' ); ?></option>
 				<option value="after"  <?php selected( $settings['display_summary'], 'after'  ); ?>><?php esc_html_e( 'After post content',      'nuclear-engagement' ); ?></option>
 			</select>
-			<p class="description"><?php printf( wp_kses( __( 'Shortcode: <b>%s</b>.', 'nuclear-engagement' ), [ 'b'=>[] ] ), '[nuclear_engagement_summary]' ); ?></p>
+			<p class="description"><?php printf( wp_kses( __( 'Shortcode: <b>%s</b>.', 'nuclear-engagement' ), array( 'b' => array() ) ), '[nuclear_engagement_summary]' ); ?></p>
 		</div>
 	</div>
 
@@ -46,7 +46,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 				<option value="before" <?php selected( $settings['display_quiz'], 'before' ); ?>><?php esc_html_e( 'Before post content',     'nuclear-engagement' ); ?></option>
 				<option value="after"  <?php selected( $settings['display_quiz'], 'after'  ); ?>><?php esc_html_e( 'After post content',      'nuclear-engagement' ); ?></option>
 			</select>
-			<p class="description"><?php printf( wp_kses( __( 'Shortcode: <b>%s</b>.', 'nuclear-engagement' ), [ 'b'=>[] ] ), '[nuclear_engagement_quiz]' ); ?></p>
+			<p class="description"><?php printf( wp_kses( __( 'Shortcode: <b>%s</b>.', 'nuclear-engagement' ), array( 'b' => array() ) ), '[nuclear_engagement_quiz]' ); ?></p>
 		</div>
 	</div>
 
@@ -61,11 +61,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 				<option value="before" <?php selected( $settings['display_toc'] ?? 'manual', 'before' ); ?>><?php esc_html_e( 'Before post content',     'nuclear-engagement' ); ?></option>
 				<option value="after"  <?php selected( $settings['display_toc'] ?? 'manual', 'after'  ); ?>><?php esc_html_e( 'After post content',      'nuclear-engagement' ); ?></option>
 			</select>
-			<p class="description"><?php printf( wp_kses( __( 'Shortcode: <b>%s</b>.', 'nuclear-engagement' ), [ 'b'=>[] ] ), '[nuclear_engagement_toc]' ); ?></p>
+			<p class="description"><?php printf( wp_kses( __( 'Shortcode: <b>%s</b>.', 'nuclear-engagement' ), array( 'b' => array() ) ), '[nuclear_engagement_toc]' ); ?></p>
 		</div>
 	</div>
 
-	<!-- ───────────────── Sticky TOC toggle ────────────────── -->
+	<!-- ───────────── Sticky TOC & advanced ───────────── -->
+
+	<!-- Sticky toggle -->
 	<div class="nuclen-form-group nuclen-row">
 		<div class="nuclen-column nuclen-label-col">
 			<label for="nuclen_toc_sticky" class="nuclen-label"><?php esc_html_e( 'Sticky TOC', 'nuclear-engagement' ); ?></label>
@@ -92,6 +94,54 @@ if ( ! defined( 'ABSPATH' ) ) {
 			       step="1"
 			       value="<?php echo esc_attr( $settings['toc_z_index'] ?? '100' ); ?>" />
 			<p class="description"><?php esc_html_e( 'Higher numbers keep the sticky TOC above other elements.', 'nuclear-engagement' ); ?></p>
+		</div>
+	</div>
+
+	<!-- Offset X -->
+	<div class="nuclen-form-group nuclen-row">
+		<div class="nuclen-column nuclen-label-col">
+			<label for="nuclen_toc_sticky_offset_x" class="nuclen-label"><?php esc_html_e( 'Sticky Offset X (px)', 'nuclear-engagement' ); ?></label>
+		</div>
+		<div class="nuclen-column nuclen-input-col">
+			<input type="number"
+			       name="toc_sticky_offset_x"
+			       id="nuclen_toc_sticky_offset_x"
+			       class="small-text"
+			       min="0"
+			       step="1"
+			       value="<?php echo esc_attr( $settings['toc_sticky_offset_x'] ?? '20' ); ?>" />
+		</div>
+	</div>
+
+	<!-- Offset Y -->
+	<div class="nuclen-form-group nuclen-row">
+		<div class="nuclen-column nuclen-label-col">
+			<label for="nuclen_toc_sticky_offset_y" class="nuclen-label"><?php esc_html_e( 'Sticky Offset Y (px)', 'nuclear-engagement' ); ?></label>
+		</div>
+		<div class="nuclen-column nuclen-input-col">
+			<input type="number"
+			       name="toc_sticky_offset_y"
+			       id="nuclen_toc_sticky_offset_y"
+			       class="small-text"
+			       min="0"
+			       step="1"
+			       value="<?php echo esc_attr( $settings['toc_sticky_offset_y'] ?? '20' ); ?>" />
+		</div>
+	</div>
+
+	<!-- Max width -->
+	<div class="nuclen-form-group nuclen-row">
+		<div class="nuclen-column nuclen-label-col">
+			<label for="nuclen_toc_sticky_max_width" class="nuclen-label"><?php esc_html_e( 'Sticky Max-width (px)', 'nuclear-engagement' ); ?></label>
+		</div>
+		<div class="nuclen-column nuclen-input-col">
+			<input type="number"
+			       name="toc_sticky_max_width"
+			       id="nuclen_toc_sticky_max_width"
+			       class="small-text"
+			       min="200"
+			       step="1"
+			       value="<?php echo esc_attr( $settings['toc_sticky_max_width'] ?? '300' ); ?>" />
 		</div>
 	</div>
 

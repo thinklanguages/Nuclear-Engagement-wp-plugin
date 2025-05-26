@@ -17,6 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 		<span nuclen-tooltip="<?php esc_attr_e( 'NE always generates 10 questions and 4 answers. These settings only control how many you show. You can change them at any time.', 'nuclear-engagement' ); ?>">🛈</span>
 	</p>
 
+	<!-- Questions / answers counts -->
 	<div class="nuclen-form-group nuclen-row">
 		<div class="nuclen-column nuclen-label-col">
 			<label for="nuclen_questions_per_quiz" class="nuclen-label"><?php esc_html_e( 'Number of Questions per Quiz', 'nuclear-engagement' ); ?></label>
@@ -35,6 +36,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 		</div>
 	</div>
 
+	<!-- Custom quiz HTML -->
 	<h2 class="nuclen-subheading"><?php esc_html_e( 'Quiz Custom Text', 'nuclear-engagement' ); ?>
 		<span nuclen-tooltip="<?php esc_attr_e( 'Useful for coupons, disclaimers, etc.', 'nuclear-engagement' ); ?>">🛈</span>
 	</h2>
@@ -75,11 +77,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 		</div>
 	</div>
 
+	<!-- Titles -->
 	<h2 class="nuclen-subheading"><?php esc_html_e( 'Section Titles', 'nuclear-engagement' ); ?></h2>
 	<div class="nuclen-form-group nuclen-row">
 		<div class="nuclen-column nuclen-label-col">
 			<label for="quiz_title" class="nuclen-label"><?php esc_html_e( 'Quiz Title', 'nuclear-engagement' ); ?>
-				<span nuclen-tooltip="<?php esc_attr_e( 'Examples: "Test your knowledge," "Can you pass this test?"', 'nuclear-engagement' ); ?>">🛈</span>
+				<span nuclen-tooltip="<?php esc_attr_e( 'Examples: "Test your knowledge", "Can you pass this test?"', 'nuclear-engagement' ); ?>">🛈</span>
 			</label>
 		</div>
 		<div class="nuclen-column nuclen-input-col">
@@ -90,7 +93,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	<div class="nuclen-form-group nuclen-row">
 		<div class="nuclen-column nuclen-label-col">
 			<label for="summary_title" class="nuclen-label"><?php esc_html_e( 'Summary Title', 'nuclear-engagement' ); ?>
-				<span nuclen-tooltip="<?php esc_attr_e( 'Examples: "Summary," "Key Concepts."', 'nuclear-engagement' ); ?>">🛈</span>
+				<span nuclen-tooltip="<?php esc_attr_e( 'Examples: "Summary", "Key Concepts".', 'nuclear-engagement' ); ?>">🛈</span>
 			</label>
 		</div>
 		<div class="nuclen-column nuclen-input-col">
@@ -98,6 +101,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 		</div>
 	</div>
 
+	<!-- **TOC title — name/id kept as nuclen_toc_title so it maps & persists** -->
 	<div class="nuclen-form-group nuclen-row">
 		<div class="nuclen-column nuclen-label-col">
 			<label for="nuclen_toc_title" class="nuclen-label"><?php esc_html_e( 'TOC Title', 'nuclear-engagement' ); ?></label>
@@ -107,7 +111,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 		</div>
 	</div>
 
-	<!-- Show Attribution -->
+	<!-- Attribution -->
 	<div class="nuclen-form-group nuclen-row">
 		<div class="nuclen-column nuclen-label-col">
 			<label for="nuclen_show_attribution" class="nuclen-label"><?php esc_html_e( 'Display Attribution Link', 'nuclear-engagement' ); ?>
@@ -119,49 +123,41 @@ if ( ! defined( 'ABSPATH' ) ) {
 		</div>
 	</div>
 
-	<!-- Table of Contents Settings -->
+	<!-- ────────── Table of Contents settings ────────── -->
 	<h2 class="nuclen-subheading"><?php esc_html_e( 'Table of Contents', 'nuclear-engagement' ); ?></h2>
 
-	<!-- Heading Levels -->
+	<!-- Heading levels -->
 	<h4><?php esc_html_e( 'Heading Levels', 'nuclear-engagement' ); ?></h4>
 	<div class="nuclen-form-group nuclen-row">
 		<div class="nuclen-column nuclen-label-col">
 			<label class="nuclen-label"><?php esc_html_e( 'Include in TOC', 'nuclear-engagement' ); ?></label>
 		</div>
 		<div class="nuclen-column nuclen-input-col">
-			<?php 
-			// Get the saved heading levels, default to all levels if not set
-			$selected_levels = isset($settings['toc_heading_levels']) ? (array)$settings['toc_heading_levels'] : range(2, 6);
-			
-			// Ensure we have an array of integers between 2 and 6
-			$selected_levels = array_map('intval', $selected_levels);
-			$selected_levels = array_filter($selected_levels, function($level) {
-				return $level >= 2 && $level <= 6;
-			});
-			
-			// If no valid levels, use default (2-6)
-			if (empty($selected_levels)) {
-				$selected_levels = range(2, 6);
+			<?php
+			$selected_levels = isset( $settings['toc_heading_levels'] ) ? (array) $settings['toc_heading_levels'] : range( 2, 6 );
+			$selected_levels = array_map( 'intval', $selected_levels );
+			$selected_levels = array_filter( $selected_levels, static fn( $l ) => $l >= 2 && $l <= 6 );
+			if ( empty( $selected_levels ) ) {
+				$selected_levels = range( 2, 6 );
 			}
-			
-			for ($i = 2; $i <= 6; $i++): 
-				$checked = in_array($i, $selected_levels, true) ? 'checked="checked"' : '';
+			for ( $i = 2; $i <= 6; $i++ ) :
+				$checked = in_array( $i, $selected_levels, true ) ? 'checked="checked"' : '';
 			?>
-				<label style="display: inline-block; margin-right: 15px; margin-bottom: 5px;">
-					<input type="checkbox" 
-					       name="nuclear_engagement_settings[toc_heading_levels][]" 
-					       value="<?php echo esc_attr($i); ?>" 
+				<label style="display:inline-block;margin-right:15px;margin-bottom:5px;">
+					<input type="checkbox"
+					       name="nuclear_engagement_settings[toc_heading_levels][]"
+					       value="<?php echo esc_attr( $i ); ?>"
 					       <?php echo $checked; ?>>
-					<?php echo sprintf(esc_html__('H%d', 'nuclear-engagement'), $i); ?>
+					<?php printf( 'H%d', $i ); ?>
 				</label>
 			<?php endfor; ?>
-			<p class="description" style="margin-top: 5px;">
-				<?php esc_html_e('Select which heading levels to include in the Table of Contents.', 'nuclear-engagement'); ?>
+			<p class="description" style="margin-top:5px;">
+				<?php esc_html_e( 'Select which heading levels to include in the Table of Contents.', 'nuclear-engagement' ); ?>
 			</p>
 		</div>
 	</div>
 
-	<!-- Toggle Button Settings -->
+	<!-- Toggle button -->
 	<h4><?php esc_html_e( 'Display Options', 'nuclear-engagement' ); ?></h4>
 	<div class="nuclen-form-group nuclen-row">
 		<div class="nuclen-column nuclen-label-col">
@@ -172,11 +168,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 				<input type="checkbox" name="nuclen_toc_show_toggle" id="nuclen_toc_show_toggle" value="1" <?php checked( ! empty( $settings['toc_show_toggle'] ) ); ?>>
 				<span class="nuclen-slider round"></span>
 			</label>
-			<p class="description"><?php esc_html_e( 'When enabled, a toggle button will be shown to show/hide the Table of Contents content.', 'nuclear-engagement' ); ?></p>
+			<p class="description"><?php esc_html_e( 'When enabled, a toggle button will be shown to show/hide the Table of Contents.', 'nuclear-engagement' ); ?></p>
 		</div>
 	</div>
 
-	<!-- Show TOC Content by Default -->
+	<!-- Show TOC content by default -->
 	<div class="nuclen-form-group nuclen-row">
 		<div class="nuclen-column nuclen-label-col">
 			<label for="nuclen_toc_show_content" class="nuclen-label"><?php esc_html_e( 'Show TOC Content by Default', 'nuclear-engagement' ); ?></label>
@@ -201,12 +197,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 			var showToggle = $('#nuclen_toc_show_toggle').is(':checked');
 			var $showContent = $('#nuclen_toc_show_content');
 			$showContent.prop('disabled', !showToggle);
-			// If toggle is disabled, ensure the content is checked
 			if (!showToggle) {
 				$showContent.prop('checked', true);
 			}
 		}
-		
 		$('#nuclen_toc_show_toggle').on('change', updateTocToggleState);
 		updateTocToggleState();
 	});

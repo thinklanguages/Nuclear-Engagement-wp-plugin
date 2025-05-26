@@ -162,6 +162,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 			<div class="nuclen-column nuclen-label-col"><label for="nuclen_summary_shadow_blur" class="nuclen-label"><?php esc_html_e( 'Shadow Blur (px)', 'nuclear-engagement' ); ?></label></div>
 			<div class="nuclen-column nuclen-input-col"><input type="number" class="nuclen-input" name="nuclen_summary_shadow_blur" id="nuclen_summary_shadow_blur" value="<?php echo esc_attr( $settings['summary_shadow_blur'] ); ?>" min="0" max="100"></div>
 		</div>
+
 		<!-- ─────────── TOC container ─────────── -->
 		<h3 class="nuclen-subheading" style="margin-top:30px;"><?php esc_html_e( 'TOC Container', 'nuclear-engagement' ); ?></h3>
 
@@ -218,48 +219,5 @@ if ( ! defined( 'ABSPATH' ) ) {
 			<div class="nuclen-column nuclen-input-col"><input type="number" class="nuclen-input" name="nuclen_toc_shadow_blur" id="nuclen_toc_shadow_blur" value="<?php echo esc_attr( $settings['toc_shadow_blur'] ); ?>" min="0" max="100"></div>
 		</div>
 
-		<!-- Sticky offsets & max-width -->
-		<h4><?php esc_html_e( 'Sticky Offsets & Width', 'nuclear-engagement' ); ?></h4>
-		<div class="nuclen-row">
-			<div class="nuclen-column nuclen-label-col">
-				<label class="nuclen-label"><?php esc_html_e( 'Offset &nbsp;X&nbsp;(px)', 'nuclear-engagement' ); ?></label>
-			</div>
-			<div class="nuclen-column nuclen-input-col">
-				<input type="number"
-				       name="toc_sticky_offset_x"
-				       id="toc_sticky_offset_x"
-				       class="small-text"
-				       min="0"
-				       value="<?php echo esc_attr( $settings['toc_sticky_offset_x'] ?? '20' ); ?>">
-			</div>
-		</div>
-
-		<div class="nuclen-row">
-			<div class="nuclen-column nuclen-label-col">
-				<label class="nuclen-label"><?php esc_html_e( 'Offset &nbsp;Y&nbsp;(px)', 'nuclear-engagement' ); ?></label>
-			</div>
-			<div class="nuclen-column nuclen-input-col">
-				<input type="number"
-				       name="toc_sticky_offset_y"          
-				       id="toc_sticky_offset_y"
-				       class="small-text"
-				       min="0"
-				       value="<?php echo esc_attr( $settings['toc_sticky_offset_y'] ?? '20' ); ?>">
-			</div>
-		</div>
-
-		<div class="nuclen-row">
-			<div class="nuclen-column nuclen-label-col">
-				<label class="nuclen-label"><?php esc_html_e( 'Max&nbsp;Width&nbsp;(px)', 'nuclear-engagement' ); ?></label>
-			</div>
-			<div class="nuclen-column nuclen-input-col">
-				<input type="number"
-				       name="toc_sticky_max_width"         
-				       id="toc_sticky_max_width"
-				       class="small-text"
-				       min="200" max="800"
-				       value="<?php echo esc_attr( $settings['toc_sticky_max_width'] ?? '300' ); ?>">
-			</div>
-		</div>
 	</div><!-- /#nuclen-custom-theme-section -->
 </div><!-- /#theme -->

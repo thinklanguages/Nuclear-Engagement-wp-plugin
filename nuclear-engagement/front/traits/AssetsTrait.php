@@ -25,7 +25,7 @@ trait AssetsTrait {
 			$this->plugin_name,
 			plugin_dir_url( __FILE__ ) . '../css/nuclen-front.css',
 			array(),
-			NUCLEN_ASSET_VERSION,
+			filemtime( plugin_dir_path( __FILE__ ) . '../css/nuclen-front.css' ),
 			'all'
 		);
 
@@ -52,7 +52,7 @@ trait AssetsTrait {
 			$this->plugin_name . '-theme',
 			$theme_url,
 			array(),
-			NUCLEN_ASSET_VERSION,
+			filemtime( str_replace( content_url(), WP_CONTENT_DIR, $theme_url ) ),
 			'all'
 		);
 	}

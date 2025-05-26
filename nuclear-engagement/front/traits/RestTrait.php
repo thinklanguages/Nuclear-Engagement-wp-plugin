@@ -68,11 +68,32 @@ trait RestTrait {
 					$this->utils->nuclen_log( "Invalid summary for $post_id" );
 					continue;
 				}
+				$allowed_html = array(
+					'a' => array(
+						'href' => array(),
+						'title' => array(),
+						'target' => array(),
+					),
+					'br' => array(),
+					'em' => array(),
+					'strong' => array(),
+					'p' => array(),
+					'ul' => array(),
+					'ol' => array(),
+					'li' => array(),
+					'h1' => array(),
+					'h2' => array(),
+					'h3' => array(),
+					'h4' => array(),
+					'div' => array('class' => array()),
+					'span' => array('class' => array()),
+				);
+
 				update_post_meta(
 					$post_id,
 					'nuclen-summary-data',
 					array(
-						'summary' => wp_kses_post( $summary_data['summary'] ),
+						'summary' => wp_kses( $summary_data['summary'], $allowed_html ),
 						'date'    => current_time( 'mysql' ),
 					)
 				);
@@ -158,6 +179,8 @@ trait RestTrait {
 				),
 				'body'    => wp_json_encode( $data ),
 				'timeout' => 30,
+				'reject_unsafe_urls' => true,
+				'user-agent' => 'NuclearEngagement/' . NUCLEN_PLUGIN_VERSION,
 			)
 		);
 		if ( is_wp_error( $response ) ) {
