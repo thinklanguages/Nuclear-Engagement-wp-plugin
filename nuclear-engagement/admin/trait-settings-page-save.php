@@ -75,16 +75,25 @@ trait SettingsPageSaveTrait {
 			'nuclen_summary_shadow_blur'              => 'summary_shadow_blur',
 
 			/* —— TOC style —— */
-			'nuclen_toc_font_color'       => 'toc_font_color',
-			'nuclen_toc_bg_color'         => 'toc_bg_color',
-			'nuclen_toc_border_color'     => 'toc_border_color',
-			'nuclen_toc_border_style'     => 'toc_border_style',
-			'nuclen_toc_border_width'     => 'toc_border_width',
-			'nuclen_toc_border_radius'    => 'toc_border_radius',
-			'nuclen_toc_shadow_color'     => 'toc_shadow_color',
-			'nuclen_toc_shadow_blur'      => 'toc_shadow_blur',
-			'nuclen_toc_link_color'       => 'toc_link_color',
-			'nuclen_toc_title'            => 'toc_title',
+			'nuclen_toc_font_color'              => 'toc_font_color',
+			'nuclen_toc_bg_color'                => 'toc_bg_color',
+			'nuclen_toc_border_color'            => 'toc_border_color',
+			'nuclen_toc_border_style'            => 'toc_border_style',
+			'nuclen_toc_heading_levels'          => 'toc_heading_levels',
+			'nuclen_toc_show_toggle'             => 'toc_show_toggle',
+			'nuclen_toc_show_content'            => 'toc_show_content',
+			'nuclen_toc_border_width'            => 'toc_border_width',
+			'nuclen_toc_border_radius'           => 'toc_border_radius',
+			'nuclen_toc_shadow_color'            => 'toc_shadow_color',
+			'nuclen_toc_shadow_blur'             => 'toc_shadow_blur',
+			'nuclen_toc_link_color'              => 'toc_link_color',
+			'nuclen_toc_title'                   => 'toc_title',
+
+			/* —— NEW – sticky TOC options & z-index —— */
+			'toc_zindex'                         => 'toc_z_index',
+			'toc_sticky_offset_x'                => 'toc_sticky_offset_x',
+			'toc_sticky_offset_y'                => 'toc_sticky_offset_y',
+			'toc_sticky_max_width'               => 'toc_sticky_max_width',
 
 			/* —— Legacy generic —— */
 			'nuclen_border_color'                     => 'border_color',
@@ -107,6 +116,11 @@ trait SettingsPageSaveTrait {
 				$raw[ $opt_key ] = sanitize_text_field( wp_unslash( $_POST[ $post_key ] ) );
 			}
 		}
+
+		/* —— TOC Heading Levels —— */
+		$raw['toc_heading_levels'] = isset( $_POST['nuclear_engagement_settings']['toc_heading_levels'] )
+			? array_map( 'intval', (array) $_POST['nuclear_engagement_settings']['toc_heading_levels'] )
+			: range( 2, 6 );
 
 		/* —— Custom HTML & titles —— */
 		$raw['custom_quiz_html_before'] = isset( $_POST['custom_quiz_html_before'] )
@@ -150,12 +164,14 @@ trait SettingsPageSaveTrait {
 		/* ───────── 2) SANITIZE & SAVE ───────── */
 		$new_settings = $this->nuclen_sanitize_settings( $raw );
 
-		/* Ensure newly-added TOC keys survive even if the sanitizer
-		   hasn’t been updated yet. */
+		/* Keep additional TOC keys that sanitiser may not yet know about */
 		$toc_keys = array(
+			// colours etc.
 			'toc_font_color', 'toc_bg_color', 'toc_border_color', 'toc_border_style',
 			'toc_border_width', 'toc_border_radius', 'toc_shadow_color', 'toc_shadow_blur',
-			'toc_link_color',
+			'toc_link_color', 'toc_heading_levels',
+			// ► NEW ◄ sticky & z-index keys
+			'toc_z_index', 'toc_sticky_offset_x', 'toc_sticky_offset_y', 'toc_sticky_max_width',
 		);
 		foreach ( $toc_keys as $k ) {
 			if ( isset( $raw[ $k ] ) && $raw[ $k ] !== '' ) {
@@ -168,7 +184,7 @@ trait SettingsPageSaveTrait {
 		/* update $settings (by ref) so UI shows saved values immediately */
 		$settings = wp_parse_args( $new_settings, $defaults );
 
-		/* Immediately regenerate the custom CSS when the user is on a custom theme */
+		/* Immediately regenerate custom CSS when using the custom theme */
 		if ( 'custom' === $settings['theme'] && method_exists( $this, 'nuclen_write_custom_css' ) ) {
 			$this->nuclen_write_custom_css( $settings );
 		}

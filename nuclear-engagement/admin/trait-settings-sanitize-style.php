@@ -111,6 +111,7 @@ trait SettingsSanitizeStyleTrait {
 
 		$t_shadow_color = sanitize_text_field( $in['toc_shadow_color'] ?? 'rgba(0,0,0,0.05)' );
 		$t_shadow_blur  = (int) ( $in['toc_shadow_blur'] ?? 8 );
+		$t_z_index     = max( 1, min( 9999, (int) ( $in['toc_z_index'] ?? 100 ) ) );
 
 		$t_link_color = $hx( $in['toc_link_color'] ?? '', '#1e73be' );
 
@@ -157,6 +158,7 @@ trait SettingsSanitizeStyleTrait {
 			'toc_border_radius'    => $t_border_radius,
 			'toc_shadow_color'     => $t_shadow_color,
 			'toc_shadow_blur'      => $t_shadow_blur,
+			'toc_z_index'          => $t_z_index,
 			'toc_link_color'       => $t_link_color,
 		);
 	}

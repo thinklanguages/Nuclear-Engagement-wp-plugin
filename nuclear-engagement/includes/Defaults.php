@@ -58,6 +58,7 @@ class Defaults {
 			'toc_border_radius'    => '6',
 			'toc_shadow_color'     => 'rgba(0,0,0,0.05)',
 			'toc_shadow_blur'      => '8',
+			'toc_z_index'          => '100',
 			'toc_link_color'       => '#1e73be',
 
 			/* ───── Quiz items ───── */
@@ -69,6 +70,12 @@ class Defaults {
 			'display_quiz'                     => 'after',
 			'display_toc'                      => 'manual',
 			'toc_sticky'                       => false, // Whether to make TOC sticky when scrolling
+			'toc_sticky_offset_x'              => '20',   // X offset (left) for sticky TOC in pixels
+			'toc_sticky_offset_y'              => '20',   // Y offset (top) for sticky TOC in pixels
+			'toc_sticky_max_width'             => '300',  // Max width for sticky TOC in pixels
+			'toc_show_toggle'                  => true,   // Whether to show the TOC toggle button
+			'toc_show_content'                 => true,   // Whether to show TOC content by default (only used if toggle is enabled)
+			'toc_heading_levels'               => [2, 3, 4, 5, 6], // Which heading levels to include in TOC (H2-H6)
 			'custom_quiz_html_before'          => '',
 			'custom_quiz_html_after'           => '',
 			'quiz_title'                       => 'Test your knowledge',

@@ -1,10 +1,10 @@
-=== Nuclear Engagement – Instantly Generate AI Summaries & Quizzes Across Your Entire Blog ===
+=== Nuclear Engagement – Instantly Generate AI Summaries, Quizzes & Table of Contents at Scale ===
 Plugin Name: Nuclear Engagement
 Plugin URI: https://www.nuclearengagement.com?ref=wp_listing&link=plugin_uri
 Author: Stefano Lodola
 Author URI: https://www.nuclearengagement.com/about?ref=wp_listing&link=author_uri
 Contributors: stefanolodola
-Tags: AI, quiz, summary, email optin, AI writer
+Tags: AI writer, quiz, summary, table of contents, email optin
 Requires at least: 5.6
 Tested up to: 6.8
 Requires PHP: 7.3
@@ -12,12 +12,12 @@ Stable tag: 0.9
 License: GPL-2.0+
 License URI: http://www.gnu.org/licenses/gpl-2.0.txt
 Donate link: https://buy.stripe.com/3csg1Tdn0a9h3ss288
-Instantly boost dwell time, cut bounce rates, improve SEO, and capture emails with AI-generated quizzes and summaries for all your posts.
+Instantly boost dwell time, cut bounce rates, improve SEO, and capture emails with AI-generated quizzes, summaries and table of contents for all your posts.
 
 == Description ==
 
 ### 3x Sitewide Visitor Engagement in 1 Click
-Nuclear Engagement is the easiest way to **turn all your blog posts into interactive quizzes and summaries** – automatically, in one run.
+Nuclear Engagement is the easiest way to **turn all your blog posts into interactive quizzes, summaries and table of contents** – automatically, in one run.
 
 In just one click, our AI analyzes your article and generates a concise summary and a short quiz to **engage** your readers.
 These interactive elements boost **time on page**, reduce **bounce rates**, and even help you **capture email leads** – all **without any coding** or manual work​.
@@ -60,7 +60,7 @@ When I say "the only solution", I mean it. This plugin is created from my own cu
 
 ✔️ You can literally **upgrade your entire blog in a few seconds** - whether it has 100 or 10,000 posts. No other solution is capable of that.
 
-Turn every WordPress blog post into an **interactive experience** with AI-generated quizzes and summaries that keep readers engaged 3x longer – with just one click.
+Turn every WordPress blog post into an **interactive experience** with AI-generated quizzes, summaries and table of contents that keep readers engaged 3x longer – with just one click.
 
 #### 🚀 Live Demo 🚀
 Want to see it in action? Generate engaging content on a demo site for free – experience how a dull post transforms into an engaging experience.
@@ -73,12 +73,12 @@ Want to see it in action? Generate engaging content on a demo site for free – 
 [youtube https://www.youtube.com/watch?v=np9boMarsBU]
 
 ### Made for You
-- [Business](https://www.nuclearengagement.com/audience-2/online-business?ref=wp_listing&link=business): Generate engaging content effortlessly, increasing visitor retention, SEO performance, and conversions through interactive summaries and quizzes.
+- [Business](https://www.nuclearengagement.com/audience-2/online-business?ref=wp_listing&link=business): Generate engaging content effortlessly, increasing visitor retention, SEO performance, and conversions through interactive summaries, quizzes and table of contents.
 - [Educators](https://www.nuclearengagement.com/audience-2/educator?ref=wp_listing&link=educators): Quickly transform lengthy educational content into interactive quizzes and concise summaries, enhancing student engagement and comprehension.
 - [Agencies](https://www.nuclearengagement.com/audience-2/agencies?ref=wp_listing&link=agencies): Offer clients bulk content upgrades easily, saving time and providing high-value, SEO-optimized content enhancements at scale.
 
 ### Benefits
-- [Content marketing](https://www.nuclearengagement.com/use-case-2/content-marketing?ref=wp_listing&link=content_marketing): AI-generated quizzes and summaries encourage visitors to interact more deeply, boosting user engagement and dwell time.
+- [Content marketing](https://www.nuclearengagement.com/use-case-2/content-marketing?ref=wp_listing&link=content_marketing): AI-generated quizzes, summaries and table of contents encourage visitors to interact more deeply, boosting user engagement and dwell time.
 - [SEO](https://www.nuclearengagement.com/use-case-2/seo?ref=wp_listing&link=seo): Enhanced on-page activity sends positive signals to search engines, potentially improving search rankings.
 - [Lead generation](https://www.nuclearengagement.com/use-case-2/lead-generation?ref=wp_listing&link=lead_generation): Built-in no-code email opt-in integration helps capture leads effortlessly, supporting your marketing strategy.
 
@@ -99,6 +99,7 @@ If you’re tired of seeing users leave after skimming an article, or you simply
 - [Bulk Content Generation](https://www.nuclearengagement.com/feature/bulk-processing?ref=wp_listing&link=bulk_content_generation): Upgrade multiple blog posts at once, saving time and streamlining your workflow.
 - [AI-Powered Quizzes](https://www.nuclearengagement.com/feature/quiz-generation?ref=wp_listing&link=ai_quizzes): Automatically create engaging content that keeps visitors on page.
 - [AI Summaries](https://www.nuclearengagement.com/feature/summary-creation?ref=wp_listing&link=ai_summaries): Automatically create a skimmable outline that hooks your readers.
+- Automatic Table of Contents: Automatically create a TOC to help navigation.
 - [Email Opt-in](https://www.nuclearengagement.com/feature/emailoptin?ref=wp_listing&link=email_optin): Collect email addresses at the end of quizzes to add them to your mailing list via Zapier, Make, etc.
 - [Customizable Display Options](https://www.nuclearengagement.com/feature/embedding?ref=wp_listing&link=customizable_display): Choose to insert generated content before, after, or via shortcodes for optimal layout.
 - [Seamless WordPress Integration](https://www.nuclearengagement.com/feature/wordpress-integration?ref=wp_listing&link=wordpress_integration): Enjoy an easy-to-install plugin that fits smoothly into your existing site setup.
@@ -156,7 +157,7 @@ This is the **strength** of NE - the generated content matches yours exactly bec
 That's why this plugin connects to the [Nuclear Engagement app](https://app.nuclearengagement.com?ref=wp_listing&link=nuclear_engagement_app) in order to generate content such as summaries and quizzes using AI.
 
 When you use Nuclear Engagement, selected post data is sent to an external app. Neither the plugin nor the app store or transmit any data beyond what is necessary for generating and returning the quiz or summary content.
-- Data sent: post content, post title, post id, post metadata
+- Data sent: post content, title, id, metadata
 - When: Whenever the user triggers content generation on the plugin's generation page, on the WP post editor
 - Why: To generate AI content based on the post content
 - [Privacy Policy](https://www.nuclearengagement.com/privacy-policy?ref=wp_listing&link=privacy_policy)
@@ -177,7 +178,7 @@ By installing and activating the plugin, you agree to the above third-party usag
 
 == Frequently Asked Questions ==
 = Is Nuclear Engagement really free? =
-With a free account, you can use every feature included in the plugin. Manual content creation is unlimited, while AI generation uses credits. When you create a free account, you get free credits to use right away. In any case, the content that you generate is yours forever and you can keep displaying it with a free account.
+With a free account, you can use every feature included in the plugin. Manual content creation is unlimited, while AI generation uses credits. When you create a free account, you get free credits to use right away. In any case, the content that you generate is yours forever and you can keep displaying it with a free account. The TOC is free forever.
 
 = How does Nuclear Engagement work? =
 Nuclear Engagement uses AI to generate engaging quizzes and summaries from your blog posts by sending selected post content to an external AI service.
@@ -221,6 +222,12 @@ You can review the generated content in the post editor or view it as a preview 
 = What if I need to update or regenerate the AI content later? =
 You can rerun the content generation process at any time to refresh or update the quizzes and summaries as your content evolves.
 
+= Why are Table of Contents good for reader engagement? =
+They show your post’s outline at a glance and let readers jump to sections, cutting down scrolling and keeping them on your page longer.
+
+= How are TOCs created? =
+TOCs are created automatically from your post content - no manual work, no AI needed. You can select which headings to include (h2-h6) and customize the styling.
+
 = Does Nuclear Engagement provide analytics to track user engagement? =
 Yes, the plugin triggers Google Analytics events like quiz start, quiz answers, and email opt-ins. On the Nuclear Engagement web app, you can see metrics like summary view rates, quiz completion rates, and opt-in rates.
 
@@ -237,14 +244,22 @@ Yes, you still need the plugin to display the generated content. Free, forever!
 No. Generation is done via the NE app. You only need a free account on the NE app.
 
 = Will the plugin slow down or break my site? =
-The tiny codebase and lazy loading assure fast loading, both in admin and on frontend. You won't even notice it's active. While it's still under development, no conflicts are know to occur. If they do, I'll fix them right away.
+The tiny codebase and lazy loading assure fast loading, both in admin and on frontend. You won't even notice it's active. No conflicts are known to occur.
 
 = Is this a working version? =
 Yes, this plugin gets the job done. Some functionalities and user interface still need to be polished and expanded, but everything needed to generate and display content is there.
 
 == Changelog ==
 = 0.9 =
-- Added: gamified TOC module (table of contents)
+- Added: Table of contents (TOC)
+-- Styling
+-- Static vs sticky placement
+-- Select which headings to include (h2-h6)
+-- Set left, top offset on sticky
+-- Set max width on sticky
+-- Set z-index
+-- Show/hide TOC by default
+-- Enable/remove TOC toggle
 
 = 0.8.1 =
 - Fixed styling settings

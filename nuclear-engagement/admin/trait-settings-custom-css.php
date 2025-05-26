@@ -69,6 +69,7 @@ trait SettingsPageCustomCSSTrait {
 	--nuclen-toc-shadow-color: {$s['toc_shadow_color']};
 	--nuclen-toc-shadow-blur: {$s['toc_shadow_blur']}px;
 	--nuclen-toc-link: {$s['toc_link_color']};
+	--nuclen-toc-sticky-max-width: {$s['toc_sticky_max_width']}px;
 
 	/* ───── Legacy fallbacks ───── */
 	--nuclen-border-color: var(--nuclen-quiz-border-color);

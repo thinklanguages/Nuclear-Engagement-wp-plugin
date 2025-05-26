@@ -32,7 +32,29 @@ trait SettingsSanitizeGeneralTrait {
 		$d_sum = in_array( $in['display_summary'] ?? 'manual', $disp, true ) ? $in['display_summary'] : 'manual';
 		$d_q   = in_array( $in['display_quiz']    ?? 'manual', $disp, true ) ? $in['display_quiz']    : 'manual';
 		$d_toc = in_array( $in['display_toc']     ?? 'manual', $disp, true ) ? $in['display_toc']     : 'manual';
-		$toc_sticky = ! empty( $in['toc_sticky'] ) ? '1' : '0';
+
+		$toc_sticky       = ! empty( $in['toc_sticky']       ) ? '1' : '0';
+		$toc_show_toggle  = ! empty( $in['toc_show_toggle']  ) ? '1' : '0';
+		$toc_show_content = ! empty( $in['toc_show_content'] ) ? '1' : '0';
+
+		// Sticky TOC offsets & width
+		$off_x = isset( $in['toc_sticky_offset_x'] ) ? max( 0, min( 1000, (int) $in['toc_sticky_offset_x'] ) ) : 20;
+		$off_y = isset( $in['toc_sticky_offset_y'] ) ? max( 0, min( 1000, (int) $in['toc_sticky_offset_y'] ) ) : 20;
+		$max_w = isset( $in['toc_sticky_max_width'] ) ? max( 200, min( 800, (int) $in['toc_sticky_max_width'] ) ) : 300;
+
+		// Heading levels
+		$toc_heading_levels = [];
+		if ( isset( $in['toc_heading_levels'] ) && is_array( $in['toc_heading_levels'] ) ) {
+			$toc_heading_levels = array_map( 'intval', $in['toc_heading_levels'] );
+			$toc_heading_levels = array_filter( $toc_heading_levels, static function ( $l ) {
+				return $l >= 2 && $l <= 6;
+			} );
+		}
+		if ( empty( $toc_heading_levels ) ) {
+			$toc_heading_levels = range( 2, 6 );
+		}
+		$toc_heading_levels = array_values( array_unique( $toc_heading_levels ) );
+		sort( $toc_heading_levels );
 
 		/* Custom HTML / titles */
 		$html_before = isset( $in['custom_quiz_html_before'] ) ? wp_kses_post( $in['custom_quiz_html_before'] ) : '';
@@ -66,6 +88,14 @@ trait SettingsSanitizeGeneralTrait {
 			'display_quiz'                     => $d_q,
 			'display_toc'                      => $d_toc,
 			'toc_sticky'                       => $toc_sticky,
+			'toc_show_toggle'                  => $toc_show_toggle,
+			'toc_show_content'                 => $toc_show_content,
+			'toc_heading_levels'               => $toc_heading_levels,
+
+			// ► NEW – sticky offsets & max-width ◄
+			'toc_sticky_offset_x'              => $off_x,
+			'toc_sticky_offset_y'              => $off_y,
+			'toc_sticky_max_width'             => $max_w,
 
 			'custom_quiz_html_before'          => $html_before,
 			'custom_quiz_html_after'           => $html_after,

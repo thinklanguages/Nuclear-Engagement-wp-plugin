@@ -20,8 +20,11 @@ final class Nuclen_TOC_Utils {
 	private static array $ids_in_post = [];
 
 	/**
-	 * Parse H1–H6 headings from raw HTML, respecting min/max levels,
+	 * Parse H1–H6 headings from raw HTML, respecting heading levels array,
 	 * .no‑toc class, data‑toc="false", and cache the result.
+	 *
+	 * @param string $html The HTML content to parse for headings.
+	 * @param array $heading_levels Array of specific heading levels to include (e.g., [2, 4] for H2 and H4 only).
 	 *
 	 * @return array[] [
 	 *     'tag'   => 'h2',
@@ -31,10 +34,30 @@ final class Nuclen_TOC_Utils {
 	 *     'id'    => 'slugified-id'
 	 * ]
 	 */
-	public static function extract( string $html, int $min, int $max ) : array {
+	public static function extract( string $html, array $heading_levels ) : array {
+		// If no specific levels provided, use defaults (2-6)
+		if ( empty( $heading_levels ) ) {
+			$heading_levels = range( 2, 6 );
+		}
 
-		$key = md5( $html ) . "_{$min}{$max}";
+		// Sanitize and validate heading levels
+		$heading_levels = array_filter( array_map( 'intval', $heading_levels ), function( $level ) {
+			return $level >= 1 && $level <= 6;
+		} );
+
+		// If still no valid levels, use defaults (2-6)
+		if ( empty( $heading_levels ) ) {
+			$heading_levels = range( 2, 6 );
+		}
+
+		// Sort and make unique
+		sort( $heading_levels );
+		$heading_levels = array_unique( $heading_levels );
+
+		// Generate cache key based on content and heading levels
+		$key = md5( $html ) . '_' . implode( '', $heading_levels );
 		$hit = wp_cache_get( $key, self::CACHE_GROUP );
+
 		if ( $hit !== false ) {
 			self::$ids_in_post = wp_list_pluck( $hit, 'id' );
 			return $hit;
@@ -47,14 +70,17 @@ final class Nuclen_TOC_Utils {
 				$tag  = strtolower( $row[1] );
 				$lvl  = (int) substr( $tag, 1 );
 
-				if ( $lvl < $min || $lvl > $max )                               { continue; }
-				if ( preg_match( '/\bno-?toc\b/i', $row[2] ) )                  { continue; }
-				if ( preg_match( '/data-toc\s*=\s*["\']?false/i', $row[2] ) )   { continue; }
+				// Skip if not in allowed levels or has skip classes/attributes
+				if ( ! in_array( $lvl, $heading_levels, true ) ) { continue; }
+				if ( preg_match( '/\bno-?toc\b/i', $row[2] ) ) { continue; }
+				if ( preg_match( '/data-toc\s*=\s*["\']?false/i', $row[2] ) ) { continue; }
 
+				// Process the heading
 				$inner = $row[3];
 				$text  = wp_strip_all_tags( $inner );
 				if ( $text === '' ) { continue; }
 
+				// Get or generate ID
 				$id = ( preg_match( '/\bid=["\']([^"\']+)["\']/', $row[2], $id_m ) )
 					? sanitize_html_class( $id_m[1] )
 					: self::unique_id_from_text( $text );
