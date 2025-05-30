@@ -16,16 +16,23 @@ if ( ! defined( 'ABSPATH' ) ) {
 use NuclearEngagement\Admin\Admin;
 use NuclearEngagement\Front\FrontClass;
 use NuclearEngagement\Admin\Onboarding;
+use NuclearEngagement\Defaults;
+use NuclearEngagement\SettingsRepository;
 
 class Plugin {
 
 	protected $loader;
 	protected $plugin_name;
 	protected $version;
+	protected $settings_repository;
 
 	public function __construct() {
 		$this->version     = defined( 'NUCLEN_PLUGIN_VERSION' ) ? NUCLEN_PLUGIN_VERSION : '1.0.0';
 		$this->plugin_name = 'nuclear-engagement';
+		
+		// Initialize settings repository with defaults
+		$defaults = Defaults::nuclen_get_default_settings();
+		$this->settings_repository = SettingsRepository::get_instance( $defaults );
 
 		/* ───── Ensure DB table exists on activation ───── */
 		register_activation_hook(
@@ -60,7 +67,7 @@ class Plugin {
 	──────────────────────────────────────────── */
 	private function nuclen_define_admin_hooks() {
 
-		$plugin_admin = new Admin( $this->nuclen_get_plugin_name(), $this->nuclen_get_version() );
+		$plugin_admin = new Admin( $this->nuclen_get_plugin_name(), $this->nuclen_get_version(), $this->settings_repository );
 
 		// Enqueue
 		$this->loader->nuclen_add_action( 'admin_enqueue_scripts', $plugin_admin, 'wp_enqueue_styles' );
@@ -106,7 +113,7 @@ class Plugin {
 	   Front-end hooks
 	──────────────────────────────────────────── */
 	private function nuclen_define_public_hooks() {
-		$plugin_public = new FrontClass( $this->nuclen_get_plugin_name(), $this->nuclen_get_version() );
+		$plugin_public = new FrontClass( $this->nuclen_get_plugin_name(), $this->nuclen_get_version(), $this->settings_repository );
 
 		$this->loader->nuclen_add_action( 'wp_enqueue_scripts', $plugin_public, 'wp_enqueue_styles' );
 		$this->loader->nuclen_add_action( 'wp_enqueue_scripts', $plugin_public, 'wp_enqueue_scripts' );
@@ -133,6 +140,15 @@ class Plugin {
 
 	public function nuclen_get_version() {
 		return $this->version;
+	}
+	
+	/**
+	 * Get the settings repository instance.
+	 *
+	 * @return SettingsRepository
+	 */
+	public function get_settings_repository() {
+		return $this->settings_repository;
 	}
 
 	function load_nuclear_engagement_admin_display() {

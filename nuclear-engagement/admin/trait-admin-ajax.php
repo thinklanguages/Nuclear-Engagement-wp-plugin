@@ -37,9 +37,8 @@ trait Admin_Ajax {
             $generation_id = 'gen_' . uniqid( 'auto_', true );
         }
 
-        // Retrieve the plugin's API key
-        $app_setup = get_option( 'nuclear_engagement_setup', array() );
-        $api_key   = isset( $app_setup['api_key'] ) ? $app_setup['api_key'] : '';
+        // Retrieve the plugin's API key from settings repository
+        $api_key = $this->get_settings_repository()->get( 'api_key', '' );
 
         // Build a JSON body
         $payload = array(
@@ -148,23 +147,74 @@ trait Admin_Ajax {
      * If old plugin doesn't send generation_id, we fallback to a unique generation ID.
      */
     public function nuclen_handle_trigger_generation() {
-        check_ajax_referer( 'nuclen_admin_ajax_nonce', 'security' );
-        if ( ! current_user_can( 'manage_options' ) ) {
-            wp_send_json_error( array( 'message' => 'Not allowed' ) );
+        try {
+            // Enable error logging for this request
+            if (!defined('WP_DEBUG') || !WP_DEBUG) {
+                @ini_set('display_errors', 1);
+                @error_reporting(E_ALL);
+            }
+        
+        
+        // Verify nonce and permissions
+        if (!check_ajax_referer('nuclen_admin_ajax_nonce', 'security', false)) {
+            $error_msg = 'Security check failed: Invalid nonce';
+            
+            status_header(403);
+            wp_send_json_error(array('message' => $error_msg));
+            return;
+        }
+        
+        if (!current_user_can('manage_options')) {
+            $error_msg = 'Permission denied for user: ' . get_current_user_id();
+            error_log($error_msg);
+            status_header(403);
+            wp_send_json_error(array('message' => 'Not allowed'));
+            return;
         }
 
-        if ( empty( $_POST['payload'] ) ) {
-            wp_send_json_error( array( 'message' => 'Missing payload' ) );
+        if (empty($_POST['payload'])) {
+            $error_msg = 'Missing payload in request';
+            error_log($error_msg);
+            status_header(400);
+            wp_send_json_error(array('message' => $error_msg));
+            return;
         }
-        $payload = json_decode( sanitize_text_field( wp_unslash( $_POST['payload'] ) ), true );
-        if ( ! is_array( $payload ) ) {
-            wp_send_json_error( array( 'message' => 'Invalid payload structure' ) );
+        $payload_raw = wp_unslash($_POST['payload']);
+        $payload = json_decode($payload_raw, true);
+        
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            $error_msg = 'JSON decode error: ' . json_last_error_msg() . ' | Raw: ' . substr($payload_raw, 0, 200);
+            error_log($error_msg);
+            status_header(400);
+            wp_send_json_error(array('message' => 'Invalid JSON payload: ' . json_last_error_msg()));
+            return;
+        }
+        
+        if (!is_array($payload)) {
+            $error_msg = 'Invalid payload structure: ' . print_r($payload, true);
+            error_log($error_msg);
+            status_header(400);
+            wp_send_json_error(array('message' => 'Invalid payload structure'));
+            return;
         }
 
-        $post_ids_json  = $payload['nuclen_selected_post_ids'] ?? '';
-        $post_ids_array = json_decode( $post_ids_json, true );
-        if ( empty( $post_ids_array ) || ! is_array( $post_ids_array ) ) {
-            wp_send_json_error( array( 'message' => 'No posts selected' ) );
+        $post_ids_json = $payload['nuclen_selected_post_ids'] ?? '';
+        $post_ids_array = json_decode($post_ids_json, true);
+        
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            $error_msg = 'Failed to decode post IDs: ' . json_last_error_msg() . ' | Raw: ' . $post_ids_json;
+            error_log($error_msg);
+            status_header(400);
+            wp_send_json_error(array('message' => 'Invalid post IDs format'));
+            return;
+        }
+        
+        if (empty($post_ids_array) || !is_array($post_ids_array)) {
+            $error_msg = 'No valid posts selected. Post IDs: ' . print_r($post_ids_array, true);
+            error_log($error_msg);
+            status_header(400);
+            wp_send_json_error(array('message' => 'No valid posts selected'));
+            return;
         }
 
         $post_status = $payload['nuclen_selected_post_status'] ?? 'any';
@@ -225,10 +275,24 @@ trait Admin_Ajax {
         );
 
         // Send to remote
-        $public_class = new \NuclearEngagement\Front\FrontClass( $this->nuclen_get_plugin_name(), $this->nuclen_get_version() );
-        $result       = $public_class->nuclen_send_posts_to_app_backend( $data_to_send );
-        if ( $result === false ) {
-            wp_send_json_error( array( 'message' => 'Failed to send data to app.' ) );
+        try {
+            $settings_repo = $this->get_settings_repository();
+            $public_class = new \NuclearEngagement\Front\FrontClass(
+                $this->nuclen_get_plugin_name(),
+                $this->nuclen_get_version(),
+                $settings_repo
+            );
+            $result = $public_class->nuclen_send_posts_to_app_backend($data_to_send);
+            
+            if ($result === false) {
+                throw new Exception('Failed to send data to app: ' . print_r(error_get_last(), true));
+            }
+        } catch (Exception $e) {
+            $error_msg = 'Error sending to app backend: ' . $e->getMessage();
+            error_log($error_msg);
+            status_header(500);
+            wp_send_json_error(array('message' => 'Failed to send data to app: ' . $e->getMessage()));
+            return;
         }
 
         // Check remote errors
@@ -248,18 +312,17 @@ trait Admin_Ajax {
 
         // If we got generated content
         if ( ! empty( $result['results'] ) && is_array( $result['results'] ) ) {
+            $settings_repo = $this->get_settings_repository();
+            $update_last_modified = $settings_repo->get( 'update_last_modified', false );
+            
             foreach ( $result['results'] as $post_id_string => $generated_post_data ) {
                 $pid = (int) $post_id_string;
-                if ( $workflow_type === 'quiz' ) {
-                    update_post_meta( $pid, 'nuclen-quiz-data', $generated_post_data );
-                } else {
-                    update_post_meta( $pid, 'nuclen-summary-data', $generated_post_data );
-                }
-                clean_post_cache( $pid );
-
-                $nuclen_settings = get_option( 'nuclear_engagement_settings', array() );
-                if ( ! empty( $nuclen_settings['update_last_modified'] ) ) {
-                    $time      = current_time( 'mysql' );
+                $meta_key = $workflow_type === 'quiz' ? 'nuclen-quiz-data' : 'nuclen-summary-data';
+                update_post_meta( $pid, $meta_key, $generated_post_data );
+                
+                // Update post modified time if enabled
+                if ( $update_last_modified ) {
+                    $time = current_time( 'mysql' );
                     $post_data = array(
                         'ID'                => $pid,
                         'post_modified'     => $time,
@@ -267,12 +330,22 @@ trait Admin_Ajax {
                     );
                     wp_update_post( $post_data );
                     clean_post_cache( $pid );
+                } else {
+                    clean_post_cache( $pid );
                 }
             }
         }
 
-        // Return generation_id so the front-end can poll
-        $result['generation_id'] = $generation_id;
-        wp_send_json_success( $result );
+            // Return generation_id so the front-end can poll
+            $result['generation_id'] = $generation_id;
+            
+            wp_send_json_success($result);
+        } catch (Exception $e) {
+            $error_msg = 'Unexpected error in nuclen_handle_trigger_generation: ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine();
+            error_log($error_msg);
+            error_log('Stack trace: ' . $e->getTraceAsString());
+            status_header(500);
+            wp_send_json_error(array('message' => 'An unexpected error occurred. Please check your error logs.'));
+        }
     }
 }

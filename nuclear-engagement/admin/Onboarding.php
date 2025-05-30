@@ -198,8 +198,8 @@ class Onboarding {
 
 		wp_enqueue_script(
 			'nuclen-onboarding',
-			plugin_dir_url( dirname( __DIR__ ) ) . 'admin/js/onboarding-pointers.js',
-			array( 'jquery', 'wp-pointer' ),
+			plugin_dir_url( __DIR__ ) . 'admin/js/onboarding-pointers.js',
+			array( 'jquery', 'wp-pointer', 'wp-util' ),
 			defined( 'NUCLEN_ASSET_VERSION' ) ? NUCLEN_ASSET_VERSION : '1',
 			true
 		);

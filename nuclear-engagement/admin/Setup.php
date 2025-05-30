@@ -12,8 +12,10 @@
 
 namespace NuclearEngagement\Admin;
 
-if ( ! defined( 'ABSPATH' ) ) {
-	exit;
+use NuclearEngagement\SettingsRepository;
+
+if (!defined('ABSPATH')) {
+    exit;
 }
 
 require_once __DIR__ . '/SetupHandlersTrait.php';
@@ -64,25 +66,17 @@ class Setup {
 			echo '<div class="notice notice-success is-dismissible"><p>' . esc_html( $nuclen_success ) . '</p></div>';
 		}
 
-		/* ───── Retrieve & normalise option ───── */
-		$raw_setup = get_option( 'nuclear_engagement_setup', array() );
+		/* ───── Retrieve settings ───── */
+		$settings = SettingsRepository::get_instance();
+		$app_setup = [
+			'api_key' => $settings->get_string('api_key', ''),
+			'connected' => $settings->get_bool('connected', false),
+			'wp_app_pass_created' => $settings->get_bool('wp_app_pass_created', false),
+			'wp_app_pass_uuid' => $settings->get_string('wp_app_pass_uuid', ''),
+			'plugin_password' => $settings->get_string('plugin_password', '')
+		];
 
-		// Ensure we always have an array with all keys, even if the option was malformed.
-		if ( ! is_array( $raw_setup ) ) {
-			$raw_setup = array();
-		}
-		$app_setup = wp_parse_args(
-			$raw_setup,
-			array(
-				'api_key'             => '',
-				'connected'           => false,
-				'wp_app_pass_created' => false,
-				'wp_app_pass_uuid'    => '',
-				'plugin_password'     => '',
-			)
-		);
-
-		$fully_setup = ( ! empty( $app_setup['connected'] ) && ! empty( $app_setup['wp_app_pass_created'] ) );
+		$fully_setup = ($app_setup['connected'] && $app_setup['wp_app_pass_created']);
 
 		/* ───── View-partials directory ───── */
 		$views_dir = __DIR__ . '/partials/setup/';

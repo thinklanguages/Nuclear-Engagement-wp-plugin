@@ -11,18 +11,20 @@
 
 namespace NuclearEngagement\Front;
 
-if ( ! defined( 'ABSPATH' ) ) {
-	exit;
+use NuclearEngagement\SettingsRepository;
+
+if (!defined('ABSPATH')) {
+    exit;
 }
 
 trait ShortcodesTrait {
 
 	/* ---------- Auto-insert into content ---------- */
 	public function nuclen_auto_insert_shortcodes( $content ) {
-		$options          = get_option( 'nuclear_engagement_settings', array() );
-		$summary_position = $options['display_summary'] ?? 'none';
-		$quiz_position    = $options['display_quiz']   ?? 'none';
-		$toc_position     = $options['display_toc']    ?? 'manual';
+		$settings_repo = $this->get_settings_repository();
+		$summary_position = $settings_repo->get( 'display_summary', 'none' );
+		$quiz_position    = $settings_repo->get( 'display_quiz', 'none' );
+		$toc_position     = $settings_repo->get( 'display_toc', 'manual' );
 
 		// Collect all elements with their positions
 		$elements = [
@@ -107,9 +109,10 @@ trait ShortcodesTrait {
 			return '';
 		}
 
-		$options     = get_option( 'nuclear_engagement_settings', array() );
-		$quiz_title  = $options['quiz_title']            ?? __( 'Test your knowledge', 'nuclear-engagement' );
-		$html_before = $options['custom_quiz_html_before'] ?? '';
+		$settings = SettingsRepository::get_instance();
+		$quiz_title = $settings->get_string('quiz_title', __('Test your knowledge', 'nuclear-engagement'));
+		$html_before = $settings->get_string('custom_quiz_html_before', '');
+		$show_attribution = $settings->get_bool('show_attribution', false);
 
 		$html  = '<section id="nuclen-quiz-container" class="nuclen-quiz">';
 		if ( trim( $html_before ) !== '' ) {
@@ -127,11 +130,11 @@ trait ShortcodesTrait {
 				<div id="nuclen-quiz-final-result-container"></div>
 			</section>';
 
-		if ( ! empty( $options['show_attribution'] ) ) {
+		if ($show_attribution) {
 			$html .= '<div class="nuclen-attribution">' .
-				esc_html__( 'Quiz by', 'nuclear-engagement' ) .
+				esc_html__('Quiz by', 'nuclear-engagement') .
 				' <a rel="nofollow" href="https://www.nuclearengagement.com" target="_blank">' .
-				esc_html__( 'Nuclear Engagement', 'nuclear-engagement' ) .
+				esc_html__('Nuclear Engagement', 'nuclear-engagement') .
 				'</a></div>';
 		}
 		return $html;
@@ -146,20 +149,21 @@ trait ShortcodesTrait {
 			return '';
 		}
 
-		$options         = get_option( 'nuclear_engagement_settings', array() );
-		$summary_title   = $options['summary_title'] ?? __( 'Key Facts', 'nuclear-engagement' );
-		$summary_content = wp_kses_post( $summary_data['summary'] );
+		$settings = SettingsRepository::get_instance();
+		$summary_title = $settings->get_string('summary_title', __('Key Facts', 'nuclear-engagement'));
+		$show_attribution = $settings->get_bool('show_attribution', false);
+		$summary_content = wp_kses_post($summary_data['summary']);
 
 		$html = '<section id="nuclen-summary-container" class="nuclen-summary">
 				<h2 id="nuclen-summary-title" class="nuclen-fg">' . esc_html( $summary_title ) . '</h2>
 				<div class="nuclen-fg" id="nuclen-summary-body">' . $summary_content . '</div>
 			</section>';
 
-		if ( ! empty( $options['show_attribution'] ) ) {
+		if ($show_attribution) {
 			$html .= '<div class="nuclen-attribution">' .
-				esc_html__( 'Summary by', 'nuclear-engagement' ) .
+				esc_html__('Summary by', 'nuclear-engagement') .
 				' <a rel="nofollow" href="https://www.nuclearengagement.com" target="_blank">' .
-				esc_html__( 'Nuclear Engagement', 'nuclear-engagement' ) .
+				esc_html__('Nuclear Engagement', 'nuclear-engagement') .
 				'</a></div>';
 		}
 		return $html;

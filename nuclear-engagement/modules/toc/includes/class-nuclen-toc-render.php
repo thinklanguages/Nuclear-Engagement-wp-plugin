@@ -8,6 +8,7 @@
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
 use function nuclen_str_contains as _nc;
+use NuclearEngagement\SettingsRepository;
 
 final class Nuclen_TOC_Render {
 
@@ -48,24 +49,26 @@ final class Nuclen_TOC_Render {
 		global $post;
 		if ( empty( $post ) ) { return ''; }
 
-		// Get heading levels from settings or use default (2-6)
-		$ne_settings = get_option( 'nuclear_engagement_settings', array() );
-		$heading_levels = isset($ne_settings['toc_heading_levels']) ? (array)$ne_settings['toc_heading_levels'] : range(2, 6);
-
+		// Get settings repository instance
+		$settings = SettingsRepository::get_instance();
+		
+		// Get heading levels from settings with proper type safety
+		$heading_levels = $settings->get_array('toc_heading_levels', range(2, 6));
+		
 		// Ensure we have valid heading levels (integers between 2 and 6)
 		$heading_levels = array_map('intval', $heading_levels);
-		$heading_levels = array_filter($heading_levels, function($level) {
+		$heading_levels = array_values(array_filter($heading_levels, function($level) {
 			return $level >= 2 && $level <= 6;
-		});
-
+		}));
+		
 		// If no valid levels, use all levels as fallback
 		if (empty($heading_levels)) {
 			$heading_levels = range(2, 6);
 		}
 		
-		// Ensure sequential array keys
-		$heading_levels = array_values(array_unique($heading_levels));
+		// Ensure unique and sorted
 		sort($heading_levels);
+		$heading_levels = array_values(array_unique($heading_levels));
 
 		$whitelist = [
 			'heading_levels' => $heading_levels,
@@ -104,20 +107,22 @@ final class Nuclen_TOC_Render {
 
 		// Get sticky setting if not explicitly set in shortcode
 		if ( ! isset( $atts['sticky'] ) ) {
-			$ne_settings = get_option( 'nuclear_engagement_settings', array() );
-			$atts['sticky'] = ! empty( $ne_settings['toc_sticky'] );
+			$atts['sticky'] = $settings->get_bool('toc_sticky');
 		}
 
 		// Only enqueue assets if we have valid headings to display
 		$this->enqueue_assets( $atts );
 
-		$ne_settings = get_option( 'nuclear_engagement_settings', array() );
-		$toc_title   = isset( $ne_settings['toc_title'] ) && $ne_settings['toc_title'] !== ''
-			? esc_html( $ne_settings['toc_title'] )
-			: esc_html__( 'Table of Contents', 'nuclen-toc-shortcode' );
+		// Get TOC title from settings with fallback
+		$toc_title = $settings->get_string('toc_title');
+		if (empty($toc_title)) {
+			$toc_title = esc_html__('Table of Contents', 'nuclen-toc-shortcode');
+		} else {
+			$toc_title = esc_html($toc_title);
+		}
 		
 		// Set the title from settings if not explicitly set in shortcode
-		if ( empty( $atts['title'] ) ) {
+		if (empty($atts['title'])) {
 			$atts['title'] = $toc_title;
 		}
 
@@ -137,8 +142,8 @@ final class Nuclen_TOC_Render {
 		 * - If toggle is enabled, respect the show/hide setting
 		 * - If toggle is disabled, always show the content
 		 */
-		$show_toggle = ! empty( $ne_settings['toc_show_toggle'] );
-		$is_collapsed = $show_toggle && empty( $ne_settings['toc_show_content'] );
+		$show_toggle = $settings->get_bool('toc_show_toggle');
+		$is_collapsed = $show_toggle && !$settings->get_bool('toc_show_content');
 		$hidden = $is_collapsed; // For backward compatibility
 		
 		// Add toggle class if enabled
@@ -155,34 +160,14 @@ final class Nuclen_TOC_Render {
 			$wrapper_classes[] = 'nuclen-toc-sticky';
 			
 			// Get sticky offset values from settings with proper type safety
-			$sticky_offset_x = isset( $ne_settings['toc_sticky_offset_x'] ) 
-				? filter_var( $ne_settings['toc_sticky_offset_x'], FILTER_VALIDATE_INT, [
-					'options' => [
-						'default' => self::DEFAULT_STICKY_OFFSET_X,
-						'min_range' => 0
-					]
-				] )
-				: self::DEFAULT_STICKY_OFFSET_X;
+			$sticky_offset_x = $settings->get_int('toc_sticky_offset_x', self::DEFAULT_STICKY_OFFSET_X);
+			$sticky_offset_y = $settings->get_int('toc_sticky_offset_y', self::DEFAULT_STICKY_OFFSET_Y);
+			$sticky_max_width = $settings->get_int('toc_sticky_max_width', self::DEFAULT_STICKY_MAX_WIDTH);
 
-			$sticky_offset_y = isset( $ne_settings['toc_sticky_offset_y'] )
-				? filter_var( $ne_settings['toc_sticky_offset_y'], FILTER_VALIDATE_INT, [
-					'options' => [
-						'default' => self::DEFAULT_STICKY_OFFSET_Y,
-						'min_range' => 0
-					]
-				] )
-				: self::DEFAULT_STICKY_OFFSET_Y;
-
-			// Get max width with proper validation
-			$sticky_max_width = isset( $ne_settings['toc_sticky_max_width'] )
-				? filter_var( $ne_settings['toc_sticky_max_width'], FILTER_VALIDATE_INT, [
-					'options' => [
-						'default' => self::DEFAULT_STICKY_MAX_WIDTH,
-						'min_range' => 100,
-						'max_range' => 1000
-					]
-				] )
-				: self::DEFAULT_STICKY_MAX_WIDTH;
+			// Ensure values are within valid ranges
+			$sticky_offset_x = max(0, $sticky_offset_x);
+			$sticky_offset_y = max(0, $sticky_offset_y);
+			$sticky_max_width = min(1000, max(100, $sticky_max_width));
 
 			// Add data attributes for JavaScript
 			$sticky_attrs = sprintf(
@@ -190,7 +175,7 @@ final class Nuclen_TOC_Render {
 				$sticky_offset_x,
 				$sticky_offset_y,
 				$sticky_max_width,
-				! empty( $ne_settings['toc_show_content'] ) ? 'true' : 'false',
+				$settings->get_bool('toc_show_content') ? 'true' : 'false',
 				esc_attr( implode( ',', $heading_levels ) )
 			);
 		}

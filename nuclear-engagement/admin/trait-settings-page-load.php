@@ -21,14 +21,17 @@ trait SettingsPageLoadTrait {
 	 * @return array [ $settings , $defaults ]
 	 */
 	protected function nuclen_get_current_settings(): array {
-		$raw_settings = get_option( 'nuclear_engagement_settings', array() );
-		$defaults     = \NuclearEngagement\Defaults::nuclen_get_default_settings();
+		$settings_repo = $this->get_settings_repository();
+		$defaults = \NuclearEngagement\Defaults::nuclen_get_default_settings();
 
-		// rely on the existing sanitizer
-		$settings = wp_parse_args(
-			$this->nuclen_sanitize_settings( $raw_settings ),
-			$defaults
-		);
+		// Get all settings from the repository
+		$settings = array();
+		foreach ($defaults as $key => $default_value) {
+			$settings[$key] = $settings_repo->get($key, $default_value);
+		}
+
+		// Sanitize the settings
+		$settings = $this->nuclen_sanitize_settings($settings);
 
 		return array( $settings, $defaults );
 	}

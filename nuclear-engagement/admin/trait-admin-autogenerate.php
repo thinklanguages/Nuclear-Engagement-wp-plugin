@@ -39,14 +39,15 @@ trait Admin_AutoGenerate {
             return;
         }
 
-        $settings           = get_option( 'nuclear_engagement_settings', array() );
-        $allowed_post_types = $settings['generation_post_types'] ?? array( 'post' );
-        if ( ! in_array( $post->post_type, $allowed_post_types, true ) ) {
+        // Get settings from repository
+        $settings_repo = $this->get_settings_repository();
+        $allowed_post_types = $settings_repo->get( 'generation_post_types', array( 'post' ) );
+        if ( ! in_array( $post->post_type, (array) $allowed_post_types, true ) ) {
             return;
         }
 
-        $gen_quiz    = ! empty( $settings['auto_generate_quiz_on_publish'] );
-        $gen_summary = ! empty( $settings['auto_generate_summary_on_publish'] );
+        $gen_quiz    = (bool) $settings_repo->get( 'auto_generate_quiz_on_publish', false );
+        $gen_summary = (bool) $settings_repo->get( 'auto_generate_summary_on_publish', false );
         if ( ! $gen_quiz && ! $gen_summary ) {
             return;
         }
@@ -141,17 +142,23 @@ trait Admin_AutoGenerate {
      ──────────────────────────────────────────────────────────*/
     public function nuclen_cron_poll_generation( $generation_id, $workflow_type, $post_id, $attempt ) {
         $max_attempts = 10;
-        $retry_delay  = 30;
+        // Check if auto-generation is enabled for this post type.
+        $settings_repo = $this->get_settings_repository();
+        $connected = $settings_repo->get( 'connected', false );
+        $wp_app_pass_created = $settings_repo->get( 'wp_app_pass_created', false );
+        if ( ! $connected || ! $wp_app_pass_created ) {
+            return;
+        }
 
-        $app_setup = get_option( 'nuclear_engagement_setup', array() );
-        $api_key   = $app_setup['api_key'] ?? '';
+        // Get API key from settings repository
+        $api_key = $settings_repo->get( 'api_key', '' );
 
         $response = wp_remote_post(
             'https://app.nuclearengagement.com/api/updates',
             array(
                 'headers' => array(
                     'Content-Type' => 'application/json',
-                    'X-API-Key'    => $api_key,
+                    'X-API-Key'    => $api_key
                 ),
                 'body'    => wp_json_encode(
                     array(

@@ -21,6 +21,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 use NuclearEngagement\Utils;
+use NuclearEngagement\SettingsRepository;
 
 /* ───── Load traits ───── */
 require_once __DIR__ . '/traits/AssetsTrait.php';
@@ -39,15 +40,39 @@ class FrontClass {
 	private $version;
 	/** @var Utils */
 	private $utils;
+	/** @var SettingsRepository */
+	private $settings_repository;
 
-	public function __construct( $plugin_name, $version ) {
+	/**
+	 * Constructor.
+	 *
+	 * @param string $plugin_name The plugin name.
+	 * @param string $version The plugin version.
+	 * @param SettingsRepository $settings_repository The settings repository.
+	 */
+	public function __construct( $plugin_name, $version, SettingsRepository $settings_repository ) {
 		$this->plugin_name = $plugin_name;
-		$this->version     = $version;
-		$this->utils       = new Utils();
+		$this->version = $version;
+		$this->utils = new Utils();
+		$this->settings_repository = $settings_repository;
 	}
 
 	/** Allow traits to read internal utils object */
+	/**
+	 * Get the Utils instance.
+	 *
+	 * @return Utils
+	 */
 	public function nuclen_get_utils() : Utils {
 		return $this->utils;
+	}
+
+	/**
+	 * Get the SettingsRepository instance.
+	 *
+	 * @return SettingsRepository
+	 */
+	public function get_settings_repository() {
+		return $this->settings_repository;
 	}
 }

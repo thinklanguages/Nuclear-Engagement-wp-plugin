@@ -9,9 +9,11 @@ if ( ! defined( 'ABSPATH' ) ) {
  * We'll fix the “No credits info returned.” by referencing `data.data.remaining_credits`.
  */
 
+use NuclearEngagement\SettingsRepository;
+
 // Fetch plugin setup info to decide if we show credits
-$app_setup = get_option( 'nuclear_engagement_setup', array() );
-$fully_setup = ( ! empty( $app_setup['connected'] ) && ! empty( $app_setup['wp_app_pass_created'] ) );
+$settings = SettingsRepository::get_instance();
+$fully_setup = ( $settings->get_bool( 'connected', false ) && $settings->get_bool( 'wp_app_pass_created', false ) );
 
 $utils = new \NuclearEngagement\Utils();
 $utils->display_nuclen_page_header();

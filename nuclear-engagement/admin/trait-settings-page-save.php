@@ -180,10 +180,17 @@ trait SettingsPageSaveTrait {
 			}
 		}
 
-		update_option( 'nuclear_engagement_settings', $new_settings );
+		// Get the settings repository and save all settings
+		$settings_repo = $this->get_settings_repository();
+		foreach ($new_settings as $key => $value) {
+			$settings_repo->set($key, $value);
+		}
 
-		/* update $settings (by ref) so UI shows saved values immediately */
-		$settings = wp_parse_args( $new_settings, $defaults );
+		// Update the settings array with the saved values
+		$settings = $settings_repo->get_all();
+
+		// Merge with defaults to ensure all keys are present
+		$settings = wp_parse_args($settings, $defaults);
 
 		/* Immediately regenerate custom CSS when using the custom theme */
 		if ( 'custom' === $settings['theme'] && method_exists( $this, 'nuclen_write_custom_css' ) ) {

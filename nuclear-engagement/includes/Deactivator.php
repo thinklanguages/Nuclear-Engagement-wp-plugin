@@ -2,11 +2,11 @@
 
 namespace NuclearEngagement;
 
-if ( ! defined( 'ABSPATH' ) ) {
-	exit;
+use NuclearEngagement\SettingsRepository;
+
+if (!defined('ABSPATH')) {
+    exit;
 }
-
-
 
 /**
  * Fired during plugin deactivation
@@ -29,14 +29,20 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @author     Stefano Lodola <stefano@nuclearengagement.com>
  */
 class Deactivator {
-
-	/**
-	 * Short Description. (use period)
-	 *
-	 * Long Description.
-	 *
-	 * @since    0.3.1
-	 */
-	public static function nuclen_deactivate() {
-	}
+    /**
+     * Handle plugin deactivation
+     *
+     * @since 0.3.1
+     * @param SettingsRepository|null $settings Optional settings repository instance
+     */
+    public static function nuclen_deactivate(?SettingsRepository $settings = null) {
+        // Clear any scheduled hooks or transients if needed
+        delete_transient('nuclen_plugin_activation_redirect');
+        
+        // If settings instance is provided, perform any necessary cleanup
+        if ($settings !== null) {
+            // Clear any cached settings if needed
+            $settings->clear_cache();
+        }
+    }
 }

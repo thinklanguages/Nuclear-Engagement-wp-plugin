@@ -20,8 +20,10 @@ global $wpdb;
 /* ──────────────────────────────────────────────────────────────
  * 1. Determine which post-types we need to examine
  * ──────────────────────────────────────────────────────────── */
-$settings           = get_option( 'nuclear_engagement_settings', array() );
-$allowed_post_types = $settings['generation_post_types'] ?? array( 'post' );
+$settings_repo = \NuclearEngagement\SettingsRepository::get_instance();
+$admin = new \NuclearEngagement\Admin\Admin('nuclear-engagement', NUCLEN_PLUGIN_VERSION, $settings_repo);
+$allowed_post_types = $settings_repo->get('generation_post_types', array('post'));
+$allowed_post_types = is_array($allowed_post_types) ? $allowed_post_types : array('post');
 
 /* ──────────────────────────────────────────────────────────────
  * 2. Convenience helpers

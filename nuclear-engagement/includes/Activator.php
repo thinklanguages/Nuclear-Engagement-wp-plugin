@@ -3,25 +3,31 @@
 
 namespace NuclearEngagement;
 
-if ( ! defined( 'ABSPATH' ) ) {
-	exit;
+use NuclearEngagement\SettingsRepository;
+
+if (!defined('ABSPATH')) {
+    exit;
 }
 
-
 class Activator {
-	public static function nuclen_activate() {
-		set_transient( 'nuclen_plugin_activation_redirect', true, 30 );
+    /**
+     * Plugin activation hook
+     * 
+     * @param SettingsRepository|null $settings Optional settings repository instance
+     */
+    public static function nuclen_activate(?SettingsRepository $settings = null) {
+        // Set transient for activation redirect
+        set_transient('nuclen_plugin_activation_redirect', true, 30);
 
-		// Pull all defaults from Defaults class
-		$default_settings = Defaults::nuclen_get_default_settings();
-		$default_setup    = Defaults::nuclen_get_default_setup();
-
-		// Only set the options if they don't already exist
-		if ( false === get_option( 'nuclear_engagement_settings' ) ) {
-			update_option( 'nuclear_engagement_settings', $default_settings );
-		}
-		if ( false === get_option( 'nuclear_engagement_setup' ) ) {
-			update_option( 'nuclear_engagement_setup', $default_setup );
-		}
-	}
+        // Get default settings
+        $default_settings = Defaults::nuclen_get_default_settings();
+        
+        // Initialize or update settings repository with defaults
+        $settings = $settings ?: SettingsRepository::get_instance($default_settings);
+        
+        // Only set the setup option if it doesn't already exist
+        if (false === get_option('nuclear_engagement_setup')) {
+            update_option('nuclear_engagement_setup', $default_settings);
+        }
+    }
 }

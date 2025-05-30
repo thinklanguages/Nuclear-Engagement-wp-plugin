@@ -18,10 +18,9 @@ trait Admin_Summary_Metabox {
 	 * ---------------------------------------------------------------------- */
 
 	public function nuclen_add_summary_data_meta_box() {
-		$settings   = get_option( 'nuclear_engagement_settings', array() );
-		$post_types = isset( $settings['generation_post_types'] ) && is_array( $settings['generation_post_types'] )
-			? $settings['generation_post_types']
-			: array( 'post' );
+		$settings_repo = $this->get_settings_repository();
+		$post_types = $settings_repo->get( 'generation_post_types', array( 'post' ) );
+		$post_types = is_array( $post_types ) ? $post_types : array( 'post' );
 
 		foreach ( $post_types as $post_type ) {
 			add_meta_box(
@@ -128,8 +127,9 @@ trait Admin_Summary_Metabox {
 		clean_post_cache( $post_id );
 
 		/* ---- Update post_modified if enabled ----------------------------- */
-		$settings = get_option( 'nuclear_engagement_settings', array() );
-		if ( ! empty( $settings['update_last_modified'] ) && (int) $settings['update_last_modified'] === 1 ) {
+		$settings_repo = $this->get_settings_repository();
+		$settings = $settings_repo->get( 'update_last_modified', 0 );
+		if ( ! empty( $settings ) && (int) $settings === 1 ) {
 			remove_action( 'save_post', array( $this, 'nuclen_save_quiz_data_meta' ), 10 );
 			remove_action( 'save_post', array( $this, 'nuclen_save_summary_data_meta' ), 10 );
 

@@ -11,8 +11,10 @@
 
 namespace NuclearEngagement\Admin;
 
-if ( ! defined( 'ABSPATH' ) ) {
-	exit;
+use NuclearEngagement\SettingsRepository;
+
+if (!defined('ABSPATH')) {
+    exit;
 }
 
 trait SetupHandlersTrait {
@@ -42,13 +44,14 @@ trait SetupHandlersTrait {
 		}
 
 		// Store key & mark as connected
-		$app_setup              = get_option( 'nuclear_engagement_setup', array() );
-		$app_setup['api_key']   = $api_key;
-		$app_setup['connected'] = true;
-		update_option( 'nuclear_engagement_setup', $app_setup );
+		$settings = SettingsRepository::get_instance();
+		$settings->set('api_key', $api_key)
+		        ->set('connected', true)
+		        ->save();
 
-		// Auto‑create the plugin App Password (Step 2)
-		if ( empty( $app_setup['wp_app_pass_created'] ) ) {
+		// Auto‑create the plugin App Password (Step 2)
+		$settings = SettingsRepository::get_instance();
+		if (!$settings->get_bool('wp_app_pass_created', false)) {
 			$this->nuclen_handle_generate_app_password( true );
 			return; // that method redirects on success/fail
 		}
@@ -72,10 +75,13 @@ trait SetupHandlersTrait {
 			$this->nuclen_redirect_with_error( 'Insufficient permissions.' );
 		}
 
-		$app_setup = get_option( 'nuclear_engagement_setup', array() );
-		if ( empty( $app_setup['connected'] ) || empty( $app_setup['api_key'] ) ) {
-			$this->nuclen_redirect_with_error( 'Please complete Step 1 first.' );
+		$settings = SettingsRepository::get_instance();
+		if (!$settings->get_bool('connected', false) || empty($settings->get('api_key'))) {
+			$this->nuclen_redirect_with_error('Please complete Step 1 first.');
 		}
+		
+		// Get the current app setup data
+		$app_setup = get_option('nuclear_engagement_setup', array());
 
 		// ──────────────────────────────────────────────────────────
 		//  Generate a new random password & UUID
@@ -84,10 +90,16 @@ trait SetupHandlersTrait {
 		$uuid         = wp_generate_uuid4();
 		$current_user = wp_get_current_user();
 
+		// Get API key from settings
+		$api_key = $settings->get('api_key');
+		if (empty($api_key)) {
+			$this->nuclen_redirect_with_error('API key is missing. Please complete Step 1 first.');
+		}
+
 		// Send credentials to SaaS (keep payload identical to old format)
 		$ok = $this->nuclen_send_app_password_to_app(
 			array(
-				'appApiKey'     => $app_setup['api_key'],
+				'appApiKey'     => $api_key,
 				'siteUrl'       => get_site_url(),
 				'wpUserLogin'   => $current_user->user_login,
 				'wpAppPassword' => $new_password, // same key, new value
@@ -98,13 +110,25 @@ trait SetupHandlersTrait {
 			$this->nuclen_redirect_with_error( 'Failed to send App Password to the SaaS.' );
 		}
 
-		// Persist locally
+		// Update SettingsRepository first
+		$settings = SettingsRepository::get_instance();
+		$settings->set('wp_app_pass_created', true)
+		        ->set('wp_app_pass_uuid', $uuid)
+		        ->set('plugin_password', $new_password)
+		        ->set('connected', true) // Ensure connected is also set
+		        ->save();
+
+		// Then update the legacy options for backward compatibility
 		$app_setup['wp_app_pass_created'] = true;
 		$app_setup['wp_app_pass_uuid']    = $uuid;
 		$app_setup['plugin_password']     = $new_password;
+		$app_setup['connected']           = true; // Ensure connected is also set in legacy option
 		update_option( 'nuclear_engagement_setup', $app_setup );
 
-		$this->nuclen_redirect_with_success( 'Setup completed – you are ready to go!' );
+		// Clear any caches that might be holding old values
+		wp_cache_delete( 'nuclear_engagement_setup', 'options' );
+
+		$this->nuclen_redirect_with_success( 'Setup completed – you are ready to go!' );
 	}
 
 	/*--------------------------------------------------------------
@@ -121,13 +145,13 @@ trait SetupHandlersTrait {
 			$this->nuclen_redirect_with_error( 'Insufficient permissions.' );
 		}
 
-		$app_setup = get_option( 'nuclear_engagement_setup', array() );
-		$app_setup['api_key']             = '';
-		$app_setup['connected']           = false;
-		$app_setup['wp_app_pass_created'] = false;
-		$app_setup['wp_app_pass_uuid']    = '';
-		$app_setup['plugin_password']     = '';
-		update_option( 'nuclear_engagement_setup', $app_setup );
+		$settings = SettingsRepository::get_instance();
+		$settings->set('api_key', '')
+		        ->set('connected', false)
+		        ->set('wp_app_pass_created', false)
+		        ->set('wp_app_pass_uuid', '')
+		        ->set('plugin_password', '')
+		        ->save();
 
 		$this->nuclen_redirect_with_success( 'Gold Code reset. Site disconnected.' );
 	}

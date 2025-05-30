@@ -22,9 +22,43 @@ if ( ! defined( 'WPINC' ) ) {
 	die;
 }
 
-define( 'NUCLEN_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
-define( 'NUCLEN_PLUGIN_VERSION', '0.9' );
-define( 'NUCLEN_ASSET_VERSION', '250526-1' );
+use NuclearEngagement\SettingsRepository;
+
+define('NUCLEN_PLUGIN_DIR', plugin_dir_path(__FILE__));
+define('NUCLEN_PLUGIN_VERSION', '0.9');
+define('NUCLEN_ASSET_VERSION', '250526-1');
+
+// Load plugin textdomain
+function nuclear_engagement_load_textdomain() {
+    load_plugin_textdomain(
+        'nuclear-engagement',
+        false,
+        dirname(plugin_basename(__FILE__)) . '/languages/'
+    );
+}
+add_action('plugins_loaded', 'nuclear_engagement_load_textdomain');
+
+// Initialize SettingsRepository with default values
+add_action('plugins_loaded', function() {
+    $defaults = [
+        'theme' => 'bright',
+        'font_size' => '16',
+        'font_color' => '#000000',
+        'bg_color' => '#ffffff',
+        'border_color' => '#000000',
+        'border_style' => 'solid',
+        'border_width' => '1',
+        'quiz_title' => __('Test your knowledge', 'nuclear-engagement'),
+        'summary_title' => __('Key Facts', 'nuclear-engagement'),
+        'show_attribution' => false,
+        'display_summary' => 'none',
+        'display_quiz' => 'none',
+        'display_toc' => 'manual',
+    ];
+    
+    // Initialize the SettingsRepository with defaults
+    SettingsRepository::get_instance($defaults);
+}, 20); // Higher priority to ensure translations are loaded first
 
 /**
  * Simple autoloader for our plugin classes (PSR‑4‑ish).
@@ -62,14 +96,37 @@ spl_autoload_register(
  * Activation / deactivation hooks
  * ────────────────────────────────────────────────────────── */
 function nuclear_engagement_activate_plugin() {
-	NuclearEngagement\Activator::nuclen_activate();
+    // Load default settings
+    $defaults = [
+        'theme' => 'bright',
+        'font_size' => '16',
+        'font_color' => '#000000',
+        'bg_color' => '#ffffff',
+        'border_color' => '#000000',
+        'border_style' => 'solid',
+        'border_width' => '1',
+        'quiz_title' => 'Test your knowledge',
+        'summary_title' => 'Key Facts',
+        'show_attribution' => false,
+        'display_summary' => 'none',
+        'display_quiz' => 'none',
+        'display_toc' => 'manual',
+    ];
+    
+    // Initialize SettingsRepository with defaults
+    $settings = SettingsRepository::get_instance($defaults);
+    
+    // Run activation
+    NuclearEngagement\Activator::nuclen_activate($settings);
 }
-register_activation_hook( __FILE__, 'nuclear_engagement_activate_plugin' );
+register_activation_hook(__FILE__, 'nuclear_engagement_activate_plugin');
 
 function nuclear_engagement_deactivate_plugin() {
-	NuclearEngagement\Deactivator::nuclen_deactivate();
+    // Get existing instance or create with empty defaults
+    $settings = SettingsRepository::get_instance();
+    NuclearEngagement\Deactivator::nuclen_deactivate($settings);
 }
-register_deactivation_hook( __FILE__, 'nuclear_engagement_deactivate_plugin' );
+register_deactivation_hook(__FILE__, 'nuclear_engagement_deactivate_plugin');
 
 /**
  * Redirect to Setup screen right after activation.

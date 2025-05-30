@@ -14,6 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 use NuclearEngagement\Utils;
+use NuclearEngagement\SettingsRepository;
 
 require_once __DIR__ . '/trait-admin-metaboxes.php';
 require_once __DIR__ . '/trait-admin-ajax.php';
@@ -32,17 +33,20 @@ class Admin {
 	private $plugin_name;
 	private $version;
 	private $utils;
+	private $settings_repository;
 
 	/**
 	 * Constructor
 	 *
 	 * @param string $plugin_name
 	 * @param string $version
+	 * @param SettingsRepository $settings_repository
 	 */
-	public function __construct( $plugin_name, $version ) {
+	public function __construct( $plugin_name, $version, SettingsRepository $settings_repository ) {
 		$this->plugin_name = $plugin_name;
 		$this->version     = $version;
 		$this->utils       = new Utils();
+		$this->settings_repository = $settings_repository;
 
 		// Meta‑boxes
 		add_action( 'add_meta_boxes', array( $this, 'nuclen_add_quiz_data_meta_box' ) );
@@ -76,5 +80,14 @@ class Admin {
 	}
 	public function nuclen_get_utils() {
 		return $this->utils;
+	}
+
+	/**
+	 * Get the settings repository instance.
+	 *
+	 * @return SettingsRepository
+	 */
+	public function get_settings_repository() {
+		return $this->settings_repository;
 	}
 }

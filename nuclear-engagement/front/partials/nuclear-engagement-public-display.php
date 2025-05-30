@@ -1,7 +1,8 @@
 <?php
-if ( ! defined( 'ABSPATH' ) ) {
-	exit;
+if (!defined('ABSPATH')) {
+    exit;
 }
+
 /**
  * Provide a public-facing view for the plugin
  * nuclear-engagement-public-display.php
@@ -14,15 +15,27 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage Nuclear_Engagement/public/partials
  */
 
-$options = get_option(
-	'nuclear_engagement_settings',
-	array(
-		'theme'        => 'bright',
-		'font_size'    => '16',
-		'font_color'   => '#000000',
-		'bg_color'     => '#ffffff',
-		'border_color' => '#000000',
-		'border_style' => 'solid',
-		'border_width' => '1',
-	)
-);
+use NuclearEngagement\SettingsRepository;
+
+// Get settings repository instance
+$settings = SettingsRepository::get_instance();
+
+// Get theme settings with type-safe methods
+$theme = $settings->get_string('theme', 'bright');
+$font_size = $settings->get_int('font_size', 16);
+$font_color = $settings->get_string('font_color', '#000000');
+$bg_color = $settings->get_string('bg_color', '#ffffff');
+$border_color = $settings->get_string('border_color', '#000000');
+$border_style = $settings->get_string('border_style', 'solid');
+$border_width = $settings->get_int('border_width', 1);
+
+// For backward compatibility, create an options array
+$options = [
+    'theme' => $theme,
+    'font_size' => $font_size,
+    'font_color' => $font_color,
+    'bg_color' => $bg_color,
+    'border_color' => $border_color,
+    'border_style' => $border_style,
+    'border_width' => $border_width,
+];

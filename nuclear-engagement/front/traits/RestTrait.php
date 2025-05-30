@@ -10,8 +10,10 @@
 
 namespace NuclearEngagement\Front;
 
-if ( ! defined( 'ABSPATH' ) ) {
-	exit;
+use NuclearEngagement\SettingsRepository;
+
+if (!defined('ABSPATH')) {
+    exit;
 }
 
 trait RestTrait {
@@ -150,9 +152,9 @@ trait RestTrait {
 			$this->utils->nuclen_log( "Invalid API URL: $api_url" );
 			return false;
 		}
-		$app_setup = get_option( 'nuclear_engagement_setup', array() );
-		$api_key   = $app_setup['api_key'] ?? '';
-		$site_url  = get_site_url();
+		$settings = SettingsRepository::get_instance();
+		$api_key = $settings->get_string('api_key', '');
+		$site_url = get_site_url();
 
 		$data = array(
 			'generation_id' => $data_to_send['generation_id'] ?? array(),

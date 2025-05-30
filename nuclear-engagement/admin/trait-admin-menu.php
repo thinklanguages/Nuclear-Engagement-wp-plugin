@@ -72,16 +72,12 @@ trait Admin_Menu {
 	 * Shows only an admin notice until **both** setup steps are done.
 	 */
 	public function nuclen_display_generate_page() {
-		$app_setup = get_option(
-			'nuclear_engagement_setup',
-			array(
-				'connected'           => false,
-				'wp_app_pass_created' => false,
-			)
-		);
+		$settings_repo = $this->get_settings_repository();
+		$connected = $settings_repo->get( 'connected', false );
+		$wp_app_pass_created = $settings_repo->get( 'wp_app_pass_created', false );
 
-		// Block access unless the API key **and** WP App Password are present.
-		if ( empty( $app_setup['connected'] ) || empty( $app_setup['wp_app_pass_created'] ) ) {
+		// Block access unless the API key **and** WP App Password are present.
+		if ( ! $connected || ! $wp_app_pass_created ) {
 			echo '<div class="notice notice-warning"><p>'
 				. esc_html__(
 					'Please finish the plugin setup (Step 1: API key and Step 2: WP App Password) before generating content. Go to the Setup page to complete the configuration.',

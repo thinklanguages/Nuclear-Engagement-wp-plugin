@@ -30,8 +30,8 @@ trait AssetsTrait {
 		);
 
 		/* Theme CSS (bright / dark / custom / none) */
-		$options      = get_option( 'nuclear_engagement_settings', array( 'theme' => 'bright' ) );
-		$theme_choice = $options['theme'] ?? 'bright';
+		$settings_repo = $this->get_settings_repository();
+		$theme_choice = $settings_repo->get( 'theme', 'bright' );
 
 		if ( $theme_choice === 'none' ) {
 			return;
@@ -71,22 +71,22 @@ trait AssetsTrait {
 			true
 		);
 
-		$options = get_option( 'nuclear_engagement_settings', array() );
+		$settings_repo = $this->get_settings_repository();
 
 		/* ───── Inline scalars (booleans & strings) ───── */
 		$inline_js = '';
-		$inline_js .= 'var NuclenOptinEnabled  = ' . ( ! empty( $options['enable_optin'] ) ? 'true' : 'false' ) . ";\n";
+		$inline_js .= 'var NuclenOptinEnabled  = ' . ( $settings_repo->get( 'enable_optin', false ) ? 'true' : 'false' ) . ";\n";
 
-		$raw_mandatory   = $options['optin_mandatory'] ?? false;
+		$raw_mandatory   = $settings_repo->get( 'optin_mandatory', false );
 		$optin_mandatory = ( $raw_mandatory === true || $raw_mandatory === 1 || $raw_mandatory === '1' );
 		$inline_js .= 'var NuclenOptinMandatory = ' . ( $optin_mandatory ? 'true' : 'false' ) . ";\n";
 
-		$inline_js .= 'var NuclenOptinPosition = '        . json_encode( $options['optin_position']        ?? 'with_results' ) . ";\n";
-		$inline_js .= 'var NuclenOptinPromptText = '      . json_encode( $options['optin_prompt_text']     ?? 'Please enter your details to view your score:' ) . ";\n";
-		$inline_js .= 'var NuclenOptinButtonText = '      . json_encode( $options['optin_button_text']     ?? 'Submit' ) . ";\n";
-		$inline_js .= 'var NuclenOptinWebhook = '         . json_encode( $options['optin_webhook']         ?? '' ) . ";\n";
-		$inline_js .= 'var NuclenOptinSuccessMessage = '  . json_encode( $options['optin_success_message'] ?? '' ) . ";\n";
-		$inline_js .= 'var NuclenCustomQuizHtmlAfter = '  . json_encode( $options['custom_quiz_html_after'] ?? '' ) . ";\n";
+		$inline_js .= 'var NuclenOptinPosition = '        . json_encode( $settings_repo->get( 'optin_position', 'with_results' ) ) . ";\n";
+		$inline_js .= 'var NuclenOptinPromptText = '      . json_encode( $settings_repo->get( 'optin_prompt_text', 'Please enter your details to view your score:' ) ) . ";\n";
+		$inline_js .= 'var NuclenOptinButtonText = '      . json_encode( $settings_repo->get( 'optin_button_text', 'Submit' ) ) . ";\n";
+		$inline_js .= 'var NuclenOptinWebhook = '         . json_encode( $settings_repo->get( 'optin_webhook', '' ) ) . ";\n";
+		$inline_js .= 'var NuclenOptinSuccessMessage = '  . json_encode( $settings_repo->get( 'optin_success_message', '' ) ) . ";\n";
+		$inline_js .= 'var NuclenCustomQuizHtmlAfter = '  . json_encode( $settings_repo->get( 'custom_quiz_html_after', '' ) ) . ";\n";
 
 		wp_add_inline_script( $this->plugin_name . '-front', $inline_js, 'before' );
 
