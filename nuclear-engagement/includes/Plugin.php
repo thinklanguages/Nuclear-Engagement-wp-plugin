@@ -18,6 +18,10 @@ use NuclearEngagement\Front\FrontClass;
 use NuclearEngagement\Admin\Onboarding;
 use NuclearEngagement\Defaults;
 use NuclearEngagement\SettingsRepository;
+use NuclearEngagement\Container;
+use NuclearEngagement\Services\{GenerationService, RemoteApiService, ContentStorageService, PointerService, PostsQueryService};
+use NuclearEngagement\Admin\Controller\Ajax\{GenerateController, UpdatesController, PointerController, PostsCountController};
+use NuclearEngagement\Front\Controller\Rest\ContentController;
 
 class Plugin {
 
@@ -25,6 +29,11 @@ class Plugin {
 	protected $plugin_name;
 	protected $version;
 	protected $settings_repository;
+	
+	/**
+	 * @var Container
+	 */
+	private Container $container;
 
 	public function __construct() {
 		$this->version     = defined( 'NUCLEN_PLUGIN_VERSION' ) ? NUCLEN_PLUGIN_VERSION : '1.0.0';
@@ -41,6 +50,7 @@ class Plugin {
 		);
 
 		$this->nuclen_load_dependencies();
+		$this->initializeContainer();
 		$this->nuclen_define_admin_hooks();
 		$this->nuclen_define_public_hooks();
 	}
@@ -61,6 +71,66 @@ class Plugin {
 
 		$this->loader = new Loader();
 	}
+	
+	/**
+	 * Initialize the dependency injection container
+	 */
+	private function initializeContainer(): void {
+		$this->container = Container::getInstance();
+		
+		// Register services
+		$this->container->register('settings', function() {
+			return $this->settings_repository;
+		});
+		
+		$this->container->register('remote_api', function($c) {
+			return new RemoteApiService($c->get('settings'));
+		});
+		
+		$this->container->register('content_storage', function($c) {
+			return new ContentStorageService($c->get('settings'));
+		});
+		
+		$this->container->register('generation_service', function($c) {
+			return new GenerationService(
+				$c->get('settings'),
+				$c->get('remote_api'),
+				$c->get('content_storage')
+			);
+		});
+		
+		$this->container->register('pointer_service', function() {
+			return new PointerService();
+		});
+		
+		$this->container->register('posts_query_service', function() {
+			return new PostsQueryService();
+		});
+		
+		// Register controllers
+		$this->container->register('generate_controller', function($c) {
+			return new GenerateController($c->get('generation_service'));
+		});
+		
+		$this->container->register('updates_controller', function($c) {
+			return new UpdatesController(
+				$c->get('remote_api'),
+				$c->get('content_storage')
+			);
+		});
+		
+		$this->container->register('pointer_controller', function($c) {
+			return new PointerController($c->get('pointer_service'));
+		});
+		
+		$this->container->register('posts_count_controller', function($c) {
+			return new PostsCountController($c->get('posts_query_service'));
+		});
+		
+		$this->container->register('content_controller', function($c) {
+			return new ContentController($c->get('content_storage'));
+		});
+	}
 
 	/* ─────────────────────────────────────────────
 	   Admin-side hooks
@@ -78,9 +148,14 @@ class Plugin {
 		// Admin Menu
 		$this->loader->nuclen_add_action( 'admin_menu', $plugin_admin, 'nuclen_add_admin_menu' );
 
-		// AJAX
-		$this->loader->nuclen_add_action( 'wp_ajax_nuclen_trigger_generation', $plugin_admin, 'nuclen_handle_trigger_generation' );
-		$this->loader->nuclen_add_action( 'wp_ajax_nuclen_get_posts_count',    $plugin_admin, 'nuclen_get_posts_count' );
+		// AJAX - now using controllers
+		$generateController = $this->container->get('generate_controller');
+		$updatesController = $this->container->get('updates_controller');
+		$postsCountController = $this->container->get('posts_count_controller');
+		
+		$this->loader->nuclen_add_action( 'wp_ajax_nuclen_trigger_generation', $generateController, 'handle' );
+		$this->loader->nuclen_add_action( 'wp_ajax_nuclen_fetch_app_updates', $updatesController, 'handle' );
+		$this->loader->nuclen_add_action( 'wp_ajax_nuclen_get_posts_count', $postsCountController, 'handle' );
 
 		// Setup actions
 		$setup = new \NuclearEngagement\Admin\Setup();
@@ -90,9 +165,14 @@ class Plugin {
 		$this->loader->nuclen_add_action( 'admin_post_nuclen_reset_api_key',          $setup, 'nuclen_handle_reset_api_key' );
 		$this->loader->nuclen_add_action( 'admin_post_nuclen_reset_wp_app_connection', $setup, 'nuclen_handle_reset_wp_app_connection' );
 
-		// Onboarding pointers
+		// Onboarding pointers - use controller
 		$onboarding = new Onboarding();
 		$onboarding->nuclen_register_hooks();
+		
+		// Replace pointer dismiss with controller
+		$pointerController = $this->container->get('pointer_controller');
+		remove_action('wp_ajax_nuclen_dismiss_pointer', [$onboarding, 'nuclen_ajax_dismiss_pointer']);
+		$this->loader->nuclen_add_action('wp_ajax_nuclen_dismiss_pointer', $pointerController, 'dismiss');
 
 		/* Opt-in CSV export (proxy ensures class is loaded) */
 		$this->loader->nuclen_add_action( 'admin_post_nuclen_export_optin', $this, 'nuclen_export_optin_proxy' );
@@ -117,7 +197,17 @@ class Plugin {
 
 		$this->loader->nuclen_add_action( 'wp_enqueue_scripts', $plugin_public, 'wp_enqueue_styles' );
 		$this->loader->nuclen_add_action( 'wp_enqueue_scripts', $plugin_public, 'wp_enqueue_scripts' );
-		$this->loader->nuclen_add_action( 'rest_api_init',      $plugin_public, 'nuclen_register_content_endpoint' );
+		
+		// REST API - use controller
+		add_action('rest_api_init', function() {
+			$contentController = $this->container->get('content_controller');
+			register_rest_route('nuclear-engagement/v1', '/receive-content', [
+				'methods' => 'POST',
+				'callback' => [$contentController, 'handle'],
+				'permission_callback' => [$contentController, 'permissions'],
+			]);
+		});
+		
 		$this->loader->nuclen_add_action( 'init',               $plugin_public, 'nuclen_register_quiz_shortcode' );
 		$this->loader->nuclen_add_action( 'init',               $plugin_public, 'nuclen_register_summary_shortcode' );
 		$this->loader->nuclen_add_filter( 'the_content',        $plugin_public, 'nuclen_auto_insert_shortcodes', 50 );
@@ -149,6 +239,15 @@ class Plugin {
 	 */
 	public function get_settings_repository() {
 		return $this->settings_repository;
+	}
+	
+	/**
+	 * Get the container instance (mainly for testing)
+	 *
+	 * @return Container
+	 */
+	public function get_container(): Container {
+		return $this->container;
 	}
 
 	function load_nuclear_engagement_admin_display() {

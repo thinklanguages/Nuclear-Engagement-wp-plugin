@@ -15,12 +15,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 use NuclearEngagement\Utils;
 use NuclearEngagement\SettingsRepository;
+use NuclearEngagement\Container;
 
 require_once __DIR__ . '/trait-admin-metaboxes.php';
 require_once __DIR__ . '/trait-admin-ajax.php';
 require_once __DIR__ . '/trait-admin-menu.php';
 require_once __DIR__ . '/trait-admin-assets.php';
-require_once __DIR__ . '/trait-admin-autogenerate.php';
 
 class Admin {
 
@@ -28,7 +28,6 @@ class Admin {
 	use Admin_Ajax;
 	use Admin_Menu;
 	use Admin_Assets;
-	use Admin_AutoGenerate;
 
 	private $plugin_name;
 	private $version;
@@ -63,11 +62,8 @@ class Admin {
 		// Admin menu
 		add_action( 'admin_menu', array( $this, 'nuclen_add_admin_menu' ) );
 
-		// Auto‑generation on publish
-		add_action( 'transition_post_status', array( $this, 'nuclen_auto_generate_on_publish' ), 10, 3 );
-
-		// Register the WP‑Cron polling hook
-		$this->nuclen_register_autogen_cron_hook();
+		// Auto‑generation on publish is now handled by AutoGenerationService
+		// The service is registered in the Plugin class and handles its own hooks
 	}
 
 	/* --------------------------------‑ getters ---------------------------- */
@@ -87,7 +83,21 @@ class Admin {
 	 *
 	 * @return SettingsRepository
 	 */
+		/**
+	 * Get the settings repository instance.
+	 *
+	 * @return SettingsRepository
+	 */
 	public function get_settings_repository() {
 		return $this->settings_repository;
+	}
+
+	/**
+	 * Get the container instance.
+	 *
+	 * @return \NuclearEngagement\Container
+	 */
+	protected function get_container() {
+		return Container::getInstance();
 	}
 }
