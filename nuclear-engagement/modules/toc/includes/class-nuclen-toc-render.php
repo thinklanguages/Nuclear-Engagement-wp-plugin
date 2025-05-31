@@ -44,6 +44,94 @@ final class Nuclen_TOC_Render {
 		return $this->add_heading_ids( $content );
 	}
 
+	/**
+	 * Validate and sanitize heading levels array
+	 *
+	 * @param mixed $heading_levels Raw heading levels input
+	 * @return array Validated array of integers between 2-6
+	 */
+	private function validate_heading_levels( $heading_levels ) : array {
+		// If not an array, try to convert it
+		if ( ! is_array( $heading_levels ) ) {
+			// If it's a string like "2,3,4", split it
+			if ( is_string( $heading_levels ) ) {
+				$heading_levels = explode( ',', $heading_levels );
+			} else {
+				// Default fallback
+				return range( 2, 6 );
+			}
+		}
+
+		// Ensure all values are integers
+		$heading_levels = array_map( 'intval', $heading_levels );
+		
+		// Filter to only valid heading levels (2-6)
+		$heading_levels = array_filter( $heading_levels, function( $level ) {
+			return $level >= 2 && $level <= 6;
+		} );
+
+		// If no valid levels after filtering, use defaults
+		if ( empty( $heading_levels ) ) {
+			return range( 2, 6 );
+		}
+
+		// Ensure unique, sorted values
+		$heading_levels = array_unique( $heading_levels );
+		sort( $heading_levels );
+		
+		return array_values( $heading_levels );
+	}
+
+	/**
+	 * Validate and sanitize shortcode attributes
+	 *
+	 * @param array $atts Raw shortcode attributes
+	 * @return array Validated attributes
+	 */
+	private function validate_shortcode_atts( array $atts ) : array {
+		// Define valid values for each attribute
+		$valid_lists = [ 'ul', 'ol' ];
+		$valid_booleans = [ 'true', 'false' ];
+		$valid_themes = [ 'light', 'dark', 'auto' ];
+
+		// List type validation
+		if ( isset( $atts['list'] ) && ! in_array( strtolower( $atts['list'] ), $valid_lists, true ) ) {
+			$atts['list'] = 'ul';
+		}
+
+		// Boolean validations
+		foreach ( [ 'toggle', 'collapsed', 'smooth', 'highlight' ] as $bool_attr ) {
+			if ( isset( $atts[ $bool_attr ] ) && ! in_array( strtolower( $atts[ $bool_attr ] ), $valid_booleans, true ) ) {
+				$atts[ $bool_attr ] = 'true';
+			}
+		}
+
+		// Offset validation (ensure it's a positive integer)
+		if ( isset( $atts['offset'] ) ) {
+			$atts['offset'] = max( 0, min( 500, intval( $atts['offset'] ) ) );
+		}
+
+		// Theme validation
+		if ( isset( $atts['theme'] ) && ! in_array( strtolower( $atts['theme'] ), $valid_themes, true ) ) {
+			$atts['theme'] = 'light';
+		}
+
+		// Title sanitization
+		if ( isset( $atts['title'] ) ) {
+			$atts['title'] = sanitize_text_field( $atts['title'] );
+		}
+
+		// Show/hide text sanitization
+		if ( isset( $atts['show_text'] ) ) {
+			$atts['show_text'] = sanitize_text_field( $atts['show_text'] );
+		}
+		if ( isset( $atts['hide_text'] ) ) {
+			$atts['hide_text'] = sanitize_text_field( $atts['hide_text'] );
+		}
+
+		return $atts;
+	}
+
 	/* ───────────────── shortcode handler ─────────────────────── */
 	public function nuclen_toc_shortcode( array $atts ) : string {
 		global $post;
@@ -55,20 +143,8 @@ final class Nuclen_TOC_Render {
 		// Get heading levels from settings with proper type safety
 		$heading_levels = $settings->get_array('toc_heading_levels', range(2, 6));
 		
-		// Ensure we have valid heading levels (integers between 2 and 6)
-		$heading_levels = array_map('intval', $heading_levels);
-		$heading_levels = array_values(array_filter($heading_levels, function($level) {
-			return $level >= 2 && $level <= 6;
-		}));
-		
-		// If no valid levels, use all levels as fallback
-		if (empty($heading_levels)) {
-			$heading_levels = range(2, 6);
-		}
-		
-		// Ensure unique and sorted
-		sort($heading_levels);
-		$heading_levels = array_values(array_unique($heading_levels));
+		// Validate heading levels
+		$heading_levels = $this->validate_heading_levels( $heading_levels );
 
 		$whitelist = [
 			'heading_levels' => $heading_levels,
@@ -81,25 +157,20 @@ final class Nuclen_TOC_Render {
 			'hide_text' => __( 'Hide table of contents', 'nuclear-engagement' ),
 		];
 
+		// Merge and validate attributes
 		$atts = shortcode_atts( $whitelist, array_intersect_key( $atts, $whitelist ), 'nuclear_engagement_toc' );
+		$atts = $this->validate_shortcode_atts( $atts );
 
-		// Get list style
-		$list = ( strtolower( $atts['list'] ) === 'ol' ) ? 'ol' : 'ul';
-
-		// Ensure heading_levels is an array
-		$heading_levels = $atts['heading_levels'];
-		if (!is_array($heading_levels)) {
-			$heading_levels = array_filter(array_map('intval', (array)$heading_levels), function($level) {
-				return $level >= 2 && $level <= 6;
-			});
-			// If no valid levels, use default (2-6)
-			if (empty($heading_levels)) {
-				$heading_levels = range(2, 6);
-			}
+		// Override heading_levels if provided in shortcode
+		if ( isset( $atts['heading_levels'] ) ) {
+			$atts['heading_levels'] = $this->validate_heading_levels( $atts['heading_levels'] );
 		}
 
+		// Get list style (already validated)
+		$list = ( strtolower( $atts['list'] ) === 'ol' ) ? 'ol' : 'ul';
+
 		// Get headings using the specified heading levels
-		$heads = Nuclen_TOC_Utils::extract($post->post_content, $heading_levels);
+		$heads = Nuclen_TOC_Utils::extract($post->post_content, $atts['heading_levels']);
 		if ( ! $heads ) { 
 			// No headings found, don't enqueue any assets
 			return ''; 
@@ -165,8 +236,8 @@ final class Nuclen_TOC_Render {
 			$sticky_max_width = $settings->get_int('toc_sticky_max_width', self::DEFAULT_STICKY_MAX_WIDTH);
 
 			// Ensure values are within valid ranges
-			$sticky_offset_x = max(0, $sticky_offset_x);
-			$sticky_offset_y = max(0, $sticky_offset_y);
+			$sticky_offset_x = max(0, min(1000, $sticky_offset_x));
+			$sticky_offset_y = max(0, min(1000, $sticky_offset_y));
 			$sticky_max_width = min(1000, max(100, $sticky_max_width));
 
 			// Add data attributes for JavaScript
@@ -176,7 +247,7 @@ final class Nuclen_TOC_Render {
 				$sticky_offset_y,
 				$sticky_max_width,
 				$settings->get_bool('toc_show_content') ? 'true' : 'false',
-				esc_attr( implode( ',', $heading_levels ) )
+				esc_attr( implode( ',', $atts['heading_levels'] ) )
 			);
 		}
 		
@@ -186,7 +257,8 @@ final class Nuclen_TOC_Render {
 		}
 		
 		// Get z-index from settings with proper fallback
-		$z_index = isset( $ne_settings['toc_z_index'] ) ? max( 1, min( 9999, (int) $ne_settings['toc_z_index'] ) ) : 100;
+		$z_index = $settings->get_int('toc_z_index', 100);
+		$z_index = max(1, min(9999, $z_index));
 
 		// Build the output
 		$out = '<section id="' . esc_attr( $nav_id ) . '-wrapper" class="' . esc_attr( implode( ' ', $wrapper_classes ) ) . '"' . $sticky_attrs . '>';
@@ -294,7 +366,7 @@ final class Nuclen_TOC_Render {
 		}
 
 		/* runtime CSS tweaks */
-		$off = max( 0, (int) $a['offset'] );
+		$off = max( 0, min( 500, (int) $a['offset'] ) );
 		if ( $off !== $this->scroll_offset ) {
 			wp_add_inline_style( 'nuclen-toc-front', ':root{--nuclen-toc-offset:' . $off . 'px}' );
 			$this->scroll_offset = $off;
@@ -340,4 +412,3 @@ final class Nuclen_TOC_Render {
 		] );
 	}
 }
-

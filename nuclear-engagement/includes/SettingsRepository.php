@@ -27,17 +27,22 @@ final class SettingsRepository
      * Maximum size (in bytes) for settings to be autoloaded.
      */
     const MAX_AUTOLOAD_SIZE = 512000;
+    
+    /**
+     * Cache group for object caching
+     */
+    const CACHE_GROUP = 'nuclen_settings';
+    
+    /**
+     * Cache expiration time
+     */
+    const CACHE_EXPIRATION = 3600; // 1 hour
 
     /**
      * Singleton instance.
      */
     private static $instance = null;
     
-    /**
-     * Cached settings array.
-     */
-    private static $cached = null;
-
     /**
      * Default settings values.
      */
@@ -100,6 +105,16 @@ final class SettingsRepository
     private function setup_hooks(): void {
         add_action('updated_option', [$this, 'maybe_invalidate_cache'], 10, 3);
         add_action('deleted_option', [$this, 'maybe_invalidate_cache_on_delete'], 10, 1);
+        add_action('switch_blog', [$this, 'invalidate_cache']);
+    }
+
+    /**
+     * Get cache key for current site
+     *
+     * @return string
+     */
+    private function get_cache_key(): string {
+        return 'settings_' . get_current_blog_id();
     }
 
     /* ===================================================================
@@ -110,14 +125,31 @@ final class SettingsRepository
      * Get all settings with defaults merged in.
      */
     public function all(): array {
-        if (self::$cached === null) {
-            $saved = get_option(self::OPTION, []);
-            self::$cached = wp_parse_args(
-                is_array($saved) ? $saved : [],
-                $this->defaults
-            );
+        $cache_key = $this->get_cache_key();
+        $cached = wp_cache_get($cache_key, self::CACHE_GROUP);
+        
+        if (false !== $cached && is_array($cached)) {
+            return $cached;
         }
-        return self::$cached;
+        
+        // Not in cache, fetch from database
+        $saved = get_option(self::OPTION, []);
+        $settings = wp_parse_args(
+            is_array($saved) ? $saved : [],
+            $this->defaults
+        );
+        
+        // Store in cache
+        wp_cache_set($cache_key, $settings, self::CACHE_GROUP, self::CACHE_EXPIRATION);
+        
+        return $settings;
+    }
+
+    /**
+     * Get all settings from database (bypasses cache)
+     */
+    public function get_all(): array {
+        return $this->all();
     }
 
     /**
@@ -231,7 +263,21 @@ final class SettingsRepository
         // Only update if settings have changed
         if ($merged !== $current) {
             $autoload = $this->should_autoload($merged);
-            return update_option(self::OPTION, $merged, $autoload ? 'yes' : 'no');
+            $result = update_option(self::OPTION, $merged, $autoload ? 'yes' : 'no');
+            
+            // Also update legacy option for backward compatibility
+            if ($result && false !== get_option('nuclear_engagement_setup')) {
+                $legacy_data = [
+                    'api_key' => $merged['api_key'] ?? '',
+                    'connected' => $merged['connected'] ?? false,
+                    'wp_app_pass_created' => $merged['wp_app_pass_created'] ?? false,
+                    'wp_app_pass_uuid' => $merged['wp_app_pass_uuid'] ?? '',
+                    'plugin_password' => $merged['plugin_password'] ?? ''
+                ];
+                update_option('nuclear_engagement_setup', $legacy_data);
+            }
+            
+            return $result;
         }
         
         return false;
@@ -328,7 +374,13 @@ final class SettingsRepository
      * Invalidate the settings cache.
      */
     public function invalidate_cache(): void {
-        self::$cached = null;
+        $cache_key = $this->get_cache_key();
+        wp_cache_delete($cache_key, self::CACHE_GROUP);
+        
+        // Also clear any global cache keys if using external object cache
+        if (function_exists('wp_cache_flush_group')) {
+            wp_cache_flush_group(self::CACHE_GROUP);
+        }
     }
 
     /**
@@ -415,7 +467,7 @@ final class SettingsRepository
      * Clear all cached data (for testing).
      */
     public function clear_cache(): void {
-        self::$cached = null;
+        $this->invalidate_cache();
     }
 
     /**
@@ -423,6 +475,8 @@ final class SettingsRepository
      */
     public static function _reset_for_tests(): void {
         self::$instance = null;
-        self::$cached = null;
+        if (function_exists('wp_cache_flush_group')) {
+            wp_cache_flush_group(self::CACHE_GROUP);
+        }
     }
 }

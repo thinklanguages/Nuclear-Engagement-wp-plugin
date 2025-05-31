@@ -61,36 +61,106 @@ add_action('plugins_loaded', function() {
 }, 20); // Higher priority to ensure translations are loaded first
 
 /**
- * Simple autoloader for our plugin classes (PSR‑4‑ish).
+ * Optimized autoloader for plugin classes with class map caching
  */
-spl_autoload_register(
-	function ( $class ) {
-		$prefix   = 'NuclearEngagement\\';
-		$base_dir = __DIR__;
-
-		$len = strlen( $prefix );
-		if ( strncmp( $prefix, $class, $len ) !== 0 ) {
-			return;
-		}
-
-		$relative_class = substr( $class, $len );
-
-		$subpath = '/includes/';
-		if ( strpos( $relative_class, 'Admin\\' ) === 0 ) {
-			$subpath        = '/admin/';
-			$relative_class = substr( $relative_class, strlen( 'Admin\\' ) );
-		} elseif ( strpos( $relative_class, 'Front\\' ) === 0 ) {
-			$subpath        = '/front/';
-			$relative_class = substr( $relative_class, strlen( 'Front\\' ) );
-		}
-
-		$file = $base_dir . $subpath . str_replace( '\\', '/', $relative_class ) . '.php';
-
-		if ( file_exists( $file ) ) {
-			require $file;
-		}
-	}
-);
+spl_autoload_register(function ($class) {
+    static $classMap = null;
+    static $dynamicPrefixes = null;
+    
+    $prefix = 'NuclearEngagement\\';
+    
+    // Early exit if not our namespace
+    if (strncmp($prefix, $class, strlen($prefix)) !== 0) {
+        return;
+    }
+    
+    // Initialize class map on first use
+    if ($classMap === null) {
+        $classMap = [
+            // Core classes
+            'NuclearEngagement\\Plugin' => '/includes/Plugin.php',
+            'NuclearEngagement\\Loader' => '/includes/Loader.php',
+            'NuclearEngagement\\Utils' => '/includes/Utils.php',
+            'NuclearEngagement\\Activator' => '/includes/Activator.php',
+            'NuclearEngagement\\Deactivator' => '/includes/Deactivator.php',
+            'NuclearEngagement\\SettingsRepository' => '/includes/SettingsRepository.php',
+            'NuclearEngagement\\Container' => '/includes/Container.php',
+            'NuclearEngagement\\Defaults' => '/includes/Defaults.php',
+            'NuclearEngagement\\OptinData' => '/includes/OptinData.php',
+            'NuclearEngagement\\MetaRegistration' => '/includes/MetaRegistration.php',
+            
+            // Admin classes
+            'NuclearEngagement\\Admin\\Admin' => '/admin/Admin.php',
+            'NuclearEngagement\\Admin\\Dashboard' => '/admin/Dashboard.php',
+            'NuclearEngagement\\Admin\\Onboarding' => '/admin/Onboarding.php',
+            'NuclearEngagement\\Admin\\Settings' => '/admin/Settings.php',
+            'NuclearEngagement\\Admin\\Setup' => '/admin/Setup.php',
+            
+            // Admin Controllers
+            'NuclearEngagement\\Admin\\Controller\\Ajax\\GenerateController' => '/admin/Controller/Ajax/GenerateController.php',
+            'NuclearEngagement\\Admin\\Controller\\Ajax\\UpdatesController' => '/admin/Controller/Ajax/UpdatesController.php',
+            'NuclearEngagement\\Admin\\Controller\\Ajax\\PointerController' => '/admin/Controller/Ajax/PointerController.php',
+            'NuclearEngagement\\Admin\\Controller\\Ajax\\PostsCountController' => '/admin/Controller/Ajax/PostsCountController.php',
+            
+            // Front classes
+            'NuclearEngagement\\Front\\FrontClass' => '/front/FrontClass.php',
+            'NuclearEngagement\\Front\\Controller\\Rest\\ContentController' => '/front/Controller/Rest/ContentController.php',
+            
+            // Services
+            'NuclearEngagement\\Services\\GenerationService' => '/includes/Services/GenerationService.php',
+            'NuclearEngagement\\Services\\RemoteApiService' => '/includes/Services/RemoteApiService.php',
+            'NuclearEngagement\\Services\\ContentStorageService' => '/includes/Services/ContentStorageService.php',
+            'NuclearEngagement\\Services\\PointerService' => '/includes/Services/PointerService.php',
+            'NuclearEngagement\\Services\\PostsQueryService' => '/includes/Services/PostsQueryService.php',
+            'NuclearEngagement\\Services\\AutoGenerationService' => '/includes/Services/AutoGenerationService.php',
+            
+            // Requests/Responses
+            'NuclearEngagement\\Requests\\ContentRequest' => '/includes/Requests/ContentRequest.php',
+            'NuclearEngagement\\Requests\\GenerateRequest' => '/includes/Requests/GenerateRequest.php',
+            'NuclearEngagement\\Requests\\PostsCountRequest' => '/includes/Requests/PostsCountRequest.php',
+            'NuclearEngagement\\Requests\\UpdatesRequest' => '/includes/Requests/UpdatesRequest.php',
+            'NuclearEngagement\\Responses\\GenerationResponse' => '/includes/Responses/GenerationResponse.php',
+            'NuclearEngagement\\Responses\\UpdatesResponse' => '/includes/Responses/UpdatesResponse.php',
+        ];
+        
+        // Dynamic prefixes for trait loading
+        $dynamicPrefixes = [
+            'Admin\\' => '/admin/',
+            'Front\\' => '/front/',
+            'Services\\' => '/includes/Services/',
+            'Requests\\' => '/includes/Requests/',
+            'Responses\\' => '/includes/Responses/',
+        ];
+    }
+    
+    // Check if we have an exact match in the class map
+    if (isset($classMap[$class])) {
+        $file = __DIR__ . $classMap[$class];
+        if (file_exists($file)) {
+            require $file;
+            return;
+        }
+    }
+    
+    // Fall back to dynamic loading for classes not in the map
+    $relative_class = substr($class, strlen($prefix));
+    
+    // Determine subpath based on namespace structure
+    $subpath = '/includes/';
+    foreach ($dynamicPrefixes as $nsPrefix => $path) {
+        if (strpos($relative_class, $nsPrefix) === 0) {
+            $subpath = $path;
+            $relative_class = substr($relative_class, strlen($nsPrefix));
+            break;
+        }
+    }
+    
+    $file = __DIR__ . $subpath . str_replace('\\', '/', $relative_class) . '.php';
+    
+    if (file_exists($file)) {
+        require $file;
+    }
+});
 
 /* ──────────────────────────────────────────────────────────
  * Activation / deactivation hooks
@@ -143,7 +213,7 @@ function nuclear_engagement_redirect_on_activation() {
 add_action( 'admin_init', 'nuclear_engagement_redirect_on_activation' );
 
 /* ──────────────────────────────────────────────────────────
- * ❶ MIGRATION: Convert legacy WP Application Password → new plugin password
+ * ❶ MIGRATION: Convert legacy WP Application Password → new plugin password
  * ────────────────────────────────────────────────────────── */
 function nuclen_migrate_app_password() {
 
@@ -212,8 +282,8 @@ function nuclen_migrate_app_password() {
 	);
 
 	if ( is_wp_error( $response ) || wp_remote_retrieve_response_code( $response ) !== 200 ) {
-		// Log but still store locally – user can re‑try from Setup page if needed.
-		error_log( '[Nuclear Engagement] App‑password migration failed to contact SaaS: ' . ( is_wp_error( $response ) ? $response->get_error_message() : wp_remote_retrieve_response_code( $response ) ) );
+		// Log but still store locally – user can re‑try from Setup page if needed.
+		error_log( '[Nuclear Engagement] App‑password migration failed to contact SaaS: ' . ( is_wp_error( $response ) ? $response->get_error_message() : wp_remote_retrieve_response_code( $response ) ) );
 	}
 
 	/* — Persist new password & UUID — */
@@ -221,12 +291,12 @@ function nuclen_migrate_app_password() {
 	$app_setup['wp_app_pass_uuid'] = $uuid;
 	update_option( 'nuclear_engagement_setup', $app_setup );
 
-	/* — Optionally remove the old WP Application Password entry — */
+	/* — Optionally remove the old WP Application Password entry — */
 	if ( class_exists( 'WP_Application_Passwords' ) && ! empty( $app_setup['wp_app_pass_uuid'] ) ) {
 		$users = get_users(
 			array(
 				'fields' => array( 'ID' ),
-				'number' => 50, // small – we just need to find and delete once
+				'number' => 50, // small – we just need to find and delete once
 			)
 		);
 		foreach ( $users as $u ) {
@@ -245,10 +315,10 @@ function nuclen_migrate_app_password() {
 add_action( 'admin_init', 'nuclen_migrate_app_password', 9 ); // run early in admin_init
 
 /* ──────────────────────────────────────────────────────────
- * ❷ Old meta‑key migration (unchanged)
+ * ❷ Old meta‑key migration (unchanged)
  * ────────────────────────────────────────────────────────── */
 /**
- * Updates all post‑meta keys from the legacy “ne‑*” names to “nuclen‑*”.
+ * Updates all post‑meta keys from the legacy "ne‑*" names to "nuclen‑*".
  */
 function nuclen_update_migrate_post_meta() {
 
@@ -278,9 +348,12 @@ function nuclen_update_migrate_post_meta() {
 add_action( 'admin_init', 'nuclen_update_migrate_post_meta', 20 );
 
 /* ──────────────────────────────────────────────────────────
- * ❸ Run the plugin
+ * ❸ Run the plugin
  * ────────────────────────────────────────────────────────── */
 function nuclear_engagement_run_plugin() {
+	// Initialize meta registration
+	NuclearEngagement\MetaRegistration::init();
+	
 	$plugin = new NuclearEngagement\Plugin();
 	$plugin->nuclen_run();
 }
