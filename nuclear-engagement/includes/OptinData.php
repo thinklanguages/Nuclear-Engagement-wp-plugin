@@ -24,8 +24,7 @@ class OptinData {
 	 *  Bootstrap
 	 * ------------------------------------------------------------------- */
 	public static function init(): void {
-		/* Create/upgrade table on every page-load (cheap via dbDelta).     */
-		add_action( 'init',                               [ self::class, 'maybe_create_table' ],  9 );
+		/* Table creation handled on plugin activation. */
 
 		/* Save via AJAX – front-end */
 		add_action( 'wp_ajax_nuclen_save_optin',          [ self::class, 'handle_ajax' ] );
@@ -42,6 +41,14 @@ class OptinData {
 	private static function table_name(): string {
 		global $wpdb;
 		return $wpdb->prefix . self::TABLE_SLUG;
+	}
+	/**
+	 * Check whether the opt-in table already exists.
+	 */
+	public static function table_exists(): bool {
+		global $wpdb;
+		$table = self::table_name();
+		return $wpdb->get_var( $wpdb->prepare( "SHOW TABLES LIKE %s", $table ) ) === $table;
 	}
 
 	/**

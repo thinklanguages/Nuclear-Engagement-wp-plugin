@@ -29,5 +29,8 @@ class Activator {
         if (false === get_option('nuclear_engagement_setup')) {
             update_option('nuclear_engagement_setup', $default_settings);
         }
+
+        // Ensure opt-in table exists on activation
+        OptinData::maybe_create_table();
     }
 }
