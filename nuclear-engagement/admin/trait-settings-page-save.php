@@ -149,7 +149,9 @@ trait SettingsPageSaveTrait {
 		$raw['update_last_modified']             = isset( $_POST['update_last_modified'] )             ? (bool) wp_unslash( $_POST['update_last_modified'] )             : false;
 		$raw['auto_generate_quiz_on_publish']    = isset( $_POST['auto_generate_quiz_on_publish'] )    ? (bool) wp_unslash( $_POST['auto_generate_quiz_on_publish'] )    : false;
 		$raw['auto_generate_summary_on_publish'] = isset( $_POST['auto_generate_summary_on_publish'] ) ? (bool) wp_unslash( $_POST['auto_generate_summary_on_publish'] ) : false;
-		$raw['show_attribution']                 = isset( $_POST['show_attribution'] )                 ? (bool) wp_unslash( $_POST['show_attribution'] )                 : false;
+                $raw['show_attribution']                 = isset( $_POST['show_attribution'] )                 ? (bool) wp_unslash( $_POST['show_attribution'] )                 : false;
+                $raw['delete_settings_on_uninstall']     = isset( $_POST['delete_settings_on_uninstall'] )     ? (bool) wp_unslash( $_POST['delete_settings_on_uninstall'] )     : false;
+                $raw['delete_generated_content_on_uninstall'] = isset( $_POST['delete_generated_content_on_uninstall'] ) ? (bool) wp_unslash( $_POST['delete_generated_content_on_uninstall'] ) : false;
 
 		/* —— Generation post types —— */
 		$posted_types = filter_input(

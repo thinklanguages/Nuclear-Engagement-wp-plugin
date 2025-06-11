@@ -70,10 +70,14 @@ trait SettingsSanitizeGeneralTrait {
 
 		$update_last  = (bool) ( $in['update_last_modified']             ?? false );
 		$auto_quiz    = (bool) ( $in['auto_generate_quiz_on_publish']    ?? false );
-		$auto_summary = (bool) ( $in['auto_generate_summary_on_publish'] ?? false );
+                $auto_summary = (bool) ( $in['auto_generate_summary_on_publish'] ?? false );
 
-		/* Attribution */
-		$show_attr = (bool) ( $in['show_attribution'] ?? false );
+                /* Attribution */
+                $show_attr = (bool) ( $in['show_attribution'] ?? false );
+
+                /* Uninstall options */
+                $delete_settings  = (bool) ( $in['delete_settings_on_uninstall'] ?? false );
+                $delete_generated = (bool) ( $in['delete_generated_content_on_uninstall'] ?? false );
 
 		return array(
 			/* theme */
@@ -110,8 +114,12 @@ trait SettingsSanitizeGeneralTrait {
 			'auto_generate_quiz_on_publish'    => $auto_quiz,
 			'auto_generate_summary_on_publish' => $auto_summary,
 
-			/* attribution */
-			'show_attribution'                 => $show_attr,
-		);
+                        /* attribution */
+                        'show_attribution'                 => $show_attr,
+
+                        /* uninstall */
+                        'delete_settings_on_uninstall'     => $delete_settings,
+                        'delete_generated_content_on_uninstall' => $delete_generated,
+                );
 	}
 }
