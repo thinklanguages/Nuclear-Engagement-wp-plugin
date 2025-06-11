@@ -8,11 +8,11 @@ Tags: AI writer, quiz, summary, table of contents, email optin
 Requires at least: 5.6
 Tested up to: 6.8
 Requires PHP: 7.3
-Stable tag: 0.9
+Stable tag: 1.0.2
 License: GPL-2.0+
 License URI: http://www.gnu.org/licenses/gpl-2.0.txt
 Donate link: https://buy.stripe.com/3csg1Tdn0a9h3ss288
-Instantly boost dwell time, cut bounce rates, improve SEO, and capture emails with AI-generated quizzes, summaries and table of contents for all your posts.
+Instantly boost dwell time, cut bounce rates, improve SEO and capture emails with AI-generated quizzes, summaries and table of contents on every post.
 
 == Description ==
 
@@ -22,8 +22,10 @@ Nuclear Engagement is the easiest way to **turn all your blog posts into interac
 In just one click, our AI analyzes your article and generates a concise summary and a short quiz to **engage** your readers.
 These interactive elements boost **time on page**, reduce **bounce rates**, and even help you **capture email leads** – all **without any coding** or manual work​.
 
+[youtube https://youtu.be/HwScpKueMkg]
+
 If you want visitors to stay longer and interact with your content, Nuclear Engagement is your plug-and-play solution.
-I called it Nuclear Engagement because it is the nuclear option to boost blog engagement.
+It's called Nuclear Engagement because it is the nuclear option to boost blog engagement.
 
 With NE, you can **bulk generate engaging content like quizzes and summaries from your blog posts using AI**. The generated content is stored in post meta fields, which you can display via shortcodes or automatic insertion.
 
@@ -246,102 +248,112 @@ No. Generation is done via the NE app. You only need a free account on the NE ap
 = Will the plugin slow down or break my site? =
 The tiny codebase and lazy loading assure fast loading, both in admin and on frontend. You won't even notice it's active. No conflicts are known to occur.
 
-= Is this a working version? =
-Yes, this plugin gets the job done. Some functionalities and user interface still need to be polished and expanded, but everything needed to generate and display content is there.
-
 == Changelog ==
-= 0.9 =
-- Added: Table of contents (TOC)
--- Styling
--- Static vs sticky placement
--- Select which headings to include (h2-h6)
--- Set left, top offset on sticky
--- Set max width on sticky
--- Set z-index
--- Show/hide TOC by default
--- Enable/remove TOC toggle
+
+= 1.0.2 – 2025-06-05 =
+* Fixed: Settings saving.
+
+= 1.0.1 – 2025-05-31 =
+* Fixed: Content generation.
+
+= 1.0 – 2025-05-31 =
+* Changed: Architecture refactoring.
+
+= 0.9 – 2025-05-26 =
+* Added: Table of Contents (TOC) feature with:
+  * Styling options.
+  * Static and sticky placement.
+  * Heading selection (h2–h6).
+  * Sticky offsets (left and top).
+  * Sticky max-width setting.
+  * Sticky z-index setting.
+  * Default show/hide state.
+  * TOC toggle enable/remove option.
 
 = 0.8.1 =
-- Fixed styling settings
+* Fixed: Styling settings.
 
 = 0.8 =
-- Added: Display email opt-in form before or with results
-- Added: Set opt-in as mandatory or optional
-- Added: Store opt-in data in database
-- Added: Export opt-in data to CSV
+* Added: Display email opt-in form before or alongside results.
+* Added: Mandatory or optional opt-in setting.
+* Added: Store opt-in data in the database.
+* Added: Export opt-in data to CSV.
 
 = 0.7.2 =
-- Fixed display of empty sections in frontend
+* Fixed: Display of empty sections on the frontend.
 
 = 0.7.1 =
-- Content generation metaboxes in post editor now apply to all allowed post types
-- Fixed quiz start message style
-- Fixed autogenerate content upon post publish
+* Changed: Content generation metaboxes in post editor now apply to all allowed post types.
+* Fixed: Quiz start message style.
+* Fixed: Auto-generate content upon post publish.
 
 = 0.7 =
-- Changed content default placement
-- Improved authentication flow
-- Fixed cache clearing
+* Changed: Default content placement.
+* Improved: Authentication flow.
+* Fixed: Cache-clearing logic.
 
 = 0.6.2 =
-- Improved UI
-- Minor fixes in manual summary, quiz creation, and quiz frontend
+* Improved: UI.
+* Fixed: Manual summary creation.
+* Fixed: Quiz creation.
+* Fixed: Quiz frontend display.
 
 = 0.6.1 =
-- Minor fixes and improvements
+* Fixed: Various minor issues and improvements.
 
 = 0.6 =
-- Introduced content generation credit system
-- Added account page on app with usage log, etc.
-- Upgraded security
-- Improved UX
-- Minor fixes and improvements
+* Added: Content generation credit system.
+* Added: Account page on app with usage log.
+* Improved: Security.
+* Improved: UX.
+* Fixed: Various minor issues.
 
 = 0.5.1 =
-- Minor bug fixes and improvements.
+* Fixed: Minor bugs and improvements.
 
 = 0.5 =
-- Expanded quiz, summary styling options.
-- Various minor bug fixes and improvements.
+* Added: Expanded quiz and summary styling options.
+* Fixed: Various minor bugs and improvements.
 
 = 0.4.9 =
-- Upgraded security.
-- Improved UX.
-- Expanded styling options.
-- Many minor fixes and improvements.
+* Improved: Security.
+* Improved: UX.
+* Added: Expanded styling options.
+* Fixed: Various minor issues.
 
 = 0.4.3 =
-- Multisite support.
-- Auto clear post cache upon section generation.
+* Added: Multisite support.
+* Changed: Auto-clear post cache upon section generation.
 
 = 0.3.1 =
-- Plugin update checker.
-- Support for WP custom post types.
-- Added option to update post “last modified” date upon storage to signal new content to search engines and visitors.
-- Added metrics to analytics dashboard: quiz start/quiz view %, quiz answers/quiz start %, quiz end/quiz start %, quiz optin/quiz end %.
-- Per-post performance with posts ranked by performance.
+* Added: Plugin update checker.
+* Added: Support for custom post types.
+* Added: Option to update post “last modified” date upon storage to signal new content to search engines and visitors.
+* Added: Metrics to analytics dashboard: quiz start/quiz view %, quiz answers/quiz start %, quiz end/quiz start %, quiz opt-in/quiz end %.
+* Added: Per-post performance with posts ranked by performance.
 
 = 0.2.0 =
-- Summary options including section title text, format (paragraph vs bullet list), and length/number of items.
-- More styling settings.
-- Quiz options: section title text, set number of questions per quiz, and set number of answers per question.
-- Embedding at the top or bottom of post content.
-- Added “summary view” and “quiz view” events to analytics.
-- Added app pages for connected sites and profile.
-- In-app engagement analytics dashboard with sitewide metrics (average session time, engaged sessions per user) and summary/quiz engagement counts.
-- Display of custom HTML at the beginning or end of quizzes (for coupons, secret links, etc.).
-- Email opt-in in quizzes.
-- Send data to webhook (Zapier, Make, etc.).
+* Added: Summary options, including section title text, format (paragraph vs. bullet list), and length/number of items.
+* Added: Additional styling settings.
+* Added: Quiz options: section title text, number of questions per quiz, and number of answers per question.
+* Added: Embedding at the top or bottom of post content.
+* Added: “Summary view” and “Quiz view” events to analytics.
+* Added: App pages for connected sites and user profile.
+* Added: In-app engagement analytics dashboard with sitewide metrics (average session time, engaged sessions per user) and summary/quiz engagement counts.
+* Added: Display of custom HTML at the beginning or end of quizzes (for coupons, secret links, etc.).
+* Added: Email opt-in in quizzes.
+* Added: Send data to webhook (Zapier, Make, etc.).
 
 = 0.1.0 =
-- Generates quiz and summary from blog post content with a fully automated process.
-- Reads post content, generates, and stores quiz/summary on WordPress.
-- Displays quiz and summary on blog posts.
-- Bulk post processing in one click with selection by post status (draft, published, etc.), category, author, and post type.
-- Allows styling of quiz and summary look and feel.
-- Provides a content inventory to identify posts lacking a quiz or summary.
-- Tracks engagement events on Google Analytics (quiz start, answer, finish).
+* Added: Automated quiz and summary generation from blog post content.
+* Added: Reading post content, generating, and storing quiz/summary in WordPress.
+* Added: Display of quiz and summary on blog posts.
+* Added: Bulk post processing in one click (filter by post status, category, author, and post type).
+* Added: Styling options for quiz and summary look and feel.
+* Added: Content inventory to identify posts lacking a quiz or summary.
+* Added: Engagement tracking events on Google Analytics (quiz start, answer, finish).
 
 == Upgrade Notice ==
+
 = 0.5 =
-Please note that this update requires PHP 7.3 or higher. Ensure your hosting environment meets this requirement before updating.
+This update requires PHP 7.3 or higher. Ensure your hosting environment meets this requirement before updating.

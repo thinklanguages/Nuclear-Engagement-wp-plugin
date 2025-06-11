@@ -1,5 +1,7 @@
 <?php
 /**
+ * File: front/traits/assets-trait.php
+ *
  * Trait: AssetsTrait
  *
  * Handles front-end CSS & JS enqueues and localisation.
@@ -111,8 +113,8 @@ trait AssetsTrait {
 			$this->plugin_name . '-front',
 			'NuclenSettings',
 			array(
-				'questions_per_quiz'   => (int) ( $options['questions_per_quiz']   ?? 10 ),
-				'answers_per_question' => (int) ( $options['answers_per_question'] ?? 4 ),
+				'questions_per_quiz'   => $settings_repo->get_int( 'questions_per_quiz', 10 ),
+				'answers_per_question' => $settings_repo->get_int( 'answers_per_question', 4 ),
 			)
 		);
 	}

@@ -186,11 +186,12 @@ trait SettingsPageSaveTrait {
 			$settings_repo->set($key, $value);
 		}
 
-		// Update the settings array with the saved values
-		$settings = $settings_repo->get_all();
+		// Actually save the settings to the database
+		$settings_repo->save();
 
-		// Merge with defaults to ensure all keys are present
-		$settings = wp_parse_args($settings, $defaults);
+		// Update the settings array with the saved values
+		// Note: get_all() already merges with defaults internally
+		$settings = $settings_repo->get_all();
 
 		/* Immediately regenerate custom CSS when using the custom theme */
 		if ( 'custom' === $settings['theme'] && method_exists( $this, 'nuclen_write_custom_css' ) ) {
