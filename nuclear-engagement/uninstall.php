@@ -30,5 +30,27 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 // If uninstall not called from WordPress, then exit.
 if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
-	exit;
+        exit;
+}
+
+// Get plugin settings
+$settings = get_option( 'nuclear_engagement_settings', array() );
+
+$delete_settings  = ! empty( $settings['delete_settings_on_uninstall'] );
+$delete_generated = ! empty( $settings['delete_generated_content_on_uninstall'] );
+
+// Delete generated content from post meta if requested
+if ( $delete_generated ) {
+        global $wpdb;
+        $meta_keys = array( 'nuclen-quiz-data', 'nuclen-summary-data', 'nuclen_quiz_protected', 'nuclen_summary_protected' );
+        foreach ( $meta_keys as $mk ) {
+                $wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->postmeta} WHERE meta_key = %s", $mk ) );
+        }
+}
+
+// Delete plugin settings if requested
+if ( $delete_settings ) {
+        delete_option( 'nuclear_engagement_settings' );
+        delete_option( 'nuclear_engagement_setup' );
+        delete_option( 'nuclen_custom_css_version' );
 }

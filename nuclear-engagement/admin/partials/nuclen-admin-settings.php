@@ -21,7 +21,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 			<a id="theme-tab"       href="#theme"      class="nav-tab"><?php esc_html_e( 'Theme',      'nuclear-engagement' ); ?></a>
 			<a id="display-tab"     href="#display"    class="nav-tab"><?php esc_html_e( 'Display',    'nuclear-engagement' ); ?></a>
 			<a id="optin-tab"       href="#optin"      class="nav-tab"><?php esc_html_e( 'Opt-In',     'nuclear-engagement' ); ?></a>
-			<a id="generation-tab"  href="#generation" class="nav-tab"><?php esc_html_e( 'Generation', 'nuclear-engagement' ); ?></a>
+                       <a id="generation-tab"  href="#generation" class="nav-tab"><?php esc_html_e( 'Generation', 'nuclear-engagement' ); ?></a>
+                       <a id="uninstall-tab"   href="#uninstall"  class="nav-tab"><?php esc_html_e( 'Uninstall', 'nuclear-engagement' ); ?></a>
 		</div>
 
 		<?php
@@ -31,7 +32,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 		require $tabs_dir . 'theme.php';
 		require $tabs_dir . 'display.php';
 		require $tabs_dir . 'optin.php';
-		require $tabs_dir . 'generation.php';
+               require $tabs_dir . 'generation.php';
+               require $tabs_dir . 'uninstall.php';
 		?>
 
 		<!-- ───── Save button ───── -->
