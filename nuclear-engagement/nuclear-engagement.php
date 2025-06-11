@@ -166,23 +166,9 @@ spl_autoload_register(function ($class) {
  * Activation / deactivation hooks
  * ────────────────────────────────────────────────────────── */
 function nuclear_engagement_activate_plugin() {
-    // Load default settings
-    $defaults = [
-        'theme' => 'bright',
-        'font_size' => '16',
-        'font_color' => '#000000',
-        'bg_color' => '#ffffff',
-        'border_color' => '#000000',
-        'border_style' => 'solid',
-        'border_width' => '1',
-        'quiz_title' => 'Test your knowledge',
-        'summary_title' => 'Key Facts',
-        'show_attribution' => false,
-        'display_summary' => 'none',
-        'display_quiz' => 'none',
-        'display_toc' => 'manual',
-    ];
-    
+    // Load default settings from central Defaults class
+    $defaults = NuclearEngagement\Defaults::nuclen_get_default_settings();
+
     // Initialize SettingsRepository with defaults
     $settings = SettingsRepository::get_instance($defaults);
     
