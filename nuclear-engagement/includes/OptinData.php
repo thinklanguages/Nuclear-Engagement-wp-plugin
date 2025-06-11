@@ -96,8 +96,18 @@ class OptinData {
 			[ '%s', '%s', '%s', '%s' ]
 		);
 
-		return (bool) $ok;
-	}
+return (bool) $ok;
+}
+
+    /**
+     * Escape potential spreadsheet formulas in a CSV field.
+     *
+     * Spreadsheet applications may interpret values starting with =,+,-,@ as
+     * formulas. Prefix with a single quote so the value is treated as text.
+     */
+    private static function escape_csv_field( string $value ): string {
+        return preg_match('/^[=+\-@]/', $value) ? "'{$value}" : $value;
+    }
 
 	/* ---------------------------------------------------------------------
 	 *  AJAX insert
@@ -154,9 +164,13 @@ class OptinData {
 
 		$out = fopen( 'php://output', 'w' );
 		fputcsv( $out, [ 'datetime', 'url', 'name', 'email' ] );   // headings
-		foreach ( $rows as $r ) {
-			fputcsv( $out, $r );
-		}
+                foreach ( $rows as $r ) {
+                        // Prevent formula injection when opened in spreadsheet apps.
+                        $r['name']  = self::escape_csv_field( $r['name'] );
+                        $r['email'] = self::escape_csv_field( $r['email'] );
+                        $r['url']   = self::escape_csv_field( $r['url'] );
+                        fputcsv( $out, $r );
+                }
 		fclose( $out );
 		exit;
 	}
