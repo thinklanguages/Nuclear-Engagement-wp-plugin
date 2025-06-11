@@ -167,13 +167,20 @@ trait SetupHandlersTrait {
 			$this->nuclen_redirect_with_error( 'Insufficient permissions.' );
 		}
 
-		$app_setup['wp_app_pass_created'] = false;
-		$app_setup['wp_app_pass_uuid']    = '';
-		$app_setup['plugin_password']     = '';
-		update_option( 'nuclear_engagement_setup', $app_setup );
+               $app_setup = get_option( 'nuclear_engagement_setup', array() );
+               $app_setup['wp_app_pass_created'] = false;
+               $app_setup['wp_app_pass_uuid']    = '';
+               $app_setup['plugin_password']     = '';
+               update_option( 'nuclear_engagement_setup', $app_setup );
 
-		$this->nuclen_redirect_with_success( 'App Password revoked.' );
-	}
+               $settings = SettingsRepository::get_instance();
+               $settings->set( 'wp_app_pass_created', false )
+                       ->set( 'wp_app_pass_uuid', '' )
+                       ->set( 'plugin_password', '' )
+                       ->save();
+
+               $this->nuclen_redirect_with_success( 'App Password revoked.' );
+       }
 
 	/*--------------------------------------------------------------
 	 #  Helpers
