@@ -43,11 +43,15 @@ class Plugin {
 		$defaults = Defaults::nuclen_get_default_settings();
 		$this->settings_repository = SettingsRepository::get_instance( $defaults );
 
-		/* ───── Ensure DB table exists on activation ───── */
-		register_activation_hook(
-			dirname( dirname( __FILE__ ) ) . '/nuclear-engagement.php',
-			[ '\NuclearEngagement\OptinData', 'maybe_create_table' ]
-		);
+               /* ───── Ensure DB table exists on activation ───── */
+               register_activation_hook(
+                       dirname( dirname( __FILE__ ) ) . '/nuclear-engagement.php',
+                       function() {
+                               if ( ! \NuclearEngagement\OptinData::table_exists() ) {
+                                       \NuclearEngagement\OptinData::maybe_create_table();
+                               }
+                       }
+               );
 
                 $this->nuclen_load_dependencies();
                 $this->initializeContainer();
