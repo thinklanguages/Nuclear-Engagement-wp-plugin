@@ -19,7 +19,7 @@ use NuclearEngagement\Admin\Onboarding;
 use NuclearEngagement\Defaults;
 use NuclearEngagement\SettingsRepository;
 use NuclearEngagement\Container;
-use NuclearEngagement\Services\{GenerationService, RemoteApiService, ContentStorageService, PointerService, PostsQueryService};
+use NuclearEngagement\Services\{GenerationService, RemoteApiService, ContentStorageService, PointerService, PostsQueryService, AutoGenerationService};
 use NuclearEngagement\Admin\Controller\Ajax\{GenerateController, UpdatesController, PointerController, PostsCountController};
 use NuclearEngagement\Front\Controller\Rest\ContentController;
 
@@ -33,11 +33,11 @@ class Plugin {
 	/**
 	 * @var Container
 	 */
-	private Container $container;
+        private Container $container;
 
-	public function __construct() {
-		$this->version     = defined( 'NUCLEN_PLUGIN_VERSION' ) ? NUCLEN_PLUGIN_VERSION : '1.0.0';
-		$this->plugin_name = 'nuclear-engagement';
+        public function __construct() {
+                $this->version     = defined( 'NUCLEN_PLUGIN_VERSION' ) ? NUCLEN_PLUGIN_VERSION : '1.0.0';
+                $this->plugin_name = 'nuclear-engagement';
 		
 		// Initialize settings repository with defaults
 		$defaults = Defaults::nuclen_get_default_settings();
@@ -49,11 +49,14 @@ class Plugin {
 			[ '\NuclearEngagement\OptinData', 'maybe_create_table' ]
 		);
 
-		$this->nuclen_load_dependencies();
-		$this->initializeContainer();
-		$this->nuclen_define_admin_hooks();
-		$this->nuclen_define_public_hooks();
-	}
+                $this->nuclen_load_dependencies();
+                $this->initializeContainer();
+                // Register hooks for auto-generation on every request
+                $autoGen = $this->container->get('auto_generation_service');
+                $autoGen->register_hooks();
+                $this->nuclen_define_admin_hooks();
+                $this->nuclen_define_public_hooks();
+        }
 
 	/* ─────────────────────────────────────────────
 	   Dependencies & Loader
@@ -87,9 +90,17 @@ class Plugin {
 			return new RemoteApiService($c->get('settings'));
 		});
 		
-		$this->container->register('content_storage', function($c) {
-			return new ContentStorageService($c->get('settings'));
-		});
+                $this->container->register('content_storage', function($c) {
+                        return new ContentStorageService($c->get('settings'));
+                });
+
+                $this->container->register('auto_generation_service', function($c) {
+                        return new AutoGenerationService(
+                                $c->get('settings'),
+                                $c->get('remote_api'),
+                                $c->get('content_storage')
+                        );
+                });
 		
 		$this->container->register('generation_service', function($c) {
 			return new GenerationService(
