@@ -8,7 +8,7 @@ Tags: AI writer, quiz, summary, table of contents, email optin
 Requires at least: 5.6
 Tested up to: 6.8
 Requires PHP: 7.3
-Stable tag: 1.0.2
+Stable tag: 1.0.3
 License: GPL-2.0+
 License URI: http://www.gnu.org/licenses/gpl-2.0.txt
 Donate link: https://buy.stripe.com/3csg1Tdn0a9h3ss288
@@ -22,7 +22,7 @@ Nuclear Engagement is the easiest way to **turn all your blog posts into interac
 In just one click, our AI analyzes your article and generates a concise summary and a short quiz to **engage** your readers.
 These interactive elements boost **time on page**, reduce **bounce rates**, and even help you **capture email leads** – all **without any coding** or manual work​.
 
-[youtube https://youtu.be/HwScpKueMkg]
+[youtube https://www.youtube.com/watch?v=HwScpKueMkg]
 
 If you want visitors to stay longer and interact with your content, Nuclear Engagement is your plug-and-play solution.
 It's called Nuclear Engagement because it is the nuclear option to boost blog engagement.
@@ -249,6 +249,11 @@ No. Generation is done via the NE app. You only need a free account on the NE ap
 The tiny codebase and lazy loading assure fast loading, both in admin and on frontend. You won't even notice it's active. No conflicts are known to occur.
 
 == Changelog ==
+
+= 1.0.3 – 2025-06-11 =
+* Added: Uninstall data options.
+* Fixed: Auto content generation upon post publish.
+* Fixed: Default settings.
 
 = 1.0.2 – 2025-06-05 =
 * Fixed: Settings saving.
