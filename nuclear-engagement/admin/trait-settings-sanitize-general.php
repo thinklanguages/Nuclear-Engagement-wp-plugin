@@ -78,6 +78,9 @@ trait SettingsSanitizeGeneralTrait {
                 /* Uninstall options */
                 $delete_settings  = (bool) ( $in['delete_settings_on_uninstall'] ?? false );
                 $delete_generated = (bool) ( $in['delete_generated_content_on_uninstall'] ?? false );
+                $delete_optin    = (bool) ( $in['delete_optin_data_on_uninstall'] ?? false );
+                $delete_log      = (bool) ( $in['delete_log_file_on_uninstall'] ?? false );
+                $delete_css      = (bool) ( $in['delete_custom_css_on_uninstall'] ?? false );
 
 		return array(
 			/* theme */
@@ -120,6 +123,9 @@ trait SettingsSanitizeGeneralTrait {
                         /* uninstall */
                         'delete_settings_on_uninstall'     => $delete_settings,
                         'delete_generated_content_on_uninstall' => $delete_generated,
+                        'delete_optin_data_on_uninstall'   => $delete_optin,
+                        'delete_log_file_on_uninstall'     => $delete_log,
+                        'delete_custom_css_on_uninstall'   => $delete_css,
                 );
-	}
+        }
 }
