@@ -8,8 +8,8 @@
 namespace NuclearEngagement\Services;
 
 use NuclearEngagement\SettingsRepository;
-use NuclearEngagement\RemoteApiService;
-use NuclearEngagement\ContentStorageService;
+use NuclearEngagement\Services\RemoteApiService;
+use NuclearEngagement\Services\ContentStorageService;
 
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
