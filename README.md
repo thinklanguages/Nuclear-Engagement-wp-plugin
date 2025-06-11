@@ -18,3 +18,11 @@ Nuclear Engagement stands out with true sitewide automation: process hundreds or
 
 Learn more:
 https://www.nuclearengagement.com
+
+## Development
+
+Install dependencies with `composer install` and run linting with:
+
+```bash
+composer lint
+```
