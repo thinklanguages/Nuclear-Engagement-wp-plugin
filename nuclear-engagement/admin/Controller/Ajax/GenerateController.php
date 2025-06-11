@@ -39,11 +39,6 @@ class GenerateController {
      */
     public function handle(): void {
         try {
-            // Enable error logging for debugging
-            if (!defined('WP_DEBUG') || !WP_DEBUG) {
-                @ini_set('display_errors', 1);
-                @error_reporting(E_ALL);
-            }
             
             // Security check
             if (!check_ajax_referer('nuclen_admin_ajax_nonce', 'security', false)) {
