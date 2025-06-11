@@ -146,7 +146,7 @@ class AutoGenerationService {
                 'generation_id' => $generation_id,
             ];
 
-            $result = $this->remote_api->send_generation_request($data_to_send);
+            $result = $this->remote_api->sendPostsToGenerate($data_to_send);
 
             if (is_wp_error($result)) {
                 error_log('Failed to start generation: ' . $result->get_error_message());
