@@ -38,6 +38,9 @@ $settings = get_option( 'nuclear_engagement_settings', array() );
 
 $delete_settings  = ! empty( $settings['delete_settings_on_uninstall'] );
 $delete_generated = ! empty( $settings['delete_generated_content_on_uninstall'] );
+$delete_optins   = ! empty( $settings['delete_optin_data_on_uninstall'] );
+$delete_log      = ! empty( $settings['delete_log_file_on_uninstall'] );
+$delete_css      = ! empty( $settings['delete_custom_css_on_uninstall'] );
 
 // Delete generated content from post meta if requested
 if ( $delete_generated ) {
@@ -53,4 +56,30 @@ if ( $delete_settings ) {
         delete_option( 'nuclear_engagement_settings' );
         delete_option( 'nuclear_engagement_setup' );
         delete_option( 'nuclen_custom_css_version' );
+}
+
+// Remove log file if requested
+if ( $delete_log ) {
+        $info = \NuclearEngagement\Utils::nuclen_get_log_file_info();
+        if ( file_exists( $info['path'] ) ) {
+                unlink( $info['path'] );
+        }
+}
+
+// Remove custom theme file if requested
+if ( $delete_css ) {
+        $info = \NuclearEngagement\Utils::nuclen_get_custom_css_info();
+        if ( file_exists( $info['path'] ) ) {
+                unlink( $info['path'] );
+        }
+        delete_option( 'nuclen_custom_css_version' );
+}
+
+// Drop opt-in table only when the user opts to delete settings or generated
+// content. This avoids data loss unless a full cleanup was requested.
+if ( $delete_settings || $delete_generated ) {
+        global $wpdb;
+        $table = $wpdb->prefix . 'nuclen_optins';
+        // Remove stored email opt-in submissions on uninstall
+        $wpdb->query( "DROP TABLE IF EXISTS {$table}" );
 }

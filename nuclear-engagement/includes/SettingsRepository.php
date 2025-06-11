@@ -78,6 +78,9 @@ final class SettingsRepository
         'plugin_password' => 'sanitize_text_field',
         'delete_settings_on_uninstall' => 'rest_sanitize_boolean',
         'delete_generated_content_on_uninstall' => 'rest_sanitize_boolean',
+        'delete_optin_data_on_uninstall' => 'rest_sanitize_boolean',
+        'delete_log_file_on_uninstall' => 'rest_sanitize_boolean',
+        'delete_custom_css_on_uninstall' => 'rest_sanitize_boolean',
         'toc_heading_levels' => [self::class, 'sanitize_heading_levels'],
         'generation_post_types' => [self::class, 'sanitize_post_types'],
     ];
