@@ -37,10 +37,15 @@ class Utils {
 		$info       = self::nuclen_get_log_file_info();
 		$log_folder = $info['dir'];
 		$log_file   = $info['path'];
+		$max_size   = 1024 * 1024; // 1 MB
 
 		if ( ! file_exists( $log_folder ) ) {
 			wp_mkdir_p( $log_folder );
 		}
+			if ( file_exists( $log_file ) && filesize( $log_file ) > $max_size ) {
+				$timestamped = $log_folder . '/log-' . gmdate( 'Y-m-d-His' ) . '.txt';
+				@rename( $log_file, $timestamped );
+			}
 
 		if ( ! file_exists( $log_file ) ) {
 			$timestamp = gmdate( 'Y-m-d H:i:s' );
