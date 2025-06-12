@@ -43,13 +43,27 @@ class PostsQueryService {
             $queryArgs['author'] = $request->authorId;
         }
         
-        // Skip existing data if not allowing regeneration
+        // Skip posts that already have generated data when not allowing regeneration.
+        // Earlier plugin versions stored meta using underscores instead of hyphens,
+        // so we check both variants to ensure backwards compatibility.
         if (!$request->allowRegenerate) {
-            $metaKey = $request->workflow === 'quiz' ? 'nuclen-quiz-data' : 'nuclen-summary-data';
-            $metaQuery[] = [
-                'key' => $metaKey,
-                'compare' => 'NOT EXISTS',
-            ];
+            $metaKeys = $request->workflow === 'quiz'
+                ? ['nuclen-quiz-data', 'nuclen_quiz_data']
+                : ['nuclen-summary-data', 'nuclen_summary_data'];
+
+            $subQueries = [];
+            foreach ($metaKeys as $key) {
+                $subQueries[] = [
+                    'key'     => $key,
+                    'compare' => 'NOT EXISTS',
+                ];
+            }
+
+            if (count($subQueries) === 1) {
+                $metaQuery[] = $subQueries[0];
+            } else {
+                $metaQuery[] = array_merge(['relation' => 'AND'], $subQueries);
+            }
         }
         
         // Skip protected data if not allowed
