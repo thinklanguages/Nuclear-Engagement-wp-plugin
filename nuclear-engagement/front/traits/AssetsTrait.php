@@ -113,15 +113,14 @@ trait AssetsTrait {
 
 		/* Main bundle */
 
-               wp_enqueue_script(
+               wp_register_script_module(
                        $this->plugin_name . '-front',
                        plugin_dir_url( __FILE__ ) . '../js/nuclen-front.js',
                        array(),
-                       NUCLEN_ASSET_VERSION,
-                       true
+                       NUCLEN_ASSET_VERSION
                );
 
-               wp_script_add_data( $this->plugin_name . '-front', 'type', 'module' );
+               wp_enqueue_script_module( $this->plugin_name . '-front' );
 
 		$settings_repo = $this->nuclen_get_settings_repository();
 
