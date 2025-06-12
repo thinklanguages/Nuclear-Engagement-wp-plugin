@@ -152,7 +152,9 @@ trait AssetsTrait {
                 );
 
 		/* Per-post quiz data - FIXED VERSION */
-		$post_id   = get_the_ID();
+                // Use queried object ID instead of get_the_ID() to ensure
+                // the correct post is referenced even before the loop runs.
+                $post_id   = get_queried_object_id();
 		
 		// get_post_meta with true already unserializes, don't call maybe_unserialize
 		$quiz_meta = get_post_meta( $post_id, 'nuclen-quiz-data', true );
