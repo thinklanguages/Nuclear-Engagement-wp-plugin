@@ -90,6 +90,7 @@ spl_autoload_register(function ($class) {
             'NuclearEngagement\\Defaults' => '/includes/Defaults.php',
             'NuclearEngagement\\OptinData' => '/includes/OptinData.php',
             'NuclearEngagement\\MetaRegistration' => '/includes/MetaRegistration.php',
+            'NuclearEngagement\\Includes\\BaseAjaxController' => '/includes/BaseAjaxController.php',
             
             // Admin classes
             'NuclearEngagement\\Admin\\Admin' => '/admin/Admin.php',
