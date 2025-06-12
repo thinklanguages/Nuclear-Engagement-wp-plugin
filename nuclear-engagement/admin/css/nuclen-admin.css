@@ -164,8 +164,8 @@ Classes for form groups, labels, inputs, and buttons.
 }
 
 .nuclen-input:focus {
-	border-color: #007cba;
-	outline: none;
+        border-color: #007cba;
+        outline: 2px solid #007cba; /* Provide visible focus style */
 }
 
 /* Buttons */
