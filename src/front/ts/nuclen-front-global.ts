@@ -4,27 +4,30 @@
  * 1) Global Declarations
  *************************************************/
 declare global {
-  const postQuizData: Array<{
-    question: string;
-    answers: string[];
-    explanation: string;
-  }>;
-
-  const NuclenOptinPosition: string;
-  const NuclenOptinMandatory: boolean;
-  const NuclenOptinPromptText: string;
-  const NuclenOptinButtonText: string;
-
-  const NuclenCustomQuizHtmlAfter: string;
-
-  const NuclenOptinAjax: {
-    url: string;
-    nonce: string;
-  };
-
-  function gtag(...args: any[]): void;
-
   interface Window {
+    postQuizData: Array<{
+      question: string;
+      answers: string[];
+      explanation: string;
+    }>;
+
+    NuclenOptinPosition: string;
+    NuclenOptinMandatory: boolean;
+    NuclenOptinPromptText: string;
+    NuclenOptinButtonText: string;
+
+    NuclenCustomQuizHtmlAfter: string;
+
+    NuclenOptinAjax: {
+      url: string;
+      nonce: string;
+    };
+
+    NuclenSettings: {
+      questions_per_quiz: number;
+      answers_per_question: number;
+    };
+
     NuclenOptinEnabled: boolean;
     NuclenOptinWebhook: string;
     NuclenOptinSuccessMessage: string;
@@ -38,6 +41,8 @@ declare global {
     nuclearEngagementShowQuizQuestionDetails?: (index: number) => void;
     nuclearEngagementRetakeQuiz?: () => void;
   }
+
+  function gtag(...args: any[]): void;
 }
 
 export {};
