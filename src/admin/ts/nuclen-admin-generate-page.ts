@@ -8,6 +8,7 @@ import {
   NuclenPollAndPullUpdates,
   nuclenFetchWithRetry,
 } from "./nuclen-admin-generate";
+import { nuclenNotifyError } from "../../front/ts/nuclen-notify";
 
 (function nuclenInitGeneratePageLogic() {
   const step1 = document.getElementById("nuclen-step-1") as HTMLDivElement | null;
@@ -107,7 +108,7 @@ import {
   // Step 1 => "Get Posts"
   getPostsBtn?.addEventListener("click", () => {
     if (!(window as any).nuclenAjax || !(window as any).nuclenAjax.ajax_url) {
-      alert("Error: Ajax is not configured properly. Please check the plugin settings.");
+      nuclenNotifyError("Error: Ajax is not configured properly. Please check the plugin settings.");
       return;
     }
 
@@ -154,15 +155,15 @@ import {
           }
           if (data.data?.message) {
             if (data.data.message.includes("Invalid API key")) {
-              alert(
+              nuclenNotifyError(
                 "Your Gold Code (API key) is invalid. Please create a new one on the NE app and enter it on the plugin Setup page."
               );
             } else if (data.data.message.includes("Invalid WP App Password")) {
-              alert(
+              nuclenNotifyError(
                 "Your WP App Password is invalid. Please go to the plugin Setup page and re-generate it."
               );
             } else {
-              alert(data.data.message);
+              nuclenNotifyError(data.data.message);
             }
           }
           return;
@@ -266,7 +267,7 @@ import {
           }
 
           if (remainingCredits < neededCredits) {
-            alert("Not enough credits. Please top up or reduce the number of posts.");
+            nuclenNotifyError("Not enough credits. Please top up or reduce the number of posts.");
             // disable the “Generate” button
             if (submitBtn) {
               submitBtn.disabled = true;
@@ -316,7 +317,7 @@ import {
     event.preventDefault();
 
     if (!(window as any).nuclenAdminVars || !(window as any).nuclenAdminVars.ajax_url) {
-      alert("Error: WP Ajax config not found. Please check the plugin settings.");
+      nuclenNotifyError("Error: WP Ajax config not found. Please check the plugin settings.");
       return;
     }
 
@@ -406,13 +407,13 @@ import {
           nuclenUpdateProgressBarStep(stepBar3, "failed");
 
           if (errMsg.includes("Invalid API key")) {
-            alert("Your API key is invalid. Please go to the Setup page and enter a new one.");
+            nuclenNotifyError("Your API key is invalid. Please go to the Setup page and enter a new one.");
           } else if (errMsg.includes("Invalid WP App Password")) {
-            alert("Your WP App Password is invalid. Please re-generate it on the Setup page.");
+            nuclenNotifyError("Your WP App Password is invalid. Please re-generate it on the Setup page.");
           } else if (errMsg.includes("Not enough credits")) {
-            alert("Not enough credits. Please top up your account or reduce the number of posts.");
+            nuclenNotifyError("Not enough credits. Please top up your account or reduce the number of posts.");
           } else {
-            alert(`Error: ${errMsg}`);
+            nuclenNotifyError(`Error: ${errMsg}`);
           }
 
           if (updatesContent) {
@@ -428,13 +429,13 @@ import {
       nuclenUpdateProgressBarStep(stepBar3, "failed");
 
       if (error.message.includes("Invalid API key")) {
-        alert("Your API key is invalid. Please go to the Setup page and enter a new one.");
+        nuclenNotifyError("Your API key is invalid. Please go to the Setup page and enter a new one.");
       } else if (error.message.includes("Invalid WP App Password")) {
-        alert("Your WP App Password is invalid. Please go to the Setup page and re-generate it.");
+        nuclenNotifyError("Your WP App Password is invalid. Please go to the Setup page and re-generate it.");
       } else if (error.message.includes("Not enough credits")) {
-        alert("Not enough credits. Please top up or reduce posts.");
+        nuclenNotifyError("Not enough credits. Please top up or reduce posts.");
       } else {
-        alert(`Error starting generation: ${error.message}`);
+        nuclenNotifyError(`Error starting generation: ${error.message}`);
       }
 
       if (submitBtn) {

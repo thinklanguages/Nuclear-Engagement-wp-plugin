@@ -4,6 +4,7 @@
  */
 
 import { NuclenStartGeneration, NuclenPollAndPullUpdates } from "./nuclen-admin-generate";
+import { nuclenNotifyError } from "../../front/ts/nuclen-notify";
 
 document.addEventListener("click", async (event: MouseEvent) => {
   const target = event.target;
@@ -25,7 +26,7 @@ document.addEventListener("click", async (event: MouseEvent) => {
     const workflow = btn.dataset.workflow;
 
     if (!postId || !workflow) {
-      alert("Missing data attributes: postId or workflow not found.");
+      nuclenNotifyError("Missing data attributes: postId or workflow not found.");
       return;
     }
 
@@ -188,13 +189,13 @@ document.addEventListener("click", async (event: MouseEvent) => {
         },
         onError(errMsg) {
           if (errMsg.includes("Invalid API key")) {
-            alert("Your API key is invalid. Please go to the Setup page and enter a new one.");
+            nuclenNotifyError("Your API key is invalid. Please go to the Setup page and enter a new one.");
           } else if (errMsg.includes("Invalid WP App Password")) {
-            alert("Your WP App Password is invalid. Please go to the Setup page and re-generate it.");
+            nuclenNotifyError("Your WP App Password is invalid. Please go to the Setup page and re-generate it.");
           } else if (errMsg.includes("Not enough credits")) {
-            alert("Not enough credits for single-post generation.");
+            nuclenNotifyError("Not enough credits for single-post generation.");
           } else {
-            alert("Error: " + errMsg);
+            nuclenNotifyError("Error: " + errMsg);
           }
 
           btn.textContent = "Generate";
@@ -204,13 +205,13 @@ document.addEventListener("click", async (event: MouseEvent) => {
     } catch (err: any) {
       // If NuclenStartGeneration fails immediately
       if (err.message.includes("Invalid API key")) {
-        alert("Your API key is invalid. Please go to the Setup page and enter a new one.");
+        nuclenNotifyError("Your API key is invalid. Please go to the Setup page and enter a new one.");
       } else if (err.message.includes("Invalid WP App Password")) {
-        alert("Your WP App Password is invalid. Please go to the Setup page and re-generate it.");
+        nuclenNotifyError("Your WP App Password is invalid. Please go to the Setup page and re-generate it.");
       } else if (err.message.includes("Not enough credits")) {
-        alert("Not enough credits for single-post generation. Please top up first.");
+        nuclenNotifyError("Not enough credits for single-post generation. Please top up first.");
       } else {
-        alert("Error starting single generation: " + err.message);
+        nuclenNotifyError("Error starting single generation: " + err.message);
       }
       btn.textContent = "Generate";
       btn.disabled = false;
