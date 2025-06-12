@@ -38,7 +38,8 @@ class MetaRegistration {
         // Register quiz data meta
         foreach ( $post_types as $post_type ) {
             register_post_meta( $post_type, 'nuclen-quiz-data', [
-                'type' => 'string',
+                // Store structured quiz info as an array
+                'type' => 'array',
                 'description' => 'Nuclear Engagement quiz data',
                 'single' => true,
                 'show_in_rest' => false,
@@ -58,7 +59,8 @@ class MetaRegistration {
             
             // Register summary data meta
             register_post_meta( $post_type, 'nuclen-summary-data', [
-                'type' => 'string',
+                // Summary data also uses structured arrays
+                'type' => 'array',
                 'description' => 'Nuclear Engagement summary data',
                 'single' => true,
                 'show_in_rest' => false,
