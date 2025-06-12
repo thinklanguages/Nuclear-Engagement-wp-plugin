@@ -14,18 +14,33 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 trait Admin_Assets {
 
-	/**
-	 * Enqueue base admin CSS for all plugin admin screens.
-	 */
-	public function wp_enqueue_styles() {
-		wp_enqueue_style(
-			$this->nuclen_get_plugin_name(),
-			plugin_dir_url( __FILE__ ) . 'css/nuclen-admin.css',
-			array(),
-			filemtime( plugin_dir_path( __FILE__ ) . 'css/nuclen-admin.css' ),
-			'all'
-		);
-	}
+        /**
+         * Enqueue base admin CSS on our plugin pages only.
+         *
+         * @param string $hook Current admin page hook suffix.
+         */
+        public function wp_enqueue_styles( $hook ) {
+                $allowed_hooks = array(
+                        'post.php',
+                        'post-new.php',
+                        'toplevel_page_nuclear-engagement',
+                        'nuclear-engagement_page_nuclear-engagement-generate',
+                        'nuclear-engagement_page_nuclear-engagement-settings',
+                        'nuclear-engagement_page_nuclear-engagement-setup',
+                );
+
+                if ( ! in_array( $hook, $allowed_hooks, true ) ) {
+                        return;
+                }
+
+                wp_enqueue_style(
+                        $this->nuclen_get_plugin_name(),
+                        plugin_dir_url( __FILE__ ) . 'css/nuclen-admin.css',
+                        array(),
+                        filemtime( plugin_dir_path( __FILE__ ) . 'css/nuclen-admin.css' ),
+                        'all'
+                );
+        }
 
 	/**
 	 * Enqueue "nuclen-admin.js" for our NE admin pages & post editor.
