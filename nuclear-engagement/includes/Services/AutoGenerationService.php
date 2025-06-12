@@ -209,6 +209,10 @@ class AutoGenerationService {
             if (!empty($data['results']) && is_array($data['results'])) {
                 $this->content_storage->storeResults($data['results'], $workflow_type);
                 error_log("Poll success for post {$post_id} ({$workflow_type}), generation {$generation_id}");
+
+                // Remove completed generation from options
+                $this->remove_active_generation($generation_id);
+
                 return;
             }
             
@@ -236,6 +240,28 @@ class AutoGenerationService {
             );
         } else {
             error_log("Polling aborted after {$max_attempts} attempts for post {$post_id} ({$workflow_type})");
+
+            // Clean up stored generation entry after final attempt
+            $this->remove_active_generation($generation_id);
+        }
+    }
+
+    /**
+     * Remove a generation from the active generations option.
+     *
+     * @param string $generation_id Generation ID to remove
+     */
+    private function remove_active_generation(string $generation_id): void {
+        $generations = get_option('nuclen_active_generations', []);
+
+        if (isset($generations[$generation_id])) {
+            unset($generations[$generation_id]);
+
+            if (empty($generations)) {
+                delete_option('nuclen_active_generations');
+            } else {
+                update_option('nuclen_active_generations', $generations);
+            }
         }
     }
 
