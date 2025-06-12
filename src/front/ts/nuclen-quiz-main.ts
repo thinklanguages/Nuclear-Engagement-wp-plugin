@@ -12,7 +12,6 @@
 import type {
     QuizQuestion,
     OptinContext,
-    NuclenSettings,
   } from './nuclen-quiz-types';
   import { shuffle } from './nuclen-quiz-utils';
   import {
@@ -21,19 +20,7 @@ import type {
     attachInlineOptinHandlers,
   } from './nuclen-quiz-optin';
   
-  /* Globals injected by wp_localize_script */
-  declare const postQuizData: QuizQuestion[];
-  declare const NuclenSettings: NuclenSettings;
-  
-  declare const NuclenCustomQuizHtmlAfter: string;
-  
-  declare const NuclenOptinPosition: string;
-  declare const NuclenOptinMandatory: boolean;
-  declare const NuclenOptinPromptText: string;
-  declare const NuclenOptinButtonText: string;
-  
-  declare const NuclenOptinAjax: { url: string; nonce: string };
-  
+  /* Globals injected by wp_add_inline_script */
   declare function gtag(...args: any[]): void;
   
   /* ─────────────────────────────────────────────────────────────
@@ -57,22 +44,26 @@ import type {
     }
   
     /* SETTINGS & OPT-IN CONTEXT */
-    const maxQuestions = NuclenSettings?.questions_per_quiz ?? 10;
-    const maxAnswers   = NuclenSettings?.answers_per_question ?? 4;
+    const maxQuestions =
+      (window as any).NuclenSettings?.questions_per_quiz ?? 10;
+    const maxAnswers =
+      (window as any).NuclenSettings?.answers_per_question ?? 4;
   
     const optin: OptinContext = {
-      position: (NuclenOptinPosition as 'with_results' | 'before_results') ?? 'with_results',
-      mandatory: Boolean(NuclenOptinMandatory),
-      promptText: NuclenOptinPromptText,
-      submitLabel: NuclenOptinButtonText,
+      position:
+        ((window as any).NuclenOptinPosition as 'with_results' | 'before_results') ??
+        'with_results',
+      mandatory: Boolean((window as any).NuclenOptinMandatory),
+      promptText: (window as any).NuclenOptinPromptText,
+      submitLabel: (window as any).NuclenOptinButtonText,
       enabled: Boolean((window as any).NuclenOptinEnabled),
       webhook: (window as any).NuclenOptinWebhook,
-      ajaxUrl: NuclenOptinAjax?.url ?? '',
-      ajaxNonce: NuclenOptinAjax?.nonce ?? '',
+      ajaxUrl: (window as any).NuclenOptinAjax?.url ?? '',
+      ajaxNonce: (window as any).NuclenOptinAjax?.nonce ?? '',
     };
   
     /* PREPARE QUESTIONS */
-    const questions: QuizQuestion[] = postQuizData
+    const questions: QuizQuestion[] = (window as any).postQuizData
       .filter((q) => q.question.trim() && q.answers[0]?.trim())
       .slice(0, maxQuestions)
       .map((q) => ({ ...q, answers: q.answers.slice(0, maxAnswers) }));
@@ -230,10 +221,10 @@ import type {
       html += '</div><div id="nuclen-quiz-result-details-container" class="nuclen-fg dashboard-box"></div>';
   
       /* 4. custom after-HTML */
-      if (NuclenCustomQuizHtmlAfter?.trim()) {
+      if ((window as any).NuclenCustomQuizHtmlAfter?.trim()) {
         html += `
           <div id="nuclen-quiz-end-message" class="nuclen-fg">
-            ${NuclenCustomQuizHtmlAfter}
+            ${(window as any).NuclenCustomQuizHtmlAfter}
           </div>`;
       }
   
