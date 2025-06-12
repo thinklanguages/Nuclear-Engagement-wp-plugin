@@ -27,7 +27,7 @@ trait AssetsTrait {
 	return false;
 	}
 	
-	$settings_repo   = $this->get_settings_repository();
+	$settings_repo   = $this->nuclen_get_settings_repository();
 	$display_summary = $settings_repo->get( 'display_summary', 'manual' );
 	$display_quiz    = $settings_repo->get( 'display_quiz', 'manual' );
 	$display_toc     = $settings_repo->get( 'display_toc', 'manual' );
@@ -72,7 +72,7 @@ trait AssetsTrait {
 		);
 
 		/* Theme CSS (bright / dark / custom / none) */
-		$settings_repo = $this->get_settings_repository();
+		$settings_repo = $this->nuclen_get_settings_repository();
 		$theme_choice = $settings_repo->get( 'theme', 'bright' );
 
 		if ( $theme_choice === 'none' ) {
@@ -113,7 +113,7 @@ trait AssetsTrait {
 			true
 		);
 
-		$settings_repo = $this->get_settings_repository();
+		$settings_repo = $this->nuclen_get_settings_repository();
 
 		/* ───── Inline scalars (booleans & strings) ───── */
 		$inline_js = '';

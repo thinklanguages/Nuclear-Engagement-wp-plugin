@@ -18,7 +18,7 @@ trait Admin_Summary_Metabox {
 	 * ---------------------------------------------------------------------- */
 
 	public function nuclen_add_summary_data_meta_box() {
-		$settings_repo = $this->get_settings_repository();
+		$settings_repo = $this->nuclen_get_settings_repository();
 		$post_types = $settings_repo->get( 'generation_post_types', array( 'post' ) );
 		$post_types = is_array( $post_types ) ? $post_types : array( 'post' );
 
@@ -127,7 +127,7 @@ trait Admin_Summary_Metabox {
 		clean_post_cache( $post_id );
 
 		/* ---- Update post_modified if enabled ----------------------------- */
-		$settings_repo = $this->get_settings_repository();
+		$settings_repo = $this->nuclen_get_settings_repository();
 		$settings = $settings_repo->get( 'update_last_modified', 0 );
 		if ( ! empty( $settings ) && (int) $settings === 1 ) {
 			remove_action( 'save_post', array( $this, 'nuclen_save_quiz_data_meta' ), 10 );
