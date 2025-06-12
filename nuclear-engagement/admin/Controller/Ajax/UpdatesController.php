@@ -15,6 +15,7 @@ use NuclearEngagement\Services\ContentStorageService;
 use NuclearEngagement\Responses\UpdatesResponse;
 use NuclearEngagement\Utils;
 use NuclearEngagement\ErrorHandler;
+use NuclearEngagement\Includes\BaseAjaxController;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -23,7 +24,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Controller for polling updates
  */
-class UpdatesController {
+class UpdatesController extends BaseAjaxController {
 
 	/**
 	 * @var RemoteApiService
@@ -55,12 +56,11 @@ class UpdatesController {
 	/**
 	 * Handle updates request.
 	 */
-	public function handle(): void {
-		try {
-			check_ajax_referer( 'nuclen_admin_ajax_nonce', 'security' );
-			if ( ! current_user_can( 'manage_options' ) ) {
-				wp_send_json_error( array( 'message' => 'Not allowed' ) );
-			}
+        public function handle(): void {
+                try {
+                        if ( ! $this->verify_request( 'nuclen_admin_ajax_nonce' ) ) {
+                                return;
+                        }
 
 			$request = UpdatesRequest::fromPost( $_POST );
 

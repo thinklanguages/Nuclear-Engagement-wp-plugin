@@ -11,6 +11,7 @@ namespace NuclearEngagement\Admin\Controller\Ajax;
 
 use NuclearEngagement\Requests\PostsCountRequest;
 use NuclearEngagement\Services\PostsQueryService;
+use NuclearEngagement\Includes\BaseAjaxController;
 
 if (!defined('ABSPATH')) {
     exit;
@@ -19,7 +20,7 @@ if (!defined('ABSPATH')) {
 /**
  * Controller for getting posts count
  */
-class PostsCountController {
+class PostsCountController extends BaseAjaxController {
     /**
      * @var PostsQueryService
      */
@@ -39,9 +40,8 @@ class PostsCountController {
      */
     public function handle(): void {
         try {
-            check_ajax_referer('nuclen_admin_ajax_nonce', 'security');
-            if (!current_user_can('manage_options')) {
-                wp_send_json_error(['message' => 'Not allowed']);
+            if ( ! $this->verify_request( 'nuclen_admin_ajax_nonce' ) ) {
+                return;
             }
             
             // Parse request
