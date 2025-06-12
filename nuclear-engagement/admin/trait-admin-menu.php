@@ -111,8 +111,8 @@ trait Admin_Menu {
 			if ( $total > 0 ) {
 				$html .= '<tr>';
 				$html .= '<td>' . esc_html( $name ) . '</td>';
-				$html .= '<td>' . $with . '</td>';
-				$html .= '<td>' . $without . '</td>';
+                                $html .= '<td>' . esc_html( $with ) . '</td>';
+                                $html .= '<td>' . esc_html( $without ) . '</td>';
 				$html .= '</tr>';
 			}
 		}
