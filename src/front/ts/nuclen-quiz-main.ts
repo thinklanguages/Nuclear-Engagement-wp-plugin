@@ -60,10 +60,13 @@ import type {
     };
   
     /* PREPARE QUESTIONS */
-    const questions: QuizQuestion[] = ((window as any).postQuizData as QuizQuestion[])
-      .filter((q: QuizQuestion) => q.question.trim() && q.answers[0]?.trim())
-      .slice(0, maxQuestions)
-      .map((q: QuizQuestion) => ({ ...q, answers: q.answers.slice(0, maxAnswers) }));
+    const rawData = (window as any).postQuizData;
+    const questions: QuizQuestion[] = Array.isArray(rawData)
+      ? (rawData as QuizQuestion[])
+          .filter((q) => q.question.trim() && q.answers[0]?.trim())
+          .slice(0, maxQuestions)
+          .map((q) => ({ ...q, answers: q.answers.slice(0, maxAnswers) }))
+      : [];
   
     let currIdx = 0;
     let score   = 0;
