@@ -171,7 +171,10 @@ function nuclear_engagement_activate_plugin() {
 
     // Initialize SettingsRepository with defaults
     $settings = SettingsRepository::get_instance($defaults);
-    
+
+    // Ensure opt-in table exists so inserts can skip this check
+    NuclearEngagement\OptinData::maybe_create_table();
+
     // Run activation
     NuclearEngagement\Activator::nuclen_activate($settings);
 }
