@@ -154,6 +154,7 @@ $with_cat_pt = array_filter(
 $by_category_quiz = $by_category_summary = array();
 
 if ( $with_cat_pt ) {
+
 	$in_cat_pt  = "'" . implode( "','", array_map( 'esc_sql', $with_cat_pt ) ) . "'";
 	$in_st      = "'" . implode( "','", $post_statuses ) . "'";
         $sql_cat = "
@@ -163,10 +164,13 @@ if ( $with_cat_pt ) {
                        SUM( CASE WHEN q.meta_id IS NULL  THEN 1 ELSE 0 END ) AS quiz_without,
                        SUM( CASE WHEN s.meta_id IS NOT NULL THEN 1 ELSE 0 END ) AS summary_with,
                        SUM( CASE WHEN s.meta_id IS NULL  THEN 1 ELSE 0 END ) AS summary_without
+
                 FROM {$wpdb->posts} p
                 JOIN {$wpdb->term_relationships} tr ON tr.object_id = p.ID
                 JOIN {$wpdb->term_taxonomy}  tt ON tt.term_taxonomy_id = tr.term_taxonomy_id AND tt.taxonomy = 'category'
                 JOIN {$wpdb->terms}          t  ON t.term_id = tt.term_id
+
+
                 LEFT JOIN {$wpdb->postmeta}  q ON q.post_id = p.ID AND q.meta_key = 'nuclen-quiz-data'
                 LEFT JOIN {$wpdb->postmeta}  s ON s.post_id = p.ID AND s.meta_key = 'nuclen-summary-data'
                 WHERE p.post_type  IN ($in_cat_pt)
@@ -181,6 +185,7 @@ if ( $with_cat_pt ) {
                 $by_category_summary[ $r['cat_name'] ]['with']    = (int) $r['summary_with'];
                 $by_category_summary[ $r['cat_name'] ]['without'] = (int) $r['summary_without'];
         }
+
 }
 
 /* ──────────────────────────────────────────────────────────────
