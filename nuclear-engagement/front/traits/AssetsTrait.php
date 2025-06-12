@@ -22,15 +22,22 @@ trait AssetsTrait {
 	 *
 	 * @return bool
 	 */
-	private function should_enqueue_assets() : bool {
-	if ( ! is_singular() ) {
-	return false;
-	}
-	
-	$settings_repo   = $this->nuclen_get_settings_repository();
-	$display_summary = $settings_repo->get( 'display_summary', 'manual' );
-	$display_quiz    = $settings_repo->get( 'display_quiz', 'manual' );
-	$display_toc     = $settings_repo->get( 'display_toc', 'manual' );
+        private function should_enqueue_assets() : bool {
+        if ( ! is_singular() ) {
+        return false;
+        }
+
+        $settings_repo   = $this->nuclen_get_settings_repository();
+
+        $allowed_types   = $settings_repo->get( 'generation_post_types', array( 'post' ) );
+        $queried         = get_queried_object();
+        if ( isset( $queried->post_type ) && ! in_array( $queried->post_type, $allowed_types, true ) ) {
+        return false;
+        }
+
+        $display_summary = $settings_repo->get( 'display_summary', 'manual' );
+        $display_quiz    = $settings_repo->get( 'display_quiz', 'manual' );
+        $display_toc     = $settings_repo->get( 'display_toc', 'manual' );
 	
 	if (
 	in_array( $display_summary, array( 'before', 'after' ), true ) ||
@@ -40,9 +47,9 @@ trait AssetsTrait {
 	return true;
 	}
 	
-	$post = get_post();
-	if ( $post && is_string( $post->post_content ) ) {
-	$content = $post->post_content;
+        $post = $queried;
+        if ( $post && is_string( $post->post_content ) ) {
+        $content = $post->post_content;
 	return (
 	has_shortcode( $content, 'nuclear_engagement_summary' ) ||
 	has_shortcode( $content, 'nuclear_engagement_quiz' ) ||
