@@ -84,12 +84,44 @@ class PostsQueryService {
      * @return array
      */
     public function getPostsCount(PostsCountRequest $request): array {
+        global $wpdb;
+
         $queryArgs = $this->buildQueryArgs($request);
-        $query = new \WP_Query($queryArgs);
-        
+
+        $where = $wpdb->prepare("{$wpdb->posts}.post_type = %s", $request->postType);
+
+        if ($request->postStatus !== 'any') {
+            $where .= $wpdb->prepare(" AND {$wpdb->posts}.post_status = %s", $request->postStatus);
+        }
+
+        if ($request->authorId) {
+            $where .= $wpdb->prepare(" AND {$wpdb->posts}.post_author = %d", $request->authorId);
+        }
+
+        $join = '';
+
+        if (!empty($queryArgs['cat'])) {
+            $join .= " INNER JOIN {$wpdb->term_relationships} tr ON ({$wpdb->posts}.ID = tr.object_id)";
+            $join .= " INNER JOIN {$wpdb->term_taxonomy} tt ON (tr.term_taxonomy_id = tt.term_taxonomy_id)";
+            $where .= $wpdb->prepare(" AND tt.taxonomy = 'category' AND tt.term_id = %d", $queryArgs['cat']);
+        }
+
+        if (!empty($queryArgs['meta_query'])) {
+            $metaQuery = new \WP_Meta_Query($queryArgs['meta_query']);
+            $metaSql = $metaQuery->get_sql('post', $wpdb->posts, 'ID');
+            $join .= $metaSql['join'];
+            $where .= $metaSql['where'];
+        }
+
+        $sqlIds = "SELECT DISTINCT {$wpdb->posts}.ID FROM {$wpdb->posts} {$join} WHERE {$where}";
+        $postIds = $wpdb->get_col($sqlIds);
+
+        $sqlCount = "SELECT COUNT(DISTINCT {$wpdb->posts}.ID) FROM {$wpdb->posts} {$join} WHERE {$where}";
+        $count = (int) $wpdb->get_var($sqlCount);
+
         return [
-            'count' => $query->found_posts,
-            'post_ids' => $query->posts ?: [],
+            'count' => $count,
+            'post_ids' => $postIds,
         ];
     }
 }
