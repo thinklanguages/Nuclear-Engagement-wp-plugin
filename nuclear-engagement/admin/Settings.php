@@ -41,7 +41,7 @@ class Settings {
 	 *
 	 * @return SettingsRepository
 	 */
-	public function get_settings_repository() {
+	public function nuclen_get_settings_repository() {
 		return $this->settings_repository;
 	}
 }
