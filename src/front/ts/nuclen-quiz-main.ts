@@ -12,7 +12,6 @@
 import type {
     QuizQuestion,
     OptinContext,
-    NuclenSettings,
   } from './nuclen-quiz-types';
   import { shuffle } from './nuclen-quiz-utils';
   import {
@@ -23,7 +22,6 @@ import type {
   
   /* Globals injected by wp_localize_script */
   declare const postQuizData: QuizQuestion[];
-  declare const NuclenSettings: NuclenSettings;
   
   declare const NuclenCustomQuizHtmlAfter: string;
   
@@ -57,8 +55,10 @@ import type {
     }
   
     /* SETTINGS & OPT-IN CONTEXT */
-    const maxQuestions = NuclenSettings?.questions_per_quiz ?? 10;
-    const maxAnswers   = NuclenSettings?.answers_per_question ?? 4;
+    const maxQuestions =
+      (window as any).NuclenSettings?.questions_per_quiz ?? 10;
+    const maxAnswers =
+      (window as any).NuclenSettings?.answers_per_question ?? 4;
   
     const optin: OptinContext = {
       position: (NuclenOptinPosition as 'with_results' | 'before_results') ?? 'with_results',
