@@ -18,6 +18,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class OptinData {
 
+        /**
+         * Whether we've already ensured the table exists during this request.
+         *
+         * @var bool
+         */
+        private static bool $checked_table = false;
+
 	const TABLE_SLUG = 'nuclen_optins';
 
 	/* ---------------------------------------------------------------------
@@ -88,8 +95,13 @@ class OptinData {
 			return false;
 		}
 
-		/* Make sure the table is present (first-ever submission, etc.) */
-		self::maybe_create_table();
+                /* Ensure the table exists only once per request */
+                if ( ! self::$checked_table ) {
+                        if ( ! self::table_exists() ) {
+                                self::maybe_create_table();
+                        }
+                        self::$checked_table = true;
+                }
 
 		global $wpdb;
 		$ok = $wpdb->insert(
