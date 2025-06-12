@@ -336,6 +336,96 @@ function nuclen_update_migrate_post_meta() {
 }
 add_action( 'admin_init', 'nuclen_update_migrate_post_meta', 20 );
 
+/**
+ * Render callback for the quiz block.
+ *
+ * Mirrors the [nuclear_engagement_quiz] shortcode.
+ *
+ * @return string
+ */
+function nuclear_engagement_render_quiz_block() {
+       return do_shortcode( '[nuclear_engagement_quiz]' );
+}
+
+/**
+ * Register the front-end quiz block.
+ */
+function nuclear_engagement_register_quiz_block() {
+       if ( ! function_exists( 'register_block_type' ) ) {
+               return;
+       }
+
+       register_block_type(
+               __DIR__ . '/front/block.json',
+               array(
+                       'style'          => array( 'nuclear-engagement', 'nuclear-engagement-theme' ),
+                       'script'         => 'nuclear-engagement-front',
+                       'render_callback' => 'nuclear_engagement_render_quiz_block',
+               )
+       );
+}
+add_action( 'init', 'nuclear_engagement_register_quiz_block' );
+
+/**
+ * Render callback for the summary block.
+ *
+ * Mirrors the [nuclear_engagement_summary] shortcode.
+ *
+ * @return string
+ */
+function nuclear_engagement_render_summary_block() {
+       return do_shortcode( '[nuclear_engagement_summary]' );
+}
+
+/**
+ * Register the front-end summary block.
+ */
+function nuclear_engagement_register_summary_block() {
+       if ( ! function_exists( 'register_block_type' ) ) {
+               return;
+       }
+
+       register_block_type(
+               __DIR__ . '/front/summary-block.json',
+               array(
+                       'style'          => array( 'nuclear-engagement', 'nuclear-engagement-theme' ),
+                       'script'         => 'nuclear-engagement-front',
+                       'render_callback' => 'nuclear_engagement_render_summary_block',
+               )
+       );
+}
+add_action( 'init', 'nuclear_engagement_register_summary_block' );
+
+/**
+ * Render callback for the table of contents block.
+ *
+ * Mirrors the [nuclear_engagement_toc] shortcode.
+ *
+ * @return string
+ */
+function nuclear_engagement_render_toc_block() {
+       return do_shortcode( '[nuclear_engagement_toc]' );
+}
+
+/**
+ * Register the table of contents block.
+ */
+function nuclear_engagement_register_toc_block() {
+       if ( ! function_exists( 'register_block_type' ) ) {
+               return;
+       }
+
+       register_block_type(
+               __DIR__ . '/modules/toc/block.json',
+               array(
+                       'style'          => 'nuclen-toc-front',
+                       'script'         => 'nuclen-toc-front',
+                       'render_callback' => 'nuclear_engagement_render_toc_block',
+               )
+       );
+}
+add_action( 'init', 'nuclear_engagement_register_toc_block' );
+
 /* ──────────────────────────────────────────────────────────
  * ❸ Run the plugin
  * ────────────────────────────────────────────────────────── */
