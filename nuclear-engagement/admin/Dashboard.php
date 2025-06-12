@@ -155,10 +155,11 @@ $by_category_quiz = $by_category_summary = array();
 
 if ( $with_cat_pt ) {
 
-	$in_cat_pt  = "'" . implode( "','", array_map( 'esc_sql', $with_cat_pt ) ) . "'";
-	$in_st      = "'" . implode( "','", $post_statuses ) . "'";
-        $sql_cat = "
-                SELECT t.term_id,
+        $placeholders_pt = implode( ',', array_fill( 0, count( $with_cat_pt ), '%s' ) );
+        $placeholders_st = implode( ',', array_fill( 0, count( $post_statuses ), '%s' ) );
+
+        $sql_cat = $wpdb->prepare(
+                "SELECT t.term_id,
                        t.name AS cat_name,
                        SUM( CASE WHEN q.meta_id IS NOT NULL THEN 1 ELSE 0 END ) AS quiz_with,
                        SUM( CASE WHEN q.meta_id IS NULL  THEN 1 ELSE 0 END ) AS quiz_without,
@@ -173,10 +174,11 @@ if ( $with_cat_pt ) {
 
                 LEFT JOIN {$wpdb->postmeta}  q ON q.post_id = p.ID AND q.meta_key = 'nuclen-quiz-data'
                 LEFT JOIN {$wpdb->postmeta}  s ON s.post_id = p.ID AND s.meta_key = 'nuclen-summary-data'
-                WHERE p.post_type  IN ($in_cat_pt)
-                  AND p.post_status IN ($in_st)
-                GROUP BY t.term_id
-        ";
+                WHERE p.post_type  IN ($placeholders_pt)
+                  AND p.post_status IN ($placeholders_st)
+                GROUP BY t.term_id",
+                array_merge( $with_cat_pt, $post_statuses )
+        );
         $cat_rows = $wpdb->get_results( $sql_cat, ARRAY_A );
 
         foreach ( $cat_rows as $r ) {
