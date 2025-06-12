@@ -10,6 +10,7 @@ namespace NuclearEngagement\Services;
 use NuclearEngagement\SettingsRepository;
 use NuclearEngagement\Services\RemoteApiService;
 use NuclearEngagement\Services\ContentStorageService;
+use NuclearEngagement\ErrorHandler;
 
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
@@ -149,7 +150,7 @@ class AutoGenerationService {
             $result = $this->remote_api->sendPostsToGenerate($data_to_send);
 
             if (is_wp_error($result)) {
-                error_log('Failed to start generation: ' . $result->get_error_message());
+                ErrorHandler::log('Failed to start generation: ' . $result->get_error_message());
                 return;
             }
 
@@ -178,7 +179,7 @@ class AutoGenerationService {
             }
 
         } catch (\Exception $e) {
-            error_log('Error in generate_single: ' . $e->getMessage());
+            ErrorHandler::exception($e, 'Error in generate_single');
         }
     }
 
@@ -208,7 +209,7 @@ class AutoGenerationService {
             // Check if we have results
             if (!empty($data['results']) && is_array($data['results'])) {
                 $this->content_storage->storeResults($data['results'], $workflow_type);
-                error_log("Poll success for post {$post_id} ({$workflow_type}), generation {$generation_id}");
+                ErrorHandler::log("Poll success for post {$post_id} ({$workflow_type}), generation {$generation_id}");
 
                 // Remove completed generation from options
                 $this->remove_active_generation($generation_id);
@@ -219,11 +220,11 @@ class AutoGenerationService {
             // Check if still processing
             if (isset($data['success']) && $data['success'] === true) {
                 // Still processing, log the attempt
-                error_log("Still processing post {$post_id} ({$workflow_type}), attempt {$attempt}/{$max_attempts}");
+                ErrorHandler::log("Still processing post {$post_id} ({$workflow_type}), attempt {$attempt}/{$max_attempts}");
             }
             
         } catch (\Exception $e) {
-            error_log("Polling error for post {$post_id} ({$workflow_type}): " . $e->getMessage());
+            ErrorHandler::exception($e, "Polling error for post {$post_id} ({$workflow_type})");
         }
 
         // Schedule next poll if not at max attempts
@@ -239,7 +240,7 @@ class AutoGenerationService {
                 ]
             );
         } else {
-            error_log("Polling aborted after {$max_attempts} attempts for post {$post_id} ({$workflow_type})");
+            ErrorHandler::log("Polling aborted after {$max_attempts} attempts for post {$post_id} ({$workflow_type})");
 
             // Clean up stored generation entry after final attempt
             $this->remove_active_generation($generation_id);

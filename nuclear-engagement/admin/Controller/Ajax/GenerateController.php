@@ -11,6 +11,8 @@ namespace NuclearEngagement\Admin\Controller\Ajax;
 
 use NuclearEngagement\Requests\GenerateRequest;
 use NuclearEngagement\Services\GenerationService;
+use NuclearEngagement\ErrorHandler;
+use NuclearEngagement\Includes\BaseAjaxController;
 
 if (!defined('ABSPATH')) {
     exit;
@@ -19,7 +21,7 @@ if (!defined('ABSPATH')) {
 /**
  * Controller for content generation
  */
-class GenerateController {
+class GenerateController extends BaseAjaxController {
     /**
      * @var GenerationService
      */
@@ -39,17 +41,7 @@ class GenerateController {
      */
     public function handle(): void {
         try {
-            
-            // Security check
-            if (!check_ajax_referer('nuclen_admin_ajax_nonce', 'security', false)) {
-                status_header(403);
-                wp_send_json_error(['message' => 'Security check failed: Invalid nonce']);
-                return;
-            }
-            
-            if (!current_user_can('manage_options')) {
-                status_header(403);
-                wp_send_json_error(['message' => 'Not allowed']);
+            if ( ! $this->verify_request( 'nuclen_admin_ajax_nonce' ) ) {
                 return;
             }
             
@@ -69,12 +61,11 @@ class GenerateController {
             wp_send_json_success($response->toArray());
             
         } catch (\InvalidArgumentException $e) {
-            error_log('Nuclear Engagement validation error: ' . $e->getMessage());
+            ErrorHandler::exception($e, 'Nuclear Engagement validation error');
             status_header(400);
             wp_send_json_error(['message' => $e->getMessage()]);
         } catch (\Exception $e) {
-            error_log('Nuclear Engagement generation error: ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());
-            error_log('Stack trace: ' . $e->getTraceAsString());
+            ErrorHandler::exception($e, 'Nuclear Engagement generation error');
             status_header(500);
             wp_send_json_error(['message' => 'An unexpected error occurred. Please check your error logs.']);
         }

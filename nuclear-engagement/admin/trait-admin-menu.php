@@ -72,7 +72,7 @@ trait Admin_Menu {
 	 * Shows only an admin notice until **both** setup steps are done.
 	 */
 	public function nuclen_display_generate_page() {
-		$settings_repo = $this->get_settings_repository();
+		$settings_repo = $this->nuclen_get_settings_repository();
 		$connected = $settings_repo->get( 'connected', false );
 		$wp_app_pass_created = $settings_repo->get( 'wp_app_pass_created', false );
 
@@ -111,8 +111,8 @@ trait Admin_Menu {
 			if ( $total > 0 ) {
 				$html .= '<tr>';
 				$html .= '<td>' . esc_html( $name ) . '</td>';
-				$html .= '<td>' . $with . '</td>';
-				$html .= '<td>' . $without . '</td>';
+                                $html .= '<td>' . esc_html( $with ) . '</td>';
+                                $html .= '<td>' . esc_html( $without ) . '</td>';
 				$html .= '</tr>';
 			}
 		}

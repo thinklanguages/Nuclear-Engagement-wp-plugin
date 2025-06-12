@@ -6,9 +6,9 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Plugin Name:       Nuclear Engagement
  * Plugin URI:        https://www.nuclearengagement.com
  * Description:       Bulk generate engaging content for your blog posts with AI in one click.
- * Version:           1.0.4
+ * Version:           1.1
  * Author:            Stefano Lodola
- * Requires at least: 5.6
+ * Requires at least: 6.5
  * Tested up to:      6.8
  * Requires PHP:      7.4
  * License:           GPL-2.0+
@@ -23,10 +23,11 @@ if ( ! defined( 'WPINC' ) ) {
 }
 
 use NuclearEngagement\SettingsRepository;
+use NuclearEngagement\ErrorHandler;
 
 define('NUCLEN_PLUGIN_DIR', plugin_dir_path(__FILE__));
-define('NUCLEN_PLUGIN_VERSION', '1.0.4');
-define('NUCLEN_ASSET_VERSION', '250611-1');
+define('NUCLEN_PLUGIN_VERSION', '1.1');
+define('NUCLEN_ASSET_VERSION', '250612-8');
 
 // Load plugin textdomain
 function nuclear_engagement_load_textdomain() {
@@ -81,6 +82,7 @@ spl_autoload_register(function ($class) {
             'NuclearEngagement\\Plugin' => '/includes/Plugin.php',
             'NuclearEngagement\\Loader' => '/includes/Loader.php',
             'NuclearEngagement\\Utils' => '/includes/Utils.php',
+            'NuclearEngagement\\ErrorHandler' => '/includes/ErrorHandler.php',
             'NuclearEngagement\\Activator' => '/includes/Activator.php',
             'NuclearEngagement\\Deactivator' => '/includes/Deactivator.php',
             'NuclearEngagement\\SettingsRepository' => '/includes/SettingsRepository.php',
@@ -88,6 +90,7 @@ spl_autoload_register(function ($class) {
             'NuclearEngagement\\Defaults' => '/includes/Defaults.php',
             'NuclearEngagement\\OptinData' => '/includes/OptinData.php',
             'NuclearEngagement\\MetaRegistration' => '/includes/MetaRegistration.php',
+            'NuclearEngagement\\Includes\\BaseAjaxController' => '/includes/BaseAjaxController.php',
             
             // Admin classes
             'NuclearEngagement\\Admin\\Admin' => '/admin/Admin.php',
@@ -270,10 +273,10 @@ function nuclen_migrate_app_password() {
 		)
 	);
 
-	if ( is_wp_error( $response ) || wp_remote_retrieve_response_code( $response ) !== 200 ) {
-		// Log but still store locally – user can re‑try from Setup page if needed.
-		error_log( '[Nuclear Engagement] App‑password migration failed to contact SaaS: ' . ( is_wp_error( $response ) ? $response->get_error_message() : wp_remote_retrieve_response_code( $response ) ) );
-	}
+        if ( is_wp_error( $response ) || wp_remote_retrieve_response_code( $response ) !== 200 ) {
+                // Log but still store locally – user can re‑try from Setup page if needed.
+                ErrorHandler::log( '[Nuclear Engagement] App‑password migration failed to contact SaaS: ' . ( is_wp_error( $response ) ? $response->get_error_message() : wp_remote_retrieve_response_code( $response ) ) );
+        }
 
 	/* — Persist new password & UUID — */
 	$app_setup['plugin_password']  = $plugin_password;

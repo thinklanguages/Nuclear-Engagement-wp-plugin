@@ -5,10 +5,10 @@ Author: Stefano Lodola
 Author URI: https://www.nuclearengagement.com/about?ref=wp_listing&link=author_uri
 Contributors: stefanolodola
 Tags: AI writer, quiz, summary, table of contents, email optin
-Requires at least: 5.6
+Requires at least: 6.5
 Tested up to: 6.8
 Requires PHP: 7.3
-Stable tag: 1.0.4
+Stable tag: 1.1
 License: GPL-2.0+
 License URI: http://www.gnu.org/licenses/gpl-2.0.txt
 Donate link: https://buy.stripe.com/3csg1Tdn0a9h3ss288
@@ -250,11 +250,13 @@ The tiny codebase and lazy loading assure fast loading, both in admin and on fro
 
 == Changelog ==
 
-= 1.0.4 – 2025-06-12 =
+= 1.1 – 2025-06-12 =
 * Added: Uninstall cleanup options
-* Improved: Log file
-* Changed: Improved opt-in data hook
-* Various bug fixes and improvements
+* Added: Gutenberg blocks
+* Changed: Log file
+* Changed: Opt-in data hook
+* Changed: Architecture refactoring
+* Fixed: Various minor issues
 
 = 1.0.3 – 2025-06-11 =
 * Added: Uninstall data options.
@@ -337,7 +339,6 @@ The tiny codebase and lazy loading assure fast loading, both in admin and on fro
 * Changed: Auto-clear post cache upon section generation.
 
 = 0.3.1 =
-* Added: Plugin update checker.
 * Added: Support for custom post types.
 * Added: Option to update post “last modified” date upon storage to signal new content to search engines and visitors.
 * Added: Metrics to analytics dashboard: quiz start/quiz view %, quiz answers/quiz start %, quiz end/quiz start %, quiz opt-in/quiz end %.
