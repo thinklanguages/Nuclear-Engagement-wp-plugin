@@ -20,7 +20,18 @@ import type {
     attachInlineOptinHandlers,
   } from './nuclen-quiz-optin';
   
-  /* Globals injected by wp_add_inline_script */
+
+  declare const postQuizData: QuizQuestion[];
+  
+  declare const NuclenCustomQuizHtmlAfter: string;
+  
+  declare const NuclenOptinPosition: string;
+  declare const NuclenOptinMandatory: boolean;
+  declare const NuclenOptinPromptText: string;
+  declare const NuclenOptinButtonText: string;
+  
+  declare const NuclenOptinAjax: { url: string; nonce: string };
+  
   declare function gtag(...args: any[]): void;
   
   /* ─────────────────────────────────────────────────────────────
