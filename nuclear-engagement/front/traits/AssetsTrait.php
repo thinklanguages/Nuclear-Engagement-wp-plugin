@@ -17,10 +17,50 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 trait AssetsTrait {
 
+	/**
+	 * Check whether front assets are needed for the current page.
+	 *
+	 * @return bool
+	 */
+	private function should_enqueue_assets() : bool {
+	if ( ! is_singular() ) {
+	return false;
+	}
+	
+	$settings_repo   = $this->get_settings_repository();
+	$display_summary = $settings_repo->get( 'display_summary', 'manual' );
+	$display_quiz    = $settings_repo->get( 'display_quiz', 'manual' );
+	$display_toc     = $settings_repo->get( 'display_toc', 'manual' );
+	
+	if (
+	in_array( $display_summary, array( 'before', 'after' ), true ) ||
+	in_array( $display_quiz, array( 'before', 'after' ), true ) ||
+	in_array( $display_toc, array( 'before', 'after' ), true )
+	) {
+	return true;
+	}
+	
+	$post = get_post();
+	if ( $post && is_string( $post->post_content ) ) {
+	$content = $post->post_content;
+	return (
+	has_shortcode( $content, 'nuclear_engagement_summary' ) ||
+	has_shortcode( $content, 'nuclear_engagement_quiz' ) ||
+	has_shortcode( $content, 'nuclear_engagement_toc' )
+	);
+	}
+	
+	return false;
+	}
+
 	/* ────────────────────────────
 	   STYLES
 	──────────────────────────── */
 	public function wp_enqueue_styles() {
+	
+	if ( ! $this->should_enqueue_assets() ) {
+	return;
+	}
 
 		/* Base CSS */
 		wp_enqueue_style(
