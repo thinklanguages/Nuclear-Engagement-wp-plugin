@@ -13,6 +13,7 @@ use NuclearEngagement\Requests\GenerateRequest;
 use NuclearEngagement\Responses\GenerationResponse;
 use NuclearEngagement\SettingsRepository;
 use NuclearEngagement\Utils;
+use NuclearEngagement\ErrorHandler;
 
 if (!defined('ABSPATH')) {
     exit;
@@ -164,7 +165,7 @@ class GenerationService {
                 $this->utils->nuclen_log("Scheduled polling for post {$postId}, generation {$response->generationId}");
             }
         } catch (\Exception $e) {
-            $this->utils->nuclen_log("Error generating {$workflowType} for post {$postId}: " . $e->getMessage());
+            ErrorHandler::exception($e, "Error generating {$workflowType} for post {$postId}");
             throw $e;
         }
     }
