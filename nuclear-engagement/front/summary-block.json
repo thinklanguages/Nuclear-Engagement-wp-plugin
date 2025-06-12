@@ -1,0 +1,12 @@
+{
+    "apiVersion": 2,
+    "name": "nuclear-engagement/summary-block",
+    "title": "Nuclear Engagement Summary",
+    "category": "widgets",
+    "icon": "excerpt-view",
+    "description": "A block to display the Nuclear Engagement summary.",
+    "supports": {
+      "html": false
+    },
+    "textdomain": "nuclear-engagement"
+}

@@ -1,0 +1,12 @@
+{
+    "apiVersion": 2,
+    "name": "nuclear-engagement/toc-block",
+    "title": "Nuclear Engagement Table of Contents",
+    "category": "widgets",
+    "icon": "list-view",
+    "description": "A block to display the Nuclear Engagement table of contents.",
+    "supports": {
+      "html": false
+    },
+    "textdomain": "nuclear-engagement"
+}

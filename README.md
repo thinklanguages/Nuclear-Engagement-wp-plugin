@@ -12,9 +12,18 @@ Nuclear Engagement stands out with true sitewide automation: process hundreds or
 - **Interactive Quizzes**: Create engaging multiple-choice quizzes automatically.  
 - **Email Opt-ins**: Collect leads via built-in Zapier & Make integration.  
 - **Flexible Display**: Auto-append content or use shortcodes before/after post content.  
-- **Engagement Analytics**: Track quiz completions and reader behavior.  
-- **Mobile-Optimized**: Responsive layouts for any device.  
+- **Engagement Analytics**: Track quiz completions and reader behavior.
+- **Mobile-Optimized**: Responsive layouts for any device.
 - **Lightweight & Fast**: Minimal codebase with lazy loading for optimal performance.
+
+## Block Usage
+The plugin provides three blocks that mirror their shortcodes:
+
+- **Nuclear Engagement Quiz** – `[nuclear_engagement_quiz]`
+- **Nuclear Engagement Summary** – `[nuclear_engagement_summary]`
+- **Nuclear Engagement Table of Contents** – `[nuclear_engagement_toc]`
+
+Drop any of these blocks into your post or page and the correct assets will be enqueued automatically.
 
 Learn more:
 https://www.nuclearengagement.com
