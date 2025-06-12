@@ -8,7 +8,7 @@ Tags: AI writer, quiz, summary, table of contents, email optin
 Requires at least: 5.6
 Tested up to: 6.8
 Requires PHP: 7.3
-Stable tag: 1.0.3
+Stable tag: 1.0.4
 License: GPL-2.0+
 License URI: http://www.gnu.org/licenses/gpl-2.0.txt
 Donate link: https://buy.stripe.com/3csg1Tdn0a9h3ss288
@@ -249,6 +249,12 @@ No. Generation is done via the NE app. You only need a free account on the NE ap
 The tiny codebase and lazy loading assure fast loading, both in admin and on frontend. You won't even notice it's active. No conflicts are known to occur.
 
 == Changelog ==
+
+= 1.0.4 – 2025-06-12 =
+* Added: Uninstall cleanup options
+* Improved: Log file
+* Changed: Improved opt-in data hook
+* Various bug fixes and improvements
 
 = 1.0.3 – 2025-06-11 =
 * Added: Uninstall data options.
