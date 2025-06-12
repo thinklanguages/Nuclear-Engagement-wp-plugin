@@ -23,6 +23,7 @@ if ( ! defined( 'WPINC' ) ) {
 }
 
 use NuclearEngagement\SettingsRepository;
+use NuclearEngagement\ErrorHandler;
 
 define('NUCLEN_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('NUCLEN_PLUGIN_VERSION', '1.0.4');
@@ -81,6 +82,7 @@ spl_autoload_register(function ($class) {
             'NuclearEngagement\\Plugin' => '/includes/Plugin.php',
             'NuclearEngagement\\Loader' => '/includes/Loader.php',
             'NuclearEngagement\\Utils' => '/includes/Utils.php',
+            'NuclearEngagement\\ErrorHandler' => '/includes/ErrorHandler.php',
             'NuclearEngagement\\Activator' => '/includes/Activator.php',
             'NuclearEngagement\\Deactivator' => '/includes/Deactivator.php',
             'NuclearEngagement\\SettingsRepository' => '/includes/SettingsRepository.php',
@@ -270,10 +272,10 @@ function nuclen_migrate_app_password() {
 		)
 	);
 
-	if ( is_wp_error( $response ) || wp_remote_retrieve_response_code( $response ) !== 200 ) {
-		// Log but still store locally – user can re‑try from Setup page if needed.
-		error_log( '[Nuclear Engagement] App‑password migration failed to contact SaaS: ' . ( is_wp_error( $response ) ? $response->get_error_message() : wp_remote_retrieve_response_code( $response ) ) );
-	}
+        if ( is_wp_error( $response ) || wp_remote_retrieve_response_code( $response ) !== 200 ) {
+                // Log but still store locally – user can re‑try from Setup page if needed.
+                ErrorHandler::log( '[Nuclear Engagement] App‑password migration failed to contact SaaS: ' . ( is_wp_error( $response ) ? $response->get_error_message() : wp_remote_retrieve_response_code( $response ) ) );
+        }
 
 	/* — Persist new password & UUID — */
 	$app_setup['plugin_password']  = $plugin_password;

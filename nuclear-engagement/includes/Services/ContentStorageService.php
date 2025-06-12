@@ -11,6 +11,7 @@ namespace NuclearEngagement\Services;
 
 use NuclearEngagement\SettingsRepository;
 use NuclearEngagement\Utils;
+use NuclearEngagement\ErrorHandler;
 
 if (!defined('ABSPATH')) {
     exit;
@@ -75,7 +76,7 @@ class ContentStorageService {
                 $this->utils->nuclen_log("Stored {$workflowType} data for post {$postId}");
                 
             } catch (\Exception $e) {
-                $this->utils->nuclen_log("Error storing {$workflowType} for post {$postId}: " . $e->getMessage());
+                ErrorHandler::exception($e, "Error storing {$workflowType} for post {$postId}");
             }
         }
     }

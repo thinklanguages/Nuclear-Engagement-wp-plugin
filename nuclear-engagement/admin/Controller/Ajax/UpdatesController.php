@@ -14,6 +14,7 @@ use NuclearEngagement\Services\RemoteApiService;
 use NuclearEngagement\Services\ContentStorageService;
 use NuclearEngagement\Responses\UpdatesResponse;
 use NuclearEngagement\Utils;
+use NuclearEngagement\ErrorHandler;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -100,9 +101,9 @@ class UpdatesController {
 
 			wp_send_json_success( $response->toArray() );
 
-		} catch ( \Exception $e ) {
-			$this->utils->nuclen_log( 'Error fetching updates: ' . $e->getMessage() );
-			wp_send_json_error( array( 'message' => $e->getMessage() ) );
-		}
+                } catch ( \Exception $e ) {
+                        ErrorHandler::exception( $e, 'Error fetching updates' );
+                        wp_send_json_error( array( 'message' => $e->getMessage() ) );
+                }
 	}
 }

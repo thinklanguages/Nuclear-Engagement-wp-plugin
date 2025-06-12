@@ -11,6 +11,7 @@ namespace NuclearEngagement\Admin\Controller\Ajax;
 
 use NuclearEngagement\Requests\GenerateRequest;
 use NuclearEngagement\Services\GenerationService;
+use NuclearEngagement\ErrorHandler;
 
 if (!defined('ABSPATH')) {
     exit;
@@ -69,12 +70,11 @@ class GenerateController {
             wp_send_json_success($response->toArray());
             
         } catch (\InvalidArgumentException $e) {
-            error_log('Nuclear Engagement validation error: ' . $e->getMessage());
+            ErrorHandler::exception($e, 'Nuclear Engagement validation error');
             status_header(400);
             wp_send_json_error(['message' => $e->getMessage()]);
         } catch (\Exception $e) {
-            error_log('Nuclear Engagement generation error: ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());
-            error_log('Stack trace: ' . $e->getTraceAsString());
+            ErrorHandler::exception($e, 'Nuclear Engagement generation error');
             status_header(500);
             wp_send_json_error(['message' => 'An unexpected error occurred. Please check your error logs.']);
         }
