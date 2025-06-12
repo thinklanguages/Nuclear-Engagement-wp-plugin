@@ -60,6 +60,7 @@ import type {
     };
   
     /* PREPARE QUESTIONS */
+
     const rawData = (window as any).postQuizData;
     const questions: QuizQuestion[] = Array.isArray(rawData)
       ? (rawData as QuizQuestion[])
@@ -67,6 +68,7 @@ import type {
           .slice(0, maxQuestions)
           .map((q) => ({ ...q, answers: q.answers.slice(0, maxAnswers) }))
       : [];
+
   
     let currIdx = 0;
     let score   = 0;
