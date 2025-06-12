@@ -276,3 +276,26 @@
 	padding: 1em;
 	margin: 1em 0;
 }
+
+/* Notification alerts */
+.nuclen-alert {
+        padding: 10px 15px;
+        border-radius: 3px;
+        margin-bottom: 15px;
+        font-size: 14px;
+}
+.nuclen-alert-success {
+        background: #e7f7e3;
+        border: 1px solid #b2d8b2;
+        color: #2d6a2d;
+}
+.nuclen-alert-error {
+        background: #fdd8d8;
+        border: 1px solid #f5a5a5;
+        color: #a33;
+}
+.nuclen-alert-info {
+        background: #eef5fd;
+        border: 1px solid #c7dbfc;
+        color: #245c99;
+}

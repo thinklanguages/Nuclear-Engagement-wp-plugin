@@ -4,6 +4,7 @@
 // -----------------------------------------------------------------------------
 import type { OptinContext } from './nuclen-quiz-types';
 import { isValidEmail, storeOptinLocally, submitToWebhook } from './nuclen-quiz-utils';
+import { nuclenNotifyError } from './nuclen-notify';
 
 export const buildOptinInlineHTML = (ctx: OptinContext): string => `
   <div id="nuclen-optin-container" class="nuclen-optin-with-results">
@@ -41,13 +42,16 @@ export function mountOptinBeforeResults(
   document.getElementById('nuclen-optin-submit')?.addEventListener('click', async () => {
     const name  = (document.getElementById('nuclen-optin-name')  as HTMLInputElement).value.trim();
     const email = (document.getElementById('nuclen-optin-email') as HTMLInputElement).value.trim();
-    if (!isValidEmail(email)) return alert('Please enter a valid email');
+    if (!isValidEmail(email)) {
+      nuclenNotifyError('Please enter a valid email');
+      return;
+    }
     await storeOptinLocally(name, email, window.location.href, ctx);
     try {
       await submitToWebhook(name, email, ctx);
       onComplete();
     } catch {
-      alert('Network error – please try again later.');
+      nuclenNotifyError('Network error – please try again later.');
     }
   });
 
@@ -61,12 +65,15 @@ export function attachInlineOptinHandlers(ctx: OptinContext): void {
   document.getElementById('nuclen-optin-submit')?.addEventListener('click', async () => {
     const name  = (document.getElementById('nuclen-optin-name')  as HTMLInputElement).value.trim();
     const email = (document.getElementById('nuclen-optin-email') as HTMLInputElement).value.trim();
-    if (!isValidEmail(email)) return alert('Please enter a valid email');
+    if (!isValidEmail(email)) {
+      nuclenNotifyError('Please enter a valid email');
+      return;
+    }
     await storeOptinLocally(name, email, window.location.href, ctx);
     try {
       await submitToWebhook(name, email, ctx);
     } catch {
-      alert('Unable to submit. Please try later.');
+      nuclenNotifyError('Unable to submit. Please try later.');
     }
   });
 }
