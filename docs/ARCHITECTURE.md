@@ -46,3 +46,11 @@ responsibilities narrow and makes future maintenance easier.
 - The autoloader maps `NuclearEngagement\SettingsCache`.
 
 This keeps `SettingsRepository` under the 300 LOC limit and reduces its method count for easier maintenance.
+
+## Typed Accessors Extraction
+
+`SettingsRepository` still contained numerous typed getter and setter helpers
+that inflated its line count. These wrappers (`get_string()`, `set_bool()`, etc.)
+now live in a lightweight `SettingsAccessTrait`. The repository simply uses the
+trait, keeping the core persistence logic below 300 lines while preserving the
+public API.
