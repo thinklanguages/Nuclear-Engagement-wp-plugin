@@ -80,3 +80,19 @@ settings updates. To simplify the core class and keep the method count below
 15, these helpers now live in a small `PendingSettingsTrait`.
 `SettingsRepository` uses the trait to expose the same public API while keeping
 its own implementation lean. The autoloader maps the new trait.
+
+## Opt-in Export Controller
+
+`OptinData` previously registered its CSV export hooks directly and `Plugin`
+included a proxy method to trigger the export. This duplicated logic and caused
+side effects when the class file loaded. The export hooks now point to a new
+`OptinExportController` class that simply delegates to `OptinData::handle_export()`.
+
+`ContainerRegistrar` registers the controller so `Plugin` can obtain it and
+attach its `handle()` method to both `admin_post_nuclen_export_optin` and
+`wp_ajax_nuclen_export_optin`. The automatic invocation of `OptinData::init()`
+at the end of the file was removed, and hook registration occurs explicitly in
+`Plugin::nuclen_load_dependencies()`.
+
+This keeps responsibilities clear and avoids unintended behavior when files are
+loaded.

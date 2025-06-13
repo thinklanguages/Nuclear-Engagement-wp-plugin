@@ -9,6 +9,7 @@ namespace NuclearEngagement;
 
 use NuclearEngagement\Services\{GenerationService, RemoteApiService, ContentStorageService, PointerService, PostsQueryService, AutoGenerationService};
 use NuclearEngagement\Admin\Controller\Ajax\{GenerateController, UpdatesController, PointerController, PostsCountController};
+use NuclearEngagement\Admin\Controller\OptinExportController;
 use NuclearEngagement\Front\Controller\Rest\ContentController;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -42,5 +43,6 @@ final class ContainerRegistrar {
         $container->register( 'pointer_controller', static fn( $c ) => new PointerController( $c->get( 'pointer_service' ) ) );
         $container->register( 'posts_count_controller', static fn( $c ) => new PostsCountController( $c->get( 'posts_query_service' ) ) );
         $container->register( 'content_controller', static fn( $c ) => new ContentController( $c->get( 'content_storage' ) ) );
+        $container->register( 'optin_export_controller', static fn() => new OptinExportController() );
     }
 }
