@@ -14,6 +14,11 @@ export function shuffle<T>(arr: T[]): T[] {
 
 export const isValidEmail = (email: string): boolean => /.+@.+\..+/.test(email);
 
+export const escapeHtml = (str: string): string =>
+  str.replace(/[&<>"']/g, (c) =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[c] || c),
+  );
+
 export const storeOptinLocally = async (
   name: string,
   email: string,

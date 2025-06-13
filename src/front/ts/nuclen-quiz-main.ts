@@ -14,7 +14,7 @@ import type {
     OptinContext,
     NuclenSettings,
   } from './nuclen-quiz-types';
-  import { shuffle } from './nuclen-quiz-utils';
+  import { shuffle, escapeHtml } from './nuclen-quiz-utils';
   import {
     buildOptinInlineHTML,
     mountOptinBeforeResults,
@@ -96,7 +96,7 @@ import type {
         <div id="nuclen-quiz-question-number">
           ${currIdx + 1}/${questions.length}
         </div>
-        <div class="nuclen-quiz-title">${q.question}</div>`;
+        <div class="nuclen-quiz-title">${escapeHtml(q.question)}</div>`;
   
       const shuffled = shuffle(
         q.answers.map((ans, idx) => ({ ans, idx })).filter((a) => a.ans.trim()),
@@ -108,7 +108,7 @@ import type {
             <button
               class="nuclen-quiz-answer-button nuclen-quiz-possible-answer"
               data-orig-idx="${a.idx}"
-            >${a.ans}</button>`,
+            >${escapeHtml(a.ans)}</button>`,
         )
         .join('');
   
@@ -153,7 +153,9 @@ import type {
         btns[i].disabled = true;
       }
   
-      explContainer!.innerHTML = `<p>${questions[currIdx].explanation}</p>`;
+      explContainer!.innerHTML = `<p>${escapeHtml(
+        questions[currIdx].explanation,
+      )}</p>`;
       explContainer!.classList.remove('nuclen-quiz-hidden');
       nextBtn!.classList.remove('nuclen-quiz-hidden');
   
@@ -254,14 +256,14 @@ import type {
         const q = questions[idx];
         const ua = userAnswers[idx];
         (document.getElementById('nuclen-quiz-result-details-container') as HTMLElement).innerHTML = `
-          <p class="nuclen-quiz-detail-question">${q.question}</p>
-          <p class="nuclen-quiz-detail-correct"><strong>Correct:</strong> ${q.answers[0]}</p>
+          <p class="nuclen-quiz-detail-question">${escapeHtml(q.question)}</p>
+          <p class="nuclen-quiz-detail-correct"><strong>Correct:</strong> ${escapeHtml(q.answers[0])}</p>
           ${
             ua === 0
-              ? `<p class="nuclen-quiz-detail-chosen"><strong>Your answer:</strong> ${q.answers[0]} <span class="nuclen-quiz-checkmark">✔️</span></p>`
-              : `<p class="nuclen-quiz-detail-chosen"><strong>Your answer:</strong> ${q.answers[ua] ?? '[No data]'}</p>`
+              ? `<p class="nuclen-quiz-detail-chosen"><strong>Your answer:</strong> ${escapeHtml(q.answers[0])} <span class="nuclen-quiz-checkmark">✔️</span></p>`
+              : `<p class="nuclen-quiz-detail-chosen"><strong>Your answer:</strong> ${escapeHtml(q.answers[ua] ?? '[No data]')}</p>`
           }
-          <p class="nuclen-quiz-detail-explanation">${q.explanation}</p>`;
+          <p class="nuclen-quiz-detail-explanation">${escapeHtml(q.explanation)}</p>`;
         Array.from(document.getElementsByClassName('nuclen-quiz-result-tab')).forEach((el) =>
           el.classList.remove('nuclen-quiz-result-active-tab'),
         );
