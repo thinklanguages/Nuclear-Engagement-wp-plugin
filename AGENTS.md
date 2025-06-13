@@ -12,6 +12,7 @@ Follow the guidelines below when making changes.
 ### TypeScript
 - Use 2 spaces for indentation.
 - Source files live under `src/` and are built into the `nuclear-engagement` plugin directory.
+- Do not use jQuery.
 
 ## Build & Test
 
