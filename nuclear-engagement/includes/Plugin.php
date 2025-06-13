@@ -19,6 +19,7 @@ use NuclearEngagement\Admin\Onboarding;
 use NuclearEngagement\Defaults;
 use NuclearEngagement\SettingsRepository;
 use NuclearEngagement\Container;
+use NuclearEngagement\OptinData;
 use NuclearEngagement\Services\{GenerationService, RemoteApiService, ContentStorageService, PointerService, PostsQueryService, AutoGenerationService};
 use NuclearEngagement\Admin\Controller\Ajax\{GenerateController, UpdatesController, PointerController, PostsCountController};
 use NuclearEngagement\Front\Controller\Rest\ContentController;
@@ -65,19 +66,16 @@ class Plugin {
 	/* ─────────────────────────────────────────────
 	   Dependencies & Loader
 	──────────────────────────────────────────── */
-	private function nuclen_load_dependencies() {
+        private function nuclen_load_dependencies() {
 
-		/* ► ALWAYS load OptinData so its init() runs */
-		require_once plugin_dir_path( __FILE__ ) . 'OptinData.php';
-		// - At the end of that file, OptinData::init() is called,
-		//   registering AJAX actions for every request.
+                /* ► Ensure OptinData hooks are registered */
+                OptinData::init();
 
-		// TOC module
-		require_once plugin_dir_path( __FILE__ ) . '../modules/toc/loader.php';
+                // TOC module
+                require_once plugin_dir_path( __FILE__ ) . '../modules/toc/loader.php';
 
-
-		$this->loader = new Loader();
-	}
+                $this->loader = new Loader();
+        }
 	
 	/**
 	 * Initialize the dependency injection container
@@ -197,12 +195,9 @@ class Plugin {
 	/**
 	 * Proxy: make sure OptinData is available, then stream CSV (exits).
 	 */
-	public function nuclen_export_optin_proxy(): void {
-		if ( ! class_exists( '\NuclearEngagement\OptinData', false ) ) {
-			require_once plugin_dir_path( __FILE__ ) . 'OptinData.php';
-		}
-		\NuclearEngagement\OptinData::handle_export();
-	}
+        public function nuclen_export_optin_proxy(): void {
+                OptinData::handle_export();
+        }
 
 	/* ─────────────────────────────────────────────
 	   Front-end hooks

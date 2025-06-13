@@ -88,7 +88,7 @@ spl_autoload_register(function ($class) {
             'NuclearEngagement\\Defaults' => '/includes/Defaults.php',
             'NuclearEngagement\\OptinData' => '/includes/OptinData.php',
             'NuclearEngagement\\MetaRegistration' => '/includes/MetaRegistration.php',
-            
+
             // Admin classes
             'NuclearEngagement\\Admin\\Admin' => '/admin/Admin.php',
             'NuclearEngagement\\Admin\\Dashboard' => '/admin/Dashboard.php',
@@ -121,6 +121,31 @@ spl_autoload_register(function ($class) {
             'NuclearEngagement\\Requests\\UpdatesRequest' => '/includes/Requests/UpdatesRequest.php',
             'NuclearEngagement\\Responses\\GenerationResponse' => '/includes/Responses/GenerationResponse.php',
             'NuclearEngagement\\Responses\\UpdatesResponse' => '/includes/Responses/UpdatesResponse.php',
+
+            // Admin traits
+            'NuclearEngagement\\Admin\\Admin_Ajax' => '/admin/trait-admin-ajax.php',
+            'NuclearEngagement\\Admin\\Admin_Assets' => '/admin/trait-admin-assets.php',
+            'NuclearEngagement\\Admin\\Admin_AutoGenerate' => '/admin/trait-admin-autogenerate.php',
+            'NuclearEngagement\\Admin\\Admin_Menu' => '/admin/trait-admin-menu.php',
+            'NuclearEngagement\\Admin\\Admin_Quiz_Metabox' => '/admin/trait-admin-metabox-quiz.php',
+            'NuclearEngagement\\Admin\\Admin_Summary_Metabox' => '/admin/trait-admin-metabox-summary.php',
+            'NuclearEngagement\\Admin\\Admin_Metaboxes' => '/admin/trait-admin-metaboxes.php',
+            'NuclearEngagement\\Admin\\SettingsPageCustomCSSTrait' => '/admin/trait-settings-custom-css.php',
+            'NuclearEngagement\\Admin\\SettingsPageLoadTrait' => '/admin/trait-settings-page-load.php',
+            'NuclearEngagement\\Admin\\SettingsPageSaveTrait' => '/admin/trait-settings-page-save.php',
+            'NuclearEngagement\\Admin\\SettingsSanitizeCoreTrait' => '/admin/trait-settings-sanitize-core.php',
+            'NuclearEngagement\\Admin\\SettingsSanitizeGeneralTrait' => '/admin/trait-settings-sanitize-general.php',
+            'NuclearEngagement\\Admin\\SettingsSanitizeOptinTrait' => '/admin/trait-settings-sanitize-optin.php',
+            'NuclearEngagement\\Admin\\SettingsSanitizeStyleTrait' => '/admin/trait-settings-sanitize-style.php',
+            'NuclearEngagement\\Admin\\SettingsColorPickerTrait' => '/admin/SettingsColorPickerTrait.php',
+            'NuclearEngagement\\Admin\\SettingsPageTrait' => '/admin/SettingsPageTrait.php',
+            'NuclearEngagement\\Admin\\SettingsSanitizeTrait' => '/admin/SettingsSanitizeTrait.php',
+            'NuclearEngagement\\Admin\\SetupHandlersTrait' => '/admin/SetupHandlersTrait.php',
+
+            // Front traits
+            'NuclearEngagement\\Front\\AssetsTrait' => '/front/traits/AssetsTrait.php',
+            'NuclearEngagement\\Front\\RestTrait' => '/front/traits/RestTrait.php',
+            'NuclearEngagement\\Front\\ShortcodesTrait' => '/front/traits/ShortcodesTrait.php',
         ];
         
         // Dynamic prefixes for trait loading

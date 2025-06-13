@@ -10,13 +10,8 @@
 namespace NuclearEngagement\Admin;
 
 if ( ! defined( 'ABSPATH' ) ) {
-	exit;
+        exit;
 }
-
-// Load trait files – they live in the same folder for simple pathing.
-require_once plugin_dir_path( __FILE__ ) . 'SettingsColorPickerTrait.php';
-require_once plugin_dir_path( __FILE__ ) . 'SettingsSanitizeTrait.php';
-require_once plugin_dir_path( __FILE__ ) . 'SettingsPageTrait.php';
 
 class Settings {
 	use SettingsColorPickerTrait;

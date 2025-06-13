@@ -9,9 +9,7 @@
 
 namespace NuclearEngagement\Admin;
 
-/* Pull in the granular traits */
-require_once __DIR__ . '/trait-settings-sanitize-general.php';
-require_once __DIR__ . '/trait-settings-sanitize-style.php';
+
 
 trait SettingsSanitizeCoreTrait {
 

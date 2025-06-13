@@ -9,9 +9,6 @@
 
 namespace NuclearEngagement\Admin;
 
-require_once __DIR__ . '/trait-settings-sanitize-core.php';
-require_once __DIR__ . '/trait-settings-sanitize-optin.php';
-
 trait SettingsSanitizeTrait {
 
 	use SettingsSanitizeCoreTrait;
