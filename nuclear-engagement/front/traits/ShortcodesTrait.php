@@ -12,12 +12,30 @@
 namespace NuclearEngagement\Front;
 
 use NuclearEngagement\SettingsRepository;
+use NuclearEngagement\Front\QuizView;
+use NuclearEngagement\Front\SummaryView;
 
 if (!defined('ABSPATH')) {
     exit;
 }
 
 trait ShortcodesTrait {
+        private ?QuizView $quiz_view = null;
+        private ?SummaryView $summary_view = null;
+
+        private function get_quiz_view(): QuizView {
+                if ($this->quiz_view === null) {
+                        $this->quiz_view = new QuizView();
+                }
+                return $this->quiz_view;
+        }
+
+        private function get_summary_view(): SummaryView {
+                if ($this->summary_view === null) {
+                        $this->summary_view = new SummaryView();
+                }
+                return $this->summary_view;
+        }
 
 	/* ---------- Auto-insert into content ---------- */
 	public function nuclen_auto_insert_shortcodes( $content ) {
@@ -97,20 +115,21 @@ trait ShortcodesTrait {
 	 *
 	 * @return string
 	 */
-	public function nuclen_render_quiz_shortcode() {
-		$quiz_data = $this->getQuizData();
-		
-		if (!$this->isValidQuizData($quiz_data)) {
-			return '';
-		}
+        public function nuclen_render_quiz_shortcode() {
+                $quiz_data = $this->getQuizData();
 
-		$settings = $this->getQuizSettings();
-		
-		$html = $this->renderQuizContainer($settings);
-		$html .= $this->renderQuizAttribution($settings['show_attribution']);
-		
-		return $html;
-	}
+                if (!$this->isValidQuizData($quiz_data)) {
+                        return '';
+                }
+
+                $settings = $this->getQuizSettings();
+
+                $view = $this->get_quiz_view();
+                $html  = $view->container($settings);
+                $html .= $view->attribution($settings['show_attribution']);
+
+                return $html;
+        }
 
 	/**
 	 * Get quiz data for current post
@@ -159,144 +178,6 @@ trait ShortcodesTrait {
 		];
 	}
 
-	/**
-	 * Render the main quiz container HTML
-	 *
-	 * @param array $settings
-	 * @return string
-	 */
-	private function renderQuizContainer($settings) {
-		$html = '<section id="nuclen-quiz-container" class="nuclen-quiz">';
-		
-		// Custom HTML before quiz
-		if (trim($settings['html_before']) !== '') {
-			$html .= $this->renderQuizStartMessage($settings['html_before']);
-		}
-
-		// Quiz structure
-		$html .= $this->renderQuizTitle($settings['quiz_title']);
-		$html .= $this->renderQuizProgressBar();
-		$html .= $this->renderQuizQuestionContainer();
-		$html .= $this->renderQuizAnswersContainer();
-		$html .= $this->renderQuizResultContainer();
-		$html .= $this->renderQuizExplanationContainer();
-		$html .= $this->renderQuizNextButton();
-		$html .= $this->renderQuizFinalResultContainer();
-		
-		$html .= '</section>';
-		
-		return $html;
-	}
-
-	/**
-	 * Render quiz start message
-	 *
-	 * @param string $html_before
-	 * @return string
-	 */
-	private function renderQuizStartMessage($html_before) {
-		return sprintf(
-			'<div id="nuclen-quiz-start-message" class="nuclen-fg">%s</div>',
-			shortcode_unautop($html_before)
-		);
-	}
-
-	/**
-	 * Render quiz title
-	 *
-	 * @param string $title
-	 * @return string
-	 */
-	private function renderQuizTitle($title) {
-		return sprintf(
-			'<h2 id="nuclen-quiz-title" class="nuclen-fg">%s</h2>',
-			esc_html($title)
-		);
-	}
-
-	/**
-	 * Render quiz progress bar
-	 *
-	 * @return string
-	 */
-	private function renderQuizProgressBar() {
-		return '<div id="nuclen-quiz-progress-bar-container"><div id="nuclen-quiz-progress-bar"></div></div>';
-	}
-
-	/**
-	 * Render quiz question container
-	 *
-	 * @return string
-	 */
-	private function renderQuizQuestionContainer() {
-		return '<div id="nuclen-quiz-question-container" class="nuclen-fg"></div>';
-	}
-
-	/**
-	 * Render quiz answers container
-	 *
-	 * @return string
-	 */
-	private function renderQuizAnswersContainer() {
-		return '<div id="nuclen-quiz-answers-container" class="nuclen-quiz-answers-grid"></div>';
-	}
-
-	/**
-	 * Render quiz result container
-	 *
-	 * @return string
-	 */
-	private function renderQuizResultContainer() {
-		return '<div id="nuclen-quiz-result-container"></div>';
-	}
-
-	/**
-	 * Render quiz explanation container
-	 *
-	 * @return string
-	 */
-	private function renderQuizExplanationContainer() {
-		return '<div id="nuclen-quiz-explanation-container" class="nuclen-fg nuclen-quiz-hidden"></div>';
-	}
-
-	/**
-	 * Render quiz next button
-	 *
-	 * @return string
-	 */
-	private function renderQuizNextButton() {
-		return sprintf(
-			'<button id="nuclen-quiz-next-button" class="nuclen-quiz-hidden">%s</button>',
-			esc_html__('Next', 'nuclear-engagement')
-		);
-	}
-
-	/**
-	 * Render quiz final result container
-	 *
-	 * @return string
-	 */
-	private function renderQuizFinalResultContainer() {
-		return '<div id="nuclen-quiz-final-result-container"></div>';
-	}
-
-	/**
-	 * Render quiz attribution if enabled
-	 *
-	 * @param bool $show_attribution
-	 * @return string
-	 */
-	private function renderQuizAttribution($show_attribution) {
-		if (!$show_attribution) {
-			return '';
-		}
-
-		return sprintf(
-			'<div class="nuclen-attribution">%s <a rel="nofollow" href="https://www.nuclearengagement.com" target="_blank">%s</a></div>',
-			esc_html__('Quiz by', 'nuclear-engagement'),
-			esc_html__('Nuclear Engagement', 'nuclear-engagement')
-		);
-	}
 
 	/* ---------- Summary shortcode methods ---------- */
 	
@@ -314,8 +195,9 @@ trait ShortcodesTrait {
 
 		$settings = $this->getSummarySettings();
 		
-		$html = $this->renderSummaryContainer($summary_data, $settings);
-		$html .= $this->renderSummaryAttribution($settings['show_attribution']);
+                $view = $this->get_summary_view();
+                $html = $view->container($summary_data, $settings);
+                $html .= $view->attribution($settings['show_attribution']);
 		
 		return $html;
 	}
@@ -352,43 +234,5 @@ trait ShortcodesTrait {
 			'summary_title' => $settings->get_string('summary_title', __('Key Facts', 'nuclear-engagement')),
 			'show_attribution' => $settings->get_bool('show_attribution', false),
 		];
-	}
-
-	/**
-	 * Render the main summary container HTML
-	 *
-	 * @param array $summary_data
-	 * @param array $settings
-	 * @return string
-	 */
-	private function renderSummaryContainer($summary_data, $settings) {
-		$summary_content = wp_kses_post($summary_data['summary']);
-
-		return sprintf(
-			'<section id="nuclen-summary-container" class="nuclen-summary">
-				<h2 id="nuclen-summary-title" class="nuclen-fg">%s</h2>
-				<div class="nuclen-fg" id="nuclen-summary-body">%s</div>
-			</section>',
-			esc_html($settings['summary_title']),
-			$summary_content
-		);
-	}
-
-	/**
-	 * Render summary attribution if enabled
-	 *
-	 * @param bool $show_attribution
-	 * @return string
-	 */
-	private function renderSummaryAttribution($show_attribution) {
-		if (!$show_attribution) {
-			return '';
-		}
-
-		return sprintf(
-			'<div class="nuclen-attribution">%s <a rel="nofollow" href="https://www.nuclearengagement.com" target="_blank">%s</a></div>',
-			esc_html__('Summary by', 'nuclear-engagement'),
-			esc_html__('Nuclear Engagement', 'nuclear-engagement')
-		);
 	}
 }
