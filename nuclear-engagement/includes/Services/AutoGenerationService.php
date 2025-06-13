@@ -149,7 +149,9 @@ class AutoGenerationService {
             $result = $this->remote_api->sendPostsToGenerate($data_to_send);
 
             if (is_wp_error($result)) {
-                error_log('Failed to start generation: ' . $result->get_error_message());
+                \NuclearEngagement\Services\LoggingService::log(
+                    'Failed to start generation: ' . $result->get_error_message()
+                );
                 return;
             }
 
@@ -178,7 +180,9 @@ class AutoGenerationService {
             }
 
         } catch (\Exception $e) {
-            error_log('Error in generate_single: ' . $e->getMessage());
+            \NuclearEngagement\Services\LoggingService::log(
+                'Error in generate_single: ' . $e->getMessage()
+            );
         }
     }
 
@@ -208,18 +212,24 @@ class AutoGenerationService {
             // Check if we have results
             if (!empty($data['results']) && is_array($data['results'])) {
                 $this->content_storage->storeResults($data['results'], $workflow_type);
-                error_log("Poll success for post {$post_id} ({$workflow_type}), generation {$generation_id}");
+                \NuclearEngagement\Services\LoggingService::log(
+                    "Poll success for post {$post_id} ({$workflow_type}), generation {$generation_id}"
+                );
                 return;
             }
             
             // Check if still processing
             if (isset($data['success']) && $data['success'] === true) {
                 // Still processing, log the attempt
-                error_log("Still processing post {$post_id} ({$workflow_type}), attempt {$attempt}/{$max_attempts}");
+                \NuclearEngagement\Services\LoggingService::log(
+                    "Still processing post {$post_id} ({$workflow_type}), attempt {$attempt}/{$max_attempts}"
+                );
             }
-            
+
         } catch (\Exception $e) {
-            error_log("Polling error for post {$post_id} ({$workflow_type}): " . $e->getMessage());
+            \NuclearEngagement\Services\LoggingService::log(
+                "Polling error for post {$post_id} ({$workflow_type}): " . $e->getMessage()
+            );
         }
 
         // Schedule next poll if not at max attempts
@@ -235,7 +245,9 @@ class AutoGenerationService {
                 ]
             );
         } else {
-            error_log("Polling aborted after {$max_attempts} attempts for post {$post_id} ({$workflow_type})");
+            \NuclearEngagement\Services\LoggingService::log(
+                "Polling aborted after {$max_attempts} attempts for post {$post_id} ({$workflow_type})"
+            );
         }
     }
 

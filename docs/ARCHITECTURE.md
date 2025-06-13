@@ -132,3 +132,16 @@ resides in a dedicated `LoggingService` under `includes/Services/`.
 
 This keeps `Utils` slim while ensuring logging responsibilities are centralized.
 
+## Posts Query Service
+
+Query-building helpers previously lived in `Utils`, which muddled responsibilities.
+These routines now reside in a dedicated `PostsQueryService` used by
+`PostsCountController` to fetch post IDs and counts for generation screens.
+
+- `PostsQueryService::buildQueryArgs()` constructs WP_Query arguments from a
+  `PostsCountRequest` object.
+- `PostsQueryService::getPostsCount()` returns the matching post IDs and count.
+- Unused helper methods were removed from `Utils`.
+
+This keeps query logic contained while leaving `Utils` focused on rendering tasks.
+
