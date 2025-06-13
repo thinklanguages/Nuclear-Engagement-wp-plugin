@@ -48,19 +48,15 @@ trait Admin_Assets {
 			return;
 		}
 
-		// Enqueue WP pointer (CSS + script) so our pointer logic works
-		wp_enqueue_style( 'wp-pointer' );
-		wp_enqueue_script( 'wp-pointer' );
-
-		// Enqueue your single admin bundle
-		// NOTE: We add 'wp-pointer' & 'jquery' as dependencies
-		wp_enqueue_script(
-			'nuclen-admin',
-			plugin_dir_url( __DIR__ ) . 'admin/js/nuclen-admin.js',
-			array( 'wp-pointer', 'jquery' ),
-			NUCLEN_ASSET_VERSION,
-			true
-		);
+                // Enqueue the admin bundle. Onboarding handles pointer styles
+                // separately, so no wp-pointer or jQuery dependencies here.
+                wp_enqueue_script(
+                        'nuclen-admin',
+                        plugin_dir_url( __DIR__ ) . 'admin/js/nuclen-admin.js',
+                        array(),
+                        NUCLEN_ASSET_VERSION,
+                        true
+                );
 
 		// Provide two objects:
 		// 1) "security" => wp_create_nonce('nuclen_admin_ajax_nonce') for your admin-ajax calls
