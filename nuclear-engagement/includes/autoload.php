@@ -42,6 +42,8 @@ spl_autoload_register(function ($class) {
             'NuclearEngagement\\Admin\\Controller\\Ajax\\BaseController' => '/admin/Controller/Ajax/BaseController.php',
 
             'NuclearEngagement\\Front\\FrontClass' => '/front/FrontClass.php',
+            'NuclearEngagement\\Front\\QuizShortcode' => '/front/QuizShortcode.php',
+            'NuclearEngagement\\Front\\SummaryShortcode' => '/front/SummaryShortcode.php',
             'NuclearEngagement\\Front\\Controller\\Rest\\ContentController' => '/front/Controller/Rest/ContentController.php',
 
             'NuclearEngagement\\Services\\GenerationService' => '/includes/Services/GenerationService.php',

@@ -54,3 +54,12 @@ that inflated its line count. These wrappers (`get_string()`, `set_bool()`, etc.
 now live in a lightweight `SettingsAccessTrait`. The repository simply uses the
 trait, keeping the core persistence logic below 300 lines while preserving the
 public API.
+
+## Shortcode Handler Classes
+
+The front-end `ShortcodesTrait` still mixed shortcode rendering logic with
+settings retrieval. To keep responsibilities narrow, this logic now resides in
+two dedicated classes: `QuizShortcode` and `SummaryShortcode`. Each class
+registers its shortcode and builds output using the corresponding view class.
+`ShortcodesTrait` merely instantiates these handlers and delegates calls.
+The autoloader maps the new classes under the `Front` namespace.
