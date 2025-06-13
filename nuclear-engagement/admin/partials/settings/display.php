@@ -191,18 +191,24 @@ if ( ! defined( 'ABSPATH' ) ) {
 		</div>
 	</div>
 
-	<script>
-	jQuery(document).ready(function($) {
-		function updateTocToggleState() {
-			var showToggle = $('#nuclen_toc_show_toggle').is(':checked');
-			var $showContent = $('#nuclen_toc_show_content');
-			$showContent.prop('disabled', !showToggle);
-			if (!showToggle) {
-				$showContent.prop('checked', true);
-			}
-		}
-		$('#nuclen_toc_show_toggle').on('change', updateTocToggleState);
-		updateTocToggleState();
-	});
-	</script>
+        <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const toggleEl = document.getElementById('nuclen_toc_show_toggle');
+            const showContentEl = document.getElementById('nuclen_toc_show_content');
+            if (!toggleEl || !showContentEl) {
+                return;
+            }
+
+            const updateTocToggleState = () => {
+                const showToggle = toggleEl.checked;
+                showContentEl.disabled = !showToggle;
+                if (!showToggle) {
+                    showContentEl.checked = true;
+                }
+            };
+
+            toggleEl.addEventListener('change', updateTocToggleState);
+            updateTocToggleState();
+        });
+        </script>
 </div><!-- /#display -->
