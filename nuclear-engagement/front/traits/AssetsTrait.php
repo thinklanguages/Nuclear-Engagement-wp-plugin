@@ -32,7 +32,7 @@ trait AssetsTrait {
 		);
 
 		/* Theme CSS (bright / dark / custom / none) */
-		$settings_repo = $this->get_settings_repository();
+		$settings_repo = $this->nuclen_get_settings_repository();
 		$theme_choice = $settings_repo->get( 'theme', 'bright' );
 
 		if ( $theme_choice === 'none' ) {
@@ -73,7 +73,7 @@ trait AssetsTrait {
 			true
 		);
 
-		$settings_repo = $this->get_settings_repository();
+		$settings_repo = $this->nuclen_get_settings_repository();
 
 		/* ───── Inline scalars (booleans & strings) ───── */
 		$inline_js = '';

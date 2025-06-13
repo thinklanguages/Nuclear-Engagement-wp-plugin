@@ -186,7 +186,7 @@ trait SettingsPageSaveTrait {
 		}
 
 		// Get the settings repository and save all settings
-		$settings_repo = $this->get_settings_repository();
+		$settings_repo = $this->nuclen_get_settings_repository();
 		foreach ($new_settings as $key => $value) {
 			$settings_repo->set($key, $value);
 		}
