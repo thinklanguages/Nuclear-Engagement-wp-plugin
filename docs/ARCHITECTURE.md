@@ -22,4 +22,18 @@ sanitization rules easier to maintain and test in isolation.
 
 To align with the maintainable plugin structure, the plugin entry file now only includes the header and requires `bootstrap.php`. Initialization logic—including constant definitions, autoloader registration and hook setup—resides in the bootstrap file. This keeps `nuclear-engagement.php` under 50 lines for better clarity.
 
+## TOC Module Decomposition
+
+`Nuclen_TOC_Render` originally spanned more than 450 lines and mixed shortcode
+handling with asset management and content filtering. To stay within the
+300 LOC guideline, the functionality has been split into dedicated classes:
+
+- `Nuclen_TOC_Render` – handles the `[nuclear_engagement_toc]` shortcode.
+- `Nuclen_TOC_Assets` – registers and enqueues front-end assets.
+- `Nuclen_TOC_Headings` – injects unique IDs into post headings.
+- `Nuclen_TOC_View` – builds the HTML markup for the TOC.
+
+The loader now requires these files and spins up each class. This keeps
+responsibilities narrow and makes future maintenance easier.
+
 
