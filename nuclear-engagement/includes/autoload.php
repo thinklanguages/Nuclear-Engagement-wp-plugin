@@ -25,6 +25,7 @@ spl_autoload_register(function ($class) {
             'NuclearEngagement\\SettingsCache' => '/includes/SettingsCache.php',
             'NuclearEngagement\\SettingsAccessTrait' => '/includes/SettingsAccessTrait.php',
             'NuclearEngagement\\Container' => '/includes/Container.php',
+            'NuclearEngagement\\ContainerRegistrar' => '/includes/ContainerRegistrar.php',
             'NuclearEngagement\\Defaults' => '/includes/Defaults.php',
             'NuclearEngagement\\OptinData' => '/includes/OptinData.php',
             'NuclearEngagement\\MetaRegistration' => '/includes/MetaRegistration.php',
