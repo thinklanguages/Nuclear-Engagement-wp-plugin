@@ -144,9 +144,20 @@ document.addEventListener("click", async (event: MouseEvent) => {
                     // Update the summary in the WP editor
                     if (typeof (window as any).tinymce !== "undefined") {
                       const editor = (window as any).tinymce.get("nuclen_summary_data_summary");
-                      if (editor && typeof editor.setContent === "function") {
+                      const applyContent = () => {
+                        if (!editor) {
+                          return;
+                        }
                         editor.setContent(summary || "");
                         editor.save();
+                      };
+
+                      if (editor && typeof editor.setContent === "function") {
+                        if ((editor as any).initialized) {
+                          applyContent();
+                        } else {
+                          editor.on("init", applyContent);
+                        }
                       } else {
                         // fallback to raw <textarea>
                         const summaryField = document.querySelector<HTMLTextAreaElement>(

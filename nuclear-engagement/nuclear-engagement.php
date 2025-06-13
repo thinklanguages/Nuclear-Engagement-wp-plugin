@@ -114,6 +114,7 @@ spl_autoload_register(function ($class) {
             'NuclearEngagement\\Services\\PointerService' => '/includes/Services/PointerService.php',
             'NuclearEngagement\\Services\\PostsQueryService' => '/includes/Services/PostsQueryService.php',
             'NuclearEngagement\\Services\\AutoGenerationService' => '/includes/Services/AutoGenerationService.php',
+            'NuclearEngagement\\Services\\GenerationTracker' => '/includes/Services/GenerationTracker.php',
             
             // Requests/Responses
             'NuclearEngagement\\Requests\\ContentRequest' => '/includes/Requests/ContentRequest.php',

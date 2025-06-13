@@ -1,0 +1,61 @@
+#nuclen-floating-notices {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 100000;
+  max-width: 320px;
+}
+
+.nuclen-progress-notice {
+  position: relative;
+  background: #fff;
+  border: 1px solid #c3c4c7;
+  border-left: 4px solid #2271b1;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  padding: 10px 12px;
+  margin-top: 10px;
+}
+
+.nuclen-progress-notice.nuclen-complete {
+  border-left-color: #00a32a;
+}
+
+.nuclen-progress-notice.nuclen-failed {
+  border-left-color: #d63638;
+}
+
+.nuclen-progress-text {
+  margin-bottom: 6px;
+}
+
+.nuclen-progress-bar {
+  height: 6px;
+  background: #f0f0f1;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.nuclen-progress-fill {
+  height: 100%;
+  background: #2271b1;
+  width: 0;
+}
+
+.nuclen-progress-notice.nuclen-complete .nuclen-progress-fill {
+  background: #00a32a;
+}
+
+.nuclen-progress-notice.nuclen-failed .nuclen-progress-fill {
+  background: #d63638;
+}
+
+.nuclen-progress-dismiss {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background: none;
+  border: none;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+}

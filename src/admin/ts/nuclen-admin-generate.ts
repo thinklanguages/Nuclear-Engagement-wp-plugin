@@ -75,7 +75,7 @@ async function nuclenFetchUpdates(generationId?: string) {
  * If there's an error, we call onError(...).
  */
 export function NuclenPollAndPullUpdates({
-  intervalMs = 5000,
+  intervalMs = 10000,
   generationId,
   onProgress = (_processed: number, _total: number) => {},
   onComplete = (_finalData: any) => {},
@@ -89,37 +89,51 @@ export function NuclenPollAndPullUpdates({
 }) {
   const pollInterval = setInterval(async () => {
     try {
-      const pollResults = await nuclenFetchUpdates(generationId);
-      if (!pollResults.success) {
-        const errMsg = pollResults.message || pollResults.data?.message || 'Polling error';
-        throw new Error(errMsg);
+      const formData = new FormData();
+      formData.append('action', 'nuclen_generation_progress');
+      formData.append('generation_id', generationId);
+      formData.append('security', window.nuclenAjax?.nonce ?? '');
+
+      const ajaxUrl = window.nuclenAdminVars?.ajax_url;
+      if (!ajaxUrl) {
+        clearInterval(pollInterval);
+        throw new Error('Missing ajax_url');
       }
 
-      // The server response data might look like:
-      // { processed: number, total: number, failCount: number, results: object, workflow: string, ... }
-      const {
-        processed,
-        total,
-        successCount = processed,
-        failCount,
-        finalReport,
-        results,
-        workflow,
-      } = pollResults.data;
+      const resp = await fetch(ajaxUrl, {
+        method: 'POST',
+        body: formData,
+        credentials: 'same-origin'
+      });
+
+      const progressData = await resp.json();
+      if (!progressData.success || !progressData.data.generations.length) {
+        clearInterval(pollInterval);
+        return;
+      }
+
+      const generation = progressData.data.generations[0];
+      const processed = generation.processed || 0;
+      const total = generation.total || 0;
 
       onProgress(processed, total);
 
-      if (processed >= total) {
+      if (generation.status === 'complete') {
         clearInterval(pollInterval);
-        onComplete({
-          processed,
-          total,
-          successCount,
-          failCount,
-          finalReport,
-          results,
-          workflow,
-        });
+
+        const pollResults = await nuclenFetchUpdates(generationId);
+        if (!pollResults.success) {
+          const errMsg = pollResults.message || 'Polling error';
+          throw new Error(errMsg);
+        }
+
+      // The server response data might look like:
+      // { processed: number, total: number, failCount: number, results: object, workflow: string, ... }
+        const { processed: p, total: t, results, workflow } = pollResults.data;
+        onComplete({ processed: p, total: t, results, workflow });
+      } else if (generation.status === 'failed') {
+        clearInterval(pollInterval);
+        onError('Generation failed');
       }
     } catch (err: any) {
       clearInterval(pollInterval);
@@ -148,7 +162,12 @@ export async function NuclenStartGeneration(dataToSend: Record<string, any>) {
   formData.append('payload', JSON.stringify(dataToSend));
   formData.append('security', window.nuclenAjax?.nonce ?? '');
 
-  const response = await fetch(window.nuclenAdminVars.ajax_url, {
+  const ajaxUrl = window.nuclenAdminVars?.ajax_url;
+  if (!ajaxUrl) {
+    throw new Error('Missing WP Ajax config (nuclenAdminVars.ajax_url).');
+  }
+
+  const response = await fetch(ajaxUrl, {
     method: 'POST',
     body: formData,
     credentials: 'same-origin',
@@ -167,6 +186,10 @@ export async function NuclenStartGeneration(dataToSend: Record<string, any>) {
     } else {
       throw new Error('Generation start failed (unknown error).');
     }
+  }
+
+  if (typeof (window as any).nuclenStartProgressPolling === 'function') {
+    (window as any).nuclenStartProgressPolling();
   }
 
   return data;

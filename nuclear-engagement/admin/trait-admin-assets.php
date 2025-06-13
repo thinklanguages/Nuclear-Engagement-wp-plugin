@@ -32,7 +32,7 @@ trait Admin_Assets {
 	 *
 	 * @param string $hook Current admin page hook suffix
 	 */
-	public function wp_enqueue_scripts( $hook ) {
+        public function wp_enqueue_scripts( $hook ) {
 		// The pages we want our plugin JS to load on:
 		$allowed_hooks = array(
 			'post.php',
@@ -66,20 +66,36 @@ trait Admin_Assets {
 		// 1) "security" => wp_create_nonce('nuclen_admin_ajax_nonce') for your admin-ajax calls
 		// 2) "rest_nonce" => wp_create_nonce('wp_rest') for your custom REST route
 		// 3) "rest_receive_content" => REST endpoint URL
-		wp_localize_script(
-			'nuclen-admin',
-			'nuclenAdminVars',
-			array(
-				'ajax_url'             => admin_url( 'admin-ajax.php' ),
-				'security'             => wp_create_nonce( 'nuclen_admin_ajax_nonce' ),
-				'rest_nonce'           => wp_create_nonce( 'wp_rest' ), // For X-WP-Nonce header
-				'rest_receive_content' => rest_url( 'nuclear-engagement/v1/receive-content' ),
-			)
-		);
+                $localize_data = array(
+                        'ajax_url'             => admin_url( 'admin-ajax.php' ),
+                        'security'             => wp_create_nonce( 'nuclen_admin_ajax_nonce' ),
+                        'rest_nonce'           => wp_create_nonce( 'wp_rest' ), // For X-WP-Nonce header
+                        'rest_receive_content' => rest_url( 'nuclear-engagement/v1/receive-content' ),
+                );
+
+                wp_localize_script( 'nuclen-admin', 'nuclenAdminVars', $localize_data );
 
 		// This ensures nuclenAjax is available on both the Generate page & single-post editor
-		$this->nuclen_enqueue_generate_page_scripts( $hook );
-	}
+                $this->nuclen_enqueue_generate_page_scripts( $hook );
+
+                // Progress notice assets loaded on all admin pages
+                wp_enqueue_style(
+                        'nuclen-admin-progress',
+                        plugin_dir_url( __FILE__ ) . 'css/nuclen-admin-progress.css',
+                        array(),
+                        NUCLEN_ASSET_VERSION
+                );
+
+                wp_enqueue_script(
+                        'nuclen-admin-progress',
+                        plugin_dir_url( __FILE__ ) . 'js/nuclen-admin-progress.js',
+                        array( 'jquery' ),
+                        NUCLEN_ASSET_VERSION,
+                        true
+                );
+
+                wp_localize_script( 'nuclen-admin-progress', 'nuclenAdminVars', $localize_data );
+        }
 
 	/**
 	 * Optionally enqueue scripts just for the Generate page, if needed.

@@ -20,7 +20,7 @@ use NuclearEngagement\Defaults;
 use NuclearEngagement\SettingsRepository;
 use NuclearEngagement\Container;
 use NuclearEngagement\OptinData;
-use NuclearEngagement\Services\{GenerationService, RemoteApiService, ContentStorageService, PointerService, PostsQueryService, AutoGenerationService};
+use NuclearEngagement\Services\{GenerationService, RemoteApiService, ContentStorageService, PointerService, PostsQueryService, AutoGenerationService, GenerationTracker};
 use NuclearEngagement\Admin\Controller\Ajax\{GenerateController, UpdatesController, PointerController, PostsCountController};
 use NuclearEngagement\Front\Controller\Rest\ContentController;
 
@@ -51,6 +51,8 @@ class Plugin {
                                if ( ! \NuclearEngagement\OptinData::table_exists() ) {
                                        \NuclearEngagement\OptinData::maybe_create_table();
                                }
+                               $tracker = new GenerationTracker();
+                               $tracker->createTable();
                        }
                );
 
@@ -96,21 +98,27 @@ class Plugin {
                         return new ContentStorageService($c->get('settings'));
                 });
 
+                $this->container->register('generation_tracker', function() {
+                        return new Services\GenerationTracker();
+                });
+
                 $this->container->register('auto_generation_service', function($c) {
                         return new AutoGenerationService(
                                 $c->get('settings'),
                                 $c->get('remote_api'),
-                                $c->get('content_storage')
+                                $c->get('content_storage'),
+                                $c->get('generation_tracker')
                         );
                 });
-		
-		$this->container->register('generation_service', function($c) {
-			return new GenerationService(
-				$c->get('settings'),
-				$c->get('remote_api'),
-				$c->get('content_storage')
-			);
-		});
+
+                $this->container->register('generation_service', function($c) {
+                        return new GenerationService(
+                                $c->get('settings'),
+                                $c->get('remote_api'),
+                                $c->get('content_storage'),
+                                $c->get('generation_tracker')
+                        );
+                });
 		
 		$this->container->register('pointer_service', function() {
 			return new PointerService();
@@ -167,8 +175,10 @@ class Plugin {
 		$postsCountController = $this->container->get('posts_count_controller');
 		
 		$this->loader->nuclen_add_action( 'wp_ajax_nuclen_trigger_generation', $generateController, 'handle' );
-		$this->loader->nuclen_add_action( 'wp_ajax_nuclen_fetch_app_updates', $updatesController, 'handle' );
-		$this->loader->nuclen_add_action( 'wp_ajax_nuclen_get_posts_count', $postsCountController, 'handle' );
+                $this->loader->nuclen_add_action( 'wp_ajax_nuclen_fetch_app_updates', $updatesController, 'handle' );
+                $this->loader->nuclen_add_action( 'wp_ajax_nuclen_get_posts_count', $postsCountController, 'handle' );
+                $this->loader->nuclen_add_action( 'wp_ajax_nuclen_generation_progress', $generateController, 'progress' );
+                $this->loader->nuclen_add_action( 'wp_ajax_nuclen_dismiss_generation', $generateController, 'dismiss' );
 
 		// Setup actions
 		$setup = new \NuclearEngagement\Admin\Setup();
@@ -260,7 +270,33 @@ class Plugin {
 		return $this->container;
 	}
 
-	function load_nuclear_engagement_admin_display() {
-		include_once plugin_dir_path( __FILE__ ) . 'admin/partials/nuclen-admin-display.php';
-	}
+function load_nuclear_engagement_admin_display() {
+                include_once plugin_dir_path( __FILE__ ) . 'admin/partials/nuclen-admin-display.php';
+        }
 }
+
+// Schedule polling of all generations every minute
+add_filter('cron_schedules', function($schedules) {
+        $schedules['nuclen_every_minute'] = [
+                'interval' => 60,
+                'display'  => __('Every Minute', 'nuclear-engagement'),
+        ];
+        return $schedules;
+});
+
+add_action('init', function() {
+        if (!wp_next_scheduled('nuclen_poll_all_generations')) {
+                wp_schedule_event(time(), 'nuclen_every_minute', 'nuclen_poll_all_generations');
+        }
+});
+
+add_action('nuclen_poll_all_generations', function() {
+        $container = \NuclearEngagement\Container::getInstance();
+        $tracker   = $container->get('generation_tracker');
+        $autoGen   = $container->get('auto_generation_service');
+
+        $pending = $tracker->getForPolling();
+        foreach ($pending as $gen) {
+                $autoGen->poll_generation($gen->generation_id, $gen->workflow_type, 0, $gen->attempt);
+        }
+});
