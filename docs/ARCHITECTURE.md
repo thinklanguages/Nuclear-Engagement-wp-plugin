@@ -117,3 +117,18 @@ dedicated `SetupService` under `includes/Services/`.
 
 Centralizing all setup-related API logic makes the trait easier to test and
 keeps the codebase within the single-responsibility guidelines.
+
+## Logging Service Extraction
+
+Utility methods for locating and writing to the plugin log file lived in `Utils`.
+To keep that helper focused on page rendering and query helpers, the logic now
+resides in a dedicated `LoggingService` under `includes/Services/`.
+
+- `LoggingService::get_log_file_info()` returns the log directory, file path and URL.
+- `LoggingService::log()` handles file creation, rotation and message appending.
+- All calls to `$this->utils->nuclen_log()` have been replaced with the static
+  service method.
+- The autoloader maps `NuclearEngagement\Services\LoggingService`.
+
+This keeps `Utils` slim while ensuring logging responsibilities are centralized.
+

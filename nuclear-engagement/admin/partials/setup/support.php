@@ -39,7 +39,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 </p>
 
 <?php
-	$info     = \NuclearEngagement\Utils::nuclen_get_log_file_info();
+        $info     = \NuclearEngagement\Services\LoggingService::get_log_file_info();
 	$log_file = $info['path'];
 	$log_url  = $info['url'];
 

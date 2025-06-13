@@ -72,10 +72,10 @@ class ContentStorageService {
                     clean_post_cache($postId);
                 }
                 
-                $this->utils->nuclen_log("Stored {$workflowType} data for post {$postId}");
+\NuclearEngagement\Services\LoggingService::log("Stored {$workflowType} data for post {$postId}");
                 
             } catch (\Exception $e) {
-                $this->utils->nuclen_log("Error storing {$workflowType} for post {$postId}: " . $e->getMessage());
+\NuclearEngagement\Services\LoggingService::log("Error storing {$workflowType} for post {$postId}: " . $e->getMessage());
             }
         }
     }
@@ -163,7 +163,7 @@ class ContentStorageService {
         ]);
         
         if (is_wp_error($result)) {
-            $this->utils->nuclen_log("Failed to update modified time for post {$postId}: " . $result->get_error_message());
+\NuclearEngagement\Services\LoggingService::log("Failed to update modified time for post {$postId}: " . $result->get_error_message());
         }
         
         clean_post_cache($postId);

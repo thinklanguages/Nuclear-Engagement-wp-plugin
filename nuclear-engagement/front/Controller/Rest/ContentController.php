@@ -57,7 +57,7 @@ class ContentController {
 
             $data = $request->get_json_params();
             
-            $this->utils->nuclen_log('Received content via REST: ' . json_encode([
+\NuclearEngagement\Services\LoggingService::log('Received content via REST: ' . json_encode([
                 'workflow' => $data['workflow'] ?? 'unknown',
                 'results_count' => is_array($data['results'] ?? null) ? count($data['results']) : 0,
             ]));
@@ -85,10 +85,10 @@ class ContentController {
             ], 200);
             
         } catch (\InvalidArgumentException $e) {
-            $this->utils->nuclen_log('REST validation error: ' . $e->getMessage());
+\NuclearEngagement\Services\LoggingService::log('REST validation error: ' . $e->getMessage());
             return new \WP_Error('ne_invalid', $e->getMessage(), ['status' => 400]);
         } catch (\Exception $e) {
-            $this->utils->nuclen_log('REST error: ' . $e->getMessage());
+\NuclearEngagement\Services\LoggingService::log('REST error: ' . $e->getMessage());
             return new \WP_Error('ne_error', __('An error occurred', 'nuclear-engagement'), ['status' => 500]);
         }
     }

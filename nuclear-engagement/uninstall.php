@@ -60,7 +60,7 @@ if ( $delete_settings ) {
 
 // Remove log file if requested
 if ( $delete_log ) {
-        $info = \NuclearEngagement\Utils::nuclen_get_log_file_info();
+        $info = \NuclearEngagement\Services\LoggingService::get_log_file_info();
         if ( file_exists( $info['path'] ) ) {
                 unlink( $info['path'] );
         }
