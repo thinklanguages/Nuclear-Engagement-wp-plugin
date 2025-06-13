@@ -30,9 +30,7 @@ class OptinData {
 		add_action( 'wp_ajax_nuclen_save_optin',          [ self::class, 'handle_ajax' ] );
 		add_action( 'wp_ajax_nopriv_nuclen_save_optin',   [ self::class, 'handle_ajax' ] );
 
-		/* Stream CSV – both admin-post & admin-ajax paths */
-		add_action( 'admin_post_nuclen_export_optin',     [ self::class, 'handle_export' ] );
-		add_action( 'wp_ajax_nuclen_export_optin',        [ self::class, 'handle_export' ] );
+                // CSV export handled via OptinExportController
 	}
 
 	/* ---------------------------------------------------------------------
@@ -183,5 +181,3 @@ return (bool) $ok;
 	}
 }
 
-/* Kick-off */
-OptinData::init();
