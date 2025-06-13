@@ -24,6 +24,7 @@ spl_autoload_register(function ($class) {
             'NuclearEngagement\\SettingsSanitizer' => '/includes/SettingsSanitizer.php',
             'NuclearEngagement\\SettingsCache' => '/includes/SettingsCache.php',
             'NuclearEngagement\\SettingsAccessTrait' => '/includes/SettingsAccessTrait.php',
+            'NuclearEngagement\PendingSettingsTrait' => '/includes/PendingSettingsTrait.php',
             'NuclearEngagement\\Container' => '/includes/Container.php',
             'NuclearEngagement\\ContainerRegistrar' => '/includes/ContainerRegistrar.php',
             'NuclearEngagement\\Defaults' => '/includes/Defaults.php',
