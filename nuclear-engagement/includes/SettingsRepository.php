@@ -297,36 +297,43 @@ final class SettingsRepository
      */
     private function sanitize_settings(array $settings): array {
         $sanitized = [];
-        
+
         foreach ($settings as $key => $value) {
             if (!is_string($key)) {
                 continue;
             }
-            
-            // Apply field-specific sanitization if defined
-            if (isset(self::SANITIZATION_RULES[$key])) {
-                $rule = self::SANITIZATION_RULES[$key];
-                
-                if (is_callable($rule)) {
-                    $sanitized[$key] = call_user_func($rule, $value);
-                } else {
-                    $sanitized[$key] = $value;
-                }
-            } else {
-                // Default sanitization based on type
-                if (is_array($value)) {
-                    $sanitized[$key] = $this->sanitize_array($value);
-                } elseif (is_bool($value)) {
-                    $sanitized[$key] = (bool) $value;
-                } elseif (is_numeric($value)) {
-                    $sanitized[$key] = is_float($value) ? (float) $value : (int) $value;
-                } else {
-                    $sanitized[$key] = sanitize_text_field((string) $value);
-                }
-            }
+
+            $sanitized[$key] = $this->sanitize_setting($key, $value);
         }
-        
+
         return $sanitized;
+    }
+
+    /**
+     * Sanitize a single setting value.
+     */
+    private function sanitize_setting(string $key, $value) {
+        if (isset(self::SANITIZATION_RULES[$key])) {
+            $rule = self::SANITIZATION_RULES[$key];
+
+            return is_callable($rule)
+                ? call_user_func($rule, $value)
+                : $value;
+        }
+
+        if (is_array($value)) {
+            return $this->sanitize_array($value);
+        }
+
+        if (is_bool($value)) {
+            return (bool) $value;
+        }
+
+        if (is_numeric($value)) {
+            return is_float($value) ? (float) $value : (int) $value;
+        }
+
+        return sanitize_text_field((string) $value);
     }
 
     /**
