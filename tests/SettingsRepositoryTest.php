@@ -1,12 +1,13 @@
 <?php
 use PHPUnit\Framework\TestCase;
 use NuclearEngagement\SettingsRepository;
+use NuclearEngagement\SettingsSanitizer;
 
 class SettingsRepositoryTest extends TestCase {
     private \ReflectionMethod $sanitizeMethod;
 
     protected function setUp(): void {
-        $this->sanitizeMethod = new \ReflectionMethod(SettingsRepository::class, 'sanitize_heading_levels');
+        $this->sanitizeMethod = new \ReflectionMethod(SettingsSanitizer::class, 'sanitize_heading_levels');
         $this->sanitizeMethod->setAccessible(true);
     }
 
@@ -24,7 +25,7 @@ class SettingsRepositoryTest extends TestCase {
 
     public function test_sanitize_post_types_removes_invalid() {
         SettingsRepository::_reset_for_tests();
-        $ref = new \ReflectionMethod(SettingsRepository::class, 'sanitize_post_types');
+        $ref = new \ReflectionMethod(SettingsSanitizer::class, 'sanitize_post_types');
         $ref->setAccessible(true);
         $input = ['POST', 'page', 'invalid', 'custom?'];
         $expected = ['post', 'page'];

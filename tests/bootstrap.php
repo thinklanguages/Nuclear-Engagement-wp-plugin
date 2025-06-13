@@ -15,6 +15,7 @@ if (!function_exists('absint')) {
 require_once __DIR__ . '/../nuclear-engagement/includes/Defaults.php';
 require_once __DIR__ . '/../nuclear-engagement/includes/OptinData.php';
 require_once __DIR__ . '/../nuclear-engagement/includes/SettingsRepository.php';
+require_once __DIR__ . '/../nuclear-engagement/includes/SettingsSanitizer.php';
 if (!function_exists('sanitize_key')) {
     function sanitize_key($key) { return strtolower(preg_replace('/[^a-z0-9_]/', '', $key)); }
 }
