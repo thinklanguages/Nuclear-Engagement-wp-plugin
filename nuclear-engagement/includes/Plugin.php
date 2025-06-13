@@ -121,16 +121,10 @@ class Plugin {
 		remove_action('wp_ajax_nuclen_dismiss_pointer', [$onboarding, 'nuclen_ajax_dismiss_pointer']);
 		$this->loader->nuclen_add_action('wp_ajax_nuclen_dismiss_pointer', $pointerController, 'dismiss');
 
-		/* Opt-in CSV export (proxy ensures class is loaded) */
-		$this->loader->nuclen_add_action( 'admin_post_nuclen_export_optin', $this, 'nuclen_export_optin_proxy' );
-		$this->loader->nuclen_add_action( 'wp_ajax_nuclen_export_optin',    $this, 'nuclen_export_optin_proxy' );
-	}
-
-	/**
-	 * Proxy: make sure OptinData is available, then stream CSV (exits).
-	 */
-        public function nuclen_export_optin_proxy(): void {
-                OptinData::handle_export();
+                /* Opt-in CSV export */
+                $optinExportController = $this->container->get('optin_export_controller');
+                $this->loader->nuclen_add_action( 'admin_post_nuclen_export_optin', $optinExportController, 'handle' );
+                $this->loader->nuclen_add_action( 'wp_ajax_nuclen_export_optin',    $optinExportController, 'handle' );
         }
 
 	/* ─────────────────────────────────────────────

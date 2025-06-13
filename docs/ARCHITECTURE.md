@@ -84,3 +84,19 @@ its own implementation lean. The autoloader maps the new trait.
 ## Onboarding Pointer Definitions Extraction
 
 The original `Onboarding` class bundled a huge array of pointer definitions directly in the `enqueue_nuclen_onboarding_pointers()` method. The file exceeded 240 lines and the method itself was difficult to read. The pointer data now lives in a dedicated `OnboardingPointers` class under `admin/`. `Onboarding` simply pulls the definitions from this new class. This keeps the main class concise and makes the pointer data easier to maintain.
+
+## Opt-in Export Controller
+
+`OptinData` previously registered its CSV export hooks directly and `Plugin`
+included a proxy method to trigger the export. This duplicated logic and caused
+side effects when the class file loaded. The export hooks now point to a new
+`OptinExportController` class that simply delegates to `OptinData::handle_export()`.
+
+`ContainerRegistrar` registers the controller so `Plugin` can obtain it and
+attach its `handle()` method to both `admin_post_nuclen_export_optin` and
+`wp_ajax_nuclen_export_optin`. The automatic invocation of `OptinData::init()`
+at the end of the file was removed, and hook registration occurs explicitly in
+`Plugin::nuclen_load_dependencies()`.
+
+This keeps responsibilities clear and avoids unintended behavior when files are
+loaded.
