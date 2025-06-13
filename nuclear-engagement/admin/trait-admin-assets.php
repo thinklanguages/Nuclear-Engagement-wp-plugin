@@ -95,6 +95,7 @@ trait Admin_Assets {
                 );
 
                 wp_localize_script( 'nuclen-admin-progress', 'nuclenAdminVars', $localize_data );
+
         }
 
 	/**

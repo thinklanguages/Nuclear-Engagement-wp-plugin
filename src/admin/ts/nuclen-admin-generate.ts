@@ -112,6 +112,7 @@ export function NuclenPollAndPullUpdates({
         return;
       }
 
+
       const generation = progressData.data.generations[0];
       const processed = generation.processed || 0;
       const total = generation.total || 0;
