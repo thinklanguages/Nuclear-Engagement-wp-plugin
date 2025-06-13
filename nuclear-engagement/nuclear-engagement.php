@@ -36,10 +36,10 @@ function nuclear_engagement_load_textdomain() {
         dirname(plugin_basename(__FILE__)) . '/languages/'
     );
 }
-add_action('plugins_loaded', 'nuclear_engagement_load_textdomain');
+add_action('init', 'nuclear_engagement_load_textdomain');
 
 // Initialize SettingsRepository with default values
-add_action('plugins_loaded', function() {
+add_action('init', function() {
     $defaults = [
         'theme' => 'bright',
         'font_size' => '16',
