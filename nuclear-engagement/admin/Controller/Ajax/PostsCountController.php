@@ -19,7 +19,7 @@ if (!defined('ABSPATH')) {
 /**
  * Controller for getting posts count
  */
-class PostsCountController {
+class PostsCountController extends BaseController {
     /**
      * @var PostsQueryService
      */
@@ -39,9 +39,8 @@ class PostsCountController {
      */
     public function handle(): void {
         try {
-            check_ajax_referer('nuclen_admin_ajax_nonce', 'security');
-            if (!current_user_can('manage_options')) {
-                wp_send_json_error(['message' => 'Not allowed']);
+            if (!$this->verifyRequest('nuclen_admin_ajax_nonce')) {
+                return;
             }
             
             // Parse request
