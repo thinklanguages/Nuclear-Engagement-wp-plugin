@@ -12,6 +12,7 @@
 namespace NuclearEngagement\Admin;
 
 use NuclearEngagement\SettingsRepository;
+use NuclearEngagement\Services\SetupService;
 
 if (!defined('ABSPATH')) {
     exit;
@@ -38,10 +39,11 @@ trait SetupHandlersTrait {
 			$this->nuclen_redirect_with_error( 'Missing Gold Code.' );
 		}
 
-		// Validate API key with SaaS
-		if ( ! $this->nuclen_validate_api_key_with_app( $api_key ) ) {
-			$this->nuclen_redirect_with_error( 'Invalid or unknown Gold Code.' );
-		}
+               // Validate API key with SaaS
+               $setup_service = $this->nuclen_get_setup_service();
+               if ( ! $setup_service->validate_api_key( $api_key ) ) {
+                       $this->nuclen_redirect_with_error( 'Invalid or unknown Gold Code.' );
+               }
 
 		// Store key & mark as connected
 		$settings = SettingsRepository::get_instance();
@@ -96,16 +98,17 @@ trait SetupHandlersTrait {
 			$this->nuclen_redirect_with_error('API key is missing. Please complete Step 1 first.');
 		}
 
-		// Send credentials to SaaS (keep payload identical to old format)
-		$ok = $this->nuclen_send_app_password_to_app(
-			array(
-				'appApiKey'     => $api_key,
-				'siteUrl'       => get_site_url(),
-				'wpUserLogin'   => $current_user->user_login,
-				'wpAppPassword' => $new_password, // same key, new value
-				'wpAppPassUuid' => $uuid,
-			)
-		);
+               // Send credentials to SaaS (keep payload identical to old format)
+               $setup_service = $this->nuclen_get_setup_service();
+               $ok = $setup_service->send_app_password(
+                       array(
+                               'appApiKey'     => $api_key,
+                               'siteUrl'       => get_site_url(),
+                               'wpUserLogin'   => $current_user->user_login,
+                               'wpAppPassword' => $new_password, // same key, new value
+                               'wpAppPassUuid' => $uuid,
+                       )
+               );
 		if ( ! $ok ) {
 			$this->nuclen_redirect_with_error( 'Failed to send App Password to the SaaS.' );
 		}
@@ -182,56 +185,6 @@ trait SetupHandlersTrait {
                $this->nuclen_redirect_with_success( 'App Password revoked.' );
        }
 
-	/*--------------------------------------------------------------
-	 #  Helpers
-	 --------------------------------------------------------------*/
-        private function nuclen_validate_api_key_with_app( $api_key ) {
-                if ( empty( $api_key ) ) {
-                        return false;
-                }
-                $url      = 'https://app.nuclearengagement.com/api/check-api-key';
-                $response = wp_remote_post(
-                        $url,
-			array(
-				'method'  => 'POST',
-				'headers' => array( 'Content-Type' => 'application/json' ),
-				'body'    => wp_json_encode( array( 'appApiKey' => $api_key ) ),
-				'timeout' => 30,
-				'reject_unsafe_urls' => true,
-				'user-agent' => 'NuclearEngagement/' . NUCLEN_PLUGIN_VERSION,
-			)
-		);
-
-		if ( is_wp_error( $response ) ) {
-			$this->nuclen_get_utils()->nuclen_log( 'API‑key validation error: ' . $response->get_error_message() );
-			return false;
-		}
-		return wp_remote_retrieve_response_code( $response ) === 200;
-	}
-
-        private function nuclen_send_app_password_to_app( $data ) {
-                if ( empty( $data['appApiKey'] ) ) {
-                        return false;
-                }
-                $url      = 'https://app.nuclearengagement.com/api/store-wp-creds';
-                $response = wp_remote_post(
-                        $url,
-			array(
-				'method'  => 'POST',
-				'headers' => array( 'Content-Type' => 'application/json' ),
-				'body'    => wp_json_encode( $data ),
-				'timeout' => 30,
-				'reject_unsafe_urls' => true,
-				'user-agent' => 'NuclearEngagement/' . NUCLEN_PLUGIN_VERSION,
-			)
-		);
-
-		if ( is_wp_error( $response ) ) {
-			$this->nuclen_get_utils()->nuclen_log( 'Error sending creds: ' . $response->get_error_message() );
-			return false;
-		}
-		return wp_remote_retrieve_response_code( $response ) === 200;
-	}
 
 	private function nuclen_redirect_with_error( $msg ) {
 		wp_redirect(

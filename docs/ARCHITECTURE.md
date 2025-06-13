@@ -100,3 +100,20 @@ at the end of the file was removed, and hook registration occurs explicitly in
 
 This keeps responsibilities clear and avoids unintended behavior when files are
 loaded.
+
+## Setup API Service
+
+`SetupHandlersTrait` previously communicated with the SaaS directly to validate
+the API key and send the generated WordPress credentials. To keep the trait
+focused purely on form handling, these network calls have been extracted to a
+dedicated `SetupService` under `includes/Services/`.
+
+- `Setup` instantiates the new service and exposes it via
+  `nuclen_get_setup_service()`.
+- `SetupHandlersTrait` now delegates API validation and credential upload to this
+  service.
+- The autoloader maps `NuclearEngagement\Services\SetupService` for automatic
+  loading.
+
+Centralizing all setup-related API logic makes the trait easier to test and
+keeps the codebase within the single-responsibility guidelines.
