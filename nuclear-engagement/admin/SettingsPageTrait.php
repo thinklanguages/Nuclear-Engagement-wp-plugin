@@ -14,10 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-/* Ensure the helper traits are loaded */
-require_once __DIR__ . '/trait-settings-page-load.php';
-require_once __DIR__ . '/trait-settings-page-save.php';
-require_once __DIR__ . '/trait-settings-custom-css.php';
+/* helper traits are autoloaded */
 
 /**
  * Main trait mixed into the Admin class to drive the Settings screen.

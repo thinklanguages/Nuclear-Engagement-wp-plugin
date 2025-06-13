@@ -17,11 +17,6 @@ use NuclearEngagement\Utils;
 use NuclearEngagement\SettingsRepository;
 use NuclearEngagement\Container;
 
-require_once __DIR__ . '/trait-admin-metaboxes.php';
-require_once __DIR__ . '/trait-admin-ajax.php';
-require_once __DIR__ . '/trait-admin-menu.php';
-require_once __DIR__ . '/trait-admin-assets.php';
-
 class Admin {
 
 	use Admin_Metaboxes;

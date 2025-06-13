@@ -23,11 +23,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 use NuclearEngagement\Utils;
 use NuclearEngagement\SettingsRepository;
 
-/* ───── Load traits ───── */
-require_once __DIR__ . '/traits/AssetsTrait.php';
-require_once __DIR__ . '/traits/RestTrait.php';
-require_once __DIR__ . '/traits/ShortcodesTrait.php';
-
 class FrontClass {
 
 	use AssetsTrait;

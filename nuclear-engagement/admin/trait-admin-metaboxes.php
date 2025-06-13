@@ -13,9 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-/* Make sure the individual traits are loaded */
-require_once __DIR__ . '/trait-admin-metabox-quiz.php';
-require_once __DIR__ . '/trait-admin-metabox-summary.php';
+
 
 /**
  * Trait Admin_Metaboxes
