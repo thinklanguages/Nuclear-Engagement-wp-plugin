@@ -21,7 +21,7 @@ trait ShortcodesTrait {
 
 	/* ---------- Auto-insert into content ---------- */
 	public function nuclen_auto_insert_shortcodes( $content ) {
-		$settings_repo = $this->get_settings_repository();
+		$settings_repo = $this->nuclen_get_settings_repository();
 		$summary_position = $settings_repo->get( 'display_summary', 'none' );
 		$quiz_position    = $settings_repo->get( 'display_quiz', 'none' );
 		$toc_position     = $settings_repo->get( 'display_toc', 'manual' );

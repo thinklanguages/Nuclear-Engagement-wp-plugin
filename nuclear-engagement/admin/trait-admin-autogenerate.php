@@ -35,7 +35,7 @@ trait Admin_AutoGenerate {
         }
 
         // Get settings from repository
-        $settings_repo = $this->get_settings_repository();
+        $settings_repo = $this->nuclen_get_settings_repository();
         $allowed_post_types = $settings_repo->get( 'generation_post_types', array( 'post' ) );
         if ( ! in_array( $post->post_type, (array) $allowed_post_types, true ) ) {
             return;
@@ -88,7 +88,7 @@ trait Admin_AutoGenerate {
         
         try {
             // Check if auto-generation is enabled for this post type.
-            $settings_repo = $this->get_settings_repository();
+            $settings_repo = $this->nuclen_get_settings_repository();
             $connected = $settings_repo->get( 'connected', false );
             $wp_app_pass_created = $settings_repo->get( 'wp_app_pass_created', false );
             if ( ! $connected || ! $wp_app_pass_created ) {
