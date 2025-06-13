@@ -185,10 +185,13 @@ trait SetupHandlersTrait {
 	/*--------------------------------------------------------------
 	 #  Helpers
 	 --------------------------------------------------------------*/
-	private function nuclen_validate_api_key_with_app( $api_key ) {
-		$url      = 'https://app.nuclearengagement.com/api/check-api-key';
-		$response = wp_remote_post(
-			$url,
+        private function nuclen_validate_api_key_with_app( $api_key ) {
+                if ( empty( $api_key ) ) {
+                        return false;
+                }
+                $url      = 'https://app.nuclearengagement.com/api/check-api-key';
+                $response = wp_remote_post(
+                        $url,
 			array(
 				'method'  => 'POST',
 				'headers' => array( 'Content-Type' => 'application/json' ),
@@ -206,10 +209,13 @@ trait SetupHandlersTrait {
 		return wp_remote_retrieve_response_code( $response ) === 200;
 	}
 
-	private function nuclen_send_app_password_to_app( $data ) {
-		$url      = 'https://app.nuclearengagement.com/api/store-wp-creds';
-		$response = wp_remote_post(
-			$url,
+        private function nuclen_send_app_password_to_app( $data ) {
+                if ( empty( $data['appApiKey'] ) ) {
+                        return false;
+                }
+                $url      = 'https://app.nuclearengagement.com/api/store-wp-creds';
+                $response = wp_remote_post(
+                        $url,
 			array(
 				'method'  => 'POST',
 				'headers' => array( 'Content-Type' => 'application/json' ),

@@ -51,7 +51,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 		<span class="dashicons dashicons-plugins-checked"></span>
 		<h2 class="nuclen-subheading"><?php esc_html_e( 'Step 1 complete – Site authorised', 'nuclear-engagement' ); ?></h2>
 		<p class="nuclen-paragraph" style="color:green;"><?php esc_html_e( 'Your site is connected.', 'nuclear-engagement' ); ?></p>
-		<?php $short_key = substr( $app_setup['api_key'], 0, 6 ); ?>
+                <?php $short_key = isset( $app_setup['api_key'] ) ? substr( $app_setup['api_key'], 0, 6 ) : ''; ?>
 		<p class="nuclen-paragraph">
 			<?php esc_html_e( 'Current Gold Code:', 'nuclear-engagement' ); ?>
 			<input type="text" readonly style="width:80px;color:#888;" value="<?php echo esc_attr( $short_key ); ?>">
