@@ -154,6 +154,7 @@ $with_cat_pt = array_filter(
 $by_category_quiz = $by_category_summary = array();
 
 if ( $with_cat_pt ) {
+
 	$in_cat_pt  = "'" . implode( "','", array_map( 'esc_sql', $with_cat_pt ) ) . "'";
 	$in_st      = "'" . implode( "','", $post_statuses ) . "'";
         $sql_cat = "
