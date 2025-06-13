@@ -72,3 +72,11 @@ registered all services and controllers. This pushed the class over the
 `ContainerRegistrar` class with a static `register()` method. `Plugin`
 instantiates the container and delegates the registration work to this new
 class, keeping the main class focused on coordinating hooks.
+
+## Pending Changes Trait
+
+The repository still contained several utility methods for managing pending
+settings updates. To simplify the core class and keep the method count below
+15, these helpers now live in a small `PendingSettingsTrait`.
+`SettingsRepository` uses the trait to expose the same public API while keeping
+its own implementation lean. The autoloader maps the new trait.
