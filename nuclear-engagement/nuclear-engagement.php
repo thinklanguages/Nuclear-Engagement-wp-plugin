@@ -26,7 +26,7 @@ use NuclearEngagement\SettingsRepository;
 
 define('NUCLEN_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('NUCLEN_PLUGIN_VERSION', '1.0.3');
-define('NUCLEN_ASSET_VERSION', '250611-1');
+define('NUCLEN_ASSET_VERSION', '250613-1');
 
 // Load plugin textdomain
 function nuclear_engagement_load_textdomain() {
