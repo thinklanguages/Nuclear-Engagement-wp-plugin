@@ -34,6 +34,7 @@ spl_autoload_register(function ($class) {
             'NuclearEngagement\\Admin\\Admin' => '/admin/Admin.php',
             'NuclearEngagement\\Admin\\Dashboard' => '/admin/Dashboard.php',
             'NuclearEngagement\\Admin\\Onboarding' => '/admin/Onboarding.php',
+            'NuclearEngagement\\Admin\\OnboardingPointers' => '/admin/OnboardingPointers.php',
             'NuclearEngagement\\Admin\\Settings' => '/admin/Settings.php',
             'NuclearEngagement\\Admin\\Setup' => '/admin/Setup.php',
             'NuclearEngagement\\Admin\\Controller\\OptinExportController' => '/admin/Controller/OptinExportController.php',
