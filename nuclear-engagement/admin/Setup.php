@@ -13,6 +13,7 @@
 namespace NuclearEngagement\Admin;
 
 use NuclearEngagement\SettingsRepository;
+use NuclearEngagement\Services\SetupService;
 
 if (!defined('ABSPATH')) {
     exit;
@@ -21,18 +22,26 @@ if (!defined('ABSPATH')) {
 
 class Setup {
 
-	use SetupHandlersTrait;
+        use SetupHandlersTrait;
 
-	/** @var \NuclearEngagement\Utils */
-	private $utils;
+        /** @var \NuclearEngagement\Utils */
+        private $utils;
 
-	public function __construct() {
-		$this->utils = new \NuclearEngagement\Utils();
-	}
+        /** @var SetupService */
+        private $setup_service;
 
-	public function nuclen_get_utils() {
-		return $this->utils;
-	}
+        public function __construct() {
+                $this->utils = new \NuclearEngagement\Utils();
+                $this->setup_service = new SetupService();
+        }
+
+        public function nuclen_get_utils() {
+                return $this->utils;
+        }
+
+        public function nuclen_get_setup_service(): SetupService {
+                return $this->setup_service;
+        }
 
 	/** Add the Setup submenu page. */
 	public function nuclen_add_setup_page() {
