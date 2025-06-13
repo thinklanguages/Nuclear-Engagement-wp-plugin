@@ -18,6 +18,9 @@ define( 'NUCLEN_TOC_URL',       plugin_dir_url( __FILE__ ) );
 /* ------------------------------------------------------------------ */
 require_once NUCLEN_TOC_DIR . 'includes/polyfills.php';
 require_once NUCLEN_TOC_DIR . 'includes/class-nuclen-toc-utils.php';
+require_once NUCLEN_TOC_DIR . 'includes/class-nuclen-toc-assets.php';
+require_once NUCLEN_TOC_DIR . 'includes/class-nuclen-toc-view.php';
+require_once NUCLEN_TOC_DIR . 'includes/class-nuclen-toc-headings.php';
 require_once NUCLEN_TOC_DIR . 'includes/class-nuclen-toc-render.php';
 require_once NUCLEN_TOC_DIR . 'includes/class-nuclen-toc-admin.php';
 
@@ -25,8 +28,9 @@ require_once NUCLEN_TOC_DIR . 'includes/class-nuclen-toc-admin.php';
 /*  Spin-up                                                            */
 /* ------------------------------------------------------------------ */
 add_action( 'plugins_loaded', static function () {
-	new Nuclen_TOC_Render();   // public hooks (shortcode, filters, assets)
-	if ( is_admin() ) {
-		new Nuclen_TOC_Admin();    // settings page
-	}
+        new Nuclen_TOC_Headings();  // filter for heading IDs
+        new Nuclen_TOC_Render();    // shortcode handler
+        if ( is_admin() ) {
+                new Nuclen_TOC_Admin();    // settings page
+        }
 } );
