@@ -88,225 +88,274 @@ final class Nuclen_TOC_Render {
 	 * @param array $atts Raw shortcode attributes
 	 * @return array Validated attributes
 	 */
-       private function validate_shortcode_atts( array $atts ) : array {
-               /* List of attributes with limited allowed values. The first
-                * value in each array acts as the default fallback. */
-               $rules = [
-                       'list'      => [ 'ul', 'ol' ],
-                       'toggle'    => [ 'true', 'false' ],
-                       'collapsed' => [ 'true', 'false' ],
-                       'smooth'    => [ 'true', 'false' ],
-                       'highlight' => [ 'true', 'false' ],
-                       'theme'     => [ 'light', 'dark', 'auto' ],
-               ];
+        private function validate_shortcode_atts( array $atts ) : array {
+		// Define valid values for each attribute
+		$valid_lists = [ 'ul', 'ol' ];
+		$valid_booleans = [ 'true', 'false' ];
+		$valid_themes = [ 'light', 'dark', 'auto' ];
 
-               /* Validate enumerated attributes. */
-               foreach ( $rules as $attr => $allowed ) {
-                       if ( isset( $atts[ $attr ] ) && ! in_array( strtolower( $atts[ $attr ] ), $allowed, true ) ) {
-                               $atts[ $attr ] = $allowed[0];
-                       }
-               }
-
-               /* Offset validation (ensure within 0-500). */
-               if ( isset( $atts['offset'] ) ) {
-                       $atts['offset'] = max( 0, min( 500, intval( $atts['offset'] ) ) );
-               }
-
-               /* Text sanitisation. */
-               foreach ( [ 'title', 'show_text', 'hide_text' ] as $t ) {
-                       if ( isset( $atts[ $t ] ) ) {
-                               $atts[ $t ] = sanitize_text_field( $atts[ $t ] );
-                       }
-               }
-
-               return $atts;
-       }
-
-	/* ───────────────── shortcode handler ─────────────────────── */
-	public function nuclen_toc_shortcode( array $atts ) : string {
-		global $post;
-		if ( empty( $post ) ) { return ''; }
-
-		// Get settings repository instance
-		$settings = SettingsRepository::get_instance();
-		
-		// Get heading levels from settings with proper type safety
-		$heading_levels = $settings->get_array('toc_heading_levels', range(2, 6));
-		
-		// Validate heading levels
-		$heading_levels = $this->validate_heading_levels( $heading_levels );
-
-		$whitelist = [
-			'heading_levels' => $heading_levels,
-			'list'      => 'ul',
-			'title'     => '', // Will be populated from settings
-			'toggle'    => 'true',  'collapsed' => 'false',
-			'smooth'    => 'true',  'highlight' => 'true',
-			'offset'    => 72,      'theme'     => 'light',
-			'show_text' => __( 'Show table of contents', 'nuclear-engagement' ),
-			'hide_text' => __( 'Hide table of contents', 'nuclear-engagement' ),
-		];
-
-		// Merge and validate attributes
-		$atts = shortcode_atts( $whitelist, array_intersect_key( $atts, $whitelist ), 'nuclear_engagement_toc' );
-		$atts = $this->validate_shortcode_atts( $atts );
-
-		// Override heading_levels if provided in shortcode
-		if ( isset( $atts['heading_levels'] ) ) {
-			$atts['heading_levels'] = $this->validate_heading_levels( $atts['heading_levels'] );
+		// List type validation
+		if ( isset( $atts['list'] ) && ! in_array( strtolower( $atts['list'] ), $valid_lists, true ) ) {
+			$atts['list'] = 'ul';
 		}
 
-		// Get list style (already validated)
-		$list = ( strtolower( $atts['list'] ) === 'ol' ) ? 'ol' : 'ul';
-
-		// Get headings using the specified heading levels
-		$heads = Nuclen_TOC_Utils::extract($post->post_content, $atts['heading_levels']);
-		if ( ! $heads ) { 
-			// No headings found, don't enqueue any assets
-			return ''; 
-		}
-
-		// Get sticky setting if not explicitly set in shortcode
-		if ( ! isset( $atts['sticky'] ) ) {
-			$atts['sticky'] = $settings->get_bool('toc_sticky');
-		}
-
-		// Only enqueue assets if we have valid headings to display
-		$this->enqueue_assets( $atts );
-
-		// Get TOC title from settings with fallback
-		$toc_title = $settings->get_string('toc_title');
-		if (empty($toc_title)) {
-			$toc_title = esc_html__('Table of Contents', 'nuclen-toc-shortcode');
-		} else {
-			$toc_title = esc_html($toc_title);
-		}
-		
-		// Set the title from settings if not explicitly set in shortcode
-		if (empty($atts['title'])) {
-			$atts['title'] = $toc_title;
-		}
-
-		/* ---------- build HTML ---------- */
-		$nav_id = esc_attr( wp_unique_id( 'nuclen-toc-' ) );
-		
-		// Initialize wrapper classes
-		$wrapper_classes = array( 'nuclen-toc-wrapper' );
-		
-		// Add theme class if needed
-		if ( in_array( $atts['theme'], array( 'dark', 'auto' ), true ) ) {
-			$wrapper_classes[] = 'nuclen-toc-' . $atts['theme'];
-		}
-		
-		/**
-		 * Determine TOC visibility and toggle behavior
-		 * - If toggle is enabled, respect the show/hide setting
-		 * - If toggle is disabled, always show the content
-		 */
-		$show_toggle = $settings->get_bool('toc_show_toggle');
-		$is_collapsed = $show_toggle && !$settings->get_bool('toc_show_content');
-		$hidden = $is_collapsed; // For backward compatibility
-		
-		// Add toggle class if enabled
-		if ( $show_toggle ) {
-			$wrapper_classes[] = 'nuclen-toc-has-toggle';
-			if ( $is_collapsed ) {
-				$wrapper_classes[] = 'nuclen-toc-collapsed';
+		// Boolean validations
+		foreach ( [ 'toggle', 'collapsed', 'smooth', 'highlight' ] as $bool_attr ) {
+			if ( isset( $atts[ $bool_attr ] ) && ! in_array( strtolower( $atts[ $bool_attr ] ), $valid_booleans, true ) ) {
+				$atts[ $bool_attr ] = 'true';
 			}
 		}
-		
-		// Add sticky class and data attributes if enabled
-		$sticky_attrs = '';
-		if ( ! empty( $atts['sticky'] ) ) {
-			$wrapper_classes[] = 'nuclen-toc-sticky';
-			
-			// Get sticky offset values from settings with proper type safety
-			$sticky_offset_x = $settings->get_int('toc_sticky_offset_x', self::DEFAULT_STICKY_OFFSET_X);
-			$sticky_offset_y = $settings->get_int('toc_sticky_offset_y', self::DEFAULT_STICKY_OFFSET_Y);
-			$sticky_max_width = $settings->get_int('toc_sticky_max_width', self::DEFAULT_STICKY_MAX_WIDTH);
 
-			// Ensure values are within valid ranges
-			$sticky_offset_x = max(0, min(1000, $sticky_offset_x));
-			$sticky_offset_y = max(0, min(1000, $sticky_offset_y));
-			$sticky_max_width = min(1000, max(100, $sticky_max_width));
-
-			// Add data attributes for JavaScript
-			$sticky_attrs = sprintf(
-				' data-offset-x="%d" data-offset-y="%d" data-max-width="%d" data-show-content="%s" data-heading-levels="%s"',
-				$sticky_offset_x,
-				$sticky_offset_y,
-				$sticky_max_width,
-				$settings->get_bool('toc_show_content') ? 'true' : 'false',
-				esc_attr( implode( ',', $atts['heading_levels'] ) )
-			);
-		}
-		
-		// Add highlight class if enabled
-		if ( $atts['highlight'] === 'true' ) {
-			$wrapper_classes[] = 'nuclen-has-highlight';
-		}
-		
-		// Get z-index from settings with proper fallback
-		$z_index = $settings->get_int('toc_z_index', 100);
-		$z_index = max(1, min(9999, $z_index));
-
-		// Build the output
-		$out = '<section id="' . esc_attr( $nav_id ) . '-wrapper" class="' . esc_attr( implode( ' ', $wrapper_classes ) ) . '"' . $sticky_attrs . '>';
-		
-		// Add the TOC content wrapper if sticky is enabled
-		if ( ! empty( $atts['sticky'] ) ) {
-			$out .= '<div class="nuclen-toc-content">';
+		// Offset validation (ensure it's a positive integer)
+		if ( isset( $atts['offset'] ) ) {
+			$atts['offset'] = max( 0, min( 500, intval( $atts['offset'] ) ) );
 		}
 
-		// Build the toggle button if enabled in settings
-		$toggle_button = '';
-		if ( $show_toggle ) {
-			$toggle_text = $hidden ? $atts['show_text'] : $atts['hide_text'];
-			$toggle_button = sprintf(
-				'<button type="button" class="nuclen-toc-toggle" aria-expanded="%s" aria-controls="%s">%s</button>',
-				$hidden ? 'false' : 'true',
-				esc_attr( $nav_id ),
-				esc_html( $toggle_text )
-			);
+		// Theme validation
+		if ( isset( $atts['theme'] ) && ! in_array( strtolower( $atts['theme'] ), $valid_themes, true ) ) {
+			$atts['theme'] = 'light';
 		}
 
-		$out .= $toggle_button;
-
-		$out .= '<nav id="' . $nav_id . '" class="nuclen-toc" aria-label="' .
-		        esc_attr__( $toc_title, 'nuclen-toc-shortcode' ) . '"' .
-		        ( $hidden ? ' style="display:none"' : '' ) .
-		        ( $atts['highlight'] === 'true' ? ' data-highlight="true"' : '' ) . '>';
-
-		if ( $atts['title'] !== '' ) {
-			$out .= '<strong class="toc-title">' . esc_html__( $atts['title'], 'nuclen-toc-shortcode' ) . '</strong>';
+		// Title sanitization
+		if ( isset( $atts['title'] ) ) {
+			$atts['title'] = sanitize_text_field( $atts['title'] );
 		}
 
-		/* nested list */
-		$stack = [];
-		foreach ( $heads as $h ) {
-			$l = $h['level'];
-			while ( $stack && end( $stack ) > $l ) { $out .= '</li></' . $list . '>'; array_pop( $stack ); }
-			if ( ! $stack || end( $stack ) < $l ) { $out .= '<' . $list . '>'; $stack[] = $l; }
-			else { $out .= '</li>'; }
-
-			$out .= '<li><a href="#' . esc_attr( $h['id'] ) . '">' . esc_html( $h['text'] ) . '</a>';
+		// Show/hide text sanitization
+		if ( isset( $atts['show_text'] ) ) {
+			$atts['show_text'] = sanitize_text_field( $atts['show_text'] );
 		}
-		while ( $stack ) { $out .= '</li></' . $list . '>'; array_pop( $stack ); }
-
-		// Close the content wrapper if sticky is enabled
-		if ( ! empty( $atts['sticky'] ) ) {
-			$out .= '</div>'; // Close .nuclen-toc-content
+		if ( isset( $atts['hide_text'] ) ) {
+			$atts['hide_text'] = sanitize_text_field( $atts['hide_text'] );
 		}
 
-		$out .= '</section>';
+                return $atts;
+        }
 
-		// Enqueue the necessary scripts
-		if ( ! wp_script_is( 'nuclen-toc-front', 'enqueued' ) ) {
-			wp_enqueue_script( 'nuclen-toc-front' );
-		}
+        /**
+         * Prepare and sanitize shortcode attributes using plugin settings.
+         *
+         * @param array             $atts     Raw shortcode attributes.
+         * @param SettingsRepository $settings Settings repository instance.
+         * @return array Sanitized attributes.
+         */
+        private function prepare_shortcode_attributes( array $atts, SettingsRepository $settings ) : array {
+                $heading_levels = $settings->get_array( 'toc_heading_levels', range( 2, 6 ) );
+                $heading_levels = $this->validate_heading_levels( $heading_levels );
 
-		return $out;
-	}
+                $defaults = [
+                        'heading_levels' => $heading_levels,
+                        'list'      => 'ul',
+                        'title'     => '',
+                        'toggle'    => 'true',  'collapsed' => 'false',
+                        'smooth'    => 'true',  'highlight' => 'true',
+                        'offset'    => 72,      'theme'     => 'light',
+                        'show_text' => __( 'Show table of contents', 'nuclear-engagement' ),
+                        'hide_text' => __( 'Hide table of contents', 'nuclear-engagement' ),
+                ];
+
+                $atts = shortcode_atts( $defaults, array_intersect_key( $atts, $defaults ), 'nuclear_engagement_toc' );
+                $atts = $this->validate_shortcode_atts( $atts );
+
+                if ( isset( $atts['heading_levels'] ) ) {
+                        $atts['heading_levels'] = $this->validate_heading_levels( $atts['heading_levels'] );
+                }
+
+                if ( ! isset( $atts['sticky'] ) ) {
+                        $atts['sticky'] = $settings->get_bool( 'toc_sticky' );
+                }
+
+                return $atts;
+        }
+
+        /**
+         * Get the translated TOC title with a fallback.
+         *
+         * @param SettingsRepository $settings Settings repository.
+         * @return string Sanitized title.
+         */
+        private function get_toc_title( SettingsRepository $settings ) : string {
+                $title = $settings->get_string( 'toc_title' );
+                if ( empty( $title ) ) {
+                        return esc_html__( 'Table of Contents', 'nuclen-toc-shortcode' );
+                }
+                return esc_html( $title );
+        }
+
+        /**
+         * Build wrapper classes and sticky attributes for the TOC container.
+         *
+         * @param array             $atts     Shortcode attributes.
+         * @param SettingsRepository $settings Settings repository instance.
+         * @return array {
+         *     @type array  $classes      Array of wrapper classes.
+         *     @type string $sticky_attrs Sticky data attributes string.
+         *     @type bool   $show_toggle  Whether toggle is enabled.
+         *     @type bool   $hidden       Initial hidden state.
+         * }
+         */
+        private function build_wrapper_props( array $atts, SettingsRepository $settings ) : array {
+                $classes = [ 'nuclen-toc-wrapper' ];
+
+                if ( in_array( $atts['theme'], [ 'dark', 'auto' ], true ) ) {
+                        $classes[] = 'nuclen-toc-' . $atts['theme'];
+                }
+
+                $show_toggle = $settings->get_bool( 'toc_show_toggle' );
+                $hidden      = $show_toggle && ! $settings->get_bool( 'toc_show_content' );
+
+                if ( $show_toggle ) {
+                        $classes[] = 'nuclen-toc-has-toggle';
+                        if ( $hidden ) {
+                                $classes[] = 'nuclen-toc-collapsed';
+                        }
+                }
+
+                $sticky_attrs = '';
+                if ( ! empty( $atts['sticky'] ) ) {
+                        $classes[] = 'nuclen-toc-sticky';
+
+                        $sticky_offset_x = $settings->get_int( 'toc_sticky_offset_x', self::DEFAULT_STICKY_OFFSET_X );
+                        $sticky_offset_y = $settings->get_int( 'toc_sticky_offset_y', self::DEFAULT_STICKY_OFFSET_Y );
+                        $sticky_max_width = $settings->get_int( 'toc_sticky_max_width', self::DEFAULT_STICKY_MAX_WIDTH );
+
+                        $sticky_offset_x  = max( 0, min( 1000, $sticky_offset_x ) );
+                        $sticky_offset_y  = max( 0, min( 1000, $sticky_offset_y ) );
+                        $sticky_max_width = min( 1000, max( 100, $sticky_max_width ) );
+
+                        $sticky_attrs = sprintf(
+                                ' data-offset-x="%d" data-offset-y="%d" data-max-width="%d" data-show-content="%s" data-heading-levels="%s"',
+                                $sticky_offset_x,
+                                $sticky_offset_y,
+                                $sticky_max_width,
+                                $settings->get_bool( 'toc_show_content' ) ? 'true' : 'false',
+                                esc_attr( implode( ',', $atts['heading_levels'] ) )
+                        );
+                }
+
+                if ( $atts['highlight'] === 'true' ) {
+                        $classes[] = 'nuclen-has-highlight';
+                }
+
+                // z-index not currently output but preserved for future use.
+                $z_index = $settings->get_int( 'toc_z_index', 100 );
+                $z_index = max( 1, min( 9999, $z_index ) );
+                ( $z_index );
+
+                return [
+                        'classes'      => $classes,
+                        'sticky_attrs' => $sticky_attrs,
+                        'show_toggle'  => $show_toggle,
+                        'hidden'       => $hidden,
+                ];
+        }
+
+        /**
+         * Build the toggle button HTML if toggling is enabled.
+         */
+        private function build_toggle_button( bool $show, bool $hidden, array $atts, string $nav_id ) : string {
+                if ( ! $show ) {
+                        return '';
+                }
+
+                $toggle_text = $hidden ? $atts['show_text'] : $atts['hide_text'];
+                return sprintf(
+                        '<button type="button" class="nuclen-toc-toggle" aria-expanded="%s" aria-controls="%s">%s</button>',
+                        $hidden ? 'false' : 'true',
+                        esc_attr( $nav_id ),
+                        esc_html( $toggle_text )
+                );
+        }
+
+        /**
+         * Render the nested heading list.
+         */
+        private function render_headings_list( array $heads, string $list ) : string {
+                $out   = '';
+                $stack = [];
+                foreach ( $heads as $h ) {
+                        $l = $h['level'];
+                        while ( $stack && end( $stack ) > $l ) {
+                                $out .= '</li></' . $list . '>';
+                                array_pop( $stack );
+                        }
+                        if ( ! $stack || end( $stack ) < $l ) {
+                                $out .= '<' . $list . '>';
+                                $stack[] = $l;
+                        } else {
+                                $out .= '</li>';
+                        }
+
+                        $out .= '<li><a href="#' . esc_attr( $h['id'] ) . '">' . esc_html( $h['text'] ) . '</a>';
+                }
+                while ( $stack ) {
+                        $out .= '</li></' . $list . '>';
+                        array_pop( $stack );
+                }
+
+                return $out;
+        }
+
+	/* ───────────────── shortcode handler ─────────────────────── */
+        public function nuclen_toc_shortcode( array $atts ) : string {
+                global $post;
+                if ( empty( $post ) ) { return ''; }
+
+                $settings = SettingsRepository::get_instance();
+                $atts     = $this->prepare_shortcode_attributes( $atts, $settings );
+
+                $list  = ( strtolower( $atts['list'] ) === 'ol' ) ? 'ol' : 'ul';
+                $heads = Nuclen_TOC_Utils::extract( $post->post_content, $atts['heading_levels'] );
+                if ( ! $heads ) {
+                        return '';
+                }
+
+                $this->enqueue_assets( $atts );
+
+                $toc_title = $this->get_toc_title( $settings );
+                if ( empty( $atts['title'] ) ) {
+                        $atts['title'] = $toc_title;
+                }
+
+                $nav_id = esc_attr( wp_unique_id( 'nuclen-toc-' ) );
+
+                $wrapper = $this->build_wrapper_props( $atts, $settings );
+                $classes = $wrapper['classes'];
+                $sticky  = $wrapper['sticky_attrs'];
+                $show    = $wrapper['show_toggle'];
+                $hidden  = $wrapper['hidden'];
+
+                $out = '<section id="' . esc_attr( $nav_id ) . '-wrapper" class="' . esc_attr( implode( ' ', $classes ) ) . '"' . $sticky . '>';
+
+                if ( ! empty( $atts['sticky'] ) ) {
+                        $out .= '<div class="nuclen-toc-content">';
+                }
+
+                $out .= $this->build_toggle_button( $show, $hidden, $atts, $nav_id );
+
+                $out .= '<nav id="' . $nav_id . '" class="nuclen-toc" aria-label="' .
+                        esc_attr__( $toc_title, 'nuclen-toc-shortcode' ) . '"' .
+                        ( $hidden ? ' style="display:none"' : '' ) .
+                        ( $atts['highlight'] === 'true' ? ' data-highlight="true"' : '' ) . '>';
+
+                if ( $atts['title'] !== '' ) {
+                        $out .= '<strong class="toc-title">' . esc_html__( $atts['title'], 'nuclen-toc-shortcode' ) . '</strong>';
+                }
+
+                $out .= $this->render_headings_list( $heads, $list );
+
+                if ( ! empty( $atts['sticky'] ) ) {
+                        $out .= '</div>';
+                }
+
+                $out .= '</section>';
+
+                if ( ! wp_script_is( 'nuclen-toc-front', 'enqueued' ) ) {
+                        wp_enqueue_script( 'nuclen-toc-front' );
+                }
+
+                return $out;
+        }
 
 	/* ───────────────── heading-ID injector ───────────────────── */
 	public function add_heading_ids( string $content ) : string {
