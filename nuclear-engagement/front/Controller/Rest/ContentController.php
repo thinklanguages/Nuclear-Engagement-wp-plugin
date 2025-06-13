@@ -49,6 +49,12 @@ class ContentController {
      */
     public function handle(\WP_REST_Request $request) {
         try {
+            // Verify REST nonce before processing any data
+            $nonce = $request->get_header('X-WP-Nonce');
+            if (!wp_verify_nonce($nonce, 'wp_rest')) {
+                return new \WP_Error('rest_invalid_nonce', __('Invalid nonce', 'nuclear-engagement'), ['status' => 403]);
+            }
+
             $data = $request->get_json_params();
             
             $this->utils->nuclen_log('Received content via REST: ' . json_encode([
