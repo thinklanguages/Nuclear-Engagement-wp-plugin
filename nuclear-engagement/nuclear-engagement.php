@@ -101,6 +101,7 @@ spl_autoload_register(function ($class) {
             'NuclearEngagement\\Admin\\Controller\\Ajax\\UpdatesController' => '/admin/Controller/Ajax/UpdatesController.php',
             'NuclearEngagement\\Admin\\Controller\\Ajax\\PointerController' => '/admin/Controller/Ajax/PointerController.php',
             'NuclearEngagement\\Admin\\Controller\\Ajax\\PostsCountController' => '/admin/Controller/Ajax/PostsCountController.php',
+            'NuclearEngagement\\Admin\\Controller\\Ajax\\BaseController' => '/admin/Controller/Ajax/BaseController.php',
             
             // Front classes
             'NuclearEngagement\\Front\\FrontClass' => '/front/FrontClass.php',

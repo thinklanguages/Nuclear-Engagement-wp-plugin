@@ -19,7 +19,7 @@ if (!defined('ABSPATH')) {
 /**
  * Controller for content generation
  */
-class GenerateController {
+class GenerateController extends BaseController {
     /**
      * @var GenerationService
      */
@@ -39,17 +39,8 @@ class GenerateController {
      */
     public function handle(): void {
         try {
-            
-            // Security check
-            if (!check_ajax_referer('nuclen_admin_ajax_nonce', 'security', false)) {
-                status_header(403);
-                wp_send_json_error(['message' => 'Security check failed: Invalid nonce']);
-                return;
-            }
-            
-            if (!current_user_can('manage_options')) {
-                status_header(403);
-                wp_send_json_error(['message' => 'Not allowed']);
+
+            if (!$this->verifyRequest('nuclen_admin_ajax_nonce')) {
                 return;
             }
             
