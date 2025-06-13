@@ -11,16 +11,16 @@ namespace NuclearEngagement\Admin;
 
 trait SettingsColorPickerTrait {
 
-	/**
-	 * Enqueue WP colour picker on admin pages.
-	 *
-	 * @param string $hook_suffix Current admin screen.
-	 */
-	public function nuclen_enqueue_color_picker( $hook_suffix ) {
-		wp_enqueue_style( 'wp-color-picker' );
-		wp_enqueue_script( 'wp-color-picker' );
-
-		$inline_js = 'jQuery(document).ready(function($){ $(".wp-color-picker-field").wpColorPicker(); });';
-		wp_add_inline_script( 'wp-color-picker', $inline_js );
-	}
+        /**
+         * Previously enqueued the jQuery-based WP color picker.
+         *
+         * The settings page now uses native <input type="color"> elements,
+         * so no additional scripts are required. This method remains to
+         * preserve the public API but performs no actions.
+         *
+         * @param string $hook_suffix Current admin screen.
+         */
+        public function nuclen_enqueue_color_picker( $hook_suffix ) {
+                // No-op: color inputs rely on native browser widgets.
+        }
 }
