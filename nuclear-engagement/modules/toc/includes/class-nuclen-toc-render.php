@@ -25,13 +25,13 @@ final class Nuclen_TOC_Render {
 		add_filter( 'the_content',               [ $this, 'nuclen_add_heading_ids' ], 99 );
 
 		// i18n for strings inside this class
-		add_action( 'plugins_loaded', static function () {
-			load_plugin_textdomain(
-				'nuclen-toc-shortcode',
-				false,
-				dirname( plugin_basename( NUCLEN_TOC_DIR ) ) . '/languages'
-			);
-		} );
+                add_action( 'init', static function () {
+                        load_plugin_textdomain(
+                                'nuclen-toc-shortcode',
+                                false,
+                                dirname( plugin_basename( NUCLEN_TOC_DIR ) ) . '/languages'
+                        );
+                } );
 	}
 
 	/**
