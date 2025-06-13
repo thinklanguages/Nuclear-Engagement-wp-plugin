@@ -37,3 +37,12 @@ The loader now requires these files and spins up each class. This keeps
 responsibilities narrow and makes future maintenance easier.
 
 
+## Settings Cache Extraction
+
+`SettingsRepository` previously managed all option caching and invalidation logic in addition to reading and writing settings. To keep the repository focused on persistence, these cache duties now live in a dedicated `SettingsCache` class.
+
+- `SettingsCache` handles object cache operations and registers hooks to invalidate the cache when the option updates.
+- `SettingsRepository` composes the new cache class and delegates calls such as `invalidate_cache()` to it.
+- The autoloader maps `NuclearEngagement\SettingsCache`.
+
+This keeps `SettingsRepository` under the 300 LOC limit and reduces its method count for easier maintenance.

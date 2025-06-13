@@ -7,6 +7,7 @@
 
 namespace NuclearEngagement;
 use NuclearEngagement\SettingsSanitizer;
+use NuclearEngagement\SettingsCache;
 
 if (!defined('ABSPATH')) {
     exit;
@@ -29,15 +30,6 @@ final class SettingsRepository
      */
     const MAX_AUTOLOAD_SIZE = 512000;
     
-    /**
-     * Cache group for object caching
-     */
-    const CACHE_GROUP = 'nuclen_settings';
-    
-    /**
-     * Cache expiration time
-     */
-    const CACHE_EXPIRATION = 3600; // 1 hour
 
     /**
      * Singleton instance.
@@ -53,6 +45,11 @@ final class SettingsRepository
      * Pending changes not yet saved.
      */
     private $pending = [];
+
+    /**
+     * Cache handler.
+     */
+    private SettingsCache $cache;
 
 
     /**
@@ -71,26 +68,10 @@ final class SettingsRepository
     private function __construct(array $defaults = []) {
         // Merge provided defaults with built-in defaults
         $this->defaults = wp_parse_args($defaults, Defaults::nuclen_get_default_settings());
-        $this->setup_hooks();
+        $this->cache = new SettingsCache();
+        $this->cache->register_hooks();
     }
 
-    /**
-     * Set up WordPress hooks.
-     */
-    private function setup_hooks(): void {
-        add_action('updated_option', [$this, 'maybe_invalidate_cache'], 10, 3);
-        add_action('deleted_option', [$this, 'maybe_invalidate_cache_on_delete'], 10, 1);
-        add_action('switch_blog', [$this, 'invalidate_cache']);
-    }
-
-    /**
-     * Get cache key for current site
-     *
-     * @return string
-     */
-    private function get_cache_key(): string {
-        return 'settings_' . get_current_blog_id();
-    }
 
     /* ===================================================================
      * GETTERS
@@ -100,10 +81,8 @@ final class SettingsRepository
      * Get all settings with defaults merged in.
      */
     public function all(): array {
-        $cache_key = $this->get_cache_key();
-        $cached = wp_cache_get($cache_key, self::CACHE_GROUP);
-        
-        if (false !== $cached && is_array($cached)) {
+        $cached = $this->cache->get();
+        if (null !== $cached) {
             return $cached;
         }
         
@@ -115,7 +94,7 @@ final class SettingsRepository
         );
         
         // Store in cache
-        wp_cache_set($cache_key, $settings, self::CACHE_GROUP, self::CACHE_EXPIRATION);
+        $this->cache->set($settings);
         
         return $settings;
     }
@@ -268,31 +247,21 @@ final class SettingsRepository
      * Invalidate the settings cache.
      */
     public function invalidate_cache(): void {
-        $cache_key = $this->get_cache_key();
-        wp_cache_delete($cache_key, self::CACHE_GROUP);
-        
-        // Also clear any global cache keys if using external object cache
-        if (function_exists('wp_cache_flush_group')) {
-            wp_cache_flush_group(self::CACHE_GROUP);
-        }
+        $this->cache->invalidate_cache();
     }
 
     /**
      * Handle option updates to invalidate cache.
      */
     public function maybe_invalidate_cache($option, $old_value, $value): void {
-        if ($option === self::OPTION) {
-            $this->invalidate_cache();
-        }
+        $this->cache->maybe_invalidate_cache($option);
     }
 
     /**
      * Handle option deletion to invalidate cache.
      */
     public function maybe_invalidate_cache_on_delete($option): void {
-        if ($option === self::OPTION) {
-            $this->invalidate_cache();
-        }
+        $this->cache->maybe_invalidate_cache($option);
     }
 
     /* ===================================================================
@@ -361,7 +330,7 @@ final class SettingsRepository
      * Clear all cached data (for testing).
      */
     public function clear_cache(): void {
-        $this->invalidate_cache();
+        $this->cache->clear();
     }
 
     /**
@@ -370,7 +339,7 @@ final class SettingsRepository
     public static function _reset_for_tests(): void {
         self::$instance = null;
         if (function_exists('wp_cache_flush_group')) {
-            wp_cache_flush_group(self::CACHE_GROUP);
+            wp_cache_flush_group(SettingsCache::CACHE_GROUP);
         }
     }
 }

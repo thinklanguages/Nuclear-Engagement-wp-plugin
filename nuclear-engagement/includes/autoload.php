@@ -22,6 +22,7 @@ spl_autoload_register(function ($class) {
             'NuclearEngagement\\Deactivator' => '/includes/Deactivator.php',
             'NuclearEngagement\\SettingsRepository' => '/includes/SettingsRepository.php',
             'NuclearEngagement\\SettingsSanitizer' => '/includes/SettingsSanitizer.php',
+            'NuclearEngagement\\SettingsCache' => '/includes/SettingsCache.php',
             'NuclearEngagement\\Container' => '/includes/Container.php',
             'NuclearEngagement\\Defaults' => '/includes/Defaults.php',
             'NuclearEngagement\\OptinData' => '/includes/OptinData.php',
