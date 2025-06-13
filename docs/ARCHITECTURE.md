@@ -154,3 +154,10 @@ dismissal requests via `fetch`. The PHP loader no longer enqueues the
 `wp-pointer` script or lists jQuery as a dependency—only the style sheet
 remains. This reduces dependencies and keeps the admin bundle lightweight.
 
+## jQuery Removal from Settings Display
+
+The settings page used jQuery to toggle the "Show TOC content" option when
+the toggle button was enabled. To follow the no-jQuery guideline, this inline
+script now uses vanilla JavaScript. The behavior remains the same but without
+relying on the jQuery library.
+
