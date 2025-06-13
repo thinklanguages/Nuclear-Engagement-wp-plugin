@@ -26,3 +26,9 @@ Install dependencies with `composer install` and run linting with:
 ```bash
 composer lint
 ```
+
+Run the PHPUnit test suite with:
+
+```bash
+composer test
+```
