@@ -18,4 +18,8 @@ handled by a dedicated `SettingsSanitizer` class under `includes/`.
 
 This refactor keeps the repository focused on persistence logic while making the
 sanitization rules easier to maintain and test in isolation.
+## Slim Bootloader
+
+To align with the maintainable plugin structure, the plugin entry file now only includes the header and requires `bootstrap.php`. Initialization logic—including constant definitions, autoloader registration and hook setup—resides in the bootstrap file. This keeps `nuclear-engagement.php` under 50 lines for better clarity.
+
 
