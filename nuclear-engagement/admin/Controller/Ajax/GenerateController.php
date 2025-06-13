@@ -70,4 +70,53 @@ class GenerateController extends BaseController {
             wp_send_json_error(['message' => 'An unexpected error occurred. Please check your error logs.']);
         }
     }
+
+    /**
+     * Get generation progress.
+     */
+    public function progress(): void {
+        try {
+            if (!$this->verifyRequest('nuclen_admin_ajax_nonce')) {
+                return;
+            }
+
+            $generation_id = isset($_POST['generation_id']) ? sanitize_text_field(wp_unslash($_POST['generation_id'])) : null;
+            $progress = $this->service->getProgress($generation_id);
+
+            wp_send_json_success(['generations' => $progress]);
+        } catch (\Exception $e) {
+            error_log('Nuclear Engagement progress error: ' . $e->getMessage());
+            wp_send_json_error(['message' => 'Failed to get progress']);
+        }
+    }
+
+    /**
+     * Dismiss a generation notice.
+     */
+    public function dismiss(): void {
+        try {
+            if (!$this->verifyRequest('nuclen_admin_ajax_nonce')) {
+                return;
+            }
+
+            if (empty($_POST['generation_id'])) {
+                wp_send_json_error(['message' => 'Missing generation ID']);
+                return;
+            }
+
+            $generation_id = sanitize_text_field(wp_unslash($_POST['generation_id']));
+            $container = \NuclearEngagement\Container::getInstance();
+            /** @var \NuclearEngagement\Services\GenerationTracker $tracker */
+            $tracker = $container->get('generation_tracker');
+
+            if ($tracker->dismiss($generation_id)) {
+                wp_send_json_success();
+            } else {
+                wp_send_json_error(['message' => 'Failed to dismiss generation']);
+            }
+        } catch (\Exception $e) {
+            error_log('Nuclear Engagement dismiss error: ' . $e->getMessage());
+            wp_send_json_error(['message' => 'Failed to dismiss']);
+        }
+    }
 }

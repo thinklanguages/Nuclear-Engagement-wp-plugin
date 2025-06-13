@@ -36,7 +36,12 @@ class GenerationService {
      * @var ContentStorageService
      */
     private ContentStorageService $storage;
-    
+
+    /**
+     * @var GenerationTracker
+     */
+    private GenerationTracker $tracker;
+
     /**
      * @var Utils
      */
@@ -52,11 +57,13 @@ class GenerationService {
     public function __construct(
         SettingsRepository $settings,
         RemoteApiService $api,
-        ContentStorageService $storage
+        ContentStorageService $storage,
+        GenerationTracker $tracker
     ) {
         $this->settings = $settings;
         $this->api = $api;
         $this->storage = $storage;
+        $this->tracker = $tracker;
         $this->utils = new Utils();
     }
     
@@ -81,6 +88,16 @@ class GenerationService {
             'summary_length' => $request->summaryLength,
             'summary_number_of_items' => $request->summaryItems,
         ];
+
+        // Create tracker record
+        $this->tracker->create([
+            'generation_id' => $request->generationId,
+            'workflow_type' => $request->workflowType,
+            'post_ids'      => $request->postIds,
+            'total'         => count($posts),
+            'status'        => 'pending',
+            'next_poll'     => date('Y-m-d H:i:s', time() + 10),
+        ]);
         
         // Send to API
         $result = $this->api->sendPostsToGenerate([
@@ -120,8 +137,25 @@ class GenerationService {
         if (!empty($result['results']) && is_array($result['results'])) {
             $this->storage->storeResults($result['results'], $request->workflowType);
             $response->results = $result['results'];
+
+            $processed = count($result['results']);
+            $this->tracker->update($request->generationId, [
+                'processed' => $processed,
+                'status'    => $processed >= count($posts) ? 'complete' : 'processing',
+            ]);
+
+            if ($processed >= count($posts)) {
+                return $response;
+            }
         }
-        
+
+        // Schedule polling via cron
+        if (!wp_next_scheduled('nuclen_poll_generation', [$request->generationId, $request->workflowType, 0, 1])) {
+            wp_schedule_single_event(time() + 60, 'nuclen_poll_generation', [$request->generationId, $request->workflowType, 0, 1]);
+        }
+
+        $this->tracker->update($request->generationId, ['status' => 'processing']);
+
         return $response;
     }
     
@@ -210,5 +244,29 @@ class GenerationService {
     private function isProtected(int $postId, string $workflowType): bool {
         $metaKey = $workflowType === 'quiz' ? 'nuclen_quiz_protected' : 'nuclen_summary_protected';
         return (bool) get_post_meta($postId, $metaKey, true);
+    }
+
+    /**
+     * Get progress for active generations.
+     *
+     * @param string|null $generation_id Specific generation ID.
+     * @return array
+     */
+    public function getProgress(?string $generation_id = null): array {
+        if ($generation_id) {
+            $record = $this->tracker->get($generation_id);
+            return $record ? [$record] : [];
+        }
+
+        $user_id = get_current_user_id();
+        $records = $this->tracker->getActive();
+
+        if (!current_user_can('manage_options')) {
+            $records = array_filter($records, function ($r) use ($user_id) {
+                return $r->user_id == $user_id;
+            });
+        }
+
+        return array_values($records);
     }
 }
