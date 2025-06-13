@@ -1,10 +1,9 @@
 // nuclen-admin-onboarding.ts
 
-// 1) Declare the global shape of window.nePointerData and jQuery.
+// 1) Declare the global shape of window.nePointerData.
 declare global {
   interface Window {
     nePointerData?: NuclenPointerData;
-    jQuery: any; // or better types if you prefer
   }
 }
 
@@ -28,9 +27,9 @@ export interface NuclenPointer {
 }
 
 // Wrap our logic in an IIFE
-(function($: any) {
+(function() {
   // Wait for DOM ready
-  $(document).ready(() => {
+  document.addEventListener('DOMContentLoaded', () => {
     const pointerData = window.nePointerData;
 
     // Check that pointerData exists and has pointers
@@ -49,32 +48,87 @@ export interface NuclenPointer {
       }
 
       const ptr = pointers[currentIndex];
-      const $target = $(ptr.target);
+      const target = document.querySelector<HTMLElement>(ptr.target);
 
-      if (!$target.length) {
+      if (!target) {
         currentIndex++;
         nuclenShowNextPointer();
         return;
       }
 
-      // Initialize WP pointer
-      $target.pointer({
-        content: `<h3>${ptr.title}</h3><p>${ptr.content}</p>`,
-        position: ptr.position,
-        close: () => {
-          // Call our custom AJAX action to dismiss pointer
-          $.post(ajaxurl, {
-            action: 'nuclen_dismiss_pointer',
-            pointer: ptr.id,
-            nonce: nonce // Pass the pointer nonce
-          });
-          currentIndex++;
-          nuclenShowNextPointer();
+      const wrapper = document.createElement('div');
+      wrapper.className = `wp-pointer pointer-${ptr.position.edge}`;
+      wrapper.style.position = 'absolute';
+      wrapper.innerHTML = `
+        <div class="wp-pointer-content">
+          <h3>${ptr.title}</h3>
+          <p>${ptr.content}</p>
+          <a class="close" href="#">Dismiss</a>
+        </div>
+      `;
+      document.body.appendChild(wrapper);
+
+      const rect = target.getBoundingClientRect();
+      let top = window.scrollY + rect.top;
+      let left = window.scrollX + rect.left;
+
+      switch (ptr.position.edge) {
+        case 'top':
+          top -= wrapper.offsetHeight;
+          break;
+        case 'bottom':
+          top += rect.height;
+          break;
+        case 'left':
+          left -= wrapper.offsetWidth;
+          break;
+        case 'right':
+          left += rect.width;
+          break;
+      }
+
+      if (ptr.position.align === 'center') {
+        if (ptr.position.edge === 'top' || ptr.position.edge === 'bottom') {
+          left += (rect.width - wrapper.offsetWidth) / 2;
+        } else {
+          top += (rect.height - wrapper.offsetHeight) / 2;
         }
-      }).pointer('open');
+      } else if (ptr.position.align === 'right' || ptr.position.align === 'bottom') {
+        if (ptr.position.edge === 'top' || ptr.position.edge === 'bottom') {
+          left += rect.width - wrapper.offsetWidth;
+        } else {
+          top += rect.height - wrapper.offsetHeight;
+        }
+      }
+
+      wrapper.style.top = `${Math.max(top, 0)}px`;
+      wrapper.style.left = `${Math.max(left, 0)}px`;
+
+      const close = wrapper.querySelector<HTMLAnchorElement>('.close');
+      close?.addEventListener('click', (e) => {
+        e.preventDefault();
+
+        const form = new URLSearchParams();
+        form.append('action', 'nuclen_dismiss_pointer');
+        form.append('pointer', ptr.id);
+        if (nonce) {
+          form.append('nonce', nonce);
+        }
+
+        fetch(ajaxurl, {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: form.toString(),
+        });
+
+        wrapper.remove();
+        currentIndex++;
+        nuclenShowNextPointer();
+      });
     }
 
     // Start the sequence
     nuclenShowNextPointer();
   });
-})(window.jQuery);
+})();

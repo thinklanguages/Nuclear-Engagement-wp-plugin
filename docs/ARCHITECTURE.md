@@ -145,3 +145,12 @@ These routines now reside in a dedicated `PostsQueryService` used by
 
 This keeps query logic contained while leaving `Utils` focused on rendering tasks.
 
+## jQuery Removal from Onboarding
+
+The original onboarding pointer script relied on jQuery and the `wp-pointer` plugin.
+To meet the "no jQuery" guideline, the logic now uses vanilla TypeScript.
+`onboarding-pointers.js` manually positions `.wp-pointer` elements and sends
+dismissal requests via `fetch`. The PHP loader no longer enqueues the
+`wp-pointer` script or lists jQuery as a dependency—only the style sheet
+remains. This reduces dependencies and keeps the admin bundle lightweight.
+

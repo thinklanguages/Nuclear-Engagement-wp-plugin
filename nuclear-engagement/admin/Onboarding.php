@@ -79,16 +79,15 @@ class Onboarding {
 		}
 
 		/* ───── 4. Enqueue pointer assets ───── */
-		wp_enqueue_style(  'wp-pointer' );
-		wp_enqueue_script( 'wp-pointer' );
+                wp_enqueue_style(  'wp-pointer' );
 
-		wp_enqueue_script(
-			'nuclen-onboarding',
-			plugin_dir_url( __DIR__ ) . 'admin/js/onboarding-pointers.js',
-			array( 'jquery', 'wp-pointer', 'wp-util' ),
-			defined( 'NUCLEN_ASSET_VERSION' ) ? NUCLEN_ASSET_VERSION : '1',
-			true
-		);
+                wp_enqueue_script(
+                        'nuclen-onboarding',
+                        plugin_dir_url( __DIR__ ) . 'admin/js/onboarding-pointers.js',
+                        array( 'wp-util' ),
+                        defined( 'NUCLEN_ASSET_VERSION' ) ? NUCLEN_ASSET_VERSION : '1',
+                        true
+                );
 
 		/* ───── 5. Inject payload via wp_add_inline_script() ───── */
 		$payload = array(
