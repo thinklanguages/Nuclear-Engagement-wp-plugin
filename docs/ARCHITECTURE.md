@@ -63,3 +63,12 @@ two dedicated classes: `QuizShortcode` and `SummaryShortcode`. Each class
 registers its shortcode and builds output using the corresponding view class.
 `ShortcodesTrait` merely instantiates these handlers and delegates calls.
 The autoloader maps the new classes under the `Front` namespace.
+
+## Container Registration Extraction
+
+`Plugin` previously contained a lengthy `initializeContainer()` method that
+registered all services and controllers. This pushed the class over the
+15-method threshold. The logic now lives in a dedicated
+`ContainerRegistrar` class with a static `register()` method. `Plugin`
+instantiates the container and delegates the registration work to this new
+class, keeping the main class focused on coordinating hooks.

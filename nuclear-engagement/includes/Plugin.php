@@ -23,6 +23,7 @@ use NuclearEngagement\OptinData;
 use NuclearEngagement\Services\{GenerationService, RemoteApiService, ContentStorageService, PointerService, PostsQueryService, AutoGenerationService};
 use NuclearEngagement\Admin\Controller\Ajax\{GenerateController, UpdatesController, PointerController, PostsCountController};
 use NuclearEngagement\Front\Controller\Rest\ContentController;
+use NuclearEngagement\ContainerRegistrar;
 
 class Plugin {
 
@@ -54,8 +55,9 @@ class Plugin {
                        }
                );
 
-                $this->nuclen_load_dependencies();
-                $this->initializeContainer();
+               $this->nuclen_load_dependencies();
+               $this->container = Container::getInstance();
+               ContainerRegistrar::register( $this->container, $this->settings_repository );
                 // Register hooks for auto-generation on every request
                 $autoGen = $this->container->get('auto_generation_service');
                 $autoGen->register_hooks();
@@ -77,75 +79,7 @@ class Plugin {
                 $this->loader = new Loader();
         }
 	
-	/**
-	 * Initialize the dependency injection container
-	 */
-	private function initializeContainer(): void {
-		$this->container = Container::getInstance();
-		
-		// Register services
-		$this->container->register('settings', function() {
-			return $this->settings_repository;
-		});
-		
-		$this->container->register('remote_api', function($c) {
-			return new RemoteApiService($c->get('settings'));
-		});
-		
-                $this->container->register('content_storage', function($c) {
-                        return new ContentStorageService($c->get('settings'));
-                });
-
-                $this->container->register('auto_generation_service', function($c) {
-                        return new AutoGenerationService(
-                                $c->get('settings'),
-                                $c->get('remote_api'),
-                                $c->get('content_storage')
-                        );
-                });
-		
-		$this->container->register('generation_service', function($c) {
-			return new GenerationService(
-				$c->get('settings'),
-				$c->get('remote_api'),
-				$c->get('content_storage')
-			);
-		});
-		
-		$this->container->register('pointer_service', function() {
-			return new PointerService();
-		});
-		
-		$this->container->register('posts_query_service', function() {
-			return new PostsQueryService();
-		});
-		
-		// Register controllers
-		$this->container->register('generate_controller', function($c) {
-			return new GenerateController($c->get('generation_service'));
-		});
-		
-		$this->container->register('updates_controller', function($c) {
-			return new UpdatesController(
-				$c->get('remote_api'),
-				$c->get('content_storage')
-			);
-		});
-		
-		$this->container->register('pointer_controller', function($c) {
-			return new PointerController($c->get('pointer_service'));
-		});
-		
-		$this->container->register('posts_count_controller', function($c) {
-			return new PostsCountController($c->get('posts_query_service'));
-		});
-		
-		$this->container->register('content_controller', function($c) {
-			return new ContentController($c->get('content_storage'));
-		});
-	}
-
-	/* ─────────────────────────────────────────────
+       /* ─────────────────────────────────────────────
 	   Admin-side hooks
 	──────────────────────────────────────────── */
 	private function nuclen_define_admin_hooks() {
