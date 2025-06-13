@@ -37,7 +37,7 @@ trait RestTrait {
 			$storage->storeQuizData($post_id, $quiz_data);
 			return true;
 		} catch (\Exception $e) {
-			$this->utils->nuclen_log("Failed storing quiz-data for {$post_id}: " . $e->getMessage());
+\NuclearEngagement\Services\LoggingService::log("Failed storing quiz-data for {$post_id}: " . $e->getMessage());
 			return false;
 		}
 	}
@@ -48,7 +48,7 @@ trait RestTrait {
 			$api = $container->get('remote_api');
 			return $api->sendPostsToGenerate($data_to_send);
 		} catch (\Exception $e) {
-			$this->utils->nuclen_log('Error sending data: ' . $e->getMessage());
+\NuclearEngagement\Services\LoggingService::log('Error sending data: ' . $e->getMessage());
 			return false;
 		}
 	}

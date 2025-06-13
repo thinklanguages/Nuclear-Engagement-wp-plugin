@@ -60,7 +60,7 @@ class SetupService {
         );
 
         if (is_wp_error($response)) {
-            $this->utils->nuclen_log('API-key validation error: ' . $response->get_error_message());
+\NuclearEngagement\Services\LoggingService::log('API-key validation error: ' . $response->get_error_message());
             return false;
         }
 
@@ -91,7 +91,7 @@ class SetupService {
         );
 
         if (is_wp_error($response)) {
-            $this->utils->nuclen_log('Error sending creds: ' . $response->get_error_message());
+\NuclearEngagement\Services\LoggingService::log('Error sending creds: ' . $response->get_error_message());
             return false;
         }
 

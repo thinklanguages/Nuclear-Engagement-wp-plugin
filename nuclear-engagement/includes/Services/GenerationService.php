@@ -140,7 +140,7 @@ class GenerationService {
         
         // Check if protected
         if ($this->isProtected($postId, $workflowType)) {
-            $this->utils->nuclen_log("Skipping protected {$workflowType} for post {$postId}");
+\NuclearEngagement\Services\LoggingService::log("Skipping protected {$workflowType} for post {$postId}");
             return;
         }
         
@@ -161,10 +161,10 @@ class GenerationService {
                     'nuclen_poll_generation',
                     [$response->generationId, $workflowType, $postId, 1]
                 );
-                $this->utils->nuclen_log("Scheduled polling for post {$postId}, generation {$response->generationId}");
+\NuclearEngagement\Services\LoggingService::log("Scheduled polling for post {$postId}, generation {$response->generationId}");
             }
         } catch (\Exception $e) {
-            $this->utils->nuclen_log("Error generating {$workflowType} for post {$postId}: " . $e->getMessage());
+\NuclearEngagement\Services\LoggingService::log("Error generating {$workflowType} for post {$postId}: " . $e->getMessage());
             throw $e;
         }
     }

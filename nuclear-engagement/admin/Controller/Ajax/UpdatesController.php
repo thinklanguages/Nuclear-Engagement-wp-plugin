@@ -68,7 +68,7 @@ class UpdatesController extends BaseController {
 			}
 
 			$data = $this->api->fetchUpdates( $request->generationId );
-			$this->utils->nuclen_log( 'Updates response: ' . wp_json_encode( $data ) );
+\NuclearEngagement\Services\LoggingService::log( 'Updates response: ' . wp_json_encode( $data ) );
 
 			$response          = new UpdatesResponse();
 			$response->success = true;
@@ -100,7 +100,7 @@ class UpdatesController extends BaseController {
 			wp_send_json_success( $response->toArray() );
 
 		} catch ( \Exception $e ) {
-			$this->utils->nuclen_log( 'Error fetching updates: ' . $e->getMessage() );
+\NuclearEngagement\Services\LoggingService::log( 'Error fetching updates: ' . $e->getMessage() );
 			wp_send_json_error( array( 'message' => $e->getMessage() ) );
 		}
 	}

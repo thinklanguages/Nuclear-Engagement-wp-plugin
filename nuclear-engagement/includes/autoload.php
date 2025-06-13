@@ -57,6 +57,7 @@ spl_autoload_register(function ($class) {
             'NuclearEngagement\\Services\\PostsQueryService' => '/includes/Services/PostsQueryService.php',
             'NuclearEngagement\\Services\\AutoGenerationService' => '/includes/Services/AutoGenerationService.php',
             'NuclearEngagement\\Services\\SetupService' => '/includes/Services/SetupService.php',
+            'NuclearEngagement\\Services\\LoggingService' => '/includes/Services/LoggingService.php',
 
             'NuclearEngagement\\Requests\\ContentRequest' => '/includes/Requests/ContentRequest.php',
             'NuclearEngagement\\Requests\\GenerateRequest' => '/includes/Requests/GenerateRequest.php',

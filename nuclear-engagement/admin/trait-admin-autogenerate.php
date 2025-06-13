@@ -75,7 +75,7 @@ trait Admin_AutoGenerate {
             $service = $container->get('generation_service');
             $service->generateSingle($post_id, $workflow_type);
         } catch (\Exception $e) {
-            $this->nuclen_get_utils()->nuclen_log('Auto-generation error: ' . $e->getMessage());
+\NuclearEngagement\Services\LoggingService::log('Auto-generation error: ' . $e->getMessage());
         }
     }
 
@@ -104,7 +104,7 @@ trait Admin_AutoGenerate {
             // Check if we have results
             if (!empty($data['results']) && is_array($data['results'])) {
                 $storage->storeResults($data['results'], $workflow_type);
-                $this->nuclen_get_utils()->nuclen_log(
+\NuclearEngagement\Services\LoggingService::log(
                     "Poll success for post {$post_id} ({$workflow_type}), generation {$generation_id}"
                 );
                 return;
@@ -113,13 +113,13 @@ trait Admin_AutoGenerate {
             // Check if still processing
             if (isset($data['success']) && $data['success'] === true) {
                 // Still processing, continue polling
-                $this->nuclen_get_utils()->nuclen_log(
+\NuclearEngagement\Services\LoggingService::log(
                     "Still processing post {$post_id} ({$workflow_type}), attempt {$attempt}/{$max_attempts}"
                 );
             }
             
         } catch (\Exception $e) {
-            $this->nuclen_get_utils()->nuclen_log(
+\NuclearEngagement\Services\LoggingService::log(
                 "Polling error for post {$post_id} ({$workflow_type}): " . $e->getMessage()
             );
         }
@@ -132,7 +132,7 @@ trait Admin_AutoGenerate {
                 array( $generation_id, $workflow_type, $post_id, $attempt + 1 )
             );
         } else {
-            $this->nuclen_get_utils()->nuclen_log(
+\NuclearEngagement\Services\LoggingService::log(
                 "Polling aborted after {$max_attempts} attempts for post {$post_id} ({$workflow_type})"
             );
         }
