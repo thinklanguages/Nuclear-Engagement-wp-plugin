@@ -10,6 +10,7 @@ namespace NuclearEngagement\Services;
 use NuclearEngagement\SettingsRepository;
 use NuclearEngagement\Services\RemoteApiService;
 use NuclearEngagement\Services\ContentStorageService;
+use NuclearEngagement\Services\GenerationTracker;
 
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
@@ -32,6 +33,11 @@ class AutoGenerationService {
     private $content_storage;
 
     /**
+     * @var GenerationTracker
+     */
+    private $tracker;
+
+    /**
      * Constructor
      *
      * @param SettingsRepository $settings_repository
@@ -41,11 +47,13 @@ class AutoGenerationService {
     public function __construct(
         SettingsRepository $settings_repository,
         RemoteApiService $remote_api,
-        ContentStorageService $content_storage
+        ContentStorageService $content_storage,
+        GenerationTracker $tracker
     ) {
         $this->settings_repository = $settings_repository;
         $this->remote_api = $remote_api;
         $this->content_storage = $content_storage;
+        $this->tracker = $tracker;
     }
 
     /**
@@ -140,6 +148,16 @@ class AutoGenerationService {
 
             $generation_id = 'gen_' . uniqid('auto_', true);
 
+            // Create tracker record
+            $this->tracker->create([
+                'generation_id' => $generation_id,
+                'workflow_type' => $workflow_type,
+                'post_ids'      => [$post_id],
+                'total'         => 1,
+                'status'        => 'pending',
+                'next_poll'     => date('Y-m-d H:i:s', time() + 15),
+            ]);
+
             $data_to_send = [
                 'posts' => $post_data,
                 'workflow' => $workflow,
@@ -153,29 +171,18 @@ class AutoGenerationService {
                 return;
             }
 
-            // Schedule the first poll in 15 seconds
-            $next_poll = time() + 15;
-            
-            // Store the generation ID in options for the cron job
-            $generations = get_option('nuclen_active_generations', []);
-            $generations[$generation_id] = [
-                'started_at' => current_time('mysql'),
-                'post_ids' => [$post_id],
-                'next_poll' => $next_poll,
-                'attempt' => 1,
-                'workflow_type' => $workflow_type,
-            ];
-            update_option('nuclen_active_generations', $generations);
-
-            // Schedule the cron event
+            // Schedule the first poll
+            $next_poll = time() + 60;
             if (!wp_next_scheduled('nuclen_poll_generation', [$generation_id, $workflow_type, $post_id, 1])) {
                 wp_schedule_single_event($next_poll, 'nuclen_poll_generation', [
-                    'generation_id' => $generation_id,
-                    'workflow_type' => $workflow_type,
-                    'post_id' => $post_id,
-                    'attempt' => 1
+                    $generation_id,
+                    $workflow_type,
+                    $post_id,
+                    1
                 ]);
             }
+
+            $this->tracker->update($generation_id, ['status' => 'processing']);
 
         } catch (\Exception $e) {
             error_log('Error in generate_single: ' . $e->getMessage());
@@ -193,49 +200,54 @@ class AutoGenerationService {
     public function poll_generation(string $generation_id, string $workflow_type, int $post_id, int $attempt): void {
         $max_attempts = 10;
         $retry_delay = 60; // 1 minute between retries
-        
+
+        // Get tracker record
+        $record = $this->tracker->get($generation_id);
+        if (!$record || $record->status === 'complete' || $record->status === 'failed') {
+            return;
+        }
+
         try {
-            // Check if auto-generation is enabled for this post type
             $connected = $this->settings_repository->get('connected', false);
             $wp_app_pass_created = $this->settings_repository->get('wp_app_pass_created', false);
             if (!$connected || !$wp_app_pass_created) {
+                $this->tracker->update($generation_id, ['status' => 'failed']);
                 return;
             }
 
-            // Get updates from the API
             $data = $this->remote_api->fetchUpdates($generation_id);
-            
-            // Check if we have results
+
             if (!empty($data['results']) && is_array($data['results'])) {
                 $this->content_storage->storeResults($data['results'], $workflow_type);
-                error_log("Poll success for post {$post_id} ({$workflow_type}), generation {$generation_id}");
-                return;
+                $processed = $record->processed + count($data['results']);
+
+                $this->tracker->update($generation_id, [
+                    'processed' => $processed,
+                    'status'    => $processed >= $record->total ? 'complete' : 'processing',
+                ]);
+
+                if ($processed >= $record->total) {
+                    return;
+                }
             }
-            
-            // Check if still processing
-            if (isset($data['success']) && $data['success'] === true) {
-                // Still processing, log the attempt
-                error_log("Still processing post {$post_id} ({$workflow_type}), attempt {$attempt}/{$max_attempts}");
-            }
-            
         } catch (\Exception $e) {
-            error_log("Polling error for post {$post_id} ({$workflow_type}): " . $e->getMessage());
+            error_log("Polling error for generation {$generation_id}: " . $e->getMessage());
         }
 
-        // Schedule next poll if not at max attempts
         if ($attempt < $max_attempts) {
+            $next_poll = time() + $retry_delay;
+            $this->tracker->update($generation_id, [
+                'next_poll' => date('Y-m-d H:i:s', $next_poll),
+                'attempt'   => $attempt + 1,
+            ]);
+
             wp_schedule_single_event(
-                time() + $retry_delay,
+                $next_poll,
                 'nuclen_poll_generation',
-                [
-                    'generation_id' => $generation_id,
-                    'workflow_type' => $workflow_type,
-                    'post_id' => $post_id,
-                    'attempt' => $attempt + 1
-                ]
+                [$generation_id, $workflow_type, $post_id, $attempt + 1]
             );
         } else {
-            error_log("Polling aborted after {$max_attempts} attempts for post {$post_id} ({$workflow_type})");
+            $this->tracker->update($generation_id, ['status' => 'failed']);
         }
     }
 
