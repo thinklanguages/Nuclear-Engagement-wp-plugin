@@ -88,49 +88,39 @@ final class Nuclen_TOC_Render {
 	 * @param array $atts Raw shortcode attributes
 	 * @return array Validated attributes
 	 */
-	private function validate_shortcode_atts( array $atts ) : array {
-		// Define valid values for each attribute
-		$valid_lists = [ 'ul', 'ol' ];
-		$valid_booleans = [ 'true', 'false' ];
-		$valid_themes = [ 'light', 'dark', 'auto' ];
+       private function validate_shortcode_atts( array $atts ) : array {
+               /* List of attributes with limited allowed values. The first
+                * value in each array acts as the default fallback. */
+               $rules = [
+                       'list'      => [ 'ul', 'ol' ],
+                       'toggle'    => [ 'true', 'false' ],
+                       'collapsed' => [ 'true', 'false' ],
+                       'smooth'    => [ 'true', 'false' ],
+                       'highlight' => [ 'true', 'false' ],
+                       'theme'     => [ 'light', 'dark', 'auto' ],
+               ];
 
-		// List type validation
-		if ( isset( $atts['list'] ) && ! in_array( strtolower( $atts['list'] ), $valid_lists, true ) ) {
-			$atts['list'] = 'ul';
-		}
+               /* Validate enumerated attributes. */
+               foreach ( $rules as $attr => $allowed ) {
+                       if ( isset( $atts[ $attr ] ) && ! in_array( strtolower( $atts[ $attr ] ), $allowed, true ) ) {
+                               $atts[ $attr ] = $allowed[0];
+                       }
+               }
 
-		// Boolean validations
-		foreach ( [ 'toggle', 'collapsed', 'smooth', 'highlight' ] as $bool_attr ) {
-			if ( isset( $atts[ $bool_attr ] ) && ! in_array( strtolower( $atts[ $bool_attr ] ), $valid_booleans, true ) ) {
-				$atts[ $bool_attr ] = 'true';
-			}
-		}
+               /* Offset validation (ensure within 0-500). */
+               if ( isset( $atts['offset'] ) ) {
+                       $atts['offset'] = max( 0, min( 500, intval( $atts['offset'] ) ) );
+               }
 
-		// Offset validation (ensure it's a positive integer)
-		if ( isset( $atts['offset'] ) ) {
-			$atts['offset'] = max( 0, min( 500, intval( $atts['offset'] ) ) );
-		}
+               /* Text sanitisation. */
+               foreach ( [ 'title', 'show_text', 'hide_text' ] as $t ) {
+                       if ( isset( $atts[ $t ] ) ) {
+                               $atts[ $t ] = sanitize_text_field( $atts[ $t ] );
+                       }
+               }
 
-		// Theme validation
-		if ( isset( $atts['theme'] ) && ! in_array( strtolower( $atts['theme'] ), $valid_themes, true ) ) {
-			$atts['theme'] = 'light';
-		}
-
-		// Title sanitization
-		if ( isset( $atts['title'] ) ) {
-			$atts['title'] = sanitize_text_field( $atts['title'] );
-		}
-
-		// Show/hide text sanitization
-		if ( isset( $atts['show_text'] ) ) {
-			$atts['show_text'] = sanitize_text_field( $atts['show_text'] );
-		}
-		if ( isset( $atts['hide_text'] ) ) {
-			$atts['hide_text'] = sanitize_text_field( $atts['hide_text'] );
-		}
-
-		return $atts;
-	}
+               return $atts;
+       }
 
 	/* ───────────────── shortcode handler ─────────────────────── */
 	public function nuclen_toc_shortcode( array $atts ) : string {
