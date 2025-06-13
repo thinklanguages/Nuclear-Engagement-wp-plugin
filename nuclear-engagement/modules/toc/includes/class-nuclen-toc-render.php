@@ -296,66 +296,84 @@ final class Nuclen_TOC_Render {
                 return $out;
         }
 
-	/* ───────────────── shortcode handler ─────────────────────── */
-        public function nuclen_toc_shortcode( array $atts ) : string {
-                global $post;
-                if ( empty( $post ) ) { return ''; }
+       /* ───────────────── shortcode handler ─────────────────────── */
+       public function nuclen_toc_shortcode( array $atts ) : string {
+               global $post;
+               if ( empty( $post ) ) {
+                       return '';
+               }
 
-                $settings = SettingsRepository::get_instance();
-                $atts     = $this->prepare_shortcode_attributes( $atts, $settings );
+               $settings = SettingsRepository::get_instance();
+               $atts     = $this->prepare_shortcode_attributes( $atts, $settings );
 
-                $list  = ( strtolower( $atts['list'] ) === 'ol' ) ? 'ol' : 'ul';
-                $heads = Nuclen_TOC_Utils::extract( $post->post_content, $atts['heading_levels'] );
-                if ( ! $heads ) {
-                        return '';
-                }
+               $list  = ( strtolower( $atts['list'] ) === 'ol' ) ? 'ol' : 'ul';
+               $heads = Nuclen_TOC_Utils::extract( $post->post_content, $atts['heading_levels'] );
+               if ( ! $heads ) {
+                       return '';
+               }
 
-                $this->enqueue_assets( $atts );
+               $this->enqueue_assets( $atts );
 
-                $toc_title = $this->get_toc_title( $settings );
-                if ( empty( $atts['title'] ) ) {
-                        $atts['title'] = $toc_title;
-                }
+               $toc_title = $this->get_toc_title( $settings );
+               if ( empty( $atts['title'] ) ) {
+                       $atts['title'] = $toc_title;
+               }
 
-                $nav_id = esc_attr( wp_unique_id( 'nuclen-toc-' ) );
+               $nav_id = esc_attr( wp_unique_id( 'nuclen-toc-' ) );
 
-                $wrapper = $this->build_wrapper_props( $atts, $settings );
-                $classes = $wrapper['classes'];
-                $sticky  = $wrapper['sticky_attrs'];
-                $show    = $wrapper['show_toggle'];
-                $hidden  = $wrapper['hidden'];
+               $wrapper = $this->build_wrapper_props( $atts, $settings );
+               $classes = $wrapper['classes'];
+               $sticky  = $wrapper['sticky_attrs'];
+               $show    = $wrapper['show_toggle'];
+               $hidden  = $wrapper['hidden'];
 
-                $out = '<section id="' . esc_attr( $nav_id ) . '-wrapper" class="' . esc_attr( implode( ' ', $classes ) ) . '"' . $sticky . '>';
+               $out = sprintf(
+                       '<section id="%s-wrapper" class="%s"%s>',
+                       esc_attr( $nav_id ),
+                       esc_attr( implode( ' ', $classes ) ),
+                       $sticky
+               );
 
-                if ( ! empty( $atts['sticky'] ) ) {
-                        $out .= '<div class="nuclen-toc-content">';
-                }
+               if ( ! empty( $atts['sticky'] ) ) {
+                       $out .= '<div class="nuclen-toc-content">';
+               }
 
-                $out .= $this->build_toggle_button( $show, $hidden, $atts, $nav_id );
+               $out .= $this->build_toggle_button( $show, $hidden, $atts, $nav_id );
+               $out .= $this->build_nav_markup( $heads, $list, $atts, $nav_id, $toc_title, $hidden );
 
-                $out .= '<nav id="' . $nav_id . '" class="nuclen-toc" aria-label="' .
-                        esc_attr__( $toc_title, 'nuclen-toc-shortcode' ) . '"' .
-                        ( $hidden ? ' style="display:none"' : '' ) .
-                        ( $atts['highlight'] === 'true' ? ' data-highlight="true"' : '' ) . '>';
+               if ( ! empty( $atts['sticky'] ) ) {
+                       $out .= '</div>';
+               }
 
-                if ( $atts['title'] !== '' ) {
-                        $out .= '<strong class="toc-title">' . esc_html__( $atts['title'], 'nuclen-toc-shortcode' ) . '</strong>';
-                }
+               $out .= '</section>';
 
-                $out .= $this->render_headings_list( $heads, $list );
+               if ( ! wp_script_is( 'nuclen-toc-front', 'enqueued' ) ) {
+                       wp_enqueue_script( 'nuclen-toc-front' );
+               }
 
-                if ( ! empty( $atts['sticky'] ) ) {
-                        $out .= '</div>';
-                }
+               return $out;
+       }
 
-                $out .= '</section>';
+       /**
+        * Build the navigation markup containing the heading list.
+        */
+       private function build_nav_markup( array $heads, string $list, array $atts, string $nav_id, string $toc_title, bool $hidden ) : string {
+               $nav  = sprintf(
+                       '<nav id="%s" class="nuclen-toc" aria-label="%s"%s%s>',
+                       esc_attr( $nav_id ),
+                       esc_attr__( $toc_title, 'nuclen-toc-shortcode' ),
+                       $hidden ? ' style="display:none"' : '',
+                       $atts['highlight'] === 'true' ? ' data-highlight="true"' : ''
+               );
 
-                if ( ! wp_script_is( 'nuclen-toc-front', 'enqueued' ) ) {
-                        wp_enqueue_script( 'nuclen-toc-front' );
-                }
+               if ( $atts['title'] !== '' ) {
+                       $nav .= '<strong class="toc-title">' . esc_html__( $atts['title'], 'nuclen-toc-shortcode' ) . '</strong>';
+               }
 
-                return $out;
-        }
+               $nav .= $this->render_headings_list( $heads, $list ) . '</nav>';
+
+               return $nav;
+       }
 
 	/* ───────────────── heading-ID injector ───────────────────── */
 	public function add_heading_ids( string $content ) : string {
