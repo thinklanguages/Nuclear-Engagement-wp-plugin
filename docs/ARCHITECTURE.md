@@ -161,3 +161,11 @@ the toggle button was enabled. To follow the no-jQuery guideline, this inline
 script now uses vanilla JavaScript. The behavior remains the same but without
 relying on the jQuery library.
 
+## Native Color Inputs
+
+The plugin previously relied on the jQuery-based `wp-color-picker` to style
+color fields on the settings page. To further reduce dependencies, these
+fields now use the browser's native `<input type="color">` element. The
+`SettingsColorPickerTrait` no longer enqueues `wp-color-picker` scripts and is
+a no-op kept for backward compatibility.
+

@@ -35,17 +35,17 @@ if ( ! defined( 'ABSPATH' ) ) {
 		</div>
 		<div class="nuclen-row">
 			<div class="nuclen-column nuclen-label-col"><label for="nuclen_font_color" class="nuclen-label"><?php esc_html_e( 'Quiz Font Color', 'nuclear-engagement' ); ?></label></div>
-			<div class="nuclen-column nuclen-input-col"><input type="text" class="nuclen-input wp-color-picker-field" name="nuclen_font_color" id="nuclen_font_color" value="<?php echo esc_attr( $settings['font_color'] ); ?>"></div>
+                        <div class="nuclen-column nuclen-input-col"><input type="color" class="nuclen-input" name="nuclen_font_color" id="nuclen_font_color" value="<?php echo esc_attr( $settings['font_color'] ); ?>"></div>
 		</div>
 		<div class="nuclen-row">
 			<div class="nuclen-column nuclen-label-col"><label for="nuclen_bg_color" class="nuclen-label"><?php esc_html_e( 'Quiz Background Color', 'nuclear-engagement' ); ?></label></div>
-			<div class="nuclen-column nuclen-input-col"><input type="text" class="nuclen-input wp-color-picker-field" name="nuclen_bg_color" id="nuclen_bg_color" value="<?php echo esc_attr( $settings['bg_color'] ); ?>"></div>
+			<div class="nuclen-column nuclen-input-col"><input type="color" class="nuclen-input" name="nuclen_bg_color" id="nuclen_bg_color" value="<?php echo esc_attr( $settings['bg_color'] ); ?>"></div>
 		</div>
 
 		<h4><?php esc_html_e( 'Border Lines', 'nuclear-engagement' ); ?></h4>
 		<div class="nuclen-row">
 			<div class="nuclen-column nuclen-label-col"><label for="nuclen_quiz_border_color" class="nuclen-label"><?php esc_html_e( 'Quiz Border Color', 'nuclear-engagement' ); ?></label></div>
-			<div class="nuclen-column nuclen-input-col"><input type="text" class="nuclen-input wp-color-picker-field" name="nuclen_quiz_border_color" id="nuclen_quiz_border_color" value="<?php echo esc_attr( $settings['quiz_border_color'] ); ?>"></div>
+			<div class="nuclen-column nuclen-input-col"><input type="color" class="nuclen-input" name="nuclen_quiz_border_color" id="nuclen_quiz_border_color" value="<?php echo esc_attr( $settings['quiz_border_color'] ); ?>"></div>
 		</div>
 		<div class="nuclen-row">
 			<div class="nuclen-column nuclen-label-col"><label for="nuclen_quiz_border_style" class="nuclen-label"><?php esc_html_e( 'Quiz Border Style', 'nuclear-engagement' ); ?></label></div>
@@ -70,7 +70,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 		</div>
 		<div class="nuclen-row">
 			<div class="nuclen-column nuclen-label-col"><label for="nuclen_quiz_shadow_color" class="nuclen-label"><?php esc_html_e( 'Quiz Shadow Color', 'nuclear-engagement' ); ?></label></div>
-			<div class="nuclen-column nuclen-input-col"><input type="text" class="nuclen-input wp-color-picker-field" name="nuclen_quiz_shadow_color" id="nuclen_quiz_shadow_color" value="<?php echo esc_attr( $settings['quiz_shadow_color'] ); ?>"></div>
+			<div class="nuclen-column nuclen-input-col"><input type="color" class="nuclen-input" name="nuclen_quiz_shadow_color" id="nuclen_quiz_shadow_color" value="<?php echo esc_attr( $settings['quiz_shadow_color'] ); ?>"></div>
 		</div>
 		<div class="nuclen-row">
 			<div class="nuclen-column nuclen-label-col"><label for="nuclen_quiz_shadow_blur" class="nuclen-label"><?php esc_html_e( 'Quiz Shadow Blur (px)', 'nuclear-engagement' ); ?></label></div>
@@ -81,11 +81,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 		<h3 class="nuclen-subheading"><?php esc_html_e( 'Quiz Answer Buttons', 'nuclear-engagement' ); ?></h3>
 		<div class="nuclen-row">
 			<div class="nuclen-column nuclen-label-col"><label for="nuclen_quiz_answer_button_bg_color" class="nuclen-label"><?php esc_html_e( 'Button BG Color', 'nuclear-engagement' ); ?></label></div>
-			<div class="nuclen-column nuclen-input-col"><input type="text" class="nuclen-input wp-color-picker-field" name="nuclen_quiz_answer_button_bg_color" id="nuclen_quiz_answer_button_bg_color" value="<?php echo esc_attr( $settings['quiz_answer_button_bg_color'] ); ?>"></div>
+			<div class="nuclen-column nuclen-input-col"><input type="color" class="nuclen-input" name="nuclen_quiz_answer_button_bg_color" id="nuclen_quiz_answer_button_bg_color" value="<?php echo esc_attr( $settings['quiz_answer_button_bg_color'] ); ?>"></div>
 		</div>
 		<div class="nuclen-row">
 			<div class="nuclen-column nuclen-label-col"><label for="nuclen_quiz_answer_button_border_color" class="nuclen-label"><?php esc_html_e( 'Button Border Color', 'nuclear-engagement' ); ?></label></div>
-			<div class="nuclen-column nuclen-input-col"><input type="text" class="nuclen-input wp-color-picker-field" name="nuclen_quiz_answer_button_border_color" id="nuclen_quiz_answer_button_border_color" value="<?php echo esc_attr( $settings['quiz_answer_button_border_color'] ); ?>"></div>
+			<div class="nuclen-column nuclen-input-col"><input type="color" class="nuclen-input" name="nuclen_quiz_answer_button_border_color" id="nuclen_quiz_answer_button_border_color" value="<?php echo esc_attr( $settings['quiz_answer_button_border_color'] ); ?>"></div>
 		</div>
 		<div class="nuclen-row">
 			<div class="nuclen-column nuclen-label-col"><label for="nuclen_quiz_answer_button_border_width" class="nuclen-label"><?php esc_html_e( 'Button Border Width (px)', 'nuclear-engagement' ); ?></label></div>
@@ -100,11 +100,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 		<h3 class="nuclen-subheading"><?php esc_html_e( 'Quiz Progress Bar', 'nuclear-engagement' ); ?></h3>
 		<div class="nuclen-row">
 			<div class="nuclen-column nuclen-label-col"><label for="nuclen_quiz_progress_bar_fg_color" class="nuclen-label"><?php esc_html_e( 'Progress Foreground Color', 'nuclear-engagement' ); ?></label></div>
-			<div class="nuclen-column nuclen-input-col"><input type="text" class="nuclen-input wp-color-picker-field" name="nuclen_quiz_progress_bar_fg_color" id="nuclen_quiz_progress_bar_fg_color" value="<?php echo esc_attr( $settings['quiz_progress_bar_fg_color'] ); ?>"></div>
+			<div class="nuclen-column nuclen-input-col"><input type="color" class="nuclen-input" name="nuclen_quiz_progress_bar_fg_color" id="nuclen_quiz_progress_bar_fg_color" value="<?php echo esc_attr( $settings['quiz_progress_bar_fg_color'] ); ?>"></div>
 		</div>
 		<div class="nuclen-row">
 			<div class="nuclen-column nuclen-label-col"><label for="nuclen_quiz_progress_bar_bg_color" class="nuclen-label"><?php esc_html_e( 'Progress Background Color', 'nuclear-engagement' ); ?></label></div>
-			<div class="nuclen-column nuclen-input-col"><input type="text" class="nuclen-input wp-color-picker-field" name="nuclen_quiz_progress_bar_bg_color" id="nuclen_quiz_progress_bar_bg_color" value="<?php echo esc_attr( $settings['quiz_progress_bar_bg_color'] ); ?>"></div>
+			<div class="nuclen-column nuclen-input-col"><input type="color" class="nuclen-input" name="nuclen_quiz_progress_bar_bg_color" id="nuclen_quiz_progress_bar_bg_color" value="<?php echo esc_attr( $settings['quiz_progress_bar_bg_color'] ); ?>"></div>
 		</div>
 		<div class="nuclen-row">
 			<div class="nuclen-column nuclen-label-col"><label for="nuclen_quiz_progress_bar_height" class="nuclen-label"><?php esc_html_e( 'Progress Bar Height (px)', 'nuclear-engagement' ); ?></label></div>
@@ -121,17 +121,17 @@ if ( ! defined( 'ABSPATH' ) ) {
 		</div>
 		<div class="nuclen-row">
 			<div class="nuclen-column nuclen-label-col"><label for="nuclen_summary_font_color" class="nuclen-label"><?php esc_html_e( 'Summary Font Color', 'nuclear-engagement' ); ?></label></div>
-			<div class="nuclen-column nuclen-input-col"><input type="text" class="nuclen-input wp-color-picker-field" name="nuclen_summary_font_color" id="nuclen_summary_font_color" value="<?php echo esc_attr( $settings['summary_font_color'] ); ?>"></div>
+			<div class="nuclen-column nuclen-input-col"><input type="color" class="nuclen-input" name="nuclen_summary_font_color" id="nuclen_summary_font_color" value="<?php echo esc_attr( $settings['summary_font_color'] ); ?>"></div>
 		</div>
 		<div class="nuclen-row">
 			<div class="nuclen-column nuclen-label-col"><label for="nuclen_summary_bg_color" class="nuclen-label"><?php esc_html_e( 'Summary Background Color', 'nuclear-engagement' ); ?></label></div>
-			<div class="nuclen-column nuclen-input-col"><input type="text" class="nuclen-input wp-color-picker-field" name="nuclen_summary_bg_color" id="nuclen_summary_bg_color" value="<?php echo esc_attr( $settings['summary_bg_color'] ); ?>"></div>
+			<div class="nuclen-column nuclen-input-col"><input type="color" class="nuclen-input" name="nuclen_summary_bg_color" id="nuclen_summary_bg_color" value="<?php echo esc_attr( $settings['summary_bg_color'] ); ?>"></div>
 		</div>
 
 		<h4><?php esc_html_e( 'Border Lines', 'nuclear-engagement' ); ?></h4>
 		<div class="nuclen-row">
 			<div class="nuclen-column nuclen-label-col"><label for="nuclen_summary_border_color" class="nuclen-label"><?php esc_html_e( 'Summary Border Color', 'nuclear-engagement' ); ?></label></div>
-			<div class="nuclen-column nuclen-input-col"><input type="text" class="nuclen-input wp-color-picker-field" name="nuclen_summary_border_color" id="nuclen_summary_border_color" value="<?php echo esc_attr( $settings['summary_border_color'] ); ?>"></div>
+			<div class="nuclen-column nuclen-input-col"><input type="color" class="nuclen-input" name="nuclen_summary_border_color" id="nuclen_summary_border_color" value="<?php echo esc_attr( $settings['summary_border_color'] ); ?>"></div>
 		</div>
 		<div class="nuclen-row">
 			<div class="nuclen-column nuclen-label-col"><label for="nuclen_summary_border_style" class="nuclen-label"><?php esc_html_e( 'Summary Border Style', 'nuclear-engagement' ); ?></label></div>
@@ -156,7 +156,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 		</div>
 		<div class="nuclen-row">
 			<div class="nuclen-column nuclen-label-col"><label for="nuclen_summary_shadow_color" class="nuclen-label"><?php esc_html_e( 'Shadow Color', 'nuclear-engagement' ); ?></label></div>
-			<div class="nuclen-column nuclen-input-col"><input type="text" class="nuclen-input wp-color-picker-field" name="nuclen_summary_shadow_color" id="nuclen_summary_shadow_color" value="<?php echo esc_attr( $settings['summary_shadow_color'] ); ?>"></div>
+			<div class="nuclen-column nuclen-input-col"><input type="color" class="nuclen-input" name="nuclen_summary_shadow_color" id="nuclen_summary_shadow_color" value="<?php echo esc_attr( $settings['summary_shadow_color'] ); ?>"></div>
 		</div>
 		<div class="nuclen-row">
 			<div class="nuclen-column nuclen-label-col"><label for="nuclen_summary_shadow_blur" class="nuclen-label"><?php esc_html_e( 'Shadow Blur (px)', 'nuclear-engagement' ); ?></label></div>
@@ -173,21 +173,21 @@ if ( ! defined( 'ABSPATH' ) ) {
 		</div>
 		<div class="nuclen-row">
 			<div class="nuclen-column nuclen-label-col"><label for="nuclen_toc_font_color" class="nuclen-label"><?php esc_html_e( 'Font Color', 'nuclear-engagement' ); ?></label></div>
-			<div class="nuclen-column nuclen-input-col"><input type="text" class="nuclen-input wp-color-picker-field" name="nuclen_toc_font_color" id="nuclen_toc_font_color" value="<?php echo esc_attr( $settings['toc_font_color'] ); ?>"></div>
+			<div class="nuclen-column nuclen-input-col"><input type="color" class="nuclen-input" name="nuclen_toc_font_color" id="nuclen_toc_font_color" value="<?php echo esc_attr( $settings['toc_font_color'] ); ?>"></div>
 		</div>
 		<div class="nuclen-row">
 			<div class="nuclen-column nuclen-label-col"><label for="nuclen_toc_bg_color" class="nuclen-label"><?php esc_html_e( 'TOC Background Color', 'nuclear-engagement' ); ?></label></div>
-			<div class="nuclen-column nuclen-input-col"><input type="text" class="nuclen-input wp-color-picker-field" name="nuclen_toc_bg_color" id="nuclen_toc_bg_color" value="<?php echo esc_attr( $settings['toc_bg_color'] ); ?>"></div>
+			<div class="nuclen-column nuclen-input-col"><input type="color" class="nuclen-input" name="nuclen_toc_bg_color" id="nuclen_toc_bg_color" value="<?php echo esc_attr( $settings['toc_bg_color'] ); ?>"></div>
 		</div>
 		<div class="nuclen-row">
 			<div class="nuclen-column nuclen-label-col"><label for="nuclen_toc_link_color" class="nuclen-label"><?php esc_html_e( 'TOC Link Color', 'nuclear-engagement' ); ?></label></div>
-			<div class="nuclen-column nuclen-input-col"><input type="text" class="nuclen-input wp-color-picker-field" name="nuclen_toc_link_color" id="nuclen_toc_link_color" value="<?php echo esc_attr( $settings['toc_link_color'] ); ?>"></div>
+			<div class="nuclen-column nuclen-input-col"><input type="color" class="nuclen-input" name="nuclen_toc_link_color" id="nuclen_toc_link_color" value="<?php echo esc_attr( $settings['toc_link_color'] ); ?>"></div>
 		</div>
 
 		<h4><?php esc_html_e( 'Border Lines', 'nuclear-engagement' ); ?></h4>
 		<div class="nuclen-row">
 			<div class="nuclen-column nuclen-label-col"><label for="nuclen_toc_border_color" class="nuclen-label"><?php esc_html_e( 'TOC Border Color', 'nuclear-engagement' ); ?></label></div>
-			<div class="nuclen-column nuclen-input-col"><input type="text" class="nuclen-input wp-color-picker-field" name="nuclen_toc_border_color" id="nuclen_toc_border_color" value="<?php echo esc_attr( $settings['toc_border_color'] ); ?>"></div>
+			<div class="nuclen-column nuclen-input-col"><input type="color" class="nuclen-input" name="nuclen_toc_border_color" id="nuclen_toc_border_color" value="<?php echo esc_attr( $settings['toc_border_color'] ); ?>"></div>
 		</div>
 		<div class="nuclen-row">
 			<div class="nuclen-column nuclen-label-col"><label for="nuclen_toc_border_style" class="nuclen-label"><?php esc_html_e( 'TOC Border Style', 'nuclear-engagement' ); ?></label></div>
@@ -212,7 +212,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 		</div>
 		<div class="nuclen-row">
 			<div class="nuclen-column nuclen-label-col"><label for="nuclen_toc_shadow_color" class="nuclen-label"><?php esc_html_e( 'TOC Shadow Color', 'nuclear-engagement' ); ?></label></div>
-			<div class="nuclen-column nuclen-input-col"><input type="text" class="nuclen-input wp-color-picker-field" name="nuclen_toc_shadow_color" id="nuclen_toc_shadow_color" value="<?php echo esc_attr( $settings['toc_shadow_color'] ); ?>"></div>
+			<div class="nuclen-column nuclen-input-col"><input type="color" class="nuclen-input" name="nuclen_toc_shadow_color" id="nuclen_toc_shadow_color" value="<?php echo esc_attr( $settings['toc_shadow_color'] ); ?>"></div>
 		</div>
 		<div class="nuclen-row">
 			<div class="nuclen-column nuclen-label-col"><label for="nuclen_toc_shadow_blur" class="nuclen-label"><?php esc_html_e( 'TOC Shadow Blur (px)', 'nuclear-engagement' ); ?></label></div>
