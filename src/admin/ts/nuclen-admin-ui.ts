@@ -27,12 +27,7 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     });
   
-    // Initialize WP color pickers if available
-    if (typeof wp !== "undefined" && typeof wp.wpColorPicker === "function") {
-      document.querySelectorAll<HTMLElement>(".wp-color-picker-field").forEach((element) => {
-        (wp.wpColorPicker as any).call(element);
-      });
-    }
+
   
     // Show/hide the custom theme section
     const customThemeSection = document.getElementById("nuclen-custom-theme-section");
