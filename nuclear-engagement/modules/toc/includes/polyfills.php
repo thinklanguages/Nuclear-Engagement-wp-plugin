@@ -9,19 +9,19 @@
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
 if ( ! function_exists( 'nuclen_str_contains' ) ) {
-	/**
-	 * Prefixed back‑port of PHP 8 str_contains().
-	 */
-	function nuclen_str_contains( string $haystack, string $needle ) : bool {
-		return $needle === '' || strpos( $haystack, $needle ) !== false;
-	}
+    /**
+     * Prefixed back‑port of PHP 8 str_contains().
+     */
+    function nuclen_str_contains( string $haystack, string $needle ) : bool {
+        return $needle === '' || strpos( $haystack, $needle ) !== false;
+    }
 }
 
 if ( ! function_exists( 'nuclen_str_ends_with' ) ) {
-	/**
-	 * Prefixed back‑port of PHP 8 str_ends_with().
-	 */
-	function nuclen_str_ends_with( string $haystack, string $needle ) : bool {
-		return $needle === '' || substr( $haystack, -strlen( $needle ) ) === $needle;
-	}
+    /**
+     * Prefixed back‑port of PHP 8 str_ends_with().
+     */
+    function nuclen_str_ends_with( string $haystack, string $needle ) : bool {
+        return $needle === '' || substr( $haystack, -strlen( $needle ) ) === $needle;
+    }
 }

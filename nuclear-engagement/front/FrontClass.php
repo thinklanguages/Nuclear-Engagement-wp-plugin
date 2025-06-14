@@ -17,7 +17,7 @@
 namespace NuclearEngagement\Front;
 
 if ( ! defined( 'ABSPATH' ) ) {
-	exit;
+    exit;
 }
 
 use NuclearEngagement\Utils;
@@ -26,14 +26,14 @@ use NuclearEngagement\Container;
 
 class FrontClass {
 
-	use AssetsTrait;
-	use RestTrait;
-	use ShortcodesTrait;
+    use AssetsTrait;
+    use RestTrait;
+    use ShortcodesTrait;
 
-	/** @var string */
-	private $plugin_name;
-	/** @var string */
-	private $version;
+    /** @var string */
+    private $plugin_name;
+    /** @var string */
+    private $version;
         /** @var Utils */
         private $utils;
         /** @var SettingsRepository */
@@ -41,36 +41,36 @@ class FrontClass {
         /** @var Container */
         private $container;
 
-	/**
-	 * Constructor.
-	 *
-	 * @param string $plugin_name The plugin name.
-	 * @param string $version The plugin version.
-	 * @param SettingsRepository $settings_repository The settings repository.
-	 */
+    /**
+     * Constructor.
+     *
+     * @param string $plugin_name The plugin name.
+     * @param string $version The plugin version.
+     * @param SettingsRepository $settings_repository The settings repository.
+     */
         public function __construct( $plugin_name, $version, SettingsRepository $settings_repository, Container $container ) {
                 $this->plugin_name = $plugin_name;
                 $this->version = $version;
                 $this->utils = new Utils();
                 $this->settings_repository = $settings_repository;
                 $this->container = $container;
-	}
+    }
 
-	/** Allow traits to read internal utils object */
-	/**
-	 * Get the Utils instance.
-	 *
-	 * @return Utils
-	 */
-	public function nuclen_get_utils() : Utils {
-		return $this->utils;
-	}
+    /** Allow traits to read internal utils object */
+    /**
+     * Get the Utils instance.
+     *
+     * @return Utils
+     */
+    public function nuclen_get_utils() : Utils {
+        return $this->utils;
+    }
 
-	/**
-	 * Get the SettingsRepository instance.
-	 *
-	 * @return SettingsRepository
-	 */
+    /**
+     * Get the SettingsRepository instance.
+     *
+     * @return SettingsRepository
+     */
         public function nuclen_get_settings_repository() {
                 return $this->settings_repository;
         }

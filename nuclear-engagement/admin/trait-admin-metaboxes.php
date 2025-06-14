@@ -10,7 +10,7 @@
 namespace NuclearEngagement\Admin;
 
 if ( ! defined( 'ABSPATH' ) ) {
-	exit;
+    exit;
 }
 
 
@@ -21,6 +21,6 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Combines quiz and summary metabox functionality.
  */
 trait Admin_Metaboxes {
-	use Admin_Quiz_Metabox;
-	use Admin_Summary_Metabox;
+    use Admin_Quiz_Metabox;
+    use Admin_Summary_Metabox;
 }
