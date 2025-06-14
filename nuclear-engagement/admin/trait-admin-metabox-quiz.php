@@ -87,7 +87,7 @@ trait Admin_Quiz_Metabox {
 		</div>';
 
 		echo '<p><strong>Date</strong><br>';
-		echo '<input type="text" name="nuclen_quiz_data[date]" value="' . esc_attr( $date ) . '" readonly style="width:100%;background:#f9f9f9;" />';
+                echo '<input type="text" name="nuclen_quiz_data[date]" value="' . esc_attr( $date ) . '" readonly class="nuclen-meta-date-input" />';
 		echo '</p>';
 
 		/* Render the 10 question blocks */
@@ -105,17 +105,17 @@ trait Admin_Quiz_Metabox {
 			echo '<div class="nuclen-quiz-metabox-question">';
 			echo '<h4>Question ' . ( $q_index + 1 ) . '</h4>';
 
-			echo '<input type="text" name="nuclen_quiz_data[questions][' . $q_index . '][question]" value="' . esc_attr( $q_text ) . '" style="width:100%;" />';
+                        echo '<input type="text" name="nuclen_quiz_data[questions][' . $q_index . '][question]" value="' . esc_attr( $q_text ) . '" class="nuclen-width-full" />';
 
 			echo '<p><strong>Answers</strong></p>';
 			foreach ( $answers as $a_index => $answer ) {
-				$style = $a_index === 0 ? 'font-weight:bold;background:#e6ffe6;' : '';
-				echo '<p style="' . esc_attr( $style ) . '">Answer ' . ( $a_index + 1 ) . '<br>';
-				echo '<input type="text" name="nuclen_quiz_data[questions][' . $q_index . '][answers][' . $a_index . ']" value="' . esc_attr( $answer ) . '" style="width:100%;" /></p>';
+                                $class = $a_index === 0 ? 'nuclen-answer-correct' : '';
+                                echo '<p class="nuclen-answer-label ' . esc_attr( $class ) . '">Answer ' . ( $a_index + 1 ) . '<br>';
+                                echo '<input type="text" name="nuclen_quiz_data[questions][' . $q_index . '][answers][' . $a_index . ']" value="' . esc_attr( $answer ) . '" class="nuclen-width-full" /></p>';
 			}
 
 			echo '<p><strong>Explanation</strong><br>';
-			echo '<textarea name="nuclen_quiz_data[questions][' . $q_index . '][explanation]" rows="3" style="width:100%;">' . esc_textarea( $explan ) . '</textarea></p>';
+                        echo '<textarea name="nuclen_quiz_data[questions][' . $q_index . '][explanation]" rows="3" class="nuclen-width-full">' . esc_textarea( $explan ) . '</textarea></p>';
 			echo '</div>';
 		}
 	}

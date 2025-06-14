@@ -77,7 +77,7 @@ trait Admin_Summary_Metabox {
 		</div>';
 
 		echo '<p><strong>Date</strong><br>';
-		echo '<input type="text" name="nuclen_summary_data[date]" value="' . esc_attr( $date ) . '" readonly style="width:100%;background:#f9f9f9;" />';
+                echo '<input type="text" name="nuclen_summary_data[date]" value="' . esc_attr( $date ) . '" readonly class="nuclen-meta-date-input" />';
 		echo '</p>';
 
 		echo '<p><strong>Summary</strong><br>';
