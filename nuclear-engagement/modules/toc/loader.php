@@ -5,7 +5,9 @@
  * Loads the Nuclen TOC sub-module.
  */
 
-if ( ! defined( 'ABSPATH' ) ) { exit; }
+if ( ! defined( 'ABSPATH' ) ) {
+    exit;
+}
 
 /* ------------------------------------------------------------------ */
 /*  Local constants (prefixed, module-scoped)                         */
