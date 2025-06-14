@@ -5,11 +5,10 @@ import {
   nuclenUpdateProgressBarStep,
 } from './generate-page-utils';
 import type { GeneratePageElements } from './elements';
-
-const REST_ENDPOINT =
-  (window as any).nuclenAdminVars?.rest_receive_content ||
-  '/wp-json/nuclear-engagement/v1/receive-content';
-const REST_NONCE = (window as any).nuclenAdminVars?.rest_nonce || '';
+import {
+  nuclenAlertApiError,
+  nuclenStoreGenerationResults,
+} from '../generation/results';
 
 export function initStep2(elements: GeneratePageElements): void {
   elements.generateForm?.addEventListener('submit', async (event) => {
@@ -48,21 +47,11 @@ export function initStep2(elements: GeneratePageElements): void {
           nuclenUpdateProgressBarStep(elements.stepBar4, 'current');
           if (results && typeof results === 'object') {
             try {
-              const payload = { workflow, results };
-              const storeResp = await fetch(REST_ENDPOINT, {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'X-WP-Nonce': REST_NONCE,
-                },
-                credentials: 'include',
-                body: JSON.stringify(payload),
-              });
-              const storeData = await storeResp.json();
-              if (storeResp.ok && !storeData.code) {
-                console.log('Bulk content stored in WP meta successfully:', storeData);
+              const { ok, data } = await nuclenStoreGenerationResults(workflow, results);
+              if (ok && !data.code) {
+                console.log('Bulk content stored in WP meta successfully:', data);
               } else {
-                console.error('Error storing bulk content in WP meta:', storeData);
+                console.error('Error storing bulk content in WP meta:', data);
               }
             } catch (err) {
               console.error('Error storing bulk content in WP meta:', err);
@@ -84,15 +73,7 @@ export function initStep2(elements: GeneratePageElements): void {
         },
         onError: (errMsg: string) => {
           nuclenUpdateProgressBarStep(elements.stepBar3, 'failed');
-          if (errMsg.includes('Invalid API key')) {
-            alert('Your API key is invalid. Please go to the Setup page and enter a new one.');
-          } else if (errMsg.includes('Invalid WP App Password')) {
-            alert('Your WP App Password is invalid. Please re-generate it on the Setup page.');
-          } else if (errMsg.includes('Not enough credits')) {
-            alert('Not enough credits. Please top up your account or reduce the number of posts.');
-          } else {
-            alert(`Error: ${errMsg}`);
-          }
+          nuclenAlertApiError(errMsg);
           if (elements.updatesContent) {
             elements.updatesContent.innerText = `Error: ${errMsg}`;
           }
@@ -104,15 +85,7 @@ export function initStep2(elements: GeneratePageElements): void {
       });
     } catch (error: any) {
       nuclenUpdateProgressBarStep(elements.stepBar3, 'failed');
-      if (error.message.includes('Invalid API key')) {
-        alert('Your API key is invalid. Please go to the Setup page and enter a new one.');
-      } else if (error.message.includes('Invalid WP App Password')) {
-        alert('Your WP App Password is invalid. Please go to the Setup page and re-generate it.');
-      } else if (error.message.includes('Not enough credits')) {
-        alert('Not enough credits. Please top up or reduce posts.');
-      } else {
-        alert(`Error starting generation: ${error.message}`);
-      }
+      nuclenAlertApiError(error.message);
       if (elements.submitBtn) {
         elements.submitBtn.disabled = false;
       }
