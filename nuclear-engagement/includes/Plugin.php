@@ -78,7 +78,7 @@ class Plugin {
 
         $this->loader = new Loader();
     }
-    
+
     /* ─────────────────────────────────────────────
        Admin-side hooks
     ──────────────────────────────────────────── */
@@ -99,7 +99,7 @@ class Plugin {
         $generate_controller    = $this->container->get( 'generate_controller' );
         $updates_controller     = $this->container->get( 'updates_controller' );
         $posts_count_controller = $this->container->get( 'posts_count_controller' );
-        
+
         $this->loader->nuclen_add_action( 'wp_ajax_nuclen_trigger_generation', $generate_controller, 'handle' );
         $this->loader->nuclen_add_action( 'wp_ajax_nuclen_fetch_app_updates', $updates_controller, 'handle' );
         $this->loader->nuclen_add_action( 'wp_ajax_nuclen_get_posts_count', $posts_count_controller, 'handle' );
@@ -115,7 +115,7 @@ class Plugin {
         // Onboarding pointers - use controller
         $onboarding = new Onboarding();
         $onboarding->nuclen_register_hooks();
-        
+
         // Replace pointer dismiss with controller
         $pointer_controller = $this->container->get( 'pointer_controller' );
         remove_action( 'wp_ajax_nuclen_dismiss_pointer', [ $onboarding, 'nuclen_ajax_dismiss_pointer' ] );
@@ -135,7 +135,7 @@ class Plugin {
 
         $this->loader->nuclen_add_action( 'wp_enqueue_scripts', $plugin_public, 'wp_enqueue_styles' );
         $this->loader->nuclen_add_action( 'wp_enqueue_scripts', $plugin_public, 'wp_enqueue_scripts' );
-        
+
         // REST API - use controller
         add_action('rest_api_init', function() {
             $contentController = $this->container->get('content_controller');
@@ -145,7 +145,7 @@ class Plugin {
                 'permission_callback' => [$contentController, 'permissions'],
             ]);
         });
-        
+
         $this->loader->nuclen_add_action( 'init', $plugin_public, 'nuclen_register_quiz_shortcode' );
         $this->loader->nuclen_add_action( 'init', $plugin_public, 'nuclen_register_summary_shortcode' );
         $this->loader->nuclen_add_filter( 'the_content', $plugin_public, 'nuclen_auto_insert_shortcodes', 50 );
@@ -169,7 +169,7 @@ class Plugin {
     public function nuclen_get_version() {
         return $this->version;
     }
-    
+
     /**
      * Get the settings repository instance.
      *
@@ -178,7 +178,7 @@ class Plugin {
     public function nuclen_get_settings_repository() {
         return $this->settings_repository;
     }
-    
+
     /**
      * Get the container instance (mainly for testing)
      *
