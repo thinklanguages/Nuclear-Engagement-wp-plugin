@@ -6,12 +6,12 @@ export interface QuizQuestion {
     answers: string[];
     explanation: string;
   }
-  
+
   export interface NuclenSettings {
     questions_per_quiz: number;
     answers_per_question: number;
   }
-  
+
   export interface OptinContext {
     position: 'with_results' | 'before_results';
     mandatory: boolean;
