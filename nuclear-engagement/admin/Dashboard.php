@@ -10,7 +10,7 @@
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
-	exit;
+    exit;
 }
 
 use NuclearEngagement\Utils;
@@ -39,32 +39,32 @@ $allowed_post_types = is_array($allowed_post_types) ? $allowed_post_types : arra
  * @return array               Rows: [ [ g => value, w => 'with|without', c => count ], … ]
  */
 function nuclen_get_group_counts( string $group_by, string $meta_key, array $post_types, array $statuses ): array {
-	global $wpdb;
+    global $wpdb;
 
-	// Sanitize post types and statuses
-	$post_types = array_map( 'sanitize_key', $post_types );
-	$statuses   = array_map( 'sanitize_key', $statuses );
+    // Sanitize post types and statuses
+    $post_types = array_map( 'sanitize_key', $post_types );
+    $statuses   = array_map( 'sanitize_key', $statuses );
 
-	// Create placeholders for the IN clauses
-	$placeholders_pt = implode( ',', array_fill( 0, count( $post_types ), '%s' ) );
-	$placeholders_st = implode( ',', array_fill( 0, count( $statuses ), '%s' ) );
+    // Create placeholders for the IN clauses
+    $placeholders_pt = implode( ',', array_fill( 0, count( $post_types ), '%s' ) );
+    $placeholders_st = implode( ',', array_fill( 0, count( $statuses ), '%s' ) );
 
-	// Prepare the query with placeholders
-	$sql = $wpdb->prepare(
-		"SELECT $group_by               AS g,
-		       CASE WHEN pm.meta_id IS NULL THEN 'without' ELSE 'with' END AS w,
-		       COUNT(*)                 AS c
-		FROM {$wpdb->posts} p
-		LEFT JOIN {$wpdb->postmeta} pm
-		  ON  pm.post_id = p.ID
-		  AND pm.meta_key = %s
-		WHERE p.post_type  IN ($placeholders_pt)
-		  AND p.post_status IN ($placeholders_st)
-		GROUP BY $group_by, w",
-		array_merge( [ $meta_key ], $post_types, $statuses )
-	);
+    // Prepare the query with placeholders
+    $sql = $wpdb->prepare(
+        "SELECT $group_by               AS g,
+               CASE WHEN pm.meta_id IS NULL THEN 'without' ELSE 'with' END AS w,
+               COUNT(*)                 AS c
+        FROM {$wpdb->posts} p
+        LEFT JOIN {$wpdb->postmeta} pm
+          ON  pm.post_id = p.ID
+          AND pm.meta_key = %s
+        WHERE p.post_type  IN ($placeholders_pt)
+          AND p.post_status IN ($placeholders_st)
+        GROUP BY $group_by, w",
+        array_merge( [ $meta_key ], $post_types, $statuses )
+    );
 
-	return $wpdb->get_results( $sql, ARRAY_A );
+    return $wpdb->get_results( $sql, ARRAY_A );
 
 }
 
@@ -148,8 +148,8 @@ foreach ( $author_rows as $r ) {
 
 /* — By Category — (only for post-types that use the “category” taxonomy) */
 $with_cat_pt = array_filter(
-	$allowed_post_types,
-	fn( $pt ) => in_array( 'category', get_object_taxonomies( $pt ), true )
+    $allowed_post_types,
+    fn( $pt ) => in_array( 'category', get_object_taxonomies( $pt ), true )
 );
 $by_category_quiz = $by_category_summary = array();
 
@@ -194,10 +194,10 @@ if ( $with_cat_pt ) {
  * 4. Drop any rows where total = 0
  * ──────────────────────────────────────────────────────────── */
 $drop_zeros = static function ( array $arr ) {
-	return array_filter(
-		$arr,
-		static fn ( $c ) => ( ( $c['with'] ?? 0 ) + ( $c['without'] ?? 0 ) ) > 0
-	);
+    return array_filter(
+        $arr,
+        static fn ( $c ) => ( ( $c['with'] ?? 0 ) + ( $c['without'] ?? 0 ) ) > 0
+    );
 };
 
 $by_status_quiz       = $drop_zeros( $by_status_quiz );
