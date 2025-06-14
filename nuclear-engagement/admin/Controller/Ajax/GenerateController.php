@@ -1,7 +1,7 @@
 <?php
 /**
  * File: admin/Controller/Ajax/GenerateController.php
- 
+
  * Generate Controller
  *
  * @package NuclearEngagement\Admin\Controller\Ajax
@@ -24,7 +24,7 @@ class GenerateController extends BaseController {
      * @var GenerationService
      */
     private GenerationService $service;
-    
+
     /**
      * Constructor
      *
@@ -33,7 +33,7 @@ class GenerateController extends BaseController {
     public function __construct(GenerationService $service) {
         $this->service = $service;
     }
-    
+
     /**
      * Handle generation request
      */
@@ -43,22 +43,22 @@ class GenerateController extends BaseController {
             if (!$this->verifyRequest('nuclen_admin_ajax_nonce')) {
                 return;
             }
-            
+
             if (empty($_POST['payload'])) {
                 status_header(400);
                 wp_send_json_error(['message' => 'Missing payload in request']);
                 return;
             }
-            
+
             // Parse request
             $request = GenerateRequest::fromPost($_POST);
-            
+
             // Process generation
             $response = $this->service->generateContent($request);
-            
+
             // Return response
             wp_send_json_success($response->toArray());
-            
+
         } catch (\InvalidArgumentException $e) {
             \NuclearEngagement\Services\LoggingService::log(
                 'Nuclear Engagement validation error: ' . $e->getMessage()

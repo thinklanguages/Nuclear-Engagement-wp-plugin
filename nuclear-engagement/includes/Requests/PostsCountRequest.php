@@ -1,7 +1,7 @@
 <?php
 /**
  * File: includes/Requests/PostsCountRequest.php
- 
+
  * Posts Count Request DTO
  *
  * @package NuclearEngagement\Requests
@@ -24,7 +24,7 @@ class PostsCountRequest {
     public string $workflow = '';
     public bool $allowRegenerate = false;
     public bool $regenerateProtected = false;
-    
+
     /**
      * Create from POST data
      *
@@ -33,9 +33,9 @@ class PostsCountRequest {
      */
     public static function fromPost(array $post): self {
         $request = new self();
-        
+
         $unslashed = wp_unslash($post);
-        
+
         $request->postStatus = sanitize_text_field($unslashed['nuclen_post_status'] ?? 'any');
         $request->categoryId = absint($unslashed['nuclen_category'] ?? 0);
         $request->authorId = absint($unslashed['nuclen_author'] ?? 0);
@@ -43,7 +43,7 @@ class PostsCountRequest {
         $request->workflow = sanitize_text_field($unslashed['nuclen_generate_workflow'] ?? '');
         $request->allowRegenerate = (bool) absint($unslashed['nuclen_allow_regenerate_data'] ?? 0);
         $request->regenerateProtected = (bool) absint($unslashed['nuclen_regenerate_protected_data'] ?? 0);
-        
+
         return $request;
     }
 }

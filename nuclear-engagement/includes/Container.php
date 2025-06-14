@@ -1,7 +1,7 @@
 <?php
 /**
  * File: includes/Container.php
- 
+
  * Dependency Injection Container
  *
  * @package NuclearEngagement
@@ -21,17 +21,17 @@ class Container {
      * @var self|null Singleton instance
      */
     private static ?self $instance = null;
-    
+
     /**
      * @var array Stored service instances
      */
     private array $services = [];
-    
+
     /**
      * @var array Service factory callbacks
      */
     private array $factories = [];
-    
+
     /**
      * Get the singleton instance
      *
@@ -43,7 +43,7 @@ class Container {
         }
         return self::$instance;
     }
-    
+
     /**
      * Register a service factory
      *
@@ -53,7 +53,7 @@ class Container {
     public function register(string $id, callable $factory): void {
         $this->factories[$id] = $factory;
     }
-    
+
     /**
      * Get a service instance
      *
@@ -70,7 +70,7 @@ class Container {
         }
         return $this->services[$id];
     }
-    
+
     /**
      * Check if a service is registered
      *
@@ -80,7 +80,7 @@ class Container {
     public function has(string $id): bool {
         return isset($this->factories[$id]);
     }
-    
+
     /**
      * Reset the container (mainly for testing)
      */

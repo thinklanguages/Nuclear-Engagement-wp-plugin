@@ -1,7 +1,7 @@
 <?php
 /**
  * File: includes/Requests/UpdatesRequest.php
- 
+
  * Updates Request DTO
  *
  * @package NuclearEngagement\Requests
@@ -21,7 +21,7 @@ class UpdatesRequest {
      * @var string Generation ID to check
      */
     public string $generationId = '';
-    
+
     /**
      * Create from POST data
      *
@@ -30,7 +30,7 @@ class UpdatesRequest {
      */
     public static function fromPost(array $post): self {
         $request = new self();
-        $request->generationId = isset($post['generation_id']) 
+        $request->generationId = isset($post['generation_id'])
             ? sanitize_text_field(wp_unslash($post['generation_id']))
             : '';
         return $request;

@@ -15,18 +15,18 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 /**
  * Class MetaRegistration
- * 
+ *
  * Handles registration of post meta keys for improved query performance
  */
 class MetaRegistration {
-    
+
     /**
      * Initialize meta registration
      */
     public static function init(): void {
         add_action( 'init', [ self::class, 'register_meta_keys' ], 5 );
     }
-    
+
     /**
      * Register all plugin meta keys
      */
@@ -34,7 +34,7 @@ class MetaRegistration {
         // Get allowed post types from settings
         $settings = \NuclearEngagement\Container::getInstance()->get('settings');
         $post_types = $settings->get_array( 'generation_post_types', [ 'post' ] );
-        
+
         // Register quiz data meta
         foreach ( $post_types as $post_type ) {
             register_post_meta( $post_type, 'nuclen-quiz-data', [
@@ -45,7 +45,7 @@ class MetaRegistration {
                 'sanitize_callback' => [ self::class, 'sanitize_quiz_data' ],
                 'auth_callback' => [ self::class, 'auth_callback' ]
             ] );
-            
+
             register_post_meta( $post_type, 'nuclen_quiz_protected', [
                 'type' => 'boolean',
                 'description' => 'Nuclear Engagement quiz protection flag',
@@ -55,7 +55,7 @@ class MetaRegistration {
                 'sanitize_callback' => 'rest_sanitize_boolean',
                 'auth_callback' => [ self::class, 'auth_callback' ]
             ] );
-            
+
             // Register summary data meta
             register_post_meta( $post_type, 'nuclen-summary-data', [
                 'type' => 'string',
@@ -65,7 +65,7 @@ class MetaRegistration {
                 'sanitize_callback' => [ self::class, 'sanitize_summary_data' ],
                 'auth_callback' => [ self::class, 'auth_callback' ]
             ] );
-            
+
             register_post_meta( $post_type, 'nuclen_summary_protected', [
                 'type' => 'boolean',
                 'description' => 'Nuclear Engagement summary protection flag',
@@ -77,7 +77,7 @@ class MetaRegistration {
             ] );
         }
     }
-    
+
     /**
      * Sanitize quiz data before saving
      *
@@ -88,17 +88,17 @@ class MetaRegistration {
         if ( ! is_array( $meta_value ) ) {
             return '';
         }
-        
+
         // Ensure required structure
         $sanitized = [
             'date' => '',
             'questions' => []
         ];
-        
+
         if ( isset( $meta_value['date'] ) ) {
             $sanitized['date'] = sanitize_text_field( $meta_value['date'] );
         }
-        
+
         if ( isset( $meta_value['questions'] ) && is_array( $meta_value['questions'] ) ) {
             foreach ( $meta_value['questions'] as $question ) {
                 if ( is_array( $question ) ) {
@@ -110,10 +110,10 @@ class MetaRegistration {
                 }
             }
         }
-        
+
         return $sanitized;
     }
-    
+
     /**
      * Sanitize summary data before saving
      *
@@ -124,7 +124,7 @@ class MetaRegistration {
         if ( ! is_array( $meta_value ) ) {
             return '';
         }
-        
+
         $allowed_html = [
             'a' => ['href' => [], 'title' => [], 'target' => []],
             'br' => [],
@@ -138,13 +138,13 @@ class MetaRegistration {
             'div' => ['class' => []],
             'span' => ['class' => []],
         ];
-        
+
         return [
             'date' => sanitize_text_field( $meta_value['date'] ?? '' ),
             'summary' => wp_kses( $meta_value['summary'] ?? '', $allowed_html )
         ];
     }
-    
+
     /**
      * Authorization callback for meta updates
      *
@@ -161,7 +161,7 @@ class MetaRegistration {
         if ( ! user_can( $user_id, 'edit_post', $object_id ) ) {
             return false;
         }
-        
+
         return $allowed;
     }
 }

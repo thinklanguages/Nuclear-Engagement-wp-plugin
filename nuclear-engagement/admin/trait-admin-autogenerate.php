@@ -88,7 +88,7 @@ trait Admin_AutoGenerate {
     public function nuclen_cron_poll_generation( $generation_id, $workflow_type, $post_id, $attempt ) {
         $max_attempts = 10;
         $retry_delay = 60; // 1 minute between retries
-        
+
         try {
             // Check if auto-generation is enabled for this post type.
             $settings_repo = $this->nuclen_get_settings_repository();
@@ -101,9 +101,9 @@ trait Admin_AutoGenerate {
             $container = $this->get_container();
             $api = $container->get('remote_api');
             $storage = $container->get('content_storage');
-            
+
             $data = $api->fetchUpdates($generation_id);
-            
+
             // Check if we have results
             if (!empty($data['results']) && is_array($data['results'])) {
                 $storage->storeResults($data['results'], $workflow_type);
@@ -112,7 +112,7 @@ trait Admin_AutoGenerate {
                 );
                 return;
             }
-            
+
             // Check if still processing
             if (isset($data['success']) && $data['success'] === true) {
                 // Still processing, continue polling
@@ -120,7 +120,7 @@ trait Admin_AutoGenerate {
                     "Still processing post {$post_id} ({$workflow_type}), attempt {$attempt}/{$max_attempts}"
                 );
             }
-            
+
         } catch (\Exception $e) {
 \NuclearEngagement\Services\LoggingService::log(
                 "Polling error for post {$post_id} ({$workflow_type}): " . $e->getMessage()
