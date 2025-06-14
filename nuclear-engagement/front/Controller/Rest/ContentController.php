@@ -25,12 +25,12 @@ class ContentController {
      * @var ContentStorageService
      */
     private ContentStorageService $storage;
-    
+
     /**
      * @var Utils
      */
     private Utils $utils;
-    
+
     /**
      * Constructor
      *
@@ -40,7 +40,7 @@ class ContentController {
         $this->storage = $storage;
         $this->utils = new Utils();
     }
-    
+
     /**
      * Handle content receive request
      *
@@ -56,34 +56,34 @@ class ContentController {
             }
 
             $data = $request->get_json_params();
-            
+
 \NuclearEngagement\Services\LoggingService::log('Received content via REST: ' . json_encode([
                 'workflow' => $data['workflow'] ?? 'unknown',
                 'results_count' => is_array($data['results'] ?? null) ? count($data['results']) : 0,
             ]));
-            
+
             $contentRequest = ContentRequest::fromJson($data);
-            
+
             // Store the results
             $this->storage->storeResults($contentRequest->results, $contentRequest->workflow);
-            
+
             // Get date from first stored item
             reset($contentRequest->results);
             $firstPostId = key($contentRequest->results);
             $metaKey = $contentRequest->workflow === 'quiz' ? 'nuclen-quiz-data' : 'nuclen-summary-data';
             $stored = get_post_meta($firstPostId, $metaKey, true);
             $date = is_array($stored) && !empty($stored['date']) ? $stored['date'] : '';
-            
+
             $message = sprintf(
                 __('%s data received and stored successfully', 'nuclear-engagement'),
                 ucfirst($contentRequest->workflow)
             );
-            
+
             return new \WP_REST_Response([
                 'message' => $message,
                 'finalDate' => $date,
             ], 200);
-            
+
         } catch (\InvalidArgumentException $e) {
 \NuclearEngagement\Services\LoggingService::log('REST validation error: ' . $e->getMessage());
             return new \WP_Error('ne_invalid', $e->getMessage(), ['status' => 400]);
@@ -92,7 +92,7 @@ class ContentController {
             return new \WP_Error('ne_error', __('An error occurred', 'nuclear-engagement'), ['status' => 500]);
         }
     }
-    
+
     /**
      * Check permissions
      *

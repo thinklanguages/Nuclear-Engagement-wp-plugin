@@ -1,7 +1,7 @@
 <?php
 /**
  * File: includes/Services/RemoteApiService.php
- 
+
  * Remote API Service
  *
  * @package NuclearEngagement\Services
@@ -24,17 +24,17 @@ class RemoteApiService {
      * @var string Base API URL
      */
     private const API_BASE = 'https://app.nuclearengagement.com/api';
-    
+
     /**
      * @var SettingsRepository
      */
     private SettingsRepository $settings;
-    
+
     /**
      * @var Utils
      */
     private Utils $utils;
-    
+
     /**
      * Constructor
      *
@@ -44,7 +44,7 @@ class RemoteApiService {
         $this->settings = $settings;
         $this->utils = new Utils();
     }
-    
+
     /**
      * Send posts to remote API for content generation
      *
@@ -54,11 +54,11 @@ class RemoteApiService {
      */
     public function sendPostsToGenerate(array $data): array {
         $apiKey = $this->settings->get_string('api_key', '');
-        
+
         if (empty($apiKey)) {
             throw new \RuntimeException('API key not configured');
         }
-        
+
         $payload = [
             'generation_id' => $data['generation_id'] ?? '',
             'api_key' => $apiKey,
@@ -73,9 +73,9 @@ class RemoteApiService {
             ),
             'workflow' => $data['workflow'] ?? [],
         ];
-        
+
 \NuclearEngagement\Services\LoggingService::log('Sending generation request: ' . $data['generation_id']);
-        
+
         $response = wp_remote_post(
             self::API_BASE . '/process-posts',
             [
@@ -90,37 +90,37 @@ class RemoteApiService {
                 'user-agent' => 'NuclearEngagement/' . NUCLEN_PLUGIN_VERSION,
             ]
         );
-        
+
         if (is_wp_error($response)) {
             $error = 'API request failed: ' . $response->get_error_message();
 \NuclearEngagement\Services\LoggingService::log($error);
             return ['error' => $error];
         }
-        
+
         $code = wp_remote_retrieve_response_code($response);
         $body = wp_remote_retrieve_body($response);
-        
+
 \NuclearEngagement\Services\LoggingService::log("API response code: {$code}");
-        
+
         // Check for auth errors
         if ($code === 401 || $code === 403) {
             return $this->handleAuthError($body, $code);
         }
-        
+
         if ($code !== 200) {
 \NuclearEngagement\Services\LoggingService::log("Unexpected response code: {$code}, body: {$body}");
             return ['error' => "Failed to fetch updates, code: {$code}"];
         }
-        
+
         $data = json_decode($body, true);
         if (!is_array($data)) {
 \NuclearEngagement\Services\LoggingService::log("Invalid JSON response: {$body}");
             return ['error' => 'Invalid data received from API'];
         }
-        
+
         return $data;
     }
-    
+
     /**
      * Fetch generation updates from remote API
      *
@@ -130,22 +130,22 @@ class RemoteApiService {
      */
     public function fetchUpdates(string $generationId): array {
         $apiKey = $this->settings->get_string('api_key', '');
-        
+
         if (empty($apiKey)) {
             throw new \RuntimeException('API key not configured');
         }
-        
+
         $payload = [
             'siteUrl' => get_site_url(),
             'generation_id' => $generationId,
         ];
-        
+
         if (empty($generationId)) {
 \NuclearEngagement\Services\LoggingService::log('Fetching credits only (no generation_id)');
         } else {
 \NuclearEngagement\Services\LoggingService::log("Fetching updates for generation: {$generationId}");
         }
-        
+
         $response = wp_remote_post(
             self::API_BASE . '/updates',
             [
@@ -160,36 +160,36 @@ class RemoteApiService {
                 'user-agent' => 'NuclearEngagement/' . NUCLEN_PLUGIN_VERSION,
             ]
         );
-        
+
         if (is_wp_error($response)) {
             $error = 'API request failed: ' . $response->get_error_message();
 \NuclearEngagement\Services\LoggingService::log($error);
             throw new \RuntimeException($error);
         }
-        
+
         $code = wp_remote_retrieve_response_code($response);
         $body = wp_remote_retrieve_body($response);
-        
+
         // Check for auth errors
         if ($code === 401 || $code === 403) {
             $authResult = $this->handleAuthError($body, $code);
             throw new \RuntimeException($authResult['error']);
         }
-        
+
         if ($code !== 200) {
 \NuclearEngagement\Services\LoggingService::log("Unexpected response code: {$code}, body: {$body}");
             throw new \RuntimeException("Failed to fetch updates, code: {$code}");
         }
-        
+
         $data = json_decode($body, true);
         if (!is_array($data)) {
 \NuclearEngagement\Services\LoggingService::log("Invalid JSON response: {$body}");
             throw new \RuntimeException('Invalid data received from API');
         }
-        
+
         return $data;
     }
-    
+
     /**
      * Handle authentication errors from API
      *

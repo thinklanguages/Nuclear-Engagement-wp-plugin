@@ -1,7 +1,7 @@
 <?php
 /**
  * File: includes/Services/PointerService.php
- * 
+ *
  * Pointer Service
  *
  * @package NuclearEngagement\Services
@@ -28,10 +28,10 @@ class PointerService {
         if (empty($pointerId)) {
             throw new \InvalidArgumentException('No pointer ID provided');
         }
-        
+
         update_user_meta($userId, 'nuclen_pointer_dismissed_' . $pointerId, true);
     }
-    
+
     /**
      * Get undismissed pointers for a user
      *
@@ -41,18 +41,18 @@ class PointerService {
      */
     public function getUndismissedPointers(array $pointers, int $userId): array {
         $undismissed = [];
-        
+
         foreach ($pointers as $pointer) {
             if (!isset($pointer['id'])) {
                 continue;
             }
-            
+
             $dismissed = get_user_meta($userId, 'nuclen_pointer_dismissed_' . $pointer['id'], true);
             if (!$dismissed) {
                 $undismissed[] = $pointer;
             }
         }
-        
+
         return $undismissed;
     }
 }

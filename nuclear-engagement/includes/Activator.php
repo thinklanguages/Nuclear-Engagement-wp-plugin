@@ -12,7 +12,7 @@ if (!defined('ABSPATH')) {
 class Activator {
     /**
      * Plugin activation hook
-     * 
+     *
      * @param SettingsRepository|null $settings Optional settings repository instance
      */
     public static function nuclen_activate(?SettingsRepository $settings = null) {
@@ -21,10 +21,10 @@ class Activator {
 
         // Get default settings
         $default_settings = Defaults::nuclen_get_default_settings();
-        
+
         // Initialize or update settings repository with defaults
         $settings = $settings ?: \NuclearEngagement\Container::getInstance()->get('settings');
-        
+
         // Only set the setup option if it doesn't already exist
         if (false === get_option('nuclear_engagement_setup')) {
             update_option('nuclear_engagement_setup', $default_settings);

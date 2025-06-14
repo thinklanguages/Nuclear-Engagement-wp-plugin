@@ -17,15 +17,15 @@ if ( ! function_exists( 'nuclen_settings' ) ) {
      */
     function nuclen_settings( ?string $key = null, $default = null ) {
         static $repo = null;
-        
+
         if ( $repo === null ) {
             $repo = Container::getInstance()->get('settings');
         }
-        
+
         if ( $key === null ) {
             return $repo->all();
         }
-        
+
         return $repo->get( $key, $default );
     }
 }
@@ -40,11 +40,11 @@ if ( ! function_exists( 'nuclen_settings_bool' ) ) {
      */
     function nuclen_settings_bool( string $key, bool $default = false ): bool {
         static $repo = null;
-        
+
         if ( $repo === null ) {
             $repo = Container::getInstance()->get('settings');
         }
-        
+
         return $repo->get_bool( $key, $default );
     }
 }
@@ -59,11 +59,11 @@ if ( ! function_exists( 'nuclen_settings_int' ) ) {
      */
     function nuclen_settings_int( string $key, int $default = 0 ): int {
         static $repo = null;
-        
+
         if ( $repo === null ) {
             $repo = Container::getInstance()->get('settings');
         }
-        
+
         return $repo->get_int( $key, $default );
     }
 }
@@ -78,11 +78,11 @@ if ( ! function_exists( 'nuclen_settings_string' ) ) {
      */
     function nuclen_settings_string( string $key, string $default = '' ): string {
         static $repo = null;
-        
+
         if ( $repo === null ) {
             $repo = Container::getInstance()->get('settings');
         }
-        
+
         return $repo->get_string( $key, $default );
     }
 }
@@ -97,11 +97,11 @@ if ( ! function_exists( 'nuclen_settings_array' ) ) {
      */
     function nuclen_settings_array( string $key, array $default = [] ): array {
         static $repo = null;
-        
+
         if ( $repo === null ) {
             $repo = Container::getInstance()->get('settings');
         }
-        
+
         return $repo->get_array( $key, $default );
     }
 }

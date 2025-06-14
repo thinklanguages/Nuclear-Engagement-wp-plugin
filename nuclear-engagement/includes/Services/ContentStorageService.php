@@ -1,7 +1,7 @@
 <?php
 /**
  * File: includes/Services/ContentStorageService.php
- * 
+ *
  * Content Storage Service
  *
  * @package NuclearEngagement\Services
@@ -24,12 +24,12 @@ class ContentStorageService {
      * @var SettingsRepository
      */
     private SettingsRepository $settings;
-    
+
     /**
      * @var Utils
      */
     private Utils $utils;
-    
+
     /**
      * Constructor
      *
@@ -39,7 +39,7 @@ class ContentStorageService {
         $this->settings = $settings;
         $this->utils = new Utils();
     }
-    
+
     /**
      * Store generation results
      *
@@ -49,37 +49,37 @@ class ContentStorageService {
     public function storeResults(array $results, string $workflowType): void {
         $updateLastModified = $this->settings->get_bool('update_last_modified', false);
         $dateNow = current_time('mysql');
-        
+
         foreach ($results as $postIdString => $data) {
             $postId = (int) $postIdString;
-            
+
             // Ensure date is set
             if (empty($data['date'])) {
                 $data['date'] = $dateNow;
             }
-            
+
             try {
                 if ($workflowType === 'quiz') {
                     $this->storeQuizData($postId, $data);
                 } else {
                     $this->storeSummaryData($postId, $data);
                 }
-                
+
                 // Update post modified time if enabled
                 if ($updateLastModified) {
                     $this->updatePostModifiedTime($postId);
                 } else {
                     clean_post_cache($postId);
                 }
-                
+
 \NuclearEngagement\Services\LoggingService::log("Stored {$workflowType} data for post {$postId}");
-                
+
             } catch (\Exception $e) {
 \NuclearEngagement\Services\LoggingService::log("Error storing {$workflowType} for post {$postId}: " . $e->getMessage());
             }
         }
     }
-    
+
     /**
      * Store quiz data
      *
@@ -91,7 +91,7 @@ class ContentStorageService {
         if (empty($data['questions']) || !is_array($data['questions'])) {
             throw new \InvalidArgumentException("Invalid quiz data for post {$postId}");
         }
-        
+
         $formatted = [
             'questions' => array_map(function($q) {
                 return [
@@ -102,12 +102,12 @@ class ContentStorageService {
             }, $data['questions']),
             'date' => $data['date'] ?? current_time('mysql'),
         ];
-        
+
         if (!update_post_meta($postId, 'nuclen-quiz-data', $formatted)) {
             throw new \RuntimeException("Failed to update quiz data for post {$postId}");
         }
     }
-    
+
     /**
      * Store summary data
      *
@@ -124,7 +124,7 @@ class ContentStorageService {
                 throw new \InvalidArgumentException("Invalid summary data for post {$postId}");
             }
         }
-        
+
         $allowedHtml = [
             'a' => ['href' => [], 'title' => [], 'target' => []],
             'br' => [],
@@ -138,17 +138,17 @@ class ContentStorageService {
             'div' => ['class' => []],
             'span' => ['class' => []],
         ];
-        
+
         $formatted = [
             'summary' => wp_kses($data['summary'], $allowedHtml),
             'date' => $data['date'] ?? current_time('mysql'),
         ];
-        
+
         if (!update_post_meta($postId, 'nuclen-summary-data', $formatted)) {
             throw new \RuntimeException("Failed to update summary data for post {$postId}");
         }
     }
-    
+
     /**
      * Update post modified time
      *
@@ -161,11 +161,11 @@ class ContentStorageService {
             'post_modified' => $time,
             'post_modified_gmt' => get_gmt_from_date($time),
         ]);
-        
+
         if (is_wp_error($result)) {
 \NuclearEngagement\Services\LoggingService::log("Failed to update modified time for post {$postId}: " . $result->get_error_message());
         }
-        
+
         clean_post_cache($postId);
     }
 }
