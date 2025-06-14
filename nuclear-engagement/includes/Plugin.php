@@ -59,8 +59,8 @@ class Plugin {
         $this->container = Container::getInstance();
         ContainerRegistrar::register( $this->container, $this->settings_repository );
         // Register hooks for auto-generation on every request
-        $autoGen = $this->container->get( 'auto_generation_service' );
-        $autoGen->register_hooks();
+        $auto_generation_service = $this->container->get( 'auto_generation_service' );
+        $auto_generation_service->register_hooks();
         $this->nuclen_define_admin_hooks();
         $this->nuclen_define_public_hooks();
     }
