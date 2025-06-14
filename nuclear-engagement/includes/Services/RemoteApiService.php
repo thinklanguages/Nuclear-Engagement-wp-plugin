@@ -198,6 +198,27 @@ class RemoteApiService {
      * @return array Error data
      */
     private function handleAuthError(string $body, int $code): array {
+        $data = json_decode($body, true);
+
+        if (is_array($data) && isset($data['error_code'])) {
+            $errorCode = $data['error_code'];
+            if ($errorCode === 'invalid_api_key') {
+                return [
+                    'error' => 'Invalid API key. Please update it on the Setup page.',
+                    'error_code' => 'invalid_api_key',
+                    'status_code' => $code,
+                ];
+            }
+
+            if ($errorCode === 'invalid_wp_app_pass') {
+                return [
+                    'error' => 'Invalid WP App Password. Please re-generate on the Setup page.',
+                    'error_code' => 'invalid_wp_app_pass',
+                    'status_code' => $code,
+                ];
+            }
+        }
+
         if (strpos($body, 'invalid_api_key') !== false) {
             return [
                 'error' => 'Invalid API key. Please update it on the Setup page.',
@@ -205,7 +226,7 @@ class RemoteApiService {
                 'status_code' => $code,
             ];
         }
-        
+
         if (strpos($body, 'invalid_wp_app_pass') !== false) {
             return [
                 'error' => 'Invalid WP App Password. Please re-generate on the Setup page.',
@@ -213,7 +234,7 @@ class RemoteApiService {
                 'status_code' => $code,
             ];
         }
-        
+
         return [
             'error' => 'Authentication error (API key or WP App Password may be invalid).',
             'status_code' => $code,
