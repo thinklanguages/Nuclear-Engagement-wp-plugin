@@ -12,15 +12,15 @@ Handles:
    ============================================================= */
    const HEADER_OFFSET = 20;   /* vertical gap from top */
    const SIDE_MARGIN   = 20;   /* keep away from viewport edge */
-   
+
    function initStickyToc() {
        const wrappers = document.querySelectorAll('.nuclen-toc-sticky');
        if (!wrappers.length) return;
-   
+
        wrappers.forEach((wrapper) => {
            const toc = wrapper.querySelector('.nuclen-toc');
            if (!toc) return;
-   
+
            /* Capture starting geometry */
            let rect          = wrapper.getBoundingClientRect();
            let originalTop   = rect.top + window.pageYOffset;
@@ -28,10 +28,10 @@ Handles:
            let originalWidth = rect.width;
            let isStuck       = false;
            let raf           = null;
-   
+
            /* Read per-instance width limit set by PHP */
            const dataMax     = parseInt(wrapper.dataset.maxWidth || '0', 10); // 0 ⇒ unlimited
-   
+
            /* Placeholder preserves layout */
            const ph = document.createElement('div');
            ph.className    = 'nuclen-toc-placeholder';
@@ -39,10 +39,10 @@ Handles:
            ph.style.width  = `${rect.width}px`;
            wrapper.insertAdjacentElement('afterend', ph);
            ph.style.display = 'none';
-   
+
            /* Smooth snap */
            wrapper.style.transition = 'top 0.25s ease-out';
-   
+
            /* Helpers */
            const calcLeft = (w) => {
                const container = document.querySelector('.entry-content, .post, .content-area, .site-main, main');
@@ -52,20 +52,20 @@ Handles:
                return Math.max(min, Math.min(contLeft, max));
            };
            const availHeight = () => window.innerHeight - HEADER_OFFSET * 2;
-   
+
            /* Ensure toc participates in layout (some themes set nav absolute) */
            toc.style.position = 'relative';
            toc.style.width    = '100%';
-   
+
            /* Mode toggle */
            const setStuck = (stick) => {
                if (stick === isStuck) return;
                isStuck = stick;
-   
+
                if (isStuck) {
                    const h = availHeight();
                    const w = dataMax > 0 ? Math.min(originalWidth, dataMax) : originalWidth;
-   
+
                    wrapper.classList.add('nuclen-toc-stuck');
                    wrapper.style.position  = 'fixed';
                    wrapper.style.top       = `${HEADER_OFFSET}px`;
@@ -73,11 +73,11 @@ Handles:
                    wrapper.style.width     = `${w}px`;
                    wrapper.style.maxHeight = `${h}px`;
                    wrapper.style.overflow  = 'visible'; // wrapper just positions
-   
+
                    /* Scroll inside nav */
                    toc.style.maxHeight = `${h}px`;
                    toc.style.overflow  = 'auto';
-   
+
                    /* Update placeholder to keep column width */
                    ph.style.display = 'block';
                    ph.style.width   = `${w}px`;
@@ -85,14 +85,14 @@ Handles:
                } else {
                    wrapper.classList.remove('nuclen-toc-stuck');
                    wrapper.style.cssText = 'transition: top 0.25s ease-out;';
-   
+
                    toc.style.maxHeight = '';
                    toc.style.overflow  = '';
-   
+
                    ph.style.display = 'none';
                }
            };
-   
+
            /* Event handlers */
            const onScroll = () => {
                if (raf) return;
@@ -102,7 +102,7 @@ Handles:
                    setStuck(shouldStick);
                });
            };
-   
+
            const onResize = () => {
                if (raf) cancelAnimationFrame(raf);
                raf = requestAnimationFrame(() => {
@@ -110,12 +110,12 @@ Handles:
                    rect          = wrapper.getBoundingClientRect();
                    originalLeft  = rect.left;
                    originalWidth = rect.width;
-   
+
                    const w = dataMax > 0 ? Math.min(originalWidth, dataMax) : originalWidth;
-   
+
                    ph.style.width  = `${w}px`;
                    ph.style.height = `${rect.height}px`;
-   
+
                    if (isStuck) {
                        const h = availHeight();
                        wrapper.style.left      = `${calcLeft(w)}px`;
@@ -125,13 +125,13 @@ Handles:
                    }
                });
            };
-   
+
            window.addEventListener('scroll', onScroll, { passive: true });
            window.addEventListener('resize', onResize);
            onScroll(); // initial determination
        });
    }
-      
+
    /* =============================================================
       Toggle button & scroll‑spy
       ============================================================= */
@@ -146,7 +146,7 @@ Handles:
            if (nav) nav.style.display = expanded ? 'none' : '';
            btn.textContent = expanded ? nuclenTocL10n.show : nuclenTocL10n.hide;
        });
-   
+
        /* Close on link click (mobile) */
        document.addEventListener('click', (e) => {
            const link    = e.target.closest('.nuclen-toc a');
@@ -157,7 +157,7 @@ Handles:
                if (btn) btn.click();
            }, 120);
        });
-   
+
        /* Click outside closes */
        document.addEventListener('click', (e) => {
            const stuck = document.querySelector('.nuclen-toc-sticky.nuclen-toc-stuck');
@@ -167,12 +167,12 @@ Handles:
                if (btn) btn.click();
            }
        });
-   
+
        /* Scroll‑spy */
        const navs = document.querySelectorAll('.nuclen-toc[data-highlight="true"]');
        if (!navs.length || !('IntersectionObserver' in window)) return;
        const ioOpts = { rootMargin: '0px 0px -60%', threshold: 0 };
-   
+
        navs.forEach((nav) => {
            const map = new Map();
            nav.querySelectorAll('a[href^="#"]').forEach((a) => {
@@ -181,7 +181,7 @@ Handles:
                if (tgt) map.set(tgt, a);
            });
            if (!map.size) return;
-   
+
            const io = new IntersectionObserver((entries) => {
                entries.forEach((en) => {
                    const link = map.get(en.target);
@@ -199,7 +199,7 @@ Handles:
            map.forEach((_l, tgt) => io.observe(tgt));
        });
    }
-   
+
    /* =============================================================
       Boot
       ============================================================= */
@@ -207,4 +207,3 @@ Handles:
        initStickyToc();
        initTocInteractions();
    });
-   

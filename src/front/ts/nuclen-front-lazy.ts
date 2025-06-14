@@ -10,7 +10,7 @@
 window.NuclenLazyLoadComponent = function (containerId: string, initFunctionName: string | null = null) {
     const component = document.getElementById(containerId);
     if (!component) return;
-  
+
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -27,17 +27,17 @@ window.NuclenLazyLoadComponent = function (containerId: string, initFunctionName
         threshold: 0.1
       }
     );
-  
+
     observer.observe(component);
   };
-  
+
   /**
    * 2b) Fire a GA event when a specific element is fully in view (threshold=1.0).
    */
   function nuclenInitIntersectionObserver(selector: string, gtagEventName: string) {
     const target = document.querySelector(selector);
     if (!target) return;
-  
+
     const observer = new IntersectionObserver(
       (entries, obs) => {
         entries.forEach((entry) => {
@@ -57,10 +57,10 @@ window.NuclenLazyLoadComponent = function (containerId: string, initFunctionName
         threshold: 1.0 // require 100% of the element to be visible
       }
     );
-  
+
     observer.observe(target);
   }
-  
+
   /**
    * 2c) Wait for #nuclen-quiz-container and #nuclen-summary-container in DOM, then attach GA observers.
    */
@@ -74,9 +74,8 @@ window.NuclenLazyLoadComponent = function (containerId: string, initFunctionName
     }
   });
   mutationObs.observe(document.body, { childList: true, subtree: true });
-  
+
   /**
    * 2d) Immediately call lazy-loading for the quiz container, telling it to run nuclearEngagementInitQuiz() once in view.
    */
   window.NuclenLazyLoadComponent('nuclen-quiz-container', 'nuclearEngagementInitQuiz');
-  
