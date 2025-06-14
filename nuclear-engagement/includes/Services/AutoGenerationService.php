@@ -157,7 +157,7 @@ class AutoGenerationService {
 
             // Schedule the first poll in 15 seconds
             $next_poll = time() + 15;
-            
+
             // Store the generation ID in options for the cron job
             $generations = get_option('nuclen_active_generations', []);
             $generations[$generation_id] = [
@@ -193,7 +193,7 @@ class AutoGenerationService {
     public function poll_generation(string $generation_id, string $workflow_type, int $post_id, int $attempt): void {
         $max_attempts = 10;
         $retry_delay = 60; // 1 minute between retries
-        
+
         try {
             // Check if auto-generation is enabled for this post type
             $connected = $this->settings_repository->get('connected', false);
@@ -204,7 +204,7 @@ class AutoGenerationService {
 
             // Get updates from the API
             $data = $this->remote_api->fetchUpdates($generation_id);
-            
+
             // Check if we have results
             if (!empty($data['results']) && is_array($data['results'])) {
                 $this->content_storage->storeResults($data['results'], $workflow_type);
@@ -213,7 +213,7 @@ class AutoGenerationService {
                 );
                 return;
             }
-            
+
             // Check if still processing
             if (isset($data['success']) && $data['success'] === true) {
                 // Still processing, log the attempt

@@ -26,10 +26,10 @@ class Admin {
 
     private $plugin_name;
     private $version;
-        private $utils;
-        private $settings_repository;
-        /** @var Container */
-        private $container;
+    private $utils;
+    private $settings_repository;
+    /** @var Container */
+    private $container;
 
     /**
      * Constructor
@@ -38,18 +38,18 @@ class Admin {
      * @param string $version
      * @param SettingsRepository $settings_repository
      */
-        public function __construct( $plugin_name, $version, SettingsRepository $settings_repository, Container $container ) {
-                $this->plugin_name = $plugin_name;
-                $this->version     = $version;
-                $this->utils       = new Utils();
-                $this->settings_repository = $settings_repository;
-                $this->container = $container;
+    public function __construct( $plugin_name, $version, SettingsRepository $settings_repository, Container $container ) {
+        $this->plugin_name        = $plugin_name;
+        $this->version            = $version;
+        $this->utils              = new Utils();
+        $this->settings_repository = $settings_repository;
+        $this->container          = $container;
 
-        // Meta‑boxes
+        // Meta-boxes
         add_action( 'add_meta_boxes', array( $this, 'nuclen_add_quiz_data_meta_box' ) );
-        add_action( 'save_post',      array( $this, 'nuclen_save_quiz_data_meta' ) );
+        add_action( 'save_post', array( $this, 'nuclen_save_quiz_data_meta' ) );
         add_action( 'add_meta_boxes', array( $this, 'nuclen_add_summary_data_meta_box' ) );
-        add_action( 'save_post',      array( $this, 'nuclen_save_summary_data_meta' ) );
+        add_action( 'save_post', array( $this, 'nuclen_save_summary_data_meta' ) );
 
         // AJAX & assets
         add_action( 'wp_ajax_nuclen_fetch_app_updates', array( $this, 'nuclen_fetch_app_updates' ) );
@@ -60,7 +60,7 @@ class Admin {
         // Admin menu
         add_action( 'admin_menu', array( $this, 'nuclen_add_admin_menu' ) );
 
-        // Auto‑generation on publish is now handled by AutoGenerationService
+        // Auto-generation on publish is now handled by AutoGenerationService
         // The service is registered in the Plugin class and handles its own hooks
     }
 
@@ -81,21 +81,16 @@ class Admin {
      *
      * @return SettingsRepository
      */
-        /**
-     * Get the settings repository instance.
-     *
-     * @return SettingsRepository
-     */
-        public function nuclen_get_settings_repository() {
-                return $this->settings_repository;
-        }
+    public function nuclen_get_settings_repository() {
+        return $this->settings_repository;
+    }
 
     /**
      * Get the container instance.
      *
      * @return \NuclearEngagement\Container
      */
-        protected function get_container() {
-                return $this->container;
-        }
+    protected function get_container() {
+        return $this->container;
+    }
 }

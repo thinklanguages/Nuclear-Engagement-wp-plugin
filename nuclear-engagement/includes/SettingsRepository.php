@@ -24,18 +24,18 @@ final class SettingsRepository
      * The option name used to store settings in the database.
      */
     const OPTION = 'nuclear_engagement_settings';
-    
+
     /**
      * Maximum size (in bytes) for settings to be autoloaded.
      */
     const MAX_AUTOLOAD_SIZE = 512000;
-    
+
 
     /**
      * Singleton instance.
      */
     private static $instance = null;
-    
+
     /**
      * Default settings values.
      */
@@ -85,17 +85,17 @@ final class SettingsRepository
         if (null !== $cached) {
             return $cached;
         }
-        
+
         // Not in cache, fetch from database
         $saved = get_option(self::OPTION, []);
         $settings = wp_parse_args(
             is_array($saved) ? $saved : [],
             $this->defaults
         );
-        
+
         // Store in cache
         $this->cache->set($settings);
-        
+
         return $settings;
     }
 
@@ -112,12 +112,12 @@ final class SettingsRepository
     public function get(string $key, $fallback = null) {
         $all = $this->all();
         $value = $all[$key] ?? $fallback;
-        
+
         // Allow filtering of individual settings
         if (func_num_args() === 1) {
             $value = apply_filters("nuclen_setting_{$key}", $value, $key);
         }
-        
+
         return $value;
     }
 
@@ -136,22 +136,22 @@ final class SettingsRepository
         if (empty($this->pending)) {
             return false;
         }
-        
+
         $current = $this->all();
         $sanitized = SettingsSanitizer::sanitize_settings($this->pending);
         $merged = wp_parse_args($sanitized, $current);
-        
+
         // Clear pending settings
         $this->pending = [];
-        
+
         // Invalidate cache before save
         $this->invalidate_cache();
-        
+
         // Only update if settings have changed
         if ($merged !== $current) {
             $autoload = $this->should_autoload($merged);
             $result = update_option(self::OPTION, $merged, $autoload ? 'yes' : 'no');
-            
+
             // Also update legacy option for backward compatibility
             if ($result && false !== get_option('nuclear_engagement_setup')) {
                 $legacy_data = [
@@ -163,10 +163,10 @@ final class SettingsRepository
                 ];
                 update_option('nuclear_engagement_setup', $legacy_data);
             }
-            
+
             return $result;
         }
-        
+
         return false;
     }
 

@@ -38,7 +38,7 @@ class Deactivator {
     public static function nuclen_deactivate(?SettingsRepository $settings = null) {
         // Clear any scheduled hooks or transients if needed
         delete_transient('nuclen_plugin_activation_redirect');
-        
+
         // If settings instance is provided, perform any necessary cleanup
         if ($settings !== null) {
             // Clear any cached settings if needed

@@ -5,9 +5,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * File: admin/partials/nuclen-admin-generate.php
  * Implementation of changes required by WordPress.org guidelines.
- * 
- * - Now includes a <p id="nuclen-credits-info"> in Step 2 to show “This will consume X credits. 
- *   You have Y left.” 
+ *
+ * - Now includes a <p id="nuclen-credits-info"> in Step 2 to show “This will consume X credits.
+ *   You have Y left.”
  * - All other code remains the same, except for that inserted line.
  *
  * @package NuclearEngagement\Admin

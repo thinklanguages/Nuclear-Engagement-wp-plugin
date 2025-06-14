@@ -21,32 +21,32 @@ class GenerationResponse {
      * @var string Generation ID for tracking
      */
     public string $generationId;
-    
+
     /**
      * @var array Generated results
      */
     public array $results = [];
-    
+
     /**
      * @var bool Success status
      */
     public bool $success = true;
-    
+
     /**
      * @var string|null Error message if any
      */
     public ?string $error = null;
-    
+
     /**
      * @var string|null Error code if any
      */
     public ?string $errorCode = null;
-    
+
     /**
      * @var int|null HTTP status code from remote API
      */
     public ?int $statusCode = null;
-    
+
     /**
      * Convert to array for JSON response
      *
@@ -58,19 +58,19 @@ class GenerationResponse {
             'results' => $this->results,
             'success' => $this->success,
         ];
-        
+
         if ($this->error !== null) {
             $data['error'] = $this->error;
         }
-        
+
         if ($this->errorCode !== null) {
             $data['error_code'] = $this->errorCode;
         }
-        
+
         if ($this->statusCode !== null) {
             $data['status_code'] = $this->statusCode;
         }
-        
+
         return $data;
     }
 }

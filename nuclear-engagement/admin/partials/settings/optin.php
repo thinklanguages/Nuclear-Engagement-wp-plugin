@@ -86,7 +86,7 @@ if ( ! defined( 'ABSPATH' ) ) {
         );
         ?>
     </p>
-    
+
     <!-- Webhook URL -->
     <div class="nuclen-form-group nuclen-row">
         <label class="nuclen-label-col" for="optin_webhook">

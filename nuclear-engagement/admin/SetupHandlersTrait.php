@@ -83,7 +83,7 @@ trait SetupHandlersTrait {
         if (!$settings->get_bool('connected', false) || empty($settings->get('api_key'))) {
             $this->nuclen_redirect_with_error('Please complete Step 1 first.');
         }
-        
+
         // Get the current app setup data
         $app_setup = get_option('nuclear_engagement_setup', array());
 
