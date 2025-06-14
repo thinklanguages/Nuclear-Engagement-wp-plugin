@@ -170,13 +170,9 @@ class AutoGenerationService {
             update_option('nuclen_active_generations', $generations);
 
             // Schedule the cron event
-            if (!wp_next_scheduled('nuclen_poll_generation', [$generation_id, $workflow_type, $post_id, 1])) {
-                wp_schedule_single_event($next_poll, 'nuclen_poll_generation', [
-                    'generation_id' => $generation_id,
-                    'workflow_type' => $workflow_type,
-                    'post_id' => $post_id,
-                    'attempt' => 1
-                ]);
+            $event_args = [ $generation_id, $workflow_type, $post_id, 1 ];
+            if (!wp_next_scheduled('nuclen_poll_generation', $event_args)) {
+                wp_schedule_single_event($next_poll, 'nuclen_poll_generation', $event_args);
             }
 
         } catch (\Exception $e) {
@@ -234,15 +230,11 @@ class AutoGenerationService {
 
         // Schedule next poll if not at max attempts
         if ($attempt < $max_attempts) {
+            $event_args = [ $generation_id, $workflow_type, $post_id, $attempt + 1 ];
             wp_schedule_single_event(
                 time() + $retry_delay,
                 'nuclen_poll_generation',
-                [
-                    'generation_id' => $generation_id,
-                    'workflow_type' => $workflow_type,
-                    'post_id' => $post_id,
-                    'attempt' => $attempt + 1
-                ]
+                $event_args
             );
         } else {
             \NuclearEngagement\Services\LoggingService::log(
