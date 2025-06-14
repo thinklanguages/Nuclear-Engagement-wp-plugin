@@ -5,7 +5,9 @@
  * Handles front-end asset registration and enqueueing for the TOC module.
  */
 
-if ( ! defined( 'ABSPATH' ) ) { exit; }
+if ( ! defined( 'ABSPATH' ) ) {
+    exit;
+}
 
 final class Nuclen_TOC_Assets {
         private bool $registered = false;

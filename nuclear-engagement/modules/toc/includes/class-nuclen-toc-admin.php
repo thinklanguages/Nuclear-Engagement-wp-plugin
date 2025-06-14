@@ -5,7 +5,9 @@
  * Settings→Nuclen TOC  — live shortcode generator.
  */
 
-if ( ! defined( 'ABSPATH' ) ) { exit; }
+if ( ! defined( 'ABSPATH' ) ) {
+    exit;
+}
 
 final class Nuclen_TOC_Admin {
 

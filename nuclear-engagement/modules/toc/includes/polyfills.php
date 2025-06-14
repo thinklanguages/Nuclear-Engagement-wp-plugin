@@ -6,7 +6,9 @@
  * All helpers are prefixed `nuclen_` to avoid collisions in large stacks.
  */
 
-if ( ! defined( 'ABSPATH' ) ) { exit; }
+if ( ! defined( 'ABSPATH' ) ) {
+    exit;
+}
 
 if ( ! function_exists( 'nuclen_str_contains' ) ) {
     /**

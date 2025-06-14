@@ -5,7 +5,9 @@
  * Public-facing shortcode handler for the TOC module.
  */
 
-if ( ! defined( 'ABSPATH' ) ) { exit; }
+if ( ! defined( 'ABSPATH' ) ) {
+    exit;
+}
 
 use NuclearEngagement\SettingsRepository;
 

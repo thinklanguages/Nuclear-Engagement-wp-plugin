@@ -8,7 +8,9 @@
  *   ▸ object‑cache wrapper
  */
 
-if ( ! defined( 'ABSPATH' ) ) { exit; }
+if ( ! defined( 'ABSPATH' ) ) {
+    exit;
+}
 
 use function nuclen_str_contains as _nc;
 

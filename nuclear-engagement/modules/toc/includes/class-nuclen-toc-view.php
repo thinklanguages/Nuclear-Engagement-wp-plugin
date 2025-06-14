@@ -5,7 +5,9 @@
  * Generates the HTML markup for the front-end TOC.
  */
 
-if ( ! defined( 'ABSPATH' ) ) { exit; }
+if ( ! defined( 'ABSPATH' ) ) {
+    exit;
+}
 
 use NuclearEngagement\SettingsRepository;
 
