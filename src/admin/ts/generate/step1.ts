@@ -6,6 +6,12 @@ import {
   nuclenCheckCreditsAjax,
 } from './generate-page-utils';
 import type { GeneratePageElements } from './elements';
+import {
+  nuclenCollectFilters,
+  nuclenAppendFilters,
+  nuclenStoreFilters,
+  type NuclenFilterValues,
+} from './filters';
 
 export function initStep1(elements: GeneratePageElements): void {
   elements.getPostsBtn?.addEventListener('click', () => {
@@ -22,20 +28,8 @@ export function initStep1(elements: GeneratePageElements): void {
     if ((window as any).nuclenAjax?.nonce) {
       formData.append('security', (window as any).nuclenAjax.nonce);
     }
-    const postStatusEl = document.getElementById('nuclen_post_status') as HTMLSelectElement | null;
-    const categoryEl = document.getElementById('nuclen_category') as HTMLSelectElement | null;
-    const authorEl = document.getElementById('nuclen_author') as HTMLSelectElement | null;
-    const postTypeEl = document.getElementById('nuclen_post_type') as HTMLSelectElement | null;
-    const workflowEl = document.getElementById('nuclen_generate_workflow') as HTMLSelectElement | null;
-    const allowRegenEl = document.getElementById('nuclen_allow_regenerate_data') as HTMLInputElement | null;
-    const protectRegenEl = document.getElementById('nuclen_regenerate_protected_data') as HTMLInputElement | null;
-    formData.append('nuclen_post_status', postStatusEl ? postStatusEl.value : '');
-    formData.append('nuclen_category', categoryEl ? categoryEl.value : '');
-    formData.append('nuclen_author', authorEl ? authorEl.value : '');
-    formData.append('nuclen_post_type', postTypeEl ? postTypeEl.value : '');
-    formData.append('nuclen_generate_workflow', workflowEl ? workflowEl.value : '');
-    formData.append('nuclen_allow_regenerate_data', allowRegenEl && allowRegenEl.checked ? '1' : '0');
-    formData.append('nuclen_regenerate_protected_data', protectRegenEl && protectRegenEl.checked ? '1' : '0');
+    const filters: NuclenFilterValues = nuclenCollectFilters();
+    nuclenAppendFilters(formData, filters);
 
     nuclenFetchWithRetry((window as any).nuclenAjax.ajax_url || '', {
       method: 'POST',
@@ -65,34 +59,7 @@ export function initStep1(elements: GeneratePageElements): void {
         if (selectedPostIdsEl) {
           selectedPostIdsEl.value = JSON.stringify(foundPosts);
         }
-        const workflowEl2 = document.getElementById('nuclen_generate_workflow') as HTMLSelectElement | null;
-        const selectedWorkflowEl = document.getElementById('nuclen_selected_generate_workflow') as HTMLInputElement | null;
-        if (selectedWorkflowEl && workflowEl2) {
-          selectedWorkflowEl.value = workflowEl2.value;
-        }
-        const summaryFormatElStep1 = document.getElementById('nuclen_summary_format') as HTMLSelectElement | null;
-        const summaryLengthElStep1 = document.getElementById('nuclen_summary_length') as HTMLSelectElement | null;
-        const summaryNumberElStep1 = document.getElementById('nuclen_summary_number_of_items') as HTMLSelectElement | null;
-        const selectedSummaryFormatEl = document.getElementById('nuclen_selected_summary_format') as HTMLInputElement | null;
-        const selectedSummaryLengthEl = document.getElementById('nuclen_selected_summary_length') as HTMLInputElement | null;
-        const selectedSummaryNumberEl = document.getElementById('nuclen_selected_summary_number_of_items') as HTMLInputElement | null;
-        if (summaryFormatElStep1 && selectedSummaryFormatEl) {
-          selectedSummaryFormatEl.value = summaryFormatElStep1.value;
-        }
-        if (summaryLengthElStep1 && selectedSummaryLengthEl) {
-          selectedSummaryLengthEl.value = summaryLengthElStep1.value;
-        }
-        if (summaryNumberElStep1 && selectedSummaryNumberEl) {
-          selectedSummaryNumberEl.value = summaryNumberElStep1.value;
-        }
-        const selectedPostStatusEl = document.getElementById('nuclen_selected_post_status') as HTMLInputElement | null;
-        if (selectedPostStatusEl && postStatusEl) {
-          selectedPostStatusEl.value = postStatusEl.value;
-        }
-        const selectedPostTypeEl = document.getElementById('nuclen_selected_post_type') as HTMLInputElement | null;
-        if (selectedPostTypeEl && postTypeEl) {
-          selectedPostTypeEl.value = postTypeEl.value;
-        }
+        nuclenStoreFilters(filters);
         nuclenHideElement(elements.step1);
         nuclenShowElement(elements.step2);
         nuclenUpdateProgressBarStep(elements.stepBar1, 'done');
