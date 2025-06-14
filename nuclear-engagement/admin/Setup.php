@@ -74,8 +74,8 @@ class Setup {
 			echo '<div class="notice notice-success is-dismissible"><p>' . esc_html( $nuclen_success ) . '</p></div>';
 		}
 
-		/* ───── Retrieve settings ───── */
-		$settings = SettingsRepository::get_instance();
+                /* ───── Retrieve settings ───── */
+                $settings = \NuclearEngagement\Container::getInstance()->get('settings');
 		$app_setup = [
 			'api_key' => $settings->get_string('api_key', ''),
 			'connected' => $settings->get_bool('connected', false),

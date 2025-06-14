@@ -113,7 +113,7 @@ final class Nuclen_TOC_Render {
                         return '';
                 }
 
-                $settings = SettingsRepository::get_instance();
+                $settings = \NuclearEngagement\Container::getInstance()->get('settings');
                 $atts     = $this->prepare_shortcode_attributes( $atts, $settings );
 
                 $list  = ( strtolower( $atts['list'] ) === 'ol' ) ? 'ol' : 'ul';

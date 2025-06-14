@@ -15,10 +15,11 @@ if (!defined('ABSPATH')) {
  * @subpackage Nuclear_Engagement/public/partials
  */
 
-use NuclearEngagement\SettingsRepository;
+use NuclearEngagement\Container;
 
 // Get settings repository instance
-$settings = SettingsRepository::get_instance();
+$container = Container::getInstance();
+$settings = $container->get('settings');
 
 // Get theme settings with type-safe methods
 $theme = $settings->get_string('theme', 'bright');

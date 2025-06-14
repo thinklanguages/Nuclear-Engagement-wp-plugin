@@ -5,7 +5,7 @@
  * @package NuclearEngagement
  */
 
-use NuclearEngagement\SettingsRepository;
+use NuclearEngagement\Container;
 
 if ( ! function_exists( 'nuclen_settings' ) ) {
     /**
@@ -19,8 +19,7 @@ if ( ! function_exists( 'nuclen_settings' ) ) {
         static $repo = null;
         
         if ( $repo === null ) {
-            // SettingsRepository automatically loads defaults from Defaults::nuclen_get_default_settings()
-            $repo = SettingsRepository::get_instance();
+            $repo = Container::getInstance()->get('settings');
         }
         
         if ( $key === null ) {
@@ -43,7 +42,7 @@ if ( ! function_exists( 'nuclen_settings_bool' ) ) {
         static $repo = null;
         
         if ( $repo === null ) {
-            $repo = SettingsRepository::get_instance();
+            $repo = Container::getInstance()->get('settings');
         }
         
         return $repo->get_bool( $key, $default );
@@ -62,7 +61,7 @@ if ( ! function_exists( 'nuclen_settings_int' ) ) {
         static $repo = null;
         
         if ( $repo === null ) {
-            $repo = SettingsRepository::get_instance();
+            $repo = Container::getInstance()->get('settings');
         }
         
         return $repo->get_int( $key, $default );
@@ -81,7 +80,7 @@ if ( ! function_exists( 'nuclen_settings_string' ) ) {
         static $repo = null;
         
         if ( $repo === null ) {
-            $repo = SettingsRepository::get_instance();
+            $repo = Container::getInstance()->get('settings');
         }
         
         return $repo->get_string( $key, $default );
@@ -100,7 +99,7 @@ if ( ! function_exists( 'nuclen_settings_array' ) ) {
         static $repo = null;
         
         if ( $repo === null ) {
-            $repo = SettingsRepository::get_instance();
+            $repo = Container::getInstance()->get('settings');
         }
         
         return $repo->get_array( $key, $default );

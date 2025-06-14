@@ -20,7 +20,7 @@ global $wpdb;
 /* ──────────────────────────────────────────────────────────────
  * 1. Determine which post-types we need to examine
  * ──────────────────────────────────────────────────────────── */
-$settings_repo = \NuclearEngagement\SettingsRepository::get_instance();
+$settings_repo = \NuclearEngagement\Container::getInstance()->get('settings');
 $admin = new \NuclearEngagement\Admin\Admin('nuclear-engagement', NUCLEN_PLUGIN_VERSION, $settings_repo);
 $allowed_post_types = $settings_repo->get('generation_post_types', array('post'));
 $allowed_post_types = is_array($allowed_post_types) ? $allowed_post_types : array('post');

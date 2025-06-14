@@ -32,7 +32,7 @@ class MetaRegistration {
      */
     public static function register_meta_keys(): void {
         // Get allowed post types from settings
-        $settings = SettingsRepository::get_instance();
+        $settings = \NuclearEngagement\Container::getInstance()->get('settings');
         $post_types = $settings->get_array( 'generation_post_types', [ 'post' ] );
         
         // Register quiz data meta

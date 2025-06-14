@@ -6,6 +6,8 @@
  *
  * Handles front-end CSS & JS enqueues and localisation.
  *
+ * Host class must expose `$plugin_name` and `nuclen_get_settings_repository()`.
+ *
  * @package NuclearEngagement\Front
  */
 

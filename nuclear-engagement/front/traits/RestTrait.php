@@ -4,7 +4,9 @@
  *
  * Trait: RestTrait
  *
- * REST-API route registration - now delegates to controller
+ * REST-API route registration - now delegates to controller.
+ *
+ * Host class must implement protected get_container(): \NuclearEngagement\Container.
  *
  * @package NuclearEngagement\Front
  */
@@ -24,16 +26,16 @@ trait RestTrait {
 	}
 
 	/* ---------- Legacy methods for backward compatibility ---------- */
-	public function nuclen_receive_content( \WP_REST_Request $request ) {
-		$container = \NuclearEngagement\Container::getInstance();
-		$controller = $container->get('content_controller');
-		return $controller->handle($request);
-	}
+        public function nuclen_receive_content( \WP_REST_Request $request ) {
+                $container = $this->get_container();
+                $controller = $container->get('content_controller');
+                return $controller->handle($request);
+        }
 
 	public function nuclen_validate_and_store_quiz_data( $post_id, $quiz_data ) : bool {
 		try {
-			$container = \NuclearEngagement\Container::getInstance();
-			$storage = $container->get('content_storage');
+                        $container = $this->get_container();
+                        $storage = $container->get('content_storage');
 			$storage->storeQuizData($post_id, $quiz_data);
 			return true;
 		} catch (\Exception $e) {
@@ -44,8 +46,8 @@ trait RestTrait {
 
 	public function nuclen_send_posts_to_app_backend( $data_to_send ) {
 		try {
-			$container = \NuclearEngagement\Container::getInstance();
-			$api = $container->get('remote_api');
+                        $container = $this->get_container();
+                        $api = $container->get('remote_api');
 			return $api->sendPostsToGenerate($data_to_send);
 		} catch (\Exception $e) {
 \NuclearEngagement\Services\LoggingService::log('Error sending data: ' . $e->getMessage());

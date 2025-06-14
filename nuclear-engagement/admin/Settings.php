@@ -26,9 +26,9 @@ class Settings {
 	/**
 	 * Constructor – hooks assets only; the heavy lifting lives in the traits.
 	 */
-	public function __construct() {
-		$this->settings_repository = \NuclearEngagement\SettingsRepository::get_instance();
-		add_action( 'admin_enqueue_scripts', array( $this, 'nuclen_enqueue_color_picker' ) );
+        public function __construct() {
+                $this->settings_repository = \NuclearEngagement\Container::getInstance()->get('settings');
+                add_action( 'admin_enqueue_scripts', array( $this, 'nuclen_enqueue_color_picker' ) );
 	}
 
 	/**

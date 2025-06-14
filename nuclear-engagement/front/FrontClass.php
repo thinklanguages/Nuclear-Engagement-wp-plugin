@@ -22,6 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 use NuclearEngagement\Utils;
 use NuclearEngagement\SettingsRepository;
+use NuclearEngagement\Container;
 
 class FrontClass {
 
@@ -33,10 +34,12 @@ class FrontClass {
 	private $plugin_name;
 	/** @var string */
 	private $version;
-	/** @var Utils */
-	private $utils;
-	/** @var SettingsRepository */
-	private $settings_repository;
+        /** @var Utils */
+        private $utils;
+        /** @var SettingsRepository */
+        private $settings_repository;
+        /** @var Container */
+        private $container;
 
 	/**
 	 * Constructor.
@@ -45,11 +48,12 @@ class FrontClass {
 	 * @param string $version The plugin version.
 	 * @param SettingsRepository $settings_repository The settings repository.
 	 */
-	public function __construct( $plugin_name, $version, SettingsRepository $settings_repository ) {
-		$this->plugin_name = $plugin_name;
-		$this->version = $version;
-		$this->utils = new Utils();
-		$this->settings_repository = $settings_repository;
+        public function __construct( $plugin_name, $version, SettingsRepository $settings_repository, Container $container ) {
+                $this->plugin_name = $plugin_name;
+                $this->version = $version;
+                $this->utils = new Utils();
+                $this->settings_repository = $settings_repository;
+                $this->container = $container;
 	}
 
 	/** Allow traits to read internal utils object */
@@ -69,5 +73,14 @@ class FrontClass {
 	 */
         public function nuclen_get_settings_repository() {
                 return $this->settings_repository;
+        }
+
+        /**
+         * Get the container instance.
+         *
+         * @return Container
+         */
+        protected function get_container(): Container {
+                return $this->container;
         }
 }
