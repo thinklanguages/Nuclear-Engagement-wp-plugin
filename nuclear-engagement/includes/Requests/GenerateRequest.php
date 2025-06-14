@@ -35,12 +35,12 @@ class GenerateRequest {
     /**
      * @var int Summary length in words
      */
-    public int $summaryLength = 30;
+    public int $summaryLength = NUCLEN_SUMMARY_LENGTH_DEFAULT;
 
     /**
      * @var int Number of summary items
      */
-    public int $summaryItems = 3;
+    public int $summaryItems = NUCLEN_SUMMARY_ITEMS_DEFAULT;
 
     /**
      * @var string Generation ID for tracking
@@ -110,8 +110,20 @@ class GenerateRequest {
             $request->summaryFormat = 'paragraph';
         }
 
-        $request->summaryLength = max(20, min(50, (int)($payload['nuclen_selected_summary_length'] ?? 30)));
-        $request->summaryItems = max(3, min(7, (int)($payload['nuclen_selected_summary_number_of_items'] ?? 3)));
+        $request->summaryLength = max(
+            NUCLEN_SUMMARY_LENGTH_MIN,
+            min(
+                NUCLEN_SUMMARY_LENGTH_MAX,
+                (int) ( $payload['nuclen_selected_summary_length'] ?? NUCLEN_SUMMARY_LENGTH_DEFAULT )
+            )
+        );
+        $request->summaryItems = max(
+            NUCLEN_SUMMARY_ITEMS_MIN,
+            min(
+                NUCLEN_SUMMARY_ITEMS_MAX,
+                (int) ( $payload['nuclen_selected_summary_number_of_items'] ?? NUCLEN_SUMMARY_ITEMS_DEFAULT )
+            )
+        );
 
         // Generation ID
         $request->generationId = !empty($payload['generation_id'])

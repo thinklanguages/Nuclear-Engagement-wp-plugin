@@ -26,10 +26,10 @@ class AutoGenerationService {
     public const RETRY_DELAY       = NUCLEN_POLL_RETRY_DELAY;
 
     /** Default length used when summarizing posts. */
-    public const SUMMARY_LENGTH    = 30;
+    public const SUMMARY_LENGTH    = NUCLEN_SUMMARY_LENGTH_DEFAULT;
 
     /** Default number of items in auto summaries. */
-    public const SUMMARY_ITEMS     = 3;
+    public const SUMMARY_ITEMS     = NUCLEN_SUMMARY_ITEMS_DEFAULT;
     /**
      * @var SettingsRepository
      */
