@@ -22,6 +22,8 @@ if (!defined('ABSPATH')) {
  * Service for handling content generation
  */
 class GenerationService {
+    /** Seconds to wait between polling events. */
+    public const POLL_DELAY = NUCLEN_GENERATION_POLL_DELAY;
     /**
      * @var SettingsRepository
      */
@@ -157,7 +159,7 @@ class GenerationService {
             // If no immediate results, schedule polling
             if (empty($response->results)) {
                 wp_schedule_single_event(
-                    time() + 30,
+                    time() + self::POLL_DELAY,
                     'nuclen_poll_generation',
                     [$response->generationId, $workflowType, $postId, 1]
                 );

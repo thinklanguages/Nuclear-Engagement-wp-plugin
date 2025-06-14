@@ -17,7 +17,7 @@ use function nuclen_str_contains as _nc;
 final class Nuclen_TOC_Utils {
 
     private const CACHE_GROUP = 'nuclen_toc';
-    private const CACHE_TTL   = 21600;          // 6 hours
+    private const CACHE_TTL   = 6 * HOUR_IN_SECONDS;          // 6 hours
 
     private static array $ids_in_post = [];
 

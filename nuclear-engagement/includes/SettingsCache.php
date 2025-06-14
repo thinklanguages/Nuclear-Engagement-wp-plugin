@@ -14,8 +14,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 final class SettingsCache {
+    /** Cache group used for settings. */
     public const CACHE_GROUP      = 'nuclen_settings';
-    public const CACHE_EXPIRATION = 3600; // 1 hour
+
+    /** Default cache lifetime in seconds. */
+    public const CACHE_EXPIRATION = HOUR_IN_SECONDS; // 1 hour
 
     public function register_hooks(): void {
         add_action( 'updated_option', [ $this, 'maybe_invalidate_cache' ], 10, 3 );

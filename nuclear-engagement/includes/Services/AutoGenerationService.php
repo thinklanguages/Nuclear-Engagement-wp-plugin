@@ -16,6 +16,20 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 class AutoGenerationService {
+    /** Number of seconds before the first poll runs. */
+    public const INITIAL_POLL_DELAY = NUCLEN_INITIAL_POLL_DELAY;
+
+    /** Maximum number of API polling attempts. */
+    public const MAX_ATTEMPTS      = NUCLEN_MAX_POLL_ATTEMPTS;
+
+    /** Delay in seconds between poll attempts. */
+    public const RETRY_DELAY       = NUCLEN_POLL_RETRY_DELAY;
+
+    /** Default length used when summarizing posts. */
+    public const SUMMARY_LENGTH    = 30;
+
+    /** Default number of items in auto summaries. */
+    public const SUMMARY_ITEMS     = 3;
     /**
      * @var SettingsRepository
      */
@@ -134,8 +148,8 @@ class AutoGenerationService {
             $workflow = [
                 'type' => $workflow_type,
                 'summary_format' => 'paragraph',
-                'summary_length' => 30,
-                'summary_number_of_items' => 3,
+                'summary_length' => self::SUMMARY_LENGTH,
+                'summary_number_of_items' => self::SUMMARY_ITEMS,
             ];
 
             $generation_id = 'gen_' . uniqid('auto_', true);
@@ -155,8 +169,8 @@ class AutoGenerationService {
                 return;
             }
 
-            // Schedule the first poll in 15 seconds
-            $next_poll = time() + 15;
+            // Schedule the first poll
+            $next_poll = time() + self::INITIAL_POLL_DELAY;
 
             // Store the generation ID in options for the cron job
             $generations = get_option('nuclen_active_generations', []);
@@ -191,8 +205,8 @@ class AutoGenerationService {
      * @param int $attempt Current attempt number
      */
     public function poll_generation(string $generation_id, string $workflow_type, int $post_id, int $attempt): void {
-        $max_attempts = 10;
-        $retry_delay = 60; // 1 minute between retries
+        $max_attempts = self::MAX_ATTEMPTS;
+        $retry_delay = self::RETRY_DELAY; // 1 minute between retries
 
         try {
             // Check if auto-generation is enabled for this post type

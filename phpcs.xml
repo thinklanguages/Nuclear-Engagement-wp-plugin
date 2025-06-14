@@ -1,7 +1,9 @@
 <?xml version="1.0"?>
 <ruleset name="Nuclear Engagement">
     <rule ref="WordPress" />
+    <rule ref="Generic.Metrics.MagicNumbers" />
 
     <exclude-pattern>vendor/*</exclude-pattern>
     <exclude-pattern>node_modules/*</exclude-pattern>
+    <exclude-pattern>tests/*</exclude-pattern>
 </ruleset>

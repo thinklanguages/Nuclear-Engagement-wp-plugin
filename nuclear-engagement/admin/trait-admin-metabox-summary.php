@@ -47,8 +47,8 @@ trait Admin_Summary_Metabox {
                 'summary'         => '',
                 'date'            => '',
                 'format'          => 'paragraph',
-                'length'          => 30,
-                'number_of_items' => 3,
+                'length'          => \NuclearEngagement\Services\AutoGenerationService::SUMMARY_LENGTH,
+                'number_of_items' => \NuclearEngagement\Services\AutoGenerationService::SUMMARY_ITEMS,
             );
         }
 
