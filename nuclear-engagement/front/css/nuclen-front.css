@@ -238,7 +238,18 @@
 
 /* Utility classes */
 .nuclen-quiz-hidden {
-	display: none;
+        display: none;
+}
+
+.nuclen-optin-btn-row {
+        margin-top: 1em;
+        display: flex;
+        gap: 10px;
+}
+
+.nuclen-optin-skip {
+        margin-top: 0.5em;
+        font-size: .85em;
 }
 
 .nuclen-quiz-pulse {

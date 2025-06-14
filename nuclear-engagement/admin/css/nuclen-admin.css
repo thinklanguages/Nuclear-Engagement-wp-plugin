@@ -164,8 +164,27 @@ Classes for form groups, labels, inputs, and buttons.
 }
 
 .nuclen-input:focus {
-	border-color: #007cba;
-	outline: none;
+        border-color: #007cba;
+        outline: none;
+}
+
+/* Utility inputs */
+.nuclen-width-full {
+        width: 100%;
+}
+
+.nuclen-meta-date-input {
+        width: 100%;
+        background: #f9f9f9;
+}
+
+.nuclen-answer-correct {
+        font-weight: bold;
+        background: #e6ffe6;
+}
+
+.nuclen-answer-label {
+        margin-bottom: 0.5em;
 }
 
 /* Buttons */

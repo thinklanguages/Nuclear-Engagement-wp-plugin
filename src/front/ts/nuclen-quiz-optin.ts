@@ -28,13 +28,13 @@ export function mountOptinBeforeResults(
       <input  type="text"  id="nuclen-optin-name">
       <label for="nuclen-optin-email" class="nuclen-fg">Email *</label>
       <input  type="email" id="nuclen-optin-email" required>
-      <div style="margin-top:1em;display:flex;gap:10px;">
+      <div class="nuclen-optin-btn-row">
         <button type="button" id="nuclen-optin-submit">${ctx.submitLabel}</button>
       </div>
       ${
         ctx.mandatory
           ? ''
-          : '<div style="margin-top:0.5em;"><a href="#" id="nuclen-optin-skip" style="font-size:.85em;">Skip &amp; view results</a></div>'
+          : '<div class="nuclen-optin-skip"><a href="#" id="nuclen-optin-skip">Skip &amp; view results</a></div>'
       }
     </div>`;
 
