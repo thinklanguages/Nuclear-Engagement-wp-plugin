@@ -15,6 +15,7 @@ define('NUCLEN_PLUGIN_VERSION', '1.1');
 define('NUCLEN_ASSET_VERSION', '250613-30');
 
 require_once NUCLEN_PLUGIN_DIR . 'includes/autoload.php';
+require_once NUCLEN_PLUGIN_DIR . 'includes/constants.php';
 
 function nuclear_engagement_load_textdomain() {
     load_plugin_textdomain(

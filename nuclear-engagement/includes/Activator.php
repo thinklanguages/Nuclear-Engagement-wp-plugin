@@ -17,7 +17,7 @@ class Activator {
      */
     public static function nuclen_activate(?SettingsRepository $settings = null) {
         // Set transient for activation redirect
-        set_transient('nuclen_plugin_activation_redirect', true, 30);
+        set_transient('nuclen_plugin_activation_redirect', true, NUCLEN_ACTIVATION_REDIRECT_TTL);
 
         // Get default settings
         $default_settings = Defaults::nuclen_get_default_settings();

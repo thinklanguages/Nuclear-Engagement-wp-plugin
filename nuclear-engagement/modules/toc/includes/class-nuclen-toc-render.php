@@ -92,7 +92,7 @@ final class Nuclen_TOC_Render {
                         'title'     => '',
                         'toggle'    => 'true',  'collapsed' => 'false',
                         'smooth'    => 'true',  'highlight' => 'true',
-                        'offset'    => 72,      'theme'     => 'light',
+                        'offset'    => Nuclen_TOC_Assets::DEFAULT_SCROLL_OFFSET,      'theme'     => 'light',
                         'show_text' => __( 'Show table of contents', 'nuclear-engagement' ),
                         'hide_text' => __( 'Hide table of contents', 'nuclear-engagement' ),
                 ];

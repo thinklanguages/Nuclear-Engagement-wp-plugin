@@ -42,7 +42,7 @@ class LoggingService {
         $info       = self::get_log_file_info();
         $log_folder = $info['dir'];
         $log_file   = $info['path'];
-        $max_size   = 1024 * 1024; // 1 MB
+        $max_size   = NUCLEN_LOG_FILE_MAX_SIZE; // 1 MB
 
         if (!file_exists($log_folder)) {
             wp_mkdir_p($log_folder);

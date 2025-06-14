@@ -85,7 +85,7 @@ class RemoteApiService {
                     'X-API-Key' => $apiKey,
                 ],
                 'body' => wp_json_encode($payload),
-                'timeout' => 30,
+                'timeout' => NUCLEN_API_TIMEOUT,
                 'reject_unsafe_urls' => true,
                 'user-agent' => 'NuclearEngagement/' . NUCLEN_PLUGIN_VERSION,
             ]
@@ -155,7 +155,7 @@ class RemoteApiService {
                     'X-API-Key' => $apiKey,
                 ],
                 'body' => wp_json_encode($payload),
-                'timeout' => 30,
+                'timeout' => NUCLEN_API_TIMEOUT,
                 'reject_unsafe_urls' => true,
                 'user-agent' => 'NuclearEngagement/' . NUCLEN_PLUGIN_VERSION,
             ]

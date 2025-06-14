@@ -89,7 +89,8 @@ final class Nuclen_TOC_Admin {
 
         echo '<tr><th><label for="nuclen-off">' .
              esc_html__( 'Scroll offset (px)', 'nuclen-toc-shortcode' ) .
-             '</label></th><td><input id="nuclen-off" type="number" min="0" value="72" style="width:80px"></td></tr>';
+             '</label></th><td><input id="nuclen-off" type="number" min="0" value="' .
+             esc_attr( Nuclen_TOC_Assets::DEFAULT_SCROLL_OFFSET ) . '" style="width:80px"></td></tr>';
 
         echo '</tbody></table><p><strong>' .
              esc_html__( 'Generated shortcode:', 'nuclen-toc-shortcode' ) .

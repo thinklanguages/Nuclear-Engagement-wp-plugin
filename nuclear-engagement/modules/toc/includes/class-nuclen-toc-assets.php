@@ -10,8 +10,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 final class Nuclen_TOC_Assets {
+        /** Default vertical offset for scroll-to behaviour. */
+        public const DEFAULT_SCROLL_OFFSET = NUCLEN_TOC_SCROLL_OFFSET_DEFAULT;
+
         private bool $registered = false;
-        private int  $scroll_offset = 72;
+        private int  $scroll_offset = self::DEFAULT_SCROLL_OFFSET;
 
         /**
          * Enqueue assets and apply runtime tweaks.

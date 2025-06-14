@@ -29,7 +29,7 @@ trait Admin_Menu {
             'nuclear-engagement',
             array( $this, 'nuclen_display_dashboard' ),
             'dashicons-airplane',
-            30
+            NUCLEN_ADMIN_MENU_POSITION
         );
 
         add_submenu_page(
