@@ -7,6 +7,8 @@
  * Delegates quiz and summary shortcode handling to dedicated classes
  * and provides auto-insertion helpers.
  *
+ * Host class must implement `nuclen_get_settings_repository()`.
+ *
  * @package NuclearEngagement\Front
  */
 

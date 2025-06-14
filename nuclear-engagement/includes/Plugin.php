@@ -84,7 +84,7 @@ class Plugin {
 	──────────────────────────────────────────── */
 	private function nuclen_define_admin_hooks() {
 
-		$plugin_admin = new Admin( $this->nuclen_get_plugin_name(), $this->nuclen_get_version(), $this->settings_repository );
+                $plugin_admin = new Admin( $this->nuclen_get_plugin_name(), $this->nuclen_get_version(), $this->settings_repository, $this->container );
 
 		// Enqueue
 		$this->loader->nuclen_add_action( 'admin_enqueue_scripts', $plugin_admin, 'wp_enqueue_styles' );
@@ -131,7 +131,7 @@ class Plugin {
 	   Front-end hooks
 	──────────────────────────────────────────── */
 	private function nuclen_define_public_hooks() {
-		$plugin_public = new FrontClass( $this->nuclen_get_plugin_name(), $this->nuclen_get_version(), $this->settings_repository );
+                $plugin_public = new FrontClass( $this->nuclen_get_plugin_name(), $this->nuclen_get_version(), $this->settings_repository, $this->container );
 
 		$this->loader->nuclen_add_action( 'wp_enqueue_scripts', $plugin_public, 'wp_enqueue_styles' );
 		$this->loader->nuclen_add_action( 'wp_enqueue_scripts', $plugin_public, 'wp_enqueue_scripts' );

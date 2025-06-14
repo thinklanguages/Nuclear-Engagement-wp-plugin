@@ -2,7 +2,10 @@
 /**
  * File: admin/trait-admin-autogenerate.php
  *
- * Auto-generation on publish - now uses services
+ * Auto-generation on publish - now uses services.
+ *
+ * Host class must implement `nuclen_get_settings_repository()` and
+ * protected `get_container(): \NuclearEngagement\Container`.
  */
 
 namespace NuclearEngagement\Admin;
@@ -71,7 +74,7 @@ trait Admin_AutoGenerate {
      ──────────────────────────────────────────────────────────*/
     private function nuclen_generate_single( $post_id, $workflow_type ) {
         try {
-            $container = \NuclearEngagement\Container::getInstance();
+            $container = $this->get_container();
             $service = $container->get('generation_service');
             $service->generateSingle($post_id, $workflow_type);
         } catch (\Exception $e) {
@@ -95,7 +98,7 @@ trait Admin_AutoGenerate {
                 return;
             }
 
-            $container = \NuclearEngagement\Container::getInstance();
+            $container = $this->get_container();
             $api = $container->get('remote_api');
             $storage = $container->get('content_storage');
             

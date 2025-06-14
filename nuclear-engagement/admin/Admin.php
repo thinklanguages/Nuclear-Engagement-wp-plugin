@@ -26,8 +26,10 @@ class Admin {
 
 	private $plugin_name;
 	private $version;
-	private $utils;
-	private $settings_repository;
+        private $utils;
+        private $settings_repository;
+        /** @var Container */
+        private $container;
 
 	/**
 	 * Constructor
@@ -36,11 +38,12 @@ class Admin {
 	 * @param string $version
 	 * @param SettingsRepository $settings_repository
 	 */
-	public function __construct( $plugin_name, $version, SettingsRepository $settings_repository ) {
-		$this->plugin_name = $plugin_name;
-		$this->version     = $version;
-		$this->utils       = new Utils();
-		$this->settings_repository = $settings_repository;
+        public function __construct( $plugin_name, $version, SettingsRepository $settings_repository, Container $container ) {
+                $this->plugin_name = $plugin_name;
+                $this->version     = $version;
+                $this->utils       = new Utils();
+                $this->settings_repository = $settings_repository;
+                $this->container = $container;
 
 		// Meta‑boxes
 		add_action( 'add_meta_boxes', array( $this, 'nuclen_add_quiz_data_meta_box' ) );
@@ -92,7 +95,7 @@ class Admin {
 	 *
 	 * @return \NuclearEngagement\Container
 	 */
-	protected function get_container() {
-		return Container::getInstance();
-	}
+        protected function get_container() {
+                return $this->container;
+        }
 }

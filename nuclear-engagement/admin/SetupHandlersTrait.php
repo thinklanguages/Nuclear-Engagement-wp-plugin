@@ -7,6 +7,8 @@
  * • Generate / reset the plugin‑side App Password.
  *
  * Native WordPress Application Password logic has been completely removed.
+ *
+ * Host class must expose `nuclen_get_setup_service()`.
  */
 
 namespace NuclearEngagement\Admin;
@@ -46,13 +48,13 @@ trait SetupHandlersTrait {
                }
 
 		// Store key & mark as connected
-		$settings = SettingsRepository::get_instance();
+                $settings = \NuclearEngagement\Container::getInstance()->get('settings');
 		$settings->set('api_key', $api_key)
 		        ->set('connected', true)
 		        ->save();
 
 		// Auto‑create the plugin App Password (Step 2)
-		$settings = SettingsRepository::get_instance();
+                $settings = \NuclearEngagement\Container::getInstance()->get('settings');
 		if (!$settings->get_bool('wp_app_pass_created', false)) {
 			$this->nuclen_handle_generate_app_password( true );
 			return; // that method redirects on success/fail
@@ -77,7 +79,7 @@ trait SetupHandlersTrait {
 			$this->nuclen_redirect_with_error( 'Insufficient permissions.' );
 		}
 
-		$settings = SettingsRepository::get_instance();
+                $settings = \NuclearEngagement\Container::getInstance()->get('settings');
 		if (!$settings->get_bool('connected', false) || empty($settings->get('api_key'))) {
 			$this->nuclen_redirect_with_error('Please complete Step 1 first.');
 		}
@@ -114,7 +116,7 @@ trait SetupHandlersTrait {
 		}
 
 		// Update SettingsRepository first
-		$settings = SettingsRepository::get_instance();
+                $settings = \NuclearEngagement\Container::getInstance()->get('settings');
 		$settings->set('wp_app_pass_created', true)
 		        ->set('wp_app_pass_uuid', $uuid)
 		        ->set('plugin_password', $new_password)
@@ -148,7 +150,7 @@ trait SetupHandlersTrait {
 			$this->nuclen_redirect_with_error( 'Insufficient permissions.' );
 		}
 
-		$settings = SettingsRepository::get_instance();
+                $settings = \NuclearEngagement\Container::getInstance()->get('settings');
 		$settings->set('api_key', '')
 		        ->set('connected', false)
 		        ->set('wp_app_pass_created', false)
@@ -176,7 +178,7 @@ trait SetupHandlersTrait {
                $app_setup['plugin_password']     = '';
                update_option( 'nuclear_engagement_setup', $app_setup );
 
-               $settings = SettingsRepository::get_instance();
+               $settings = \NuclearEngagement\Container::getInstance()->get('settings');
                $settings->set( 'wp_app_pass_created', false )
                        ->set( 'wp_app_pass_uuid', '' )
                        ->set( 'plugin_password', '' )

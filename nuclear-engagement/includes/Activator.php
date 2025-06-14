@@ -23,7 +23,7 @@ class Activator {
         $default_settings = Defaults::nuclen_get_default_settings();
         
         // Initialize or update settings repository with defaults
-        $settings = $settings ?: SettingsRepository::get_instance($default_settings);
+        $settings = $settings ?: \NuclearEngagement\Container::getInstance()->get('settings');
         
         // Only set the setup option if it doesn't already exist
         if (false === get_option('nuclear_engagement_setup')) {
