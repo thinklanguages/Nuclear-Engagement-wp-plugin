@@ -27,8 +27,10 @@ class SummaryShortcode {
         }
 
         $settings = $this->getSummarySettings();
-        $html  = $this->view->container($summary_data, $settings);
+        $html  = '<div class="nuclen-root">';
+        $html .= $this->view->container($summary_data, $settings);
         $html .= $this->view->attribution($settings['show_attribution']);
+        $html .= '</div>';
         return $html;
     }
 

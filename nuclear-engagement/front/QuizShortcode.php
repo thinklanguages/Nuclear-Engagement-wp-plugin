@@ -27,8 +27,10 @@ class QuizShortcode {
         }
 
         $settings = $this->getQuizSettings();
-        $html  = $this->view->container($settings);
+        $html  = '<div class="nuclen-root">';
+        $html .= $this->view->container($settings);
         $html .= $this->view->attribution($settings['show_attribution']);
+        $html .= '</div>';
         return $html;
     }
 
