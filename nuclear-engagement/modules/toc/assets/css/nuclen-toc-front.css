@@ -12,7 +12,7 @@
 }
 
 .nuclen-toc {
-	font-size:.9em;
+        font-size: var(--nuclen-toc-font-size, 0.9em);
 }
 .nuclen-toc li{margin:.25em 0}
 
@@ -209,8 +209,8 @@
 	border-radius:var(--nuclen-toc-border-radius);
 	box-shadow:0 0 var(--nuclen-toc-shadow-blur) var(--nuclen-toc-shadow-color);
 	padding:1rem;
-	margin-bottom:1.5rem;
-	font-size:0.9em;
+        margin-bottom:1.5rem;
+        font-size: var(--nuclen-toc-font-size, 0.9em);
 }
 
 .nuclen-toc ul,
