@@ -30,9 +30,9 @@
 }
 
 @container (min-width: 500px) {
-    #nuclen-quiz-answers-container {
-            grid-template-columns: 1fr 1fr;
-    }
+        #nuclen-quiz-answers-container {
+                grid-template-columns: 1fr 1fr;
+        }
 }
 
 /* Progress bar container */
