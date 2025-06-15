@@ -138,7 +138,8 @@ final class Nuclen_TOC_Render {
                 $show    = $wrapper['show_toggle'];
                 $hidden  = $wrapper['hidden'];
 
-                $out = sprintf(
+                $out  = '<div class="nuclen-root">';
+                $out .= sprintf(
                         '<section id="%s-wrapper" class="%s"%s>',
                         esc_attr( $nav_id ),
                         esc_attr( implode( ' ', $classes ) ),
@@ -156,7 +157,7 @@ final class Nuclen_TOC_Render {
                         $out .= '</div>';
                 }
 
-                $out .= '</section>';
+                $out .= '</section></div>';
 
                 if ( ! wp_script_is( 'nuclen-toc-front', 'enqueued' ) ) {
                         wp_enqueue_script( 'nuclen-toc-front' );
