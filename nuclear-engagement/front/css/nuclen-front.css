@@ -11,7 +11,8 @@
         color: var(--nuclen-summary-font-color, var(--nuclen-fg-color, #000));
 }
 
-#nuclen-quiz-container {
+#nuclen-quiz-container,
+.nuclen-quiz {
 	border-radius: 1em;
 	padding: 1em;
 	text-align: center;
@@ -289,7 +290,8 @@
 }
 
 /* Summary container */
-#nuclen-summary-container {
+#nuclen-summary-container,
+.nuclen-summary {
 	font-size: 1.1em;
 	border-radius: 1em;
 	padding: 1em;
