@@ -41,14 +41,14 @@
 	--nuclen-toc-shadow-blur:8px;
 	}
 
-	#nuclen-quiz-container {
+                .nuclen-quiz {
 		background-color: var(--nuclen-bg-color);
 		border: var(--nuclen-quiz-border-width) var(--nuclen-quiz-border-style) var(--nuclen-quiz-border-color);
 		border-radius: var(--nuclen-quiz-border-radius);
 		box-shadow: 0 0 var(--nuclen-quiz-shadow-blur) var(--nuclen-quiz-shadow-color);
 	}
 
-	#nuclen-summary-container {
+                .nuclen-summary {
 		background-color: var(--nuclen-bg-color);
 		border: var(--nuclen-summary-border-width) var(--nuclen-summary-border-style) var(--nuclen-summary-border-color);
 		border-radius: var(--nuclen-summary-border-radius);
