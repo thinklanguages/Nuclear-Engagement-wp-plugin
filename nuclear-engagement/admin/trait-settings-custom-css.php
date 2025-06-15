@@ -28,6 +28,7 @@ trait SettingsPageCustomCSSTrait {
         $css = <<<CSS
 :root{
     /* ───── Quiz container ───── */
+    --nuclen-fg-color: {$s['font_color']};
     --nuclen-quiz-font-color: {$s['font_color']};
     --nuclen-quiz-bg-color: {$s['bg_color']};
     --nuclen-quiz-border-color: {$s['quiz_border_color']};
@@ -72,6 +73,7 @@ trait SettingsPageCustomCSSTrait {
     --nuclen-toc-sticky-max-width: {$s['toc_sticky_max_width']}px;
 
     /* ───── Legacy fallbacks ───── */
+    --nuclen-fg-color: var(--nuclen-quiz-font-color);
     --nuclen-border-color: var(--nuclen-quiz-border-color);
     --nuclen-border-style: var(--nuclen-quiz-border-style);
     --nuclen-border-width: var(--nuclen-quiz-border-width);
@@ -86,7 +88,7 @@ trait SettingsPageCustomCSSTrait {
     border-radius: var(--nuclen-quiz-border-radius);
     box-shadow: 0 0 var(--nuclen-quiz-shadow-blur) var(--nuclen-quiz-shadow-color);
     background: var(--nuclen-quiz-bg-color);
-    color: var(--nuclen-quiz-font-color);
+    color: var(--nuclen-quiz-font-color, var(--nuclen-fg-color));
 }
 
 .nuclen-summary{
@@ -94,7 +96,7 @@ trait SettingsPageCustomCSSTrait {
     border-radius: var(--nuclen-summary-border-radius);
     box-shadow: 0 0 var(--nuclen-summary-shadow-blur) var(--nuclen-summary-shadow-color);
     background: var(--nuclen-summary-bg-color);
-    color: var(--nuclen-summary-font-color);
+    color: var(--nuclen-summary-font-color, var(--nuclen-fg-color));
 }
 
 .nuclen-toc-wrapper{

@@ -1,8 +1,11 @@
 /* front/css/nuclen-theme-dark.css */
 
 :root {
-	--nuclen-fg-color: #ffffff;
-	--nuclen-bg-color: #333333;
+        --nuclen-fg-color: #ffffff;
+        --nuclen-bg-color: #333333;
+
+        --nuclen-quiz-font-color: var(--nuclen-fg-color);
+        --nuclen-summary-font-color: var(--nuclen-fg-color);
 
 	--nuclen-quiz-border-color: #ffffff;
 	--nuclen-quiz-border-style: solid;

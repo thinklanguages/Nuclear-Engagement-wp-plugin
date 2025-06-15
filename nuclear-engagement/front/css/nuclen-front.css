@@ -3,6 +3,14 @@
 * Base styles applied regardless of the theme.
 */
 
+.nuclen-quiz {
+        color: var(--nuclen-quiz-font-color, var(--nuclen-fg-color, #000));
+}
+
+.nuclen-summary {
+        color: var(--nuclen-summary-font-color, var(--nuclen-fg-color, #000));
+}
+
 #nuclen-quiz-container {
 	border-radius: 1em;
 	padding: 1em;
