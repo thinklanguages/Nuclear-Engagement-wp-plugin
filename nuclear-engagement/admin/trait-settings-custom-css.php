@@ -83,7 +83,7 @@ trait SettingsPageCustomCSSTrait {
 }
 
 /* ─── Apply variables to actual elements ─── */
-.nuclen-quiz{
+.nuclen-root .nuclen-quiz{
     border: var(--nuclen-quiz-border-width) var(--nuclen-quiz-border-style) var(--nuclen-quiz-border-color);
     border-radius: var(--nuclen-quiz-border-radius);
     box-shadow: 0 0 var(--nuclen-quiz-shadow-blur) var(--nuclen-quiz-shadow-color);
@@ -91,7 +91,7 @@ trait SettingsPageCustomCSSTrait {
     color: var(--nuclen-quiz-font-color, var(--nuclen-fg-color));
 }
 
-.nuclen-summary{
+.nuclen-root .nuclen-summary{
     border: var(--nuclen-summary-border-width) var(--nuclen-summary-border-style) var(--nuclen-summary-border-color);
     border-radius: var(--nuclen-summary-border-radius);
     box-shadow: 0 0 var(--nuclen-summary-shadow-blur) var(--nuclen-summary-shadow-color);
@@ -99,7 +99,7 @@ trait SettingsPageCustomCSSTrait {
     color: var(--nuclen-summary-font-color, var(--nuclen-fg-color));
 }
 
-.nuclen-toc-wrapper{
+.nuclen-root .nuclen-toc-wrapper{
     font-size: var(--nuclen-toc-font-size);
     border: var(--nuclen-toc-border-width) var(--nuclen-toc-border-style) var(--nuclen-toc-border-color);
     border-radius: var(--nuclen-toc-border-radius);
@@ -107,15 +107,15 @@ trait SettingsPageCustomCSSTrait {
     background: var(--nuclen-toc-bg-color);
     color: var(--nuclen-toc-font-color);
 }
-.nuclen-toc-wrapper a{
+.nuclen-root .nuclen-toc-wrapper a{
     color: var(--nuclen-toc-link);
 }
 
-#nuclen-quiz-progress-bar-container{
+.nuclen-root #nuclen-quiz-progress-bar-container{
     background: var(--nuclen-quiz-progress-bg);
     height: var(--nuclen-quiz-progress-height);
 }
-#nuclen-quiz-progress-bar{
+.nuclen-root #nuclen-quiz-progress-bar{
     background: var(--nuclen-quiz-progress-fg);
     height: 100%;
     width: 0;
