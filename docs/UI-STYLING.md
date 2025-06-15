@@ -26,3 +26,8 @@ Follow these conventions when creating styles for Nuclear Engagement's admin and
 
 - Map accent colours to the WordPress global palette API so users can change them in the editor.
 
+
+## Style Isolation
+
+- The plugin outputs all front-end markup inside a `.nuclen-root` wrapper.
+- Scope any custom or theme overrides under `.nuclen-root` to avoid interfering with non-plugin styles.
