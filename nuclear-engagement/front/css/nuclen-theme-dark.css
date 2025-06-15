@@ -1,8 +1,8 @@
 /* front/css/nuclen-theme-dark.css */
 
 :root {
-	--nuclen-fg-color: #ffffff;
-	--nuclen-bg-color: #333333;
+        --nuclen-fg-color: var(--wp--preset--color--foreground, #ffffff);
+        --nuclen-bg-color: var(--wp--preset--color--background, #333333);
 
 	--nuclen-quiz-border-color: #ffffff;
 	--nuclen-quiz-border-style: solid;
@@ -11,12 +11,12 @@
 	--nuclen-quiz-shadow-color: rgba(255,255,255,0.1);
 	--nuclen-quiz-shadow-blur: 8px;
 
-	--nuclen-quiz-button-bg: #94544A;
-	--nuclen-quiz-button-border-color: #94544A;
+        --nuclen-quiz-button-bg: var(--wp--preset--color--primary, #94544A);
+        --nuclen-quiz-button-border-color: var(--wp--preset--color--primary, #94544A);
 	--nuclen-quiz-button-border-width: 2px;
 	--nuclen-quiz-button-border-radius: 4px;
 
-	--nuclen-quiz-progress-fg: #1B977D;
+        --nuclen-quiz-progress-fg: var(--wp--preset--color--primary, #1B977D);
 	--nuclen-quiz-progress-bg: #4a4a4a;
 	--nuclen-quiz-progress-height: 10px;
 
