@@ -32,9 +32,10 @@
 	--nuclen-summary-shadow-blur: 8px;
 
 	/* TOC */
-	--nuclen-toc-font-color:#333333;
-	--nuclen-toc-bg-color:#ffffff;
-	--nuclen-toc-border-color:#000000;
+        --nuclen-toc-font-color:#333333;
+        --nuclen-toc-bg-color:#ffffff;
+        --nuclen-toc-font-size: 0.9em;
+        --nuclen-toc-border-color:#000000;
 	--nuclen-toc-border-style:solid;
 	--nuclen-toc-border-width:1px;
 	--nuclen-toc-border-radius:6px;
