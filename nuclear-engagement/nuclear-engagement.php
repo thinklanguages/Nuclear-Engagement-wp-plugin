@@ -5,7 +5,7 @@
  * Description:       Bulk generate engaging content for your blog posts with AI in one click.
  * Version:           1.1
  * Author:            Stefano Lodola
- * Requires at least: 5.6
+ * Requires at least: 6.1
  * Tested up to:      6.8
  * Requires PHP:      7.4
  * License:           GPL-2.0+

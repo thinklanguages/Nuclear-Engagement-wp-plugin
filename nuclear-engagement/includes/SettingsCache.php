@@ -42,9 +42,7 @@ final class SettingsCache {
     public function invalidate_cache(): void {
         $key = $this->get_cache_key();
         wp_cache_delete( $key, self::CACHE_GROUP );
-        if ( function_exists( 'wp_cache_flush_group' ) ) {
-            wp_cache_flush_group( self::CACHE_GROUP );
-        }
+        wp_cache_flush_group( self::CACHE_GROUP );
     }
 
     public function maybe_invalidate_cache( $option ): void {
