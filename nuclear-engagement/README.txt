@@ -5,7 +5,7 @@ Author: Stefano Lodola
 Author URI: https://www.nuclearengagement.com/about?ref=wp_listing&link=author_uri
 Contributors: stefanolodola
 Tags: AI writer, quiz, summary, table of contents, email optin
-Requires at least: 5.6
+Requires at least: 6.1
 Tested up to: 6.8
 Requires PHP: 7.3
 Stable tag: 1.1
