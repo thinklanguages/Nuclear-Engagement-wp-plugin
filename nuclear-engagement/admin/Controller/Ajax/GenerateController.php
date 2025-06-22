@@ -13,7 +13,7 @@ namespace NuclearEngagement\Admin\Controller\Ajax;
 use NuclearEngagement\Requests\GenerateRequest;
 use NuclearEngagement\Services\GenerationService;
 
-if (!defined('ABSPATH')) {
+if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 

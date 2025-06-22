@@ -18,7 +18,7 @@ namespace NuclearEngagement\Front;
 use NuclearEngagement\Front\QuizShortcode;
 use NuclearEngagement\Front\SummaryShortcode;
 
-if (!defined('ABSPATH')) {
+if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 

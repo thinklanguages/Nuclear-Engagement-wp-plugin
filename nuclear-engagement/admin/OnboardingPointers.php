@@ -10,7 +10,7 @@ declare(strict_types=1);
 
 namespace NuclearEngagement\Admin;
 
-if (!defined('ABSPATH')) {
+if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 

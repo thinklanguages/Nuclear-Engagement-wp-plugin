@@ -10,7 +10,7 @@ declare(strict_types=1);
 
 namespace NuclearEngagement\Requests;
 
-if (!defined('ABSPATH')) {
+if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 

@@ -1,7 +1,7 @@
 <?php
 // Define ABSPATH to bypass exit calls
-if (!defined('ABSPATH')) {
-    define('ABSPATH', __DIR__ . '/');
+if ( ! defined( 'ABSPATH' ) ) {
+    define( 'ABSPATH', __DIR__ . '/' );
 }
 // Track calls to dbDelta in unit tests
 global $dbDelta_called;

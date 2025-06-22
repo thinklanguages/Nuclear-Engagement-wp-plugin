@@ -8,7 +8,7 @@ use NuclearEngagement\SettingsRepository;
 use NuclearEngagement\OptinData;
 use NuclearEngagement\AssetVersions;
 
-if (!defined('ABSPATH')) {
+if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 

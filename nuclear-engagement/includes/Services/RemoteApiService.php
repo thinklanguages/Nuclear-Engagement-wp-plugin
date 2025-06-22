@@ -13,7 +13,7 @@ namespace NuclearEngagement\Services;
 use NuclearEngagement\SettingsRepository;
 use NuclearEngagement\Utils;
 
-if (!defined('ABSPATH')) {
+if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 

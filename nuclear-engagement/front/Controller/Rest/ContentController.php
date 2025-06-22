@@ -14,7 +14,7 @@ use NuclearEngagement\Requests\ContentRequest;
 use NuclearEngagement\Services\ContentStorageService;
 use NuclearEngagement\Utils;
 
-if (!defined('ABSPATH')) {
+if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 

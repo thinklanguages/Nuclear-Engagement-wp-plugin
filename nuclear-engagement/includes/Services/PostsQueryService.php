@@ -12,7 +12,7 @@ namespace NuclearEngagement\Services;
 
 use NuclearEngagement\Requests\PostsCountRequest;
 
-if (!defined('ABSPATH')) {
+if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 

@@ -15,7 +15,7 @@ declare(strict_types=1);
  * Domain Path:       /
  */
 
-if (!defined('ABSPATH')) {
+if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
