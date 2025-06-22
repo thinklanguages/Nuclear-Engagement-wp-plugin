@@ -1,5 +1,7 @@
 # Translation Guide
 
+Guidelines for translating Nuclear Engagement into other languages.
+
 This plugin ships with a translation template located at `nuclear-engagement/languages/nuclear-engagement.pot`.
 Follow the steps below to create or update `.po` and `.mo` files for your locale.
 
@@ -22,4 +24,3 @@ wp i18n make-pot nuclear-engagement nuclear-engagement/languages/nuclear-engagem
 ```
 
 Then refresh your `.po` files in Poedit ("Update from POT") and recompile the `.mo` files.
-
