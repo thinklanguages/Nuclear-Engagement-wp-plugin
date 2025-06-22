@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 /**
  * File: modules/toc/includes/polyfills.php
  *

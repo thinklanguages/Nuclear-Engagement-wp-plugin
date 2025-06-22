@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 /**
  * file: includes/OptinData.php
  * Class: NuclearEngagement\OptinData
