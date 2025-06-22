@@ -12,7 +12,15 @@ if (!defined('ABSPATH')) {
 }
 
 define('NUCLEN_PLUGIN_DIR', plugin_dir_path(NUCLEN_PLUGIN_FILE));
-define('NUCLEN_PLUGIN_VERSION', '1.1');
+
+if ( ! defined( 'NUCLEN_PLUGIN_VERSION' ) ) {
+    if ( ! function_exists( 'get_plugin_data' ) ) {
+        require_once ABSPATH . 'wp-admin/includes/plugin.php';
+    }
+    $data = get_plugin_data( NUCLEN_PLUGIN_FILE );
+    define( 'NUCLEN_PLUGIN_VERSION', $data['Version'] );
+}
+
 define('NUCLEN_ASSET_VERSION', '250613-30');
 
 require_once dirname(__DIR__) . '/vendor/autoload.php';
