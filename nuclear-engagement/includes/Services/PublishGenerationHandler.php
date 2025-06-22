@@ -43,6 +43,11 @@ class PublishGenerationHandler {
             return;
         }
 
+        // Prevent unauthorized users from triggering generation
+        if (!wp_doing_cron() && !current_user_can('publish_post', $post->ID)) {
+            return;
+        }
+
         $allowed_post_types = $this->settings_repository->get('generation_post_types', ['post']);
         if (! in_array($post->post_type, (array) $allowed_post_types, true)) {
             return;
