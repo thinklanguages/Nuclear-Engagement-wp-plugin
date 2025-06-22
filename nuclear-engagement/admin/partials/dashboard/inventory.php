@@ -7,6 +7,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 ?>
 <!-- Post inventory -->
 <h2><?php esc_html_e( 'Post Inventory', 'nuclear-engagement' ); ?></h2>
+<p>
+    <a href="<?php echo esc_url( add_query_arg( 'nuclen_refresh_inventory', '1' ) ); ?>" class="button button-secondary">
+        <?php esc_html_e( 'Refresh', 'nuclear-engagement' ); ?>
+    </a>
+</p>
 <!-- Post inventory Navigation Tabs -->
 <div class="nav-tab-wrapper">
     <a href="#post-status" id="post-status-tab" class="nav-tab nav-tab-active"><?php esc_html_e( 'Post Status', 'nuclear-engagement' ); ?></a>

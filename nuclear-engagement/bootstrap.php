@@ -7,6 +7,7 @@ use NuclearEngagement\Deactivator;
 use NuclearEngagement\MetaRegistration;
 use NuclearEngagement\AssetVersions;
 use NuclearEngagement\Plugin;
+use NuclearEngagement\InventoryCache;
 
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
@@ -143,4 +144,5 @@ function nuclear_engagement_run_plugin() {
     $plugin->nuclen_run();
 }
 
+InventoryCache::register_hooks();
 nuclear_engagement_run_plugin();

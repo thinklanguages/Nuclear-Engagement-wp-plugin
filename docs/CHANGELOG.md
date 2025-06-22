@@ -5,6 +5,7 @@ Release notes for the Nuclear Engagement plugin.
 ## 1.1 – 2025-06-13
 - Added: Test infrastructure for improved code quality.
 - Added: Dashboard section showing scheduled content generation tasks.
+- Added: Inventory data caching with auto invalidation.
 - Changed: Architecture refactoring.
 - Changed: Improved security.
 - Changed: Improved performance.
