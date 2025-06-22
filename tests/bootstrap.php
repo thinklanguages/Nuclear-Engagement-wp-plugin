@@ -3,6 +3,9 @@
 if (!defined('ABSPATH')) {
     define('ABSPATH', __DIR__ . '/');
 }
+// Track calls to dbDelta in unit tests
+global $dbDelta_called;
+$dbDelta_called = false;
 // Minimal stubs for WordPress functions used in included files
 if (!function_exists('add_action')) {
     function add_action(...$args) {}
