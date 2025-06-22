@@ -75,6 +75,11 @@ class PostsQueryService {
             $queryArgs['meta_query'] = $metaQuery;
         }
 
+        // Disable caching for performance during counts
+        $queryArgs['update_post_meta_cache'] = false;
+        $queryArgs['update_post_term_cache'] = false;
+        $queryArgs['cache_results'] = false;
+
         return $queryArgs;
     }
 
