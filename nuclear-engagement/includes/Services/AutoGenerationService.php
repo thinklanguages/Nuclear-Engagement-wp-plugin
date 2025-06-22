@@ -160,11 +160,19 @@ class AutoGenerationService {
                 'generation_id' => $generation_id,
             ];
 
-            $result = $this->remote_api->sendPostsToGenerate($data_to_send);
-
-            if (is_wp_error($result)) {
+            try {
+                $result = $this->remote_api->sendPostsToGenerate($data_to_send);
+            } catch (\Exception $e) {
                 \NuclearEngagement\Services\LoggingService::log(
-                    'Failed to start generation: ' . $result->get_error_message()
+                    'Failed to start generation: ' . $e->getMessage()
+                );
+                return;
+            }
+
+            if (is_wp_error($result) || (isset($result['error']) && $result['error'] !== '')) {
+                $message = is_wp_error($result) ? $result->get_error_message() : $result['error'];
+                \NuclearEngagement\Services\LoggingService::log(
+                    'Failed to start generation: ' . $message
                 );
                 return;
             }
