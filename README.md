@@ -16,6 +16,12 @@ Nuclear Engagement stands out with true sitewide automation: process hundreds or
 - **Mobile-Optimized**: Responsive layouts for any device.
 - **Lightweight & Fast**: Minimal codebase with lazy loading for optimal performance.
 
+## Requirements
+
+- PHP 7.4 or higher
+- WordPress 6.1 or higher
+- Node 18+ (Node 20 recommended) for building assets
+
 Learn more:
 See [CHANGELOG](docs/CHANGELOG.md) for release notes.
 https://www.nuclearengagement.com
@@ -48,3 +54,10 @@ During development you can rebuild on the fly with:
 ```bash
 npm run dev
 ```
+
+## Documentation
+
+- [Architecture](docs/ARCHITECTURE.md)
+- [User Guide](docs/USER_GUIDE.md)
+- [Translation Guide](docs/TRANSLATION.md)
+- [Hooks Reference](docs/hooks.md)
