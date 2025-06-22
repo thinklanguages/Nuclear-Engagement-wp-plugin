@@ -17,7 +17,7 @@ namespace NuclearEngagement\Admin;
 use NuclearEngagement\SettingsRepository;
 use NuclearEngagement\Services\SetupService;
 
-if (!defined('ABSPATH')) {
+if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 

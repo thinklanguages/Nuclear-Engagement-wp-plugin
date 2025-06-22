@@ -13,7 +13,7 @@ namespace NuclearEngagement\Admin\Controller\Ajax;
 use NuclearEngagement\Requests\PostsCountRequest;
 use NuclearEngagement\Services\PostsQueryService;
 
-if (!defined('ABSPATH')) {
+if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 

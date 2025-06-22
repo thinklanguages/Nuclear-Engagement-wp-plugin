@@ -10,7 +10,7 @@ namespace NuclearEngagement;
 use NuclearEngagement\SettingsSanitizer;
 use NuclearEngagement\SettingsCache;
 
-if (!defined('ABSPATH')) {
+if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 

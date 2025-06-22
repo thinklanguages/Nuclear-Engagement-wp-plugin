@@ -8,7 +8,7 @@ use NuclearEngagement\MetaRegistration;
 use NuclearEngagement\AssetVersions;
 use NuclearEngagement\Plugin;
 
-if (!defined('ABSPATH')) {
+if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 

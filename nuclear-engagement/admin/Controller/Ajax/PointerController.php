@@ -12,7 +12,7 @@ namespace NuclearEngagement\Admin\Controller\Ajax;
 
 use NuclearEngagement\Services\PointerService;
 
-if (!defined('ABSPATH')) {
+if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 

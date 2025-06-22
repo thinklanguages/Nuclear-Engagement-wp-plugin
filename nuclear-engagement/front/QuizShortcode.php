@@ -5,7 +5,7 @@ namespace NuclearEngagement\Front;
 use NuclearEngagement\SettingsRepository;
 use NuclearEngagement\Front\FrontClass;
 
-if (!defined('ABSPATH')) {
+if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 

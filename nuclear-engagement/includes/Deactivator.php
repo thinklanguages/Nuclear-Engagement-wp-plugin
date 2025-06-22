@@ -5,7 +5,7 @@ namespace NuclearEngagement;
 
 use NuclearEngagement\SettingsRepository;
 
-if (!defined('ABSPATH')) {
+if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
