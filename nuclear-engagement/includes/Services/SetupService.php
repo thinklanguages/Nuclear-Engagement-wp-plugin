@@ -54,7 +54,7 @@ class SetupService {
                 'method'  => 'POST',
                 'headers' => ['Content-Type' => 'application/json'],
                 'body'    => wp_json_encode(['appApiKey' => $apiKey]),
-                'timeout' => NUCLEN_API_TIMEOUT,
+                'timeout' => defined('NUCLEN_API_TIMEOUT') ? NUCLEN_API_TIMEOUT : 30,
                 'reject_unsafe_urls' => true,
                 'user-agent' => 'NuclearEngagement/' . NUCLEN_PLUGIN_VERSION,
             ]
@@ -85,7 +85,7 @@ class SetupService {
                 'method'  => 'POST',
                 'headers' => ['Content-Type' => 'application/json'],
                 'body'    => wp_json_encode($data),
-                'timeout' => NUCLEN_API_TIMEOUT,
+                'timeout' => defined('NUCLEN_API_TIMEOUT') ? NUCLEN_API_TIMEOUT : 30,
                 'reject_unsafe_urls' => true,
                 'user-agent' => 'NuclearEngagement/' . NUCLEN_PLUGIN_VERSION,
             ]

@@ -4,6 +4,7 @@ import {
   nuclenHideElement,
   nuclenUpdateProgressBarStep,
 } from './generate-page-utils';
+import { nuclenLog } from '../logger';
 import type { GeneratePageElements } from './elements';
 import {
   nuclenAlertApiError,
@@ -47,15 +48,15 @@ export function initStep2(elements: GeneratePageElements): void {
           nuclenUpdateProgressBarStep(elements.stepBar4, 'current');
           if (results && typeof results === 'object') {
             try {
-              const { ok, data } = await nuclenStoreGenerationResults(workflow, results);
-              if (ok && !data.code) {
-                console.log('Bulk content stored in WP meta successfully:', data);
-              } else {
-                console.error('Error storing bulk content in WP meta:', data);
+                const { ok, data } = await nuclenStoreGenerationResults(workflow, results);
+                if (ok && !data.code) {
+                  nuclenLog('Bulk content stored in WP meta successfully');
+                } else {
+                  nuclenLog('Error storing bulk content in WP meta: ' + JSON.stringify(data), 'error');
+                }
+              } catch (err) {
+                nuclenLog('Error storing bulk content in WP meta: ' + String(err), 'error');
               }
-            } catch (err) {
-              console.error('Error storing bulk content in WP meta:', err);
-            }
           }
           if (elements.updatesContent) {
             if (failCount && finalReport) {

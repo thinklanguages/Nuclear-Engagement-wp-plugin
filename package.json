@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "lint": "eslint \"src/**/*.ts\""
+    "lint": "node scripts/check-tsconfig.js && eslint \"src/**/*.ts\""
   },
   "devDependencies": {
     "typescript": "~5.6.2",

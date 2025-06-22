@@ -24,8 +24,14 @@ if ( ! defined( 'NUCLEN_PLUGIN_VERSION' ) ) {
 
 define('NUCLEN_ASSET_VERSION', '250613-30');
 
-require_once dirname(__DIR__) . '/vendor/autoload.php';
-require_once NUCLEN_PLUGIN_DIR . 'includes/constants.php';
+$autoload = NUCLEN_PLUGIN_DIR . 'vendor/autoload.php';
+if ( file_exists( $autoload ) ) {
+    require_once $autoload;
+}
+$constants = NUCLEN_PLUGIN_DIR . 'includes/constants.php';
+if ( file_exists( $constants ) ) {
+    require_once $constants;
+}
 
 AssetVersions::init();
 

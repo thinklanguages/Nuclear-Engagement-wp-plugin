@@ -4,6 +4,7 @@ import {
   populateSummaryMetaBox,
   storeGenerationResults,
 } from './single-generation-utils';
+import { nuclenLog } from '../logger';
 import {
   NuclenStartGeneration,
   NuclenPollAndPullUpdates,
@@ -58,11 +59,11 @@ export function initSingleGenerationButtons(): void {
                 }
                 btn.textContent = 'Stored!';
               } else {
-                console.error('Error storing single-generation results in WP:', data);
+                nuclenLog('Error storing single-generation results in WP: ' + JSON.stringify(data), 'error');
                 btn.textContent = 'Generation failed!';
               }
             } catch (err) {
-              console.error('Fetch error calling /receive-content endpoint:', err);
+              nuclenLog('Fetch error calling /receive-content endpoint: ' + String(err), 'error');
               btn.textContent = 'Generation failed!';
             }
           } else {

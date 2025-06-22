@@ -60,7 +60,8 @@ class LoggingService {
      * Fallback when writing to the log fails.
      */
     private static function fallback(string $original, string $error): void {
-        error_log($original);
+        $timestamp = gmdate('Y-m-d H:i:s');
+        error_log("[$timestamp] {$original}");
         self::add_admin_notice($error);
     }
 
@@ -75,7 +76,8 @@ class LoggingService {
         $info       = self::get_log_file_info();
         $log_folder = $info['dir'];
         $log_file   = $info['path'];
-        $max_size   = NUCLEN_LOG_FILE_MAX_SIZE; // 1 MB
+        $const_size = defined('NUCLEN_LOG_FILE_MAX_SIZE') ? NUCLEN_LOG_FILE_MAX_SIZE : MB_IN_BYTES;
+        $max_size   = (int) apply_filters('nuclen_log_file_max_size', $const_size);
 
         if (!file_exists($log_folder)) {
             if (!wp_mkdir_p($log_folder)) {

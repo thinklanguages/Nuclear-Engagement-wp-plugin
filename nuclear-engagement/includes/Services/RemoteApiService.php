@@ -125,6 +125,11 @@ class RemoteApiService {
         $code = wp_remote_retrieve_response_code($response);
         $body = wp_remote_retrieve_body($response);
 
+        if ($code === 0) {
+            \NuclearEngagement\Services\LoggingService::log('Network error: status code 0');
+            throw new ApiException('Network error when calling API', 0);
+        }
+
 \NuclearEngagement\Services\LoggingService::log("API response code: {$code}");
 
         // Check for auth errors
@@ -142,8 +147,13 @@ class RemoteApiService {
 
         $data = json_decode($body, true);
         if (!is_array($data)) {
-\NuclearEngagement\Services\LoggingService::log("Invalid JSON response: {$body}");
+            \NuclearEngagement\Services\LoggingService::log("Invalid JSON response: {$body}");
             throw new ApiException('Invalid data received from API', $code);
+        }
+
+        if (isset($data['success']) && $data['success'] === false) {
+            $msg = $data['message'] ?? 'API reported failure';
+            throw new ApiException($msg, $code, $data['error_code'] ?? null);
         }
 
         return $data;
