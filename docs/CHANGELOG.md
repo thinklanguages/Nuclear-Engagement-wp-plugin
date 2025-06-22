@@ -2,6 +2,13 @@
 
 Release notes for the Nuclear Engagement plugin.
 
+## 1.1 – 2025-06-13
+- Added: Test infrastructure for improved code quality.
+- Changed: Architecture refactoring.
+- Changed: Improved security.
+- Changed: Improved performance.
+- Changed: Uninstall data options.
+
 ## 1.0.3 – 2025-06-11
 - Added: Uninstall data options.
 - Fixed: Auto content generation upon post publish.
