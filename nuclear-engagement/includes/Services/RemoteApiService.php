@@ -124,8 +124,10 @@ class RemoteApiService {
 
         $code = wp_remote_retrieve_response_code($response);
         $body = wp_remote_retrieve_body($response);
+        \NuclearEngagement\Services\LoggingService::debug("API response body: {$body}");
 
-\NuclearEngagement\Services\LoggingService::log("API response code: {$code}");
+        \NuclearEngagement\Services\LoggingService::log("API response code: {$code}");
+        \NuclearEngagement\Services\LoggingService::debug("API response body: {$body}");
 
         // Check for auth errors
         if ($code === 401 || $code === 403) {

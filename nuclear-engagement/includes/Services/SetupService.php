@@ -65,6 +65,7 @@ class SetupService {
             return false;
         }
 
+        \NuclearEngagement\Services\LoggingService::debug('API key validation response: ' . wp_remote_retrieve_body($response));
         return wp_remote_retrieve_response_code($response) === 200;
     }
 
@@ -96,6 +97,7 @@ class SetupService {
             return false;
         }
 
+        \NuclearEngagement\Services\LoggingService::debug('Send creds response: ' . wp_remote_retrieve_body($response));
         return wp_remote_retrieve_response_code($response) === 200;
     }
 }

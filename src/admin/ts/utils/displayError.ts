@@ -1,4 +1,8 @@
 export function displayError(message: string): void {
-  // Decoupled error presentation. Swap alert for toasts if desired.
-  alert(message);
+  const toast = document.createElement('div');
+  toast.className = 'nuclen-error-toast';
+  toast.textContent = message;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 5000);
+  console.error(message);
 }
