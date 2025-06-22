@@ -85,38 +85,32 @@ class GenerationService {
         ];
 
         // Send to API
-        $result = $this->api->sendPostsToGenerate([
-            'posts' => $posts,
-            'workflow' => $workflow,
-            'generation_id' => $request->generationId,
-        ]);
+        try {
+            $result = $this->api->sendPostsToGenerate([
+                'posts' => $posts,
+                'workflow' => $workflow,
+                'generation_id' => $request->generationId,
+            ]);
+        } catch (\RuntimeException $e) {
+            $response = new GenerationResponse();
+            $response->generationId = $request->generationId;
+            $response->success = false;
+            $response->error = $e->getMessage();
+            $code = $e->getCode();
+            if ($code) {
+                $response->statusCode = (int) $code;
+            }
+            if (strpos($e->getMessage(), 'Invalid API key') !== false) {
+                $response->errorCode = 'invalid_api_key';
+            } elseif (strpos($e->getMessage(), 'Invalid WP App Password') !== false) {
+                $response->errorCode = 'invalid_wp_app_pass';
+            }
+            return $response;
+        }
 
         // Create response
         $response = new GenerationResponse();
         $response->generationId = $request->generationId;
-
-        // Handle API errors
-        if (!empty($result['status_code']) && in_array($result['status_code'], [401, 403], true)) {
-            $response->success = false;
-            $response->statusCode = $result['status_code'];
-            $response->errorCode = $result['error_code'] ?? null;
-
-            if (!empty($result['error_code']) && $result['error_code'] === 'invalid_api_key') {
-                $response->error = 'Invalid API key.';
-            } elseif (!empty($result['error_code']) && $result['error_code'] === 'invalid_wp_app_pass') {
-                $response->error = 'Invalid WP App Password.';
-            } else {
-                $response->error = 'Authentication error.';
-            }
-
-            return $response;
-        }
-
-        if (!empty($result['error'])) {
-            $response->success = false;
-            $response->error = $result['error'];
-            return $response;
-        }
 
         // Process immediate results if any
         if (!empty($result['results']) && is_array($result['results'])) {
