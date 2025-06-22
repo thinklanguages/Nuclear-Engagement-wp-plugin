@@ -5,7 +5,8 @@ use NuclearEngagement\SettingsRepository;
 
 class DummyRemoteApiService {
     public array $updates = [];
-    public function sendPostsToGenerate(array $data): array { return []; }
+    public array $generateResponse = [];
+    public function sendPostsToGenerate(array $data): array { return $this->generateResponse; }
     public function fetchUpdates(string $id): array { return $this->updates[$id] ?? []; }
 }
 
@@ -36,6 +37,17 @@ class AutoGenerationServiceTest extends TestCase {
         $service = $this->makeService();
         $service->generate_single(1, 'quiz');
         $this->assertSame('no', $wp_autoload['nuclen_active_generations']);
+    }
+
+    public function test_generate_single_does_not_schedule_on_error(): void {
+        global $wp_posts, $wp_events, $wp_options;
+        $wp_posts[1] = (object)[ 'ID' => 1, 'post_title' => 'T', 'post_content' => 'C' ];
+        $api = new DummyRemoteApiService();
+        $api->generateResponse = ['error' => 'nope'];
+        $service = $this->makeService($api);
+        $service->generate_single(1, 'quiz');
+        $this->assertEmpty($wp_events);
+        $this->assertEmpty($wp_options['nuclen_active_generations'] ?? []);
     }
 
     public function test_poll_generation_removes_entry_after_success(): void {
