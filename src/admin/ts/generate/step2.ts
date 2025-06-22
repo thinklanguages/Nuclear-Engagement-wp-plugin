@@ -9,12 +9,13 @@ import {
   nuclenAlertApiError,
   nuclenStoreGenerationResults,
 } from '../generation/results';
+import { displayError } from '../utils/displayError';
 
 export function initStep2(elements: GeneratePageElements): void {
   elements.generateForm?.addEventListener('submit', async (event) => {
     event.preventDefault();
     if (!(window as any).nuclenAdminVars || !(window as any).nuclenAdminVars.ajax_url) {
-      alert('Error: WP Ajax config not found. Please check the plugin settings.');
+      displayError('Error: WP Ajax config not found. Please check the plugin settings.');
       return;
     }
     nuclenUpdateProgressBarStep(elements.stepBar2, 'done');

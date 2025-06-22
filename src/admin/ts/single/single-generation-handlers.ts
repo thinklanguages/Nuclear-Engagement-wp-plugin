@@ -8,6 +8,7 @@ import {
   NuclenStartGeneration,
   NuclenPollAndPullUpdates,
 } from '../nuclen-admin-generate';
+import { displayError } from '../utils/displayError';
 
 export function initSingleGenerationButtons(): void {
   document.addEventListener('click', async (event: MouseEvent) => {
@@ -19,7 +20,7 @@ export function initSingleGenerationButtons(): void {
     const postId = btn.dataset.postId;
     const workflow = btn.dataset.workflow;
     if (!postId || !workflow) {
-      alert('Missing data attributes: postId or workflow not found.');
+      displayError('Missing data attributes: postId or workflow not found.');
       return;
     }
 

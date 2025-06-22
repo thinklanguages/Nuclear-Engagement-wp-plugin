@@ -2,6 +2,17 @@
 
 This document records major architectural decisions and refactoring efforts.
 
+## Module Overview
+
+The plugin is organized by concern:
+
+- `admin/` handles all wp-admin functionality and bundles TypeScript under `src/admin`.
+- `front/` contains public-facing assets and `src/front` for TypeScript sources.
+- `includes/` holds framework-agnostic services and core classes.
+- `modules/` groups optional features such as the Table of Contents.
+
+Each folder stays under the 300 LOC guideline described in `nuclear-engagement/AGENTS.md`.
+
 ## Settings Sanitization Refactor
 
 The settings sanitization logic originally lived inside `SettingsRepository`. To

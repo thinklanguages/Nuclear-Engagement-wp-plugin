@@ -15,6 +15,7 @@ declare(strict_types=1);
 namespace NuclearEngagement\Front;
 
 use NuclearEngagement\AssetVersions;
+use NuclearEngagement\Themes;
 
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
@@ -102,19 +103,19 @@ trait AssetsTrait {
             return;
         }
 
-        if ( $theme_choice === 'bright' ) {
-            $theme_url = plugin_dir_url( __FILE__ ) . '../css/nuclen-theme-bright.css';
-            $theme_v   = AssetVersions::get( 'theme_bright_css' );
-        } elseif ( $theme_choice === 'dark' ) {
-            $theme_url = plugin_dir_url( __FILE__ ) . '../css/nuclen-theme-dark.css';
-            $theme_v   = AssetVersions::get( 'theme_dark_css' );
+        if ( isset( \NuclearEngagement\Themes::MAP[ $theme_choice ] ) ) {
+            $theme_file   = \NuclearEngagement\Themes::MAP[ $theme_choice ];
+            $version_key  = $theme_choice === 'dark' ? 'theme_dark_css' : 'theme_bright_css';
+            $theme_url    = plugin_dir_url( __FILE__ ) . '../css/' . $theme_file;
+            $theme_v      = AssetVersions::get( $version_key );
         } elseif ( $theme_choice === 'custom' ) {
             $css_info  = \NuclearEngagement\Utils::nuclen_get_custom_css_info();
             $theme_url = $css_info['url'];
             $theme_v   = get_option( 'nuclen_custom_css_version', AssetVersions::get( 'theme_bright_css' ) );
         } else {
-            $theme_url = plugin_dir_url( __FILE__ ) . '../css/nuclen-theme-bright.css';
-            $theme_v   = AssetVersions::get( 'theme_bright_css' );
+            $theme_file = \NuclearEngagement\Themes::MAP['bright'];
+            $theme_url  = plugin_dir_url( __FILE__ ) . '../css/' . $theme_file;
+            $theme_v    = AssetVersions::get( 'theme_bright_css' );
         }
 
         wp_enqueue_style(
