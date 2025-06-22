@@ -15,7 +15,7 @@ define('NUCLEN_PLUGIN_DIR', plugin_dir_path(NUCLEN_PLUGIN_FILE));
 define('NUCLEN_PLUGIN_VERSION', '1.1');
 define('NUCLEN_ASSET_VERSION', '250613-30');
 
-require_once NUCLEN_PLUGIN_DIR . 'includes/autoload.php';
+require_once dirname(__DIR__) . '/vendor/autoload.php';
 require_once NUCLEN_PLUGIN_DIR . 'includes/constants.php';
 
 AssetVersions::init();

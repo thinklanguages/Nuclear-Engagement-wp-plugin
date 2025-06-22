@@ -1,7 +1,12 @@
 {
-    "require": {
-    },
-    "config": {
+  "require": {
+  },
+  "autoload": {
+    "psr-4": {
+      "NuclearEngagement\\": "nuclear-engagement/"
+    }
+  },
+  "config": {
         "allow-plugins": {
             "dealerdirect/phpcodesniffer-composer-installer": true
         }
