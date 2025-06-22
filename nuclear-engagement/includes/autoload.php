@@ -30,6 +30,7 @@ spl_autoload_register(function ($class) {
             'NuclearEngagement\\Defaults' => '/includes/Defaults.php',
             'NuclearEngagement\\OptinData' => '/includes/OptinData.php',
             'NuclearEngagement\\MetaRegistration' => '/includes/MetaRegistration.php',
+            'NuclearEngagement\\AssetVersions' => '/includes/AssetVersions.php',
 
             'NuclearEngagement\\Admin\\Admin' => '/admin/Admin.php',
             'NuclearEngagement\\Admin\\Dashboard' => '/admin/Dashboard.php',
