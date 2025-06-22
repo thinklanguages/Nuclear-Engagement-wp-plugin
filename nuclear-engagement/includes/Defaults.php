@@ -82,6 +82,15 @@ class Defaults {
             'summary_title'                    => 'Key Facts',
             'toc_title'                        => 'Table of Contents',
 
+            /* ───── Quiz strings ───── */
+            'quiz_label_retake_test'   => 'Retake Test',
+            'quiz_label_your_score'    => 'Your Score',
+            'quiz_label_perfect'       => 'Perfect!',
+            'quiz_label_well_done'     => 'Well done!',
+            'quiz_label_retake_prompt' => 'Why not retake the test?',
+            'quiz_label_correct'       => 'Correct:',
+            'quiz_label_your_answer'   => 'Your answer:',
+
             /* ───── Opt-in ───── */
             'enable_optin'                     => false,
             'optin_webhook'                    => '',

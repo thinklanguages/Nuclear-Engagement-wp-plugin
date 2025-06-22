@@ -22,6 +22,16 @@ declare global {
     nonce: string;
   };
 
+  const NuclenStrings: {
+    retake_test: string;
+    your_score: string;
+    perfect: string;
+    well_done: string;
+    retake_prompt: string;
+    correct: string;
+    your_answer: string;
+  };
+
   function gtag(...args: any[]): void;
 
   interface Window {
