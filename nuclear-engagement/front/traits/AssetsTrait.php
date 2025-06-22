@@ -40,6 +40,12 @@ trait AssetsTrait {
         $post    = get_post( $post_id );
         $content = $post ? $post->post_content : '';
 
+        if ( function_exists( 'has_block' ) && $post ) {
+            if ( has_block( 'nuclear-engagement/quiz', $post ) || has_block( 'nuclear-engagement/summary', $post ) ) {
+                return true;
+            }
+        }
+
         if ( has_shortcode( $content, 'nuclear_engagement_quiz' ) || has_shortcode( $content, 'nuclear_engagement_summary' ) ) {
             return true;
         }
