@@ -12,6 +12,8 @@ use NuclearEngagement\SettingsRepository;
 use NuclearEngagement\Services\RemoteApiService;
 use NuclearEngagement\Services\ContentStorageService;
 use NuclearEngagement\Services\ApiException;
+use NuclearEngagement\Services\GenerationPoller;
+use NuclearEngagement\Services\PublishGenerationHandler;
 
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
@@ -51,6 +53,16 @@ class AutoGenerationService {
     private $content_storage;
 
     /**
+     * @var GenerationPoller
+     */
+    private GenerationPoller $poller;
+
+    /**
+     * @var PublishGenerationHandler
+     */
+    private PublishGenerationHandler $publish_handler;
+
+    /**
      * Constructor
      *
      * @param SettingsRepository $settings_repository
@@ -60,23 +72,22 @@ class AutoGenerationService {
     public function __construct(
         SettingsRepository $settings_repository,
         RemoteApiService $remote_api,
-        ContentStorageService $content_storage
+        ContentStorageService $content_storage,
+        GenerationPoller $poller,
+        PublishGenerationHandler $publish_handler
     ) {
         $this->settings_repository = $settings_repository;
         $this->remote_api = $remote_api;
         $this->content_storage = $content_storage;
+        $this->poller = $poller;
+        $this->publish_handler = $publish_handler;
     }
 
     /**
      * Register WordPress hooks
      */
     public function register_hooks(): void {
-        add_action(
-            'nuclen_poll_generation',
-            [ $this, 'poll_generation' ],
-            10,
-            4 // generation_id, workflow_type, post_id, attempt
-        );
+        $this->poller->register_hooks();
 
         add_action(
             self::START_HOOK,
@@ -85,7 +96,7 @@ class AutoGenerationService {
             2 // post_id, workflow_type
         );
 
-        add_action('transition_post_status', [ $this, 'handle_post_publish' ], 10, 3);
+        $this->publish_handler->register_hooks();
     }
 
     /**
@@ -96,44 +107,7 @@ class AutoGenerationService {
      * @param \WP_Post $post Post object
      */
     public function handle_post_publish($new_status, $old_status, $post): void {
-        // Only when we enter publish
-        if ($old_status === 'publish' || $new_status !== 'publish') {
-            return;
-        }
-
-        $allowed_post_types = $this->settings_repository->get('generation_post_types', ['post']);
-        if (!in_array($post->post_type, (array) $allowed_post_types, true)) {
-            return;
-        }
-
-        $gen_quiz = (bool) $this->settings_repository->get('auto_generate_quiz_on_publish', false);
-        $gen_summary = (bool) $this->settings_repository->get('auto_generate_summary_on_publish', false);
-
-        if (!$gen_quiz && !$gen_summary) {
-            return;
-        }
-
-        // Auto-generate quiz
-        if ($gen_quiz) {
-            $protected = get_post_meta($post->ID, 'nuclen_quiz_protected', true);
-            if (!$protected) {
-                $args = [ $post->ID, 'quiz' ];
-                if (!wp_next_scheduled(self::START_HOOK, $args)) {
-                    wp_schedule_single_event(time(), self::START_HOOK, $args);
-                }
-            }
-        }
-
-        // Auto-generate summary
-        if ($gen_summary) {
-            $protected = get_post_meta($post->ID, 'nuclen_summary_protected', true);
-            if (!$protected) {
-                $args = [ $post->ID, 'summary' ];
-                if (!wp_next_scheduled(self::START_HOOK, $args)) {
-                    wp_schedule_single_event(time(), self::START_HOOK, $args);
-                }
-            }
-        }
+        $this->publish_handler->handle_post_publish($new_status, $old_status, $post);
     }
 
     /**
@@ -224,79 +198,7 @@ class AutoGenerationService {
      * @param int $attempt Current attempt number
      */
     public function poll_generation(string $generation_id, string $workflow_type, int $post_id, int $attempt): void {
-        $max_attempts = self::MAX_ATTEMPTS;
-        $retry_delay = self::RETRY_DELAY; // 1 minute between retries
-
-        try {
-            // Check if auto-generation is enabled for this post type
-            $connected = $this->settings_repository->get('connected', false);
-            $wp_app_pass_created = $this->settings_repository->get('wp_app_pass_created', false);
-            if (!$connected || !$wp_app_pass_created) {
-                return;
-            }
-
-            // Get updates from the API
-            $data = $this->remote_api->fetchUpdates($generation_id);
-
-            // Check if we have results
-            if (!empty($data['results']) && is_array($data['results'])) {
-                $this->content_storage->storeResults($data['results'], $workflow_type);
-                \NuclearEngagement\Services\LoggingService::log(
-                    "Poll success for post {$post_id} ({$workflow_type}), generation {$generation_id}"
-                );
-                $this->cleanup_generation($generation_id);
-                return;
-            }
-
-            // Check if still processing
-            if (isset($data['success']) && $data['success'] === true) {
-                // Still processing, log the attempt
-                \NuclearEngagement\Services\LoggingService::log(
-                    "Still processing post {$post_id} ({$workflow_type}), attempt {$attempt}/{$max_attempts}"
-                );
-            }
-
-        } catch (ApiException $e) {
-            \NuclearEngagement\Services\LoggingService::log(
-                "Polling error for post {$post_id} ({$workflow_type}): " . $e->getMessage()
-            );
-        } catch (\Exception $e) {
-            \NuclearEngagement\Services\LoggingService::log(
-                "Polling error for post {$post_id} ({$workflow_type}): " . $e->getMessage()
-            );
-        }
-
-        // Schedule next poll if not at max attempts
-        if ($attempt < $max_attempts) {
-            $event_args = [ $generation_id, $workflow_type, $post_id, $attempt + 1 ];
-            wp_schedule_single_event(
-                time() + $retry_delay,
-                'nuclen_poll_generation',
-                $event_args
-            );
-        } else {
-            \NuclearEngagement\Services\LoggingService::log(
-                "Polling aborted after {$max_attempts} attempts for post {$post_id} ({$workflow_type})"
-            );
-            $this->cleanup_generation($generation_id);
-        }
-    }
-
-    /**
-     * Remove a completed or failed generation from the tracking option.
-     *
-     * @param string $generation_id Generation ID to remove
-     */
-    private function cleanup_generation(string $generation_id): void {
-        $generations = get_option('nuclen_active_generations', []);
-        if (isset($generations[$generation_id])) {
-            unset($generations[$generation_id]);
-            if (empty($generations)) {
-                delete_option('nuclen_active_generations');
-            } else {
-                update_option('nuclen_active_generations', $generations, 'no');
-            }
-        }
+        $this->poller->poll_generation($generation_id, $workflow_type, $post_id, $attempt);
     }
 
     /**
