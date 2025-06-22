@@ -2,11 +2,17 @@
 use PHPUnit\Framework\TestCase;
 use NuclearEngagement\Services\AutoGenerationService;
 use NuclearEngagement\SettingsRepository;
+use RuntimeException;
 
 class DummyRemoteApiService {
     public array $updates = [];
-    public array $generateResponse = [];
-    public function sendPostsToGenerate(array $data): array { return $this->generateResponse; }
+    public $generateResponse = [];
+    public function sendPostsToGenerate(array $data): array {
+        if ($this->generateResponse instanceof \Exception) {
+            throw $this->generateResponse;
+        }
+        return $this->generateResponse;
+    }
     public function fetchUpdates(string $id): array { return $this->updates[$id] ?? []; }
 }
 
@@ -43,7 +49,7 @@ class AutoGenerationServiceTest extends TestCase {
         global $wp_posts, $wp_events, $wp_options;
         $wp_posts[1] = (object)[ 'ID' => 1, 'post_title' => 'T', 'post_content' => 'C' ];
         $api = new DummyRemoteApiService();
-        $api->generateResponse = ['error' => 'nope'];
+        $api->generateResponse = new RuntimeException('nope');
         $service = $this->makeService($api);
         $service->generate_single(1, 'quiz');
         $this->assertEmpty($wp_events);

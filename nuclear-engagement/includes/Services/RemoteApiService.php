@@ -49,7 +49,7 @@ class RemoteApiService {
      * Send posts to remote API for content generation
      *
      * @param array $data
-     * @return array
+     * @return array Response data on success
      * @throws \RuntimeException On API errors
      */
     public function sendPostsToGenerate(array $data): array {
@@ -94,7 +94,7 @@ class RemoteApiService {
         if (is_wp_error($response)) {
             $error = 'API request failed: ' . $response->get_error_message();
 \NuclearEngagement\Services\LoggingService::log($error);
-            return ['error' => $error];
+            throw new \RuntimeException($error);
         }
 
         $code = wp_remote_retrieve_response_code($response);
@@ -104,18 +104,19 @@ class RemoteApiService {
 
         // Check for auth errors
         if ($code === 401 || $code === 403) {
-            return $this->handleAuthError($body, $code);
+            $authResult = $this->handleAuthError($body, $code);
+            throw new \RuntimeException($authResult['error'], $authResult['status_code']);
         }
 
         if ($code !== 200) {
 \NuclearEngagement\Services\LoggingService::log("Unexpected response code: {$code}, body: {$body}");
-            return ['error' => "Failed to fetch updates, code: {$code}"];
+            throw new \RuntimeException("Failed to fetch updates, code: {$code}", $code);
         }
 
         $data = json_decode($body, true);
         if (!is_array($data)) {
 \NuclearEngagement\Services\LoggingService::log("Invalid JSON response: {$body}");
-            return ['error' => 'Invalid data received from API'];
+            throw new \RuntimeException('Invalid data received from API');
         }
 
         return $data;
