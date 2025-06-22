@@ -42,13 +42,14 @@ export function initStep1(elements: GeneratePageElements): void {
           if (elements.postsCountEl) {
             elements.postsCountEl.innerText = 'Error retrieving post count.';
           }
-          if (data.data?.message) {
-            if (data.data.message.includes('Invalid API key')) {
+          const errMsg = data.message || data.data?.message;
+          if (errMsg) {
+            if (errMsg.includes('Invalid API key')) {
               alert('Your Gold Code (API key) is invalid. Please create a new one on the NE app and enter it on the plugin Setup page.');
-            } else if (data.data.message.includes('Invalid WP App Password')) {
+            } else if (errMsg.includes('Invalid WP App Password')) {
               alert('Your WP App Password is invalid. Please go to the plugin Setup page and re-generate it.');
             } else {
-              alert(data.data.message);
+              alert(errMsg);
             }
           }
           return;

@@ -51,9 +51,9 @@ class PointerController extends BaseController {
             wp_send_json_success(['message' => __('Pointer dismissed.', 'nuclear-engagement')]);
 
         } catch (\InvalidArgumentException $e) {
-            wp_send_json_error(['message' => $e->getMessage()]);
+            $this->sendError($e->getMessage());
         } catch (\Exception $e) {
-            wp_send_json_error(['message' => __('An error occurred', 'nuclear-engagement')]);
+            $this->sendError(__('An error occurred', 'nuclear-engagement'));
         }
     }
 }

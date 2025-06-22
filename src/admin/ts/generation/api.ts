@@ -71,13 +71,9 @@ export async function NuclenStartGeneration(dataToSend: Record<string, any>) {
 
   const data = await response.json();
   if (!data.success) {
-    if (typeof data.data === 'object' && data.data.message) {
-      throw new Error(data.data.message);
-    } else if (data.message) {
-      throw new Error(data.message);
-    } else {
-      throw new Error('Generation start failed (unknown error).');
-    }
+    const errMsg =
+      data.message || data.data?.message || 'Generation start failed (unknown error).';
+    throw new Error(errMsg);
   }
 
   return data;
