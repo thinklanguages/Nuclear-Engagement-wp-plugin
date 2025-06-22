@@ -128,13 +128,13 @@ trait AssetsTrait {
 
         /* Translatable strings for the quiz */
         $ne_strings = array(
-            'retake_test'   => __( 'Retake Test', 'nuclear-engagement' ),
-            'your_score'    => __( 'Your Score', 'nuclear-engagement' ),
-            'perfect'       => __( 'Perfect!', 'nuclear-engagement' ),
-            'well_done'     => __( 'Well done!', 'nuclear-engagement' ),
-            'retake_prompt' => __( 'Why not retake the test?', 'nuclear-engagement' ),
-            'correct'       => __( 'Correct:', 'nuclear-engagement' ),
-            'your_answer'   => __( 'Your answer:', 'nuclear-engagement' ),
+            'retake_test'   => $settings_repo->get( 'quiz_label_retake_test', __( 'Retake Test', 'nuclear-engagement' ) ),
+            'your_score'    => $settings_repo->get( 'quiz_label_your_score', __( 'Your Score', 'nuclear-engagement' ) ),
+            'perfect'       => $settings_repo->get( 'quiz_label_perfect', __( 'Perfect!', 'nuclear-engagement' ) ),
+            'well_done'     => $settings_repo->get( 'quiz_label_well_done', __( 'Well done!', 'nuclear-engagement' ) ),
+            'retake_prompt' => $settings_repo->get( 'quiz_label_retake_prompt', __( 'Why not retake the test?', 'nuclear-engagement' ) ),
+            'correct'       => $settings_repo->get( 'quiz_label_correct', __( 'Correct:', 'nuclear-engagement' ) ),
+            'your_answer'   => $settings_repo->get( 'quiz_label_your_answer', __( 'Your answer:', 'nuclear-engagement' ) ),
         );
         wp_localize_script( $this->plugin_name . '-front', 'NuclenStrings', $ne_strings );
     }

@@ -64,6 +64,14 @@ trait SettingsSanitizeGeneralTrait {
         $summary_title = sanitize_text_field( $in['summary_title'] ?? 'Key Facts' );
         $toc_title     = sanitize_text_field( $in['toc_title']     ?? 'Table of Contents' );
 
+        $label_retake_test   = sanitize_text_field( $in['quiz_label_retake_test']   ?? 'Retake Test' );
+        $label_your_score    = sanitize_text_field( $in['quiz_label_your_score']    ?? 'Your Score' );
+        $label_perfect       = sanitize_text_field( $in['quiz_label_perfect']       ?? 'Perfect!' );
+        $label_well_done     = sanitize_text_field( $in['quiz_label_well_done']     ?? 'Well done!' );
+        $label_retake_prompt = sanitize_text_field( $in['quiz_label_retake_prompt'] ?? 'Why not retake the test?' );
+        $label_correct       = sanitize_text_field( $in['quiz_label_correct']       ?? 'Correct:' );
+        $label_your_answer   = sanitize_text_field( $in['quiz_label_your_answer']   ?? 'Your answer:' );
+
         /* Generation */
         $gen_pt = is_array( $in['generation_post_types'] ?? null ) ? $in['generation_post_types'] : array( 'post' );
         $gen_pt = array_map( 'sanitize_text_field', $gen_pt );
@@ -110,6 +118,13 @@ trait SettingsSanitizeGeneralTrait {
             'quiz_title'                       => $quiz_title,
             'summary_title'                    => $summary_title,
             'toc_title'                        => $toc_title,
+            'quiz_label_retake_test'   => $label_retake_test,
+            'quiz_label_your_score'    => $label_your_score,
+            'quiz_label_perfect'       => $label_perfect,
+            'quiz_label_well_done'     => $label_well_done,
+            'quiz_label_retake_prompt' => $label_retake_prompt,
+            'quiz_label_correct'       => $label_correct,
+            'quiz_label_your_answer'   => $label_your_answer,
 
             /* generation */
             'generation_post_types'            => $gen_pt,
