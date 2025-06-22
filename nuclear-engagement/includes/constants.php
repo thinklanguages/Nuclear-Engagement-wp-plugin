@@ -4,7 +4,14 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-/** Plugin-wide constants for numeric values. */
+/**
+ * Plugin-wide numeric configuration.
+ *
+ * These constants centralize all tunable numeric values used across the
+ * plugin. Keeping them in one place avoids "magic numbers" sprinkled in
+ * the codebase and makes it easier to tweak behaviour without hunting
+ * through multiple files.
+ */
 
 /** Maximum log file size in bytes. */
 define( 'NUCLEN_LOG_FILE_MAX_SIZE', MB_IN_BYTES );

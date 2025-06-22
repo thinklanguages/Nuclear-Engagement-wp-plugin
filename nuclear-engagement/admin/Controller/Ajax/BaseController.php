@@ -26,9 +26,8 @@ abstract class BaseController {
      */
     protected function sendError(string $message, int $code = 500): void {
         status_header($code);
-        wp_send_json(
+        wp_send_json_error(
             [
-                'success' => false,
                 'message' => $message,
             ],
             $code

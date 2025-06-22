@@ -102,17 +102,12 @@ class UpdatesController extends BaseController {
             wp_send_json_success( $response->toArray() );
 
         } catch ( ApiException $e ) {
-\NuclearEngagement\Services\LoggingService::log( 'Error fetching updates: ' . $e->getMessage() );
-            $res = new UpdatesResponse();
-            $res->success = false;
-            $res->message = $e->getMessage();
-            if ($e->getCode()) {
-                $res->statusCode = $e->getCode();
-            }
-            wp_send_json_error( $res->toArray() );
-        } catch ( \Exception $e ) {
             \NuclearEngagement\Services\LoggingService::log( 'Error fetching updates: ' . $e->getMessage() );
-            $this->sendError( $e->getMessage() );
+            $message = __( 'Failed to fetch updates. Please try again later.', 'nuclear-engagement' );
+            $this->sendError( $message, $e->getCode() ?: 500 );
+        } catch ( \Throwable $e ) {
+            \NuclearEngagement\Services\LoggingService::log( 'Error fetching updates: ' . $e->getMessage() );
+            $this->sendError( __( 'An unexpected error occurred.', 'nuclear-engagement' ) );
         }
     }
 }

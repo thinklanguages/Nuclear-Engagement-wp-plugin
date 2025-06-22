@@ -94,10 +94,18 @@ class GenerationPoller {
             \NuclearEngagement\Services\LoggingService::log(
                 "Polling error for post {$post_id} ({$workflow_type}): " . $e->getMessage()
             );
-        } catch (\Exception $e) {
+            if ( $attempt >= $max_attempts ) {
+                $this->cleanup_generation( $generation_id );
+                return;
+            }
+        } catch (\Throwable $e) {
             \NuclearEngagement\Services\LoggingService::log(
                 "Polling error for post {$post_id} ({$workflow_type}): " . $e->getMessage()
             );
+            if ( $attempt >= $max_attempts ) {
+                $this->cleanup_generation( $generation_id );
+                return;
+            }
         }
 
         if ( $attempt < $max_attempts ) {

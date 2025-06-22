@@ -158,6 +158,15 @@ class AutoGenerationService {
                 \NuclearEngagement\Services\LoggingService::log(
                     'Failed to start generation: ' . $e->getMessage()
                 );
+                $gens = get_option('nuclen_active_generations', []);
+                if (isset($gens[$generation_id])) {
+                    unset($gens[$generation_id]);
+                    if (empty($gens)) {
+                        delete_option('nuclen_active_generations');
+                    } else {
+                        update_option('nuclen_active_generations', $gens, 'no');
+                    }
+                }
                 return;
             }
 

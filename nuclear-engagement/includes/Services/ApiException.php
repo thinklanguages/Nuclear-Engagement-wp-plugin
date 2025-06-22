@@ -15,7 +15,7 @@ if (!defined('ABSPATH')) {
 class ApiException extends \RuntimeException {
     private ?string $errorCode;
 
-    public function __construct(string $message, int $code = 0, ?string $errorCode = null) {
+    public function __construct(string $message, int $code = 500, ?string $errorCode = null) {
         parent::__construct($message, $code);
         $this->errorCode = $errorCode;
     }
