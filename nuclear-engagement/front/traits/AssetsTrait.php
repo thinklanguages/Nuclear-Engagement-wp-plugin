@@ -22,12 +22,18 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 trait AssetsTrait {
 
+    /** Force asset enqueue regardless of detection checks. */
+    private bool $force_assets = false;
+
     /**
      * Determine if front-end assets should load on the current request.
      *
      * @return bool
      */
     private function should_load_assets(): bool {
+        if ( $this->force_assets ) {
+            return true;
+        }
         if ( is_admin() || ! is_singular() ) {
             return false;
         }
@@ -193,5 +199,15 @@ trait AssetsTrait {
             'your_answer'   => $settings_repo->get( 'quiz_label_your_answer', __( 'Your answer:', 'nuclear-engagement' ) ),
         );
         wp_localize_script( $this->plugin_name . '-front', 'NuclenStrings', $ne_strings );
+    }
+
+    /**
+     * Force asset enqueue when shortcodes run outside post content.
+     */
+    public function nuclen_force_enqueue_assets(): void {
+        $this->force_assets = true;
+        $this->wp_enqueue_styles();
+        $this->wp_enqueue_scripts();
+        $this->force_assets = false;
     }
 }

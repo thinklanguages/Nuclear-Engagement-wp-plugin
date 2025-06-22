@@ -3,6 +3,7 @@ declare(strict_types=1);
 namespace NuclearEngagement\Front;
 
 use NuclearEngagement\SettingsRepository;
+use NuclearEngagement\Front\FrontClass;
 
 if (!defined('ABSPATH')) {
     exit;
@@ -11,10 +12,12 @@ if (!defined('ABSPATH')) {
 class QuizShortcode {
     private SettingsRepository $settings;
     private QuizView $view;
+    private FrontClass $front;
 
-    public function __construct(SettingsRepository $settings) {
+    public function __construct(SettingsRepository $settings, FrontClass $front) {
         $this->settings = $settings;
-        $this->view = new QuizView();
+        $this->front    = $front;
+        $this->view     = new QuizView();
     }
 
     public function register(): void {
@@ -22,6 +25,7 @@ class QuizShortcode {
     }
 
     public function render(): string {
+        $this->front->nuclen_force_enqueue_assets();
         $quiz_data = $this->getQuizData();
         if (!$this->isValidQuizData($quiz_data)) {
             return '';

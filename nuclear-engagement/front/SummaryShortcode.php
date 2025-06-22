@@ -3,6 +3,7 @@ declare(strict_types=1);
 namespace NuclearEngagement\Front;
 
 use NuclearEngagement\SettingsRepository;
+use NuclearEngagement\Front\FrontClass;
 
 if (!defined('ABSPATH')) {
     exit;
@@ -11,10 +12,12 @@ if (!defined('ABSPATH')) {
 class SummaryShortcode {
     private SettingsRepository $settings;
     private SummaryView $view;
+    private FrontClass $front;
 
-    public function __construct(SettingsRepository $settings) {
+    public function __construct(SettingsRepository $settings, FrontClass $front) {
         $this->settings = $settings;
-        $this->view = new SummaryView();
+        $this->front    = $front;
+        $this->view     = new SummaryView();
     }
 
     public function register(): void {
@@ -22,6 +25,7 @@ class SummaryShortcode {
     }
 
     public function render(): string {
+        $this->front->nuclen_force_enqueue_assets();
         $summary_data = $this->getSummaryData();
         if (!$this->isValidSummaryData($summary_data)) {
             return '';

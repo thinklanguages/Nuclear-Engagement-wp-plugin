@@ -28,14 +28,20 @@ trait ShortcodesTrait {
 
     private function get_quiz_shortcode(): QuizShortcode {
         if ($this->quiz_shortcode === null) {
-            $this->quiz_shortcode = new QuizShortcode($this->nuclen_get_settings_repository());
+            $this->quiz_shortcode = new QuizShortcode(
+                $this->nuclen_get_settings_repository(),
+                $this
+            );
         }
         return $this->quiz_shortcode;
     }
 
     private function get_summary_shortcode(): SummaryShortcode {
         if ($this->summary_shortcode === null) {
-            $this->summary_shortcode = new SummaryShortcode($this->nuclen_get_settings_repository());
+            $this->summary_shortcode = new SummaryShortcode(
+                $this->nuclen_get_settings_repository(),
+                $this
+            );
         }
         return $this->summary_shortcode;
     }
