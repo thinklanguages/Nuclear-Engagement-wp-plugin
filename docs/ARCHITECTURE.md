@@ -130,6 +130,11 @@ resides in a dedicated `LoggingService` under `includes/Services/`.
   service method.
 - The autoloader maps `NuclearEngagement\Services\LoggingService`.
 
+The service now checks that the uploads directory and log file are writable
+before attempting to write. When writing fails, it falls back to PHP's
+`error_log()` and registers an admin notice via the `admin_notices` hook so
+administrators are alerted to permission issues.
+
 This keeps `Utils` slim while ensuring logging responsibilities are centralized.
 
 ## Posts Query Service
