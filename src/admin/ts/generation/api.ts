@@ -57,7 +57,10 @@ export async function NuclenStartGeneration(dataToSend: Record<string, any>) {
   const formData = new FormData();
   formData.append('action', 'nuclen_trigger_generation');
   formData.append('payload', JSON.stringify(dataToSend));
-  formData.append('security', window.nuclenAjax?.nonce ?? '');
+  if (!window.nuclenAjax?.nonce) {
+    throw new Error('Missing security nonce.');
+  }
+  formData.append('security', window.nuclenAjax.nonce);
 
   const response = await fetch(window.nuclenAdminVars.ajax_url, {
     method: 'POST',

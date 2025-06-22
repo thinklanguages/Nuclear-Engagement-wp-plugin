@@ -72,6 +72,12 @@ class LoggingService {
             return;
         }
 
+        // Strip any HTML and limit length to avoid leaking sensitive data
+        $message = wp_strip_all_tags($message);
+        if (strlen($message) > 1000) {
+            $message = substr($message, 0, 1000) . '...';
+        }
+
         $info       = self::get_log_file_info();
         $log_folder = $info['dir'];
         $log_file   = $info['path'];
