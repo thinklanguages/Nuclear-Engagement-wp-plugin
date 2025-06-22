@@ -44,12 +44,24 @@ class OptinData {
         return $wpdb->prefix . self::TABLE_SLUG;
     }
     /**
+     * Cached flag to avoid repeated SHOW TABLES queries.
+     *
+     * @var bool|null
+     */
+    private static ?bool $table_exists_cache = null;
+
+    /**
      * Check whether the opt-in table already exists.
      */
     public static function table_exists(): bool {
+        if ( null !== self::$table_exists_cache ) {
+            return self::$table_exists_cache;
+        }
+
         global $wpdb;
         $table = self::table_name();
-        return $wpdb->get_var( $wpdb->prepare( "SHOW TABLES LIKE %s", $table ) ) === $table;
+        self::$table_exists_cache = $wpdb->get_var( $wpdb->prepare( "SHOW TABLES LIKE %s", $table ) ) === $table;
+        return self::$table_exists_cache;
     }
 
     /**
@@ -82,10 +94,12 @@ class OptinData {
         if ( false === $result || ! empty( $wpdb->last_error ) ) {
             LoggingService::log( 'dbDelta error: ' . $wpdb->last_error );
         }
+
+        self::$table_exists_cache = true;
     }
 
     /**
-     * Insert one submission. Automatically ensures the table exists.
+     * Insert one submission.
      *
      * @return bool  True on success, false on failure.
      */
@@ -94,11 +108,6 @@ class OptinData {
         /* Validate email */
         if ( empty( $email ) || ! is_email( $email ) ) {
             return false;
-        }
-
-        /* Make sure the table is present (first-ever submission, etc.) */
-        if ( ! self::table_exists() ) {
-            self::maybe_create_table();
         }
 
         global $wpdb;
