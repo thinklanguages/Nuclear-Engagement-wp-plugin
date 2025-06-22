@@ -169,3 +169,10 @@ fields now use the browser's native `<input type="color">` element. The
 `SettingsColorPickerTrait` no longer enqueues `wp-color-picker` scripts and is
 a no-op kept for backward compatibility.
 
+## Version Constant from Plugin Header
+
+`bootstrap.php` no longer hardcodes the plugin version. Instead it loads the
+plugin header with `get_plugin_data()` and defines `NUCLEN_PLUGIN_VERSION` from
+the returned value. All other code references this constant so updating the
+header automatically propagates the new version.
+
