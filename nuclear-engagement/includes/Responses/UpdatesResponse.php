@@ -26,6 +26,7 @@ class UpdatesResponse {
     public ?string $workflow        = null; // NEW
     public ?int   $remainingCredits = null;
     public ?string $message         = null;
+    public ?int   $statusCode       = null;
 
     /**
      * Convert to array for JSON response.
@@ -52,6 +53,9 @@ class UpdatesResponse {
         }
         if ( null !== $this->message ) {
             $data['message'] = $this->message;
+        }
+        if ( null !== $this->statusCode ) {
+            $data['status_code'] = $this->statusCode;
         }
 
         return $data;

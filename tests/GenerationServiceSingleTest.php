@@ -2,7 +2,7 @@
 use PHPUnit\Framework\TestCase;
 use NuclearEngagement\Services\GenerationService;
 use NuclearEngagement\SettingsRepository;
-use RuntimeException;
+use NuclearEngagement\Services\ApiException;
 
 // Stub LoggingService to avoid filesystem calls
 namespace NuclearEngagement\Services {
@@ -82,9 +82,9 @@ namespace {
                 'post_status' => 'publish',
             ];
             $api = new DummyGenApi();
-            $api->exception = new RuntimeException('fail', 500);
+            $api->exception = new ApiException('fail', 500);
             $service = $this->makeService($api);
-            $this->expectException(RuntimeException::class);
+            $this->expectException(ApiException::class);
             $this->expectExceptionMessage('fail');
             try {
                 $service->generateSingle(2, 'quiz');

@@ -3,7 +3,7 @@ use PHPUnit\Framework\TestCase;
 use NuclearEngagement\Services\GenerationService;
 use NuclearEngagement\SettingsRepository;
 use NuclearEngagement\Requests\GenerateRequest;
-use RuntimeException;
+use NuclearEngagement\Services\ApiException;
 
 if (!function_exists('get_posts')) {
     function get_posts($args) {
@@ -20,7 +20,7 @@ if (!function_exists('get_posts')) {
 
 class GSRemoteApi {
     public function sendPostsToGenerate(array $data): array {
-        throw new RuntimeException('api fail', 401);
+        throw new ApiException('api fail', 401);
     }
     public function fetchUpdates(string $id): array { return []; }
 }
