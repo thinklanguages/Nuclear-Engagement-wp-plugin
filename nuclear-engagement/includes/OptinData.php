@@ -91,8 +91,10 @@ class OptinData {
 
         require_once ABSPATH . 'wp-admin/includes/upgrade.php';
         $result = dbDelta( $sql );
-        if ( false === $result || ! empty( $wpdb->last_error ) ) {
+        if ( ! empty( $wpdb->last_error ) ) {
             LoggingService::log( 'dbDelta error: ' . $wpdb->last_error );
+        } elseif ( empty( $result ) ) {
+            LoggingService::log( 'dbDelta executed with no changes.' );
         }
 
         self::$table_exists_cache = true;

@@ -1,3 +1,5 @@
+import * as logger from '../utils/logger';
+
 export async function nuclenFetchWithRetry(
   url: string,
   options: RequestInit,
@@ -11,12 +13,11 @@ export async function nuclenFetchWithRetry(
     return response;
   } catch (error) {
     if (retries > 0) {
-      console.warn(`Retrying... (${retries} attempts left)`);
+      logger.warn(`Retrying request to ${url} (${retries} attempts left).`, error);
       return nuclenFetchWithRetry(url, options, retries - 1);
-    } else {
-      console.error('Max retries reached:', error);
-      throw error;
     }
+    logger.error(`Max retries reached for ${url}:`, error);
+    throw error;
   }
 }
 

@@ -44,6 +44,9 @@ export function nuclenAppendFilters(formData: FormData, filters: NuclenFilterVal
   formData.append('nuclen_generate_workflow', filters.workflow);
   formData.append('nuclen_allow_regenerate_data', filters.allowRegenerate ? '1' : '0');
   formData.append('nuclen_regenerate_protected_data', filters.regenerateProtected ? '1' : '0');
+  formData.append('nuclen_summary_format', filters.summaryFormat);
+  formData.append('nuclen_summary_length', filters.summaryLength);
+  formData.append('nuclen_summary_number_of_items', filters.summaryNumberOfItems);
 }
 
 export function nuclenStoreFilters(filters: NuclenFilterValues): void {

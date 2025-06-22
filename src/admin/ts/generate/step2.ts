@@ -10,6 +10,7 @@ import {
   nuclenStoreGenerationResults,
 } from '../generation/results';
 import { displayError } from '../utils/displayError';
+import * as logger from '../utils/logger';
 
 export function initStep2(elements: GeneratePageElements): void {
   elements.generateForm?.addEventListener('submit', async (event) => {
@@ -50,12 +51,12 @@ export function initStep2(elements: GeneratePageElements): void {
             try {
               const { ok, data } = await nuclenStoreGenerationResults(workflow, results);
               if (ok && !data.code) {
-                console.log('Bulk content stored in WP meta successfully:', data);
+                logger.log('Bulk content stored in WP meta successfully:', data);
               } else {
-                console.error('Error storing bulk content in WP meta:', data);
+                logger.error('Error storing bulk content in WP meta:', data);
               }
             } catch (err) {
-              console.error('Error storing bulk content in WP meta:', err);
+              logger.error('Error storing bulk content in WP meta:', err);
             }
           }
           if (elements.updatesContent) {

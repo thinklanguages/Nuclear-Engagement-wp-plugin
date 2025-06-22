@@ -142,8 +142,12 @@ class RemoteApiService {
 
         $data = json_decode($body, true);
         if (!is_array($data)) {
-\NuclearEngagement\Services\LoggingService::log("Invalid JSON response: {$body}");
+            \NuclearEngagement\Services\LoggingService::log("Invalid JSON response: {$body}");
             throw new ApiException('Invalid data received from API', $code);
+        }
+        if (isset($data['success']) && $data['success'] === false) {
+            $msg = $data['error'] ?? 'API error';
+            throw new ApiException($msg, $code, $data['error_code'] ?? null);
         }
 
         return $data;
@@ -213,8 +217,12 @@ class RemoteApiService {
 
         $data = json_decode($body, true);
         if (!is_array($data)) {
-\NuclearEngagement\Services\LoggingService::log("Invalid JSON response: {$body}");
+            \NuclearEngagement\Services\LoggingService::log("Invalid JSON response: {$body}");
             throw new ApiException('Invalid data received from API', $code);
+        }
+        if (isset($data['success']) && $data['success'] === false) {
+            $msg = $data['error'] ?? 'API error';
+            throw new ApiException($msg, $code, $data['error_code'] ?? null);
         }
 
         return $data;

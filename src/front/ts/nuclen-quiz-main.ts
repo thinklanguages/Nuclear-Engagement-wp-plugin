@@ -20,6 +20,7 @@ import type {
     mountOptinBeforeResults,
     attachInlineOptinHandlers,
   } from './nuclen-quiz-optin';
+import * as logger from './logger';
 
   /* Globals injected by wp_localize_script */
   declare const postQuizData: QuizQuestion[];
@@ -62,7 +63,7 @@ import type {
       !quizContainer || !qContainer || !aContainer || !progBar ||
       !finalContainer || !nextBtn || !explContainer
     ) {
-      console.warn('[NE] Quiz markup missing — init aborted.');
+      logger.warn('[NE] Quiz markup missing — init aborted.');
       return;
     }
 
