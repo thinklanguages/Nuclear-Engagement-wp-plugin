@@ -125,5 +125,17 @@ trait AssetsTrait {
                 'answers_per_question' => $settings_repo->get_int( 'answers_per_question', 4 ),
             )
         );
+
+        /* Translatable strings for the quiz */
+        $ne_strings = array(
+            'retake_test'   => __( 'Retake Test', 'nuclear-engagement' ),
+            'your_score'    => __( 'Your Score', 'nuclear-engagement' ),
+            'perfect'       => __( 'Perfect!', 'nuclear-engagement' ),
+            'well_done'     => __( 'Well done!', 'nuclear-engagement' ),
+            'retake_prompt' => __( 'Why not retake the test?', 'nuclear-engagement' ),
+            'correct'       => __( 'Correct:', 'nuclear-engagement' ),
+            'your_answer'   => __( 'Your answer:', 'nuclear-engagement' ),
+        );
+        wp_localize_script( $this->plugin_name . '-front', 'NuclenStrings', $ne_strings );
     }
 }
