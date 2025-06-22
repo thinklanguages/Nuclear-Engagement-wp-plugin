@@ -4,29 +4,40 @@ export async function nuclenFetchWithRetry(
   url: string,
   options: RequestInit,
   retries = 3,
-  lastError?: Error
+  initialDelayMs = 500
 ): Promise<Response> {
-  try {
-    const response = await fetch(url, options);
-    if (!response.ok) {
-      throw new Error(`Network response was not ok (HTTP ${response.status})`);
-    }
-    return response;
-  } catch (error: any) {
-    const err = (lastError ?? error) as Error;
-    if (retries > 0) {
+  let attempt = 0;
+  let delay = initialDelayMs;
+  let lastError: Error | undefined;
+
+  while (attempt <= retries) {
+    try {
+      const response = await fetch(url, options);
+      if (!response.ok) {
+        throw new Error(`Network response was not ok (HTTP ${response.status})`);
+      }
+      return response;
+    } catch (error: any) {
+      lastError = error as Error;
+      if (attempt === retries) {
+        break;
+      }
+
       logger.warn(
-        `Retrying request to ${url} with method ${options.method || 'GET'} (${retries} attempts left).`,
-        err
+        `Retrying request to ${url} with method ${options.method || 'GET'} (${retries - attempt} attempts left).`,
+        lastError
       );
-      return nuclenFetchWithRetry(url, options, retries - 1, err);
+      await new Promise((resolve) => setTimeout(resolve, delay));
+      delay *= 2;
     }
-    logger.error(
-      `Max retries reached for ${url} with method ${options.method || 'GET'}:`,
-      err
-    );
-    throw err;
+    attempt += 1;
   }
+
+  logger.error(
+    `Max retries reached for ${url} with method ${options.method || 'GET'}:`,
+    lastError
+  );
+  throw lastError;
 }
 
 export async function nuclenFetchUpdates(generationId?: string) {
