@@ -32,9 +32,13 @@ class AutoGenerationServiceTest extends TestCase {
 
     private function makeService(?DummyRemoteApiService $api = null): AutoGenerationService {
         $settings = SettingsRepository::get_instance();
-        $api = $api ?: new DummyRemoteApiService();
-        $storage = new DummyContentStorageService();
-        return new AutoGenerationService($settings, $api, $storage);
+        $api      = $api ?: new DummyRemoteApiService();
+        $storage  = new DummyContentStorageService();
+
+        $poller  = new \NuclearEngagement\Services\GenerationPoller($settings, $api, $storage);
+        $handler = new \NuclearEngagement\Services\PublishGenerationHandler($settings);
+
+        return new AutoGenerationService($settings, $api, $storage, $poller, $handler);
     }
 
     public function test_generate_single_sets_autoload_no(): void {
