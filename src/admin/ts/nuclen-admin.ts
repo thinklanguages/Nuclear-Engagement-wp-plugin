@@ -17,3 +17,6 @@ import './nuclen-admin-ui';
 
 // Onboardingh
 import './nuclen-admin-onboarding';
+
+// Gutenberg block registrations
+import './blocks/nuclen-editor-blocks';
