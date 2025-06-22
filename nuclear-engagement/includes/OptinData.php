@@ -12,6 +12,8 @@
 
 namespace NuclearEngagement;
 
+use NuclearEngagement\Services\LoggingService;
+
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
@@ -75,7 +77,10 @@ class OptinData {
             ) {$charset};";
 
         require_once ABSPATH . 'wp-admin/includes/upgrade.php';
-        dbDelta( $sql );
+        $result = dbDelta( $sql );
+        if ( false === $result || ! empty( $wpdb->last_error ) ) {
+            LoggingService::log( 'dbDelta error: ' . $wpdb->last_error );
+        }
     }
 
     /**
@@ -107,8 +112,12 @@ class OptinData {
             [ '%s', '%s', '%s', '%s' ]
         );
 
-return (bool) $ok;
-}
+        if ( false === $ok ) {
+            LoggingService::log( 'Insert error: ' . $wpdb->last_error );
+        }
+
+        return (bool) $ok;
+    }
 
     /**
      * Escape potential spreadsheet formulas in a CSV field.
@@ -132,7 +141,7 @@ return (bool) $ok;
         $url   = esc_url_raw(        wp_unslash( $_POST['url']   ?? '' ) );
 
         if ( ! self::insert( $name, $email, $url ) ) {
-            wp_send_json_error( [ 'message' => 'Unable to save. Invalid email or DB error.' ], 500 );
+            wp_send_json_error( [ 'message' => 'Unable to save your submission. Please try again later.' ], 500 );
         }
 
         wp_send_json_success();
