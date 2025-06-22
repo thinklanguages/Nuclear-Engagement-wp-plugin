@@ -41,7 +41,7 @@ export async function nuclenCheckCreditsAjax(): Promise<number> {
   });
   const data = await response.json();
   if (!data.success) {
-    throw new Error(data.data?.message || 'Failed to fetch credits from SaaS');
+    throw new Error(data.message || data.data?.message || 'Failed to fetch credits from SaaS');
   }
   if (typeof data.data.remaining_credits === 'number') {
     return data.data.remaining_credits;

@@ -46,8 +46,10 @@ class GenerateController extends BaseController {
             }
 
             if (empty($_POST['payload'])) {
-                status_header(400);
-                wp_send_json_error(['message' => 'Missing payload in request']);
+                $this->sendError(
+                    __('Missing payload in request', 'nuclear-engagement'),
+                    400
+                );
                 return;
             }
 
@@ -64,15 +66,16 @@ class GenerateController extends BaseController {
             \NuclearEngagement\Services\LoggingService::log(
                 'Nuclear Engagement validation error: ' . $e->getMessage()
             );
-            status_header(400);
-            wp_send_json_error(['message' => $e->getMessage()]);
+            $this->sendError($e->getMessage(), 400);
         } catch (\Exception $e) {
             \NuclearEngagement\Services\LoggingService::log(
                 'Nuclear Engagement generation error: ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine()
             );
             \NuclearEngagement\Services\LoggingService::log('Stack trace: ' . $e->getTraceAsString());
-            status_header(500);
-            wp_send_json_error(['message' => 'An unexpected error occurred. Please check your error logs.']);
+            $this->sendError(
+                __('An unexpected error occurred. Please check your error logs.', 'nuclear-engagement'),
+                500
+            );
         }
     }
 }

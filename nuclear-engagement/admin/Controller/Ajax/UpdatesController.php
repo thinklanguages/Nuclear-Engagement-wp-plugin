@@ -101,8 +101,8 @@ class UpdatesController extends BaseController {
             wp_send_json_success( $response->toArray() );
 
         } catch ( \Exception $e ) {
-\NuclearEngagement\Services\LoggingService::log( 'Error fetching updates: ' . $e->getMessage() );
-            wp_send_json_error( array( 'message' => $e->getMessage() ) );
+            \NuclearEngagement\Services\LoggingService::log( 'Error fetching updates: ' . $e->getMessage() );
+            $this->sendError( $e->getMessage() );
         }
     }
 }
