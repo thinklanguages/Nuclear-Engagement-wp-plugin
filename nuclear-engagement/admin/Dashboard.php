@@ -211,6 +211,30 @@ $by_category_quiz     = $drop_zeros( $by_category_quiz );
 $by_category_summary  = $drop_zeros( $by_category_summary );
 
 /* ──────────────────────────────────────────────────────────────
+ * 4b. Gather scheduled generation tasks
+ * ──────────────────────────────────────────────────────────── */
+$active_generations = get_option( 'nuclen_active_generations', array() );
+$scheduled_tasks    = array();
+
+foreach ( $active_generations as $gen_id => $info ) {
+    $post_id   = (int) ( $info['post_ids'][0] ?? 0 );
+    $title     = $post_id ? get_the_title( $post_id ) : $gen_id;
+    $next_poll = isset( $info['next_poll'] )
+        ? date_i18n(
+            get_option( 'date_format' ) . ' ' . get_option( 'time_format' ),
+            (int) $info['next_poll']
+        )
+        : '';
+
+    $scheduled_tasks[] = array(
+        'post_title'    => $title,
+        'workflow_type' => $info['workflow_type'] ?? '',
+        'attempt'       => (int) ( $info['attempt'] ?? 1 ),
+        'next_poll'     => $next_poll,
+    );
+}
+
+/* ──────────────────────────────────────────────────────────────
  * 5. Render dashboard (same partial as before)
  * ──────────────────────────────────────────────────────────── */
 require plugin_dir_path( __FILE__ ) . 'partials/nuclen-dashboard-page.php';
