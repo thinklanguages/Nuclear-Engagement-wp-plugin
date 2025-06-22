@@ -79,22 +79,22 @@ class RemoteApiService {
         $response = wp_remote_post(
             self::API_BASE . '/process-posts',
             [
-                'method' => 'POST',
-                'headers' => [
+                'method'          => 'POST',
+                'headers'         => [
                     'Content-Type' => 'application/json',
-                    'X-API-Key' => $apiKey,
+                    'X-API-Key'    => $apiKey,
                 ],
-                'body' => wp_json_encode($payload),
-                'timeout' => NUCLEN_API_TIMEOUT,
+                'body'            => wp_json_encode($payload),
+                'timeout'         => NUCLEN_API_TIMEOUT,
                 'reject_unsafe_urls' => true,
-                'user-agent' => 'NuclearEngagement/' . NUCLEN_PLUGIN_VERSION,
+                'user-agent'      => 'NuclearEngagement/' . NUCLEN_PLUGIN_VERSION,
             ]
         );
 
         if (is_wp_error($response)) {
             $error = 'API request failed: ' . $response->get_error_message();
-\NuclearEngagement\Services\LoggingService::log($error);
-            return ['error' => $error];
+            \NuclearEngagement\Services\LoggingService::log($error);
+            throw new \RuntimeException($error);
         }
 
         $code = wp_remote_retrieve_response_code($response);
@@ -104,18 +104,19 @@ class RemoteApiService {
 
         // Check for auth errors
         if ($code === 401 || $code === 403) {
-            return $this->handleAuthError($body, $code);
+            $auth = $this->handleAuthError($body, $code);
+            throw new \RuntimeException($auth['error'], $code);
         }
 
         if ($code !== 200) {
-\NuclearEngagement\Services\LoggingService::log("Unexpected response code: {$code}, body: {$body}");
-            return ['error' => "Failed to fetch updates, code: {$code}"];
+            \NuclearEngagement\Services\LoggingService::log("Unexpected response code: {$code}, body: {$body}");
+            throw new \RuntimeException("Failed to fetch updates, code: {$code}", $code);
         }
 
         $data = json_decode($body, true);
         if (!is_array($data)) {
-\NuclearEngagement\Services\LoggingService::log("Invalid JSON response: {$body}");
-            return ['error' => 'Invalid data received from API'];
+            \NuclearEngagement\Services\LoggingService::log("Invalid JSON response: {$body}");
+            throw new \RuntimeException('Invalid data received from API', $code);
         }
 
         return $data;

@@ -9,6 +9,12 @@ class DummyRemoteApiService {
     public function fetchUpdates(string $id): array { return $this->updates[$id] ?? []; }
 }
 
+class FailingRemoteApiService extends DummyRemoteApiService {
+    public function sendPostsToGenerate(array $data): array {
+        throw new \RuntimeException('boom');
+    }
+}
+
 class DummyContentStorageService {
     public array $stored = [];
     public function storeResults(array $results, string $workflowType): void {
@@ -57,5 +63,15 @@ class AutoGenerationServiceTest extends TestCase {
         $service = $this->makeService($api);
         $service->poll_generation($id, 'quiz', 1, AutoGenerationService::MAX_ATTEMPTS);
         $this->assertArrayNotHasKey($id, $wp_options['nuclen_active_generations'] ?? []);
+    }
+
+    public function test_generate_single_handles_api_error(): void {
+        global $wp_options, $wp_events, $wp_posts;
+        $wp_posts[1] = (object)[ 'ID' => 1, 'post_title' => 'T', 'post_content' => 'C' ];
+        $api = new FailingRemoteApiService();
+        $service = $this->makeService($api);
+        $service->generate_single(1, 'quiz');
+        $this->assertEmpty($wp_options);
+        $this->assertSame([], $wp_events);
     }
 }

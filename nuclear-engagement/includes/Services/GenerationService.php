@@ -84,37 +84,23 @@ class GenerationService {
             'summary_number_of_items' => $request->summaryItems,
         ];
 
-        // Send to API
-        $result = $this->api->sendPostsToGenerate([
-            'posts' => $posts,
-            'workflow' => $workflow,
-            'generation_id' => $request->generationId,
-        ]);
-
-        // Create response
+        // Prepare response
         $response = new GenerationResponse();
         $response->generationId = $request->generationId;
 
-        // Handle API errors
-        if (!empty($result['status_code']) && in_array($result['status_code'], [401, 403], true)) {
+        try {
+            $result = $this->api->sendPostsToGenerate([
+                'posts'        => $posts,
+                'workflow'     => $workflow,
+                'generation_id' => $request->generationId,
+            ]);
+        } catch (\RuntimeException $e) {
             $response->success = false;
-            $response->statusCode = $result['status_code'];
-            $response->errorCode = $result['error_code'] ?? null;
-
-            if (!empty($result['error_code']) && $result['error_code'] === 'invalid_api_key') {
-                $response->error = 'Invalid API key.';
-            } elseif (!empty($result['error_code']) && $result['error_code'] === 'invalid_wp_app_pass') {
-                $response->error = 'Invalid WP App Password.';
-            } else {
-                $response->error = 'Authentication error.';
+            $response->error   = $e->getMessage();
+            $code = $e->getCode();
+            if ($code > 0) {
+                $response->statusCode = $code;
             }
-
-            return $response;
-        }
-
-        if (!empty($result['error'])) {
-            $response->success = false;
-            $response->error = $result['error'];
             return $response;
         }
 
