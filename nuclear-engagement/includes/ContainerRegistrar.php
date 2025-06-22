@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 namespace NuclearEngagement;
 
-use NuclearEngagement\Services\{GenerationService, RemoteApiService, ContentStorageService, PointerService, PostsQueryService, AutoGenerationService, GenerationPoller, PublishGenerationHandler};
+use NuclearEngagement\Services\{GenerationService, RemoteApiService, ContentStorageService, PointerService, PostsQueryService, AutoGenerationService, GenerationPoller, PublishGenerationHandler, VersionService};
 use NuclearEngagement\Admin\Controller\Ajax\{GenerateController, UpdatesController, PointerController, PostsCountController};
 use NuclearEngagement\Admin\Controller\OptinExportController;
 use NuclearEngagement\Front\Controller\Rest\ContentController;
@@ -50,6 +50,7 @@ final class ContainerRegistrar {
 
         $container->register( 'pointer_service', static fn() => new PointerService() );
         $container->register( 'posts_query_service', static fn() => new PostsQueryService() );
+        $container->register( 'version_service', static fn() => new VersionService() );
 
         $container->register( 'generate_controller', static fn( $c ) => new GenerateController( $c->get( 'generation_service' ) ) );
         $container->register( 'updates_controller', static fn( $c ) => new UpdatesController( $c->get( 'remote_api' ), $c->get( 'content_storage' ) ) );

@@ -6,6 +6,11 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
+/**
+ * Registers Gutenberg blocks that proxy existing shortcodes.
+ * Linking the blocks to shortcodes keeps legacy output intact while
+ * enabling block editor workflows.
+ */
 final class Blocks {
     public static function register(): void {
         if ( ! function_exists( 'register_block_type' ) ) {

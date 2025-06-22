@@ -55,5 +55,9 @@ define( 'NUCLEN_SUMMARY_ITEMS_MAX', 7 );
 /** Default scroll offset for the table of contents in pixels. */
 define( 'NUCLEN_TOC_SCROLL_OFFSET_DEFAULT', 72 );
 
-/** Position of the plugin top-level menu. */
+/**
+ * Position of the plugin top-level menu.
+ * WordPress core menus typically occupy positions below 25, so
+ * 30 avoids most conflicts with other plugins.
+ */
 define( 'NUCLEN_ADMIN_MENU_POSITION', 30 );

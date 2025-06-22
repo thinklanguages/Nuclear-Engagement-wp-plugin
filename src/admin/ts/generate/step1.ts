@@ -12,11 +12,12 @@ import {
   nuclenStoreFilters,
   type NuclenFilterValues,
 } from './filters';
+import { displayError } from '../utils/displayError';
 
 export function initStep1(elements: GeneratePageElements): void {
   elements.getPostsBtn?.addEventListener('click', () => {
     if (!(window as any).nuclenAjax || !(window as any).nuclenAjax.ajax_url) {
-      alert('Error: Ajax is not configured properly. Please check the plugin settings.');
+      displayError('Error: Ajax is not configured properly. Please check the plugin settings.');
       return;
     }
     if (elements.postsCountEl) {
@@ -45,11 +46,11 @@ export function initStep1(elements: GeneratePageElements): void {
           const errMsg = data.message || data.data?.message;
           if (errMsg) {
             if (errMsg.includes('Invalid API key')) {
-              alert('Your Gold Code (API key) is invalid. Please create a new one on the NE app and enter it on the plugin Setup page.');
+              displayError('Your Gold Code (API key) is invalid. Please create a new one on the NE app and enter it on the plugin Setup page.');
             } else if (errMsg.includes('Invalid WP App Password')) {
-              alert('Your WP App Password is invalid. Please go to the plugin Setup page and re-generate it.');
+              displayError('Your WP App Password is invalid. Please go to the plugin Setup page and re-generate it.');
             } else {
-              alert(errMsg);
+              displayError(errMsg);
             }
           }
           return;
@@ -84,7 +85,7 @@ export function initStep1(elements: GeneratePageElements): void {
             elements.creditsInfoEl.textContent = `This will consume ${neededCredits} credit(s). You have ${remainingCredits} left.`;
           }
           if (remainingCredits < neededCredits) {
-            alert('Not enough credits. Please top up or reduce the number of posts.');
+            displayError('Not enough credits. Please top up or reduce the number of posts.');
             if (elements.submitBtn) {
               elements.submitBtn.disabled = true;
             }
