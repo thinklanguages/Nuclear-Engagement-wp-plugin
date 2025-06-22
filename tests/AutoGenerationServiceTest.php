@@ -76,4 +76,30 @@ class AutoGenerationServiceTest extends TestCase {
         $service->poll_generation($id, 'quiz', 1, AutoGenerationService::MAX_ATTEMPTS);
         $this->assertArrayNotHasKey($id, $wp_options['nuclen_active_generations'] ?? []);
     }
+
+    public function test_handle_post_publish_queues_generation(): void {
+        global $wp_posts, $wp_events, $wp_meta, $wp_options;
+
+        $post = (object) [
+            'ID' => 5,
+            'post_title' => 'T',
+            'post_content' => 'C',
+            'post_type' => 'post',
+        ];
+        $wp_posts[5] = $post;
+        $wp_meta[5] = [];
+
+        $settings = SettingsRepository::get_instance();
+        $settings->set_bool('auto_generate_quiz_on_publish', true)
+                 ->set_array('generation_post_types', ['post'])
+                 ->save();
+
+        $service = $this->makeService();
+        $service->handle_post_publish('publish', 'draft', $post);
+
+        $this->assertCount(1, $wp_events);
+        $event = $wp_events[0];
+        $this->assertSame('nuclen_start_generation', $event['hook']);
+        $this->assertSame([5, 'quiz'], $event['args']);
+    }
 }

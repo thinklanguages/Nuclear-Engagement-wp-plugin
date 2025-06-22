@@ -17,6 +17,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 class AutoGenerationService {
+    /** Cron hook used to start a generation task. */
+    public const START_HOOK = 'nuclen_start_generation';
+
     /** Number of seconds before the first poll runs. */
     public const INITIAL_POLL_DELAY = NUCLEN_INITIAL_POLL_DELAY;
 
@@ -74,6 +77,13 @@ class AutoGenerationService {
             4 // generation_id, workflow_type, post_id, attempt
         );
 
+        add_action(
+            self::START_HOOK,
+            [ $this, 'run_generation' ],
+            10,
+            2 // post_id, workflow_type
+        );
+
         add_action('transition_post_status', [ $this, 'handle_post_publish' ], 10, 3);
     }
 
@@ -106,7 +116,10 @@ class AutoGenerationService {
         if ($gen_quiz) {
             $protected = get_post_meta($post->ID, 'nuclen_quiz_protected', true);
             if (!$protected) {
-                $this->generate_single($post->ID, 'quiz');
+                $args = [ $post->ID, 'quiz' ];
+                if (!wp_next_scheduled(self::START_HOOK, $args)) {
+                    wp_schedule_single_event(time(), self::START_HOOK, $args);
+                }
             }
         }
 
@@ -114,7 +127,10 @@ class AutoGenerationService {
         if ($gen_summary) {
             $protected = get_post_meta($post->ID, 'nuclen_summary_protected', true);
             if (!$protected) {
-                $this->generate_single($post->ID, 'summary');
+                $args = [ $post->ID, 'summary' ];
+                if (!wp_next_scheduled(self::START_HOOK, $args)) {
+                    wp_schedule_single_event(time(), self::START_HOOK, $args);
+                }
             }
         }
     }
@@ -276,6 +292,16 @@ class AutoGenerationService {
                 update_option('nuclen_active_generations', $generations, 'no');
             }
         }
+    }
+
+    /**
+     * Cron callback to start a generation task for a post.
+     *
+     * @param int    $post_id       Post ID
+     * @param string $workflow_type Type of content to generate
+     */
+    public function run_generation(int $post_id, string $workflow_type): void {
+        $this->generate_single($post_id, $workflow_type);
     }
 
     /**
