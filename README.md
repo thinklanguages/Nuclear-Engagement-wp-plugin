@@ -17,6 +17,7 @@ Nuclear Engagement stands out with true sitewide automation: process hundreds or
 - **Lightweight & Fast**: Minimal codebase with lazy loading for optimal performance.
 
 Learn more:
+See [CHANGELOG](docs/CHANGELOG.md) for release notes.
 https://www.nuclearengagement.com
 
 ## Development
