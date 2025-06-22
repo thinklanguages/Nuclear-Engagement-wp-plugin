@@ -93,7 +93,7 @@ class GenerationService {
                 'workflow' => $workflow,
                 'generation_id' => $request->generationId,
             ]);
-        } catch (ApiException $e) {
+        } catch (\Throwable $e) {
             $response = new GenerationResponse();
             $response->generationId = $request->generationId;
             $response->success = false;
@@ -102,18 +102,8 @@ class GenerationService {
             if ($code) {
                 $response->statusCode = (int) $code;
             }
-            if (method_exists($e, 'getErrorCode')) {
+            if ($e instanceof ApiException) {
                 $response->errorCode = $e->getErrorCode();
-            }
-            return $response;
-        } catch (\RuntimeException $e) {
-            $response = new GenerationResponse();
-            $response->generationId = $request->generationId;
-            $response->success = false;
-            $response->error = $e->getMessage();
-            $code = $e->getCode();
-            if ($code) {
-                $response->statusCode = (int) $code;
             }
             return $response;
         }

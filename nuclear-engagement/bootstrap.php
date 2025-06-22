@@ -89,6 +89,15 @@ function nuclen_update_migrate_post_meta() {
 
     global $wpdb;
 
+    $check_error = static function () use ( $wpdb ) {
+        if ( ! empty( $wpdb->last_error ) ) {
+            \NuclearEngagement\Services\LoggingService::log( 'Meta migration error: ' . $wpdb->last_error );
+            update_option( 'nuclen_meta_migration_error', $wpdb->last_error );
+            return false;
+        }
+        return true;
+    };
+
     $wpdb->query(
         $wpdb->prepare(
             "UPDATE {$wpdb->postmeta} SET meta_key = %s WHERE meta_key = %s",
@@ -96,9 +105,7 @@ function nuclen_update_migrate_post_meta() {
             'ne-summary-data'
         )
     );
-    if (!empty($wpdb->last_error)) {
-        \NuclearEngagement\Services\LoggingService::log('Meta migration error: ' . $wpdb->last_error);
-        update_option('nuclen_meta_migration_error', $wpdb->last_error);
+    if ( ! $check_error() ) {
         return;
     }
 
@@ -109,9 +116,7 @@ function nuclen_update_migrate_post_meta() {
             'ne-quiz-data'
         )
     );
-    if (!empty($wpdb->last_error)) {
-        \NuclearEngagement\Services\LoggingService::log('Meta migration error: ' . $wpdb->last_error);
-        update_option('nuclen_meta_migration_error', $wpdb->last_error);
+    if ( ! $check_error() ) {
         return;
     }
 
