@@ -32,3 +32,18 @@ Run the PHPUnit test suite with:
 ```bash
 composer test
 ```
+
+### Building assets
+
+TypeScript source files live in `src/` and need to be compiled before the plugin can run. Install Node dependencies and build the JavaScript with:
+
+```bash
+npm install
+npm run build
+```
+
+During development you can rebuild on the fly with:
+
+```bash
+npm run dev
+```
