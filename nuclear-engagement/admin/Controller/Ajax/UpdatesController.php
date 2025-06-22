@@ -14,6 +14,7 @@ use NuclearEngagement\Requests\UpdatesRequest;
 use NuclearEngagement\Services\RemoteApiService;
 use NuclearEngagement\Services\ContentStorageService;
 use NuclearEngagement\Responses\UpdatesResponse;
+use NuclearEngagement\Services\ApiException;
 use NuclearEngagement\Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -100,6 +101,15 @@ class UpdatesController extends BaseController {
 
             wp_send_json_success( $response->toArray() );
 
+        } catch ( ApiException $e ) {
+\NuclearEngagement\Services\LoggingService::log( 'Error fetching updates: ' . $e->getMessage() );
+            $res = new UpdatesResponse();
+            $res->success = false;
+            $res->message = $e->getMessage();
+            if ($e->getCode()) {
+                $res->statusCode = $e->getCode();
+            }
+            wp_send_json_error( $res->toArray() );
         } catch ( \Exception $e ) {
             \NuclearEngagement\Services\LoggingService::log( 'Error fetching updates: ' . $e->getMessage() );
             $this->sendError( $e->getMessage() );

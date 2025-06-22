@@ -11,6 +11,7 @@ namespace NuclearEngagement\Services;
 use NuclearEngagement\SettingsRepository;
 use NuclearEngagement\Services\RemoteApiService;
 use NuclearEngagement\Services\ContentStorageService;
+use NuclearEngagement\Services\ApiException;
 
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
@@ -179,7 +180,7 @@ class AutoGenerationService {
 
             try {
                 $this->remote_api->sendPostsToGenerate($data_to_send);
-            } catch (\RuntimeException $e) {
+            } catch (ApiException $e) {
                 \NuclearEngagement\Services\LoggingService::log(
                     'Failed to start generation: ' . $e->getMessage()
                 );
@@ -255,6 +256,10 @@ class AutoGenerationService {
                 );
             }
 
+        } catch (ApiException $e) {
+            \NuclearEngagement\Services\LoggingService::log(
+                "Polling error for post {$post_id} ({$workflow_type}): " . $e->getMessage()
+            );
         } catch (\Exception $e) {
             \NuclearEngagement\Services\LoggingService::log(
                 "Polling error for post {$post_id} ({$workflow_type}): " . $e->getMessage()

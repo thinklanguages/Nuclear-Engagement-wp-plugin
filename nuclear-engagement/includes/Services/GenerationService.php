@@ -14,6 +14,7 @@ use NuclearEngagement\Requests\GenerateRequest;
 use NuclearEngagement\Responses\GenerationResponse;
 use NuclearEngagement\SettingsRepository;
 use NuclearEngagement\Utils;
+use NuclearEngagement\Services\ApiException;
 
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
@@ -92,7 +93,7 @@ class GenerationService {
                 'workflow' => $workflow,
                 'generation_id' => $request->generationId,
             ]);
-        } catch (\RuntimeException $e) {
+        } catch (ApiException $e) {
             $response = new GenerationResponse();
             $response->generationId = $request->generationId;
             $response->success = false;
@@ -101,10 +102,18 @@ class GenerationService {
             if ($code) {
                 $response->statusCode = (int) $code;
             }
-            if (strpos($e->getMessage(), 'Invalid API key') !== false) {
-                $response->errorCode = 'invalid_api_key';
-            } elseif (strpos($e->getMessage(), 'Invalid WP App Password') !== false) {
-                $response->errorCode = 'invalid_wp_app_pass';
+            if (method_exists($e, 'getErrorCode')) {
+                $response->errorCode = $e->getErrorCode();
+            }
+            return $response;
+        } catch (\RuntimeException $e) {
+            $response = new GenerationResponse();
+            $response->generationId = $request->generationId;
+            $response->success = false;
+            $response->error = $e->getMessage();
+            $code = $e->getCode();
+            if ($code) {
+                $response->statusCode = (int) $code;
             }
             return $response;
         }
@@ -150,6 +159,14 @@ class GenerationService {
 
         try {
             $response = $this->generateContent($request);
+
+            if (!$response->success) {
+                throw new ApiException(
+                    $response->error ?? 'Generation failed',
+                    $response->statusCode ?? 0,
+                    $response->errorCode
+                );
+            }
 
             // If no immediate results, schedule polling
             if (empty($response->results)) {
