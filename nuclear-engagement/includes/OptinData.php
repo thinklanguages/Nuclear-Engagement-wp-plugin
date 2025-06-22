@@ -50,10 +50,14 @@ class OptinData {
     }
 
     /**
-     * Create / migrate the opt-in table.
-     * Safe to run many times – dbDelta() is idempotent.
+     * Create the opt-in table if it doesn't already exist.
+     * Safe to run many times – dbDelta() is idempotent but skipped when not needed.
      */
     public static function maybe_create_table(): void {
+        if ( self::table_exists() ) {
+            return;
+        }
+
         global $wpdb;
 
         $charset = $wpdb->get_charset_collate();
@@ -87,7 +91,9 @@ class OptinData {
         }
 
         /* Make sure the table is present (first-ever submission, etc.) */
-        self::maybe_create_table();
+        if ( ! self::table_exists() ) {
+            self::maybe_create_table();
+        }
 
         global $wpdb;
         $ok = $wpdb->insert(
