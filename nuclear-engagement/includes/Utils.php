@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 /**
  * File: includes/Utils.php
  * Implementation of changes required by WordPress.org guidelines.

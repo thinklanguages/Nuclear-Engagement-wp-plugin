@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 use NuclearEngagement\SettingsRepository;
 use NuclearEngagement\Defaults;
 use NuclearEngagement\Activator;
