@@ -19,6 +19,8 @@ Nuclear Engagement stands out with true sitewide automation: process hundreds or
 Learn more:
 See [CHANGELOG](docs/CHANGELOG.md) for release notes.
 See [Installation & Workflow Guide](docs/USAGE.md) for setup and usage.
+See [TRANSLATION](docs/TRANSLATION.md) for localization instructions.
+
 https://www.nuclearengagement.com
 
 ## Development
