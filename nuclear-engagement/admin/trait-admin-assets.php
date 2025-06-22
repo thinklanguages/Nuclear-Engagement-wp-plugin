@@ -76,6 +76,15 @@ trait Admin_Assets {
             )
         );
 
+        wp_localize_script(
+            'nuclen-admin',
+            'nuclenErrorStrings',
+            array(
+                'network_error' => __( 'Network error. Please try again later.', 'nuclear-engagement' ),
+                'server_error'  => __( 'Unexpected server response.', 'nuclear-engagement' ),
+            )
+        );
+
         // This ensures nuclenAjax is available on both the Generate page & single-post editor
         $this->nuclen_enqueue_generate_page_scripts( $hook );
     }

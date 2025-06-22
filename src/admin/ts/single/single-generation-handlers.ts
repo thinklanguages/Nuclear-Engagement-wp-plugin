@@ -31,9 +31,16 @@ export function initSingleGenerationButtons(): void {
         nuclen_selected_post_ids: JSON.stringify([postId]),
         nuclen_selected_generate_workflow: workflow,
       });
+      if (!startResp.ok) {
+        throw new Error(
+          startResp.error ||
+            (window as any).nuclenErrorStrings?.server_error ||
+            'Generation start failed'
+        );
+      }
       const generationId =
         startResp.data?.generation_id ||
-        startResp.generation_id ||
+        (startResp as any).generation_id ||
         'gen_' + Math.random().toString(36).substring(2);
 
       NuclenPollAndPullUpdates({

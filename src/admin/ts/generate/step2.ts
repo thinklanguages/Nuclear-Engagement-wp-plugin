@@ -30,8 +30,15 @@ export function initStep2(elements: GeneratePageElements): void {
     try {
       const formDataObj = Object.fromEntries(new FormData(elements.generateForm!).entries());
       const startResp = await NuclenStartGeneration(formDataObj);
+      if (!startResp.ok) {
+        throw new Error(
+          startResp.error ||
+            (window as any).nuclenErrorStrings?.server_error ||
+            'Generation start failed'
+        );
+      }
       const generationId =
-        startResp.data?.generation_id || startResp.generation_id || 'gen_' + Math.random().toString(36).substring(2);
+        startResp.data?.generation_id || (startResp as any).generation_id || 'gen_' + Math.random().toString(36).substring(2);
       NuclenPollAndPullUpdates({
         intervalMs: 5000,
         generationId,
