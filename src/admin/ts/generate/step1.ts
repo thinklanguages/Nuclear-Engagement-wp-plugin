@@ -13,6 +13,7 @@ import {
   type NuclenFilterValues,
 } from './filters';
 import { displayError } from '../utils/displayError';
+import * as logger from '../utils/logger';
 
 export function initStep1(elements: GeneratePageElements): void {
   elements.getPostsBtn?.addEventListener('click', () => {
@@ -94,7 +95,7 @@ export function initStep1(elements: GeneratePageElements): void {
             elements.submitBtn.disabled = false;
           }
         } catch (err: any) {
-          console.error('Error fetching remaining credits:', err);
+          logger.error('Error fetching remaining credits:', err);
           if (elements.creditsInfoEl) {
             elements.creditsInfoEl.textContent = `Unable to retrieve your credits: ${err.message}`;
           }
@@ -104,7 +105,7 @@ export function initStep1(elements: GeneratePageElements): void {
         }
       })
       .catch((error) => {
-        console.error('Error retrieving post count:', error);
+        logger.error('Error retrieving post count:', error);
         if (elements.postsCountEl) {
           elements.postsCountEl.innerText = 'Error retrieving post count. Please try again later.';
         }

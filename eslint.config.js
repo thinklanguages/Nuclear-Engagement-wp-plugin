@@ -1,6 +1,12 @@
 import tsPlugin from '@typescript-eslint/eslint-plugin';
 import tsParser from '@typescript-eslint/parser';
 import js from '@eslint/js';
+import fs from 'fs';
+
+const tsconfigPath = new URL('./tsconfig.json', import.meta.url).pathname;
+if (!fs.existsSync(tsconfigPath)) {
+  console.error('tsconfig.json not found at', tsconfigPath);
+}
 
 // Explicitly apply the recommended TypeScript rules so future
 // maintainers know exactly which set is used.

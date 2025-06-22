@@ -25,7 +25,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class GenerationService {
     /** Seconds to wait between polling events. */
-    public const POLL_DELAY = NUCLEN_GENERATION_POLL_DELAY;
+    public const POLL_DELAY = defined('NUCLEN_GENERATION_POLL_DELAY') ? NUCLEN_GENERATION_POLL_DELAY : 30;
     /**
      * @var SettingsRepository
      */
@@ -99,9 +99,7 @@ class GenerationService {
             $response->success = false;
             $response->error = $e->getMessage();
             $code = $e->getCode();
-            if ($code) {
-                $response->statusCode = (int) $code;
-            }
+            $response->statusCode = is_numeric($code) ? (int) $code : 0;
             if ($e instanceof ApiException) {
                 $response->errorCode = $e->getErrorCode();
             }

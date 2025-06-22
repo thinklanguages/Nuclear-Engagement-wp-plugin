@@ -24,8 +24,20 @@ if ( ! defined( 'NUCLEN_PLUGIN_VERSION' ) ) {
 
 define('NUCLEN_ASSET_VERSION', '250613-30');
 
-require_once dirname(__DIR__) . '/vendor/autoload.php';
-require_once NUCLEN_PLUGIN_DIR . 'includes/constants.php';
+$autoload = __DIR__ . '/vendor/autoload.php';
+if ( ! file_exists( $autoload ) ) {
+    $autoload = dirname( __DIR__ ) . '/vendor/autoload.php';
+}
+if ( file_exists( $autoload ) ) {
+    require_once $autoload;
+} else {
+    error_log( 'Nuclear Engagement: vendor autoload not found.' );
+}
+if ( file_exists( NUCLEN_PLUGIN_DIR . 'includes/constants.php' ) ) {
+    require_once NUCLEN_PLUGIN_DIR . 'includes/constants.php';
+} else {
+    error_log( 'Nuclear Engagement: constants.php missing.' );
+}
 
 AssetVersions::init();
 

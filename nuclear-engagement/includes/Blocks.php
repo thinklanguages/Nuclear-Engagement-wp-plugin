@@ -18,9 +18,18 @@ final class Blocks {
             return;
         }
 
+        if ( ! wp_script_is( 'nuclen-admin', 'registered' ) ) {
+            error_log( 'Nuclear Engagement: nuclen-admin script missing.' );
+            return;
+        }
+
         register_block_type(
             'nuclear-engagement/quiz',
             [
+                'api_version'     => 2,
+                'title'           => __( 'Quiz', 'nuclear-engagement' ),
+                'category'        => 'widgets',
+                'icon'            => 'editor-help',
                 'render_callback' => static function (): string {
                     $out = do_shortcode('[nuclear_engagement_quiz]');
                     if ( ! is_string( $out ) || trim( $out ) === '' ) {
@@ -35,6 +44,10 @@ final class Blocks {
         register_block_type(
             'nuclear-engagement/summary',
             [
+                'api_version'     => 2,
+                'title'           => __( 'Summary', 'nuclear-engagement' ),
+                'category'        => 'widgets',
+                'icon'            => 'excerpt-view',
                 'render_callback' => static function (): string {
                     $out = do_shortcode('[nuclear_engagement_summary]');
                     if ( ! is_string( $out ) || trim( $out ) === '' ) {

@@ -170,8 +170,8 @@ class AutoGenerationService {
                 return;
             }
 
-            // Schedule the first poll
-            $next_poll = time() + self::INITIAL_POLL_DELAY;
+            // Schedule the first poll with a slight random offset to avoid collisions
+            $next_poll = time() + self::INITIAL_POLL_DELAY + mt_rand(1, 5);
 
             // Store the generation ID in options for the cron job
             $generations = get_option('nuclen_active_generations', []);

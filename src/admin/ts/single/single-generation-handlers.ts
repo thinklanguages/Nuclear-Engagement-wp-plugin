@@ -9,6 +9,7 @@ import {
   NuclenPollAndPullUpdates,
 } from '../nuclen-admin-generate';
 import { displayError } from '../utils/displayError';
+import * as logger from '../utils/logger';
 
 export function initSingleGenerationButtons(): void {
   document.addEventListener('click', async (event: MouseEvent) => {
@@ -59,11 +60,11 @@ export function initSingleGenerationButtons(): void {
                 }
                 btn.textContent = 'Stored!';
               } else {
-                console.error('Error storing single-generation results in WP:', data);
+                logger.error('Error storing single-generation results in WP:', data);
                 btn.textContent = 'Generation failed!';
               }
             } catch (err) {
-              console.error('Fetch error calling /receive-content endpoint:', err);
+              logger.error('Fetch error calling /receive-content endpoint:', err);
               btn.textContent = 'Generation failed!';
             }
           } else {

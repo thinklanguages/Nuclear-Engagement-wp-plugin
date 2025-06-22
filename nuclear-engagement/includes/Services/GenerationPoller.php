@@ -129,13 +129,17 @@ class GenerationPoller {
      * @param string $generation_id Generation ID to remove
      */
     private function cleanup_generation(string $generation_id): void {
-        $generations = get_option('nuclen_active_generations', []);
-        if ( isset($generations[$generation_id]) ) {
+        for ($i = 0; $i < 3; $i++) {
+            $generations = get_option('nuclen_active_generations', []);
+            if ( ! isset($generations[$generation_id]) ) {
+                return;
+            }
             unset($generations[$generation_id]);
-            if ( empty($generations) ) {
-                delete_option('nuclen_active_generations');
-            } else {
-                update_option('nuclen_active_generations', $generations, 'no');
+            $updated = empty($generations)
+                ? delete_option('nuclen_active_generations')
+                : update_option('nuclen_active_generations', $generations, 'no');
+            if ( $updated ) {
+                break;
             }
         }
     }
