@@ -4,6 +4,8 @@
 namespace NuclearEngagement;
 
 use NuclearEngagement\SettingsRepository;
+use NuclearEngagement\OptinData;
+use NuclearEngagement\AssetVersions;
 
 if (!defined('ABSPATH')) {
     exit;
@@ -32,5 +34,8 @@ class Activator {
 
         // Ensure opt-in table exists on activation
         OptinData::maybe_create_table();
+
+        // Generate asset version strings for cache busting
+        AssetVersions::update_versions();
     }
 }

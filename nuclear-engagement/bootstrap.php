@@ -4,6 +4,7 @@ use NuclearEngagement\Defaults;
 use NuclearEngagement\Activator;
 use NuclearEngagement\Deactivator;
 use NuclearEngagement\MetaRegistration;
+use NuclearEngagement\AssetVersions;
 use NuclearEngagement\Plugin;
 
 if (!defined('ABSPATH')) {
@@ -16,6 +17,8 @@ define('NUCLEN_ASSET_VERSION', '250613-30');
 
 require_once NUCLEN_PLUGIN_DIR . 'includes/autoload.php';
 require_once NUCLEN_PLUGIN_DIR . 'includes/constants.php';
+
+AssetVersions::init();
 
 function nuclear_engagement_load_textdomain() {
     load_plugin_textdomain(

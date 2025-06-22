@@ -13,6 +13,8 @@
 
 namespace NuclearEngagement\Front;
 
+use NuclearEngagement\AssetVersions;
+
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
@@ -29,7 +31,7 @@ trait AssetsTrait {
             $this->plugin_name,
             plugin_dir_url( __FILE__ ) . '../css/nuclen-front.css',
             array(),
-            filemtime( plugin_dir_path( __FILE__ ) . '../css/nuclen-front.css' ),
+            AssetVersions::get( 'front_css' ),
             'all'
         );
 
@@ -43,20 +45,24 @@ trait AssetsTrait {
 
         if ( $theme_choice === 'bright' ) {
             $theme_url = plugin_dir_url( __FILE__ ) . '../css/nuclen-theme-bright.css';
+            $theme_v   = AssetVersions::get( 'theme_bright_css' );
         } elseif ( $theme_choice === 'dark' ) {
             $theme_url = plugin_dir_url( __FILE__ ) . '../css/nuclen-theme-dark.css';
+            $theme_v   = AssetVersions::get( 'theme_dark_css' );
         } elseif ( $theme_choice === 'custom' ) {
             $css_info  = \NuclearEngagement\Utils::nuclen_get_custom_css_info();
             $theme_url = $css_info['url'];
+            $theme_v   = get_option( 'nuclen_custom_css_version', AssetVersions::get( 'theme_bright_css' ) );
         } else {
             $theme_url = plugin_dir_url( __FILE__ ) . '../css/nuclen-theme-bright.css';
+            $theme_v   = AssetVersions::get( 'theme_bright_css' );
         }
 
         wp_enqueue_style(
             $this->plugin_name . '-theme',
             $theme_url,
             array(),
-            filemtime( str_replace( content_url(), WP_CONTENT_DIR, $theme_url ) ),
+            $theme_v,
             'all'
         );
     }
@@ -71,7 +77,7 @@ trait AssetsTrait {
             $this->plugin_name . '-front',
             plugin_dir_url( dirname( __FILE__ ) ) . 'js/nuclen-front.js',
             array(),
-            NUCLEN_ASSET_VERSION,
+            AssetVersions::get( 'front_js' ),
             true
         );
 

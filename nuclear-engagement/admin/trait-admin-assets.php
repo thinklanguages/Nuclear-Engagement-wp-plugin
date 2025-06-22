@@ -7,6 +7,8 @@
 
 namespace NuclearEngagement\Admin;
 
+use NuclearEngagement\AssetVersions;
+
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
@@ -22,7 +24,7 @@ trait Admin_Assets {
             $this->nuclen_get_plugin_name(),
             plugin_dir_url( __FILE__ ) . 'css/nuclen-admin.css',
             array(),
-            filemtime( plugin_dir_path( __FILE__ ) . 'css/nuclen-admin.css' ),
+            AssetVersions::get( 'admin_css' ),
             'all'
         );
     }
@@ -54,7 +56,7 @@ trait Admin_Assets {
                         'nuclen-admin',
                         plugin_dir_url( __DIR__ ) . 'admin/js/nuclen-admin.js',
                         array(),
-                        NUCLEN_ASSET_VERSION,
+                        AssetVersions::get( 'admin_js' ),
                         true
                 );
 
