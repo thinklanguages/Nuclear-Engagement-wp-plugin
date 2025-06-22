@@ -19,6 +19,14 @@ jobs:
           php-version: '8.1'
           coverage: none
 
+      # Cache Composer packages to speed up dependency installation
+      - name: Cache Composer dependencies
+        uses: actions/cache@v3
+        with:
+          path: vendor
+          key: ${{ runner.os }}-composer-${{ hashFiles('composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+
       - name: Install Composer dependencies
         run: composer install --no-interaction --prefer-dist
 
