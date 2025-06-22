@@ -150,6 +150,7 @@ class Plugin {
         $this->loader->nuclen_add_action( 'init', $plugin_public, 'nuclen_register_quiz_shortcode' );
         $this->loader->nuclen_add_action( 'init', $plugin_public, 'nuclen_register_summary_shortcode' );
         $this->loader->nuclen_add_filter( 'the_content', $plugin_public, 'nuclen_auto_insert_shortcodes', 50 );
+        $this->loader->nuclen_add_action( 'init', '\\NuclearEngagement\\Blocks', 'register' );
     }
 
     /* ─────────────────────────────────────────────
