@@ -29,6 +29,13 @@ export async function nuclenStoreGenerationResults(workflow: string, results: an
     credentials: 'include',
     body: JSON.stringify(payload),
   });
-  const data = await resp.json();
+  let data: any = null;
+  if (resp.ok) {
+    try {
+      data = await resp.json();
+    } catch (err) {
+      return { ok: false, data: { message: 'Invalid JSON' } };
+    }
+  }
   return { ok: resp.ok, data };
 }

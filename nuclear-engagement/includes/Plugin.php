@@ -51,7 +51,12 @@ class Plugin {
             dirname( dirname( __FILE__ ) ) . '/nuclear-engagement.php',
             function() {
                 if ( ! \NuclearEngagement\OptinData::table_exists() ) {
-                    \NuclearEngagement\OptinData::maybe_create_table();
+                    $created = \NuclearEngagement\OptinData::maybe_create_table();
+                    if ( ! $created ) {
+                        \NuclearEngagement\Services\LoggingService::notify_admin(
+                            'Nuclear Engagement could not create required database tables.'
+                        );
+                    }
                 }
             }
         );

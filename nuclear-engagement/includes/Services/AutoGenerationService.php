@@ -158,6 +158,7 @@ class AutoGenerationService {
                 \NuclearEngagement\Services\LoggingService::log(
                     'Failed to start generation: ' . $e->getMessage()
                 );
+                \NuclearEngagement\Services\LoggingService::notify_admin('Auto-generation failed: ' . $e->getMessage());
                 $gens = get_option('nuclen_active_generations', []);
                 if (isset($gens[$generation_id])) {
                     unset($gens[$generation_id]);
@@ -191,10 +192,11 @@ class AutoGenerationService {
                 wp_schedule_single_event($next_poll, 'nuclen_poll_generation', $event_args);
             }
 
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             \NuclearEngagement\Services\LoggingService::log(
                 'Error in generate_single: ' . $e->getMessage()
             );
+            \NuclearEngagement\Services\LoggingService::notify_admin('Auto-generation error: ' . $e->getMessage());
         }
     }
 

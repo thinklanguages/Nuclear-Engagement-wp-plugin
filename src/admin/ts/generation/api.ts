@@ -3,7 +3,8 @@ import * as logger from '../utils/logger';
 export async function nuclenFetchWithRetry(
   url: string,
   options: RequestInit,
-  retries = 3
+  retries = 3,
+  lastError?: Error
 ): Promise<Response> {
   try {
     const response = await fetch(url, options);
@@ -11,13 +12,20 @@ export async function nuclenFetchWithRetry(
       throw new Error(`Network response was not ok (HTTP ${response.status})`);
     }
     return response;
-  } catch (error) {
+  } catch (error: any) {
+    const err = (lastError ?? error) as Error;
     if (retries > 0) {
-      logger.warn(`Retrying request to ${url} (${retries} attempts left).`, error);
-      return nuclenFetchWithRetry(url, options, retries - 1);
+      logger.warn(
+        `Retrying request to ${url} with method ${options.method || 'GET'} (${retries} attempts left).`,
+        err
+      );
+      return nuclenFetchWithRetry(url, options, retries - 1, err);
     }
-    logger.error(`Max retries reached for ${url}:`, error);
-    throw error;
+    logger.error(
+      `Max retries reached for ${url} with method ${options.method || 'GET'}:`,
+      err
+    );
+    throw err;
   }
 }
 
@@ -63,15 +71,11 @@ export async function NuclenStartGeneration(dataToSend: Record<string, any>) {
   }
   formData.append('security', window.nuclenAjax.nonce);
 
-  const response = await fetch(window.nuclenAdminVars.ajax_url, {
+  const response = await nuclenFetchWithRetry(window.nuclenAdminVars.ajax_url, {
     method: 'POST',
     body: formData,
     credentials: 'same-origin',
   });
-
-  if (!response.ok) {
-    throw new Error(`Generation start failed: HTTP ${response.status}`);
-  }
 
   const data = await response.json();
   if (!data.success) {

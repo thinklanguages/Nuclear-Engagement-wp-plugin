@@ -1,7 +1,11 @@
 export async function apiRequest(url: string, options: RequestInit): Promise<Response> {
-  const response = await fetch(url, options);
-  if (!response.ok) {
-    throw new Error(`HTTP ${response.status}`);
+  try {
+    const response = await fetch(url, options);
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+    return response;
+  } catch (err: any) {
+    throw new Error(err.message || 'Network error');
   }
-  return response;
 }

@@ -68,9 +68,9 @@ class OptinData {
      * Create the opt-in table if it doesn't already exist.
      * Safe to run many times – dbDelta() is idempotent but skipped when not needed.
      */
-    public static function maybe_create_table(): void {
+    public static function maybe_create_table(): bool {
         if ( self::table_exists() ) {
-            return;
+            return true;
         }
 
         global $wpdb;
@@ -93,11 +93,15 @@ class OptinData {
         $result = dbDelta( $sql );
         if ( ! empty( $wpdb->last_error ) ) {
             LoggingService::log( 'dbDelta error: ' . $wpdb->last_error );
-        } elseif ( empty( $result ) ) {
+            LoggingService::notify_admin( 'Nuclear Engagement table creation failed. Check logs.' );
+            return false;
+        }
+        if ( empty( $result ) ) {
             LoggingService::log( 'dbDelta executed with no changes.' );
         }
 
         self::$table_exists_cache = true;
+        return true;
     }
 
     /**
@@ -151,6 +155,10 @@ class OptinData {
         $name  = sanitize_text_field( wp_unslash( $_POST['name']  ?? '' ) );
         $email = sanitize_email(      wp_unslash( $_POST['email'] ?? '' ) );
         $url   = esc_url_raw(        wp_unslash( $_POST['url']   ?? '' ) );
+
+        if ( empty( $email ) || ! is_email( $email ) ) {
+            wp_send_json_error( [ 'message' => 'Please enter a valid email address.' ], 400 );
+        }
 
         if ( ! self::insert( $name, $email, $url ) ) {
             wp_send_json_error( [ 'message' => 'Unable to save your submission. Please try again later.' ], 500 );

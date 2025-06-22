@@ -48,6 +48,22 @@ class LoggingService {
     }
 
     /**
+     * Public helper to show an admin error notice.
+     */
+    public static function notify_admin(string $message): void {
+        self::add_admin_notice($message);
+    }
+
+    /**
+     * Debug level logging, only when WP_DEBUG is true.
+     */
+    public static function debug(string $message): void {
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            self::log('[DEBUG] ' . $message);
+        }
+    }
+
+    /**
      * Output stored admin notices.
      */
     public static function render_admin_notices(): void {
