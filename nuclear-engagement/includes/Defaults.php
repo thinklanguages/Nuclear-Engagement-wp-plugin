@@ -107,14 +107,14 @@ class Defaults {
             'generation_post_types'            => array( 'post' ),
 
             /* ───── Attribution ───── */
-                        'show_attribution'                 => false,
+            'show_attribution'                 => false,
 
-                        /* ───── Uninstall ───── */
-                        'delete_settings_on_uninstall'     => false,
-                        'delete_generated_content_on_uninstall' => false,
-                        'delete_optin_data_on_uninstall'   => false,
-                        'delete_log_file_on_uninstall'     => false,
-                        'delete_custom_css_on_uninstall'   => false,
-                );
+            /* ───── Uninstall ───── */
+            'delete_settings_on_uninstall'     => false,
+            'delete_generated_content_on_uninstall' => false,
+            'delete_optin_data_on_uninstall'   => false,
+            'delete_log_file_on_uninstall'     => false,
+            'delete_custom_css_on_uninstall'   => false,
+        );
         }
 }
