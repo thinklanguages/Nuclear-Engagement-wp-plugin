@@ -7,6 +7,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 ?>
 <!-- Post inventory -->
 <h2><?php esc_html_e( 'Post Inventory', 'nuclear-engagement' ); ?></h2>
+<p><?php esc_html_e( 'Counts are cached for faster page loads.', 'nuclear-engagement' ); ?></p>
+<p>
+    <a href="<?php echo esc_url( add_query_arg( array( 'nuclen_refresh_inventory' => '1', 'nuclen_refresh_inventory_nonce' => wp_create_nonce( 'nuclen_refresh_inventory' ) ) ) ); ?>" class="button button-secondary">
+        <?php esc_html_e( 'Refresh', 'nuclear-engagement' ); ?>
+    </a>
+</p>
 <!-- Post inventory Navigation Tabs -->
 <div class="nav-tab-wrapper">
     <a href="#post-status" id="post-status-tab" class="nav-tab nav-tab-active"><?php esc_html_e( 'Post Status', 'nuclear-engagement' ); ?></a>
