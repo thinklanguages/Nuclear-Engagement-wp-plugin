@@ -15,7 +15,7 @@ declare(strict_types=1);
 namespace NuclearEngagement\Front;
 
 use NuclearEngagement\AssetVersions;
-use NuclearEngagement\Themes;
+use NuclearEngagement\ThemeRegistry;
 
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
@@ -25,6 +25,36 @@ trait AssetsTrait {
 
     /** Force asset enqueue regardless of detection checks. */
     private bool $force_assets = false;
+
+    /**
+     * Resolve the URL and version for the selected theme.
+     */
+    private function get_theme_assets( string $theme_choice ): array {
+        $default = 'bright';
+
+        if ( $theme_choice === 'custom' ) {
+            $css_info = \NuclearEngagement\Utils::nuclen_get_custom_css_info();
+            if ( empty( $css_info['url'] ) ) {
+                error_log( 'Invalid custom CSS info - falling back to bright theme' );
+                $theme_choice = $default;
+            } else {
+                return array(
+                    'url'     => $css_info['url'],
+                    'version' => get_option( 'nuclen_custom_css_version', AssetVersions::get( 'theme_bright_css' ) ),
+                );
+            }
+        }
+
+        $themes      = ThemeRegistry::get_themes();
+        $theme       = isset( $themes[ $theme_choice ] ) ? $theme_choice : $default;
+        $theme_file  = $themes[ $theme ] ?? 'nuclen-theme-bright.css';
+        $version_key = $theme === 'dark' ? 'theme_dark_css' : 'theme_bright_css';
+
+        return array(
+            'url'     => plugin_dir_url( __FILE__ ) . '../css/' . $theme_file,
+            'version' => AssetVersions::get( $version_key ),
+        );
+    }
 
     /**
      * Determine if front-end assets should load on the current request.
@@ -103,20 +133,9 @@ trait AssetsTrait {
             return;
         }
 
-        if ( isset( \NuclearEngagement\Themes::MAP[ $theme_choice ] ) ) {
-            $theme_file   = \NuclearEngagement\Themes::MAP[ $theme_choice ];
-            $version_key  = $theme_choice === 'dark' ? 'theme_dark_css' : 'theme_bright_css';
-            $theme_url    = plugin_dir_url( __FILE__ ) . '../css/' . $theme_file;
-            $theme_v      = AssetVersions::get( $version_key );
-        } elseif ( $theme_choice === 'custom' ) {
-            $css_info  = \NuclearEngagement\Utils::nuclen_get_custom_css_info();
-            $theme_url = $css_info['url'];
-            $theme_v   = get_option( 'nuclen_custom_css_version', AssetVersions::get( 'theme_bright_css' ) );
-        } else {
-            $theme_file = \NuclearEngagement\Themes::MAP['bright'];
-            $theme_url  = plugin_dir_url( __FILE__ ) . '../css/' . $theme_file;
-            $theme_v    = AssetVersions::get( 'theme_bright_css' );
-        }
+        $assets   = $this->get_theme_assets( $theme_choice );
+        $theme_url = $assets['url'];
+        $theme_v   = $assets['version'];
 
         wp_enqueue_style(
             $this->plugin_name . '-theme',
