@@ -9,3 +9,12 @@ scripts
 .git
 .gitignore
 .eslintrc
+# dev dependencies removed from production build
+vendor/bin
+vendor/phpunit
+vendor/sebastian
+vendor/phar-io
+vendor/phpcsstandards
+vendor/wp-coding-standards
+vendor/squizlabs
+vendor/dealerdirect

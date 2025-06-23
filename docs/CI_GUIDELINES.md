@@ -63,3 +63,16 @@ and add `[skip ci]` to the template file. A shell alias can also create the comm
 git config --global alias.cis '!git commit --cleanup=verbatim -m "$1" -m "[skip ci]"'
 ```
 
+
+## Packaging the plugin
+
+The release archive should contain runtime dependencies only. When creating the production zip run:
+
+```bash
+composer install --no-dev --optimize-autoloader
+npm ci
+npm run build
+./scripts/build-release.sh
+```
+
+Running `composer install --no-dev` removes PHPUnit, PHPCS and other development packages from `vendor/` before the files are zipped.
