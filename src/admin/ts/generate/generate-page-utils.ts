@@ -34,12 +34,15 @@ export async function nuclenCheckCreditsAjax(): Promise<number> {
   if ((window as any).nuclenAjax.nonce) {
     formData.append('security', (window as any).nuclenAjax.nonce);
   }
-  const response = await nuclenFetchWithRetry((window as any).nuclenAjax.ajax_url, {
+  const result = await nuclenFetchWithRetry<any>((window as any).nuclenAjax.ajax_url, {
     method: 'POST',
     body: formData,
     credentials: 'same-origin',
   });
-  const data = await response.json();
+  if (!result.ok) {
+    throw new Error(result.error || `HTTP ${result.status}`);
+  }
+  const data = result.data;
   if (!data.success) {
     throw new Error(data.message || data.data?.message || 'Failed to fetch credits from SaaS');
   }

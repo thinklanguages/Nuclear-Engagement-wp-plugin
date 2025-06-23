@@ -1,11 +1,18 @@
 import * as logger from '../utils/logger';
 
-export async function nuclenFetchWithRetry(
+export interface NuclenFetchResult<T> {
+  ok: boolean;
+  status: number;
+  data: T | null;
+  error?: string;
+}
+
+export async function nuclenFetchWithRetry<T = any>(
   url: string,
   options: RequestInit,
   retries = 3,
   initialDelayMs = 500
-): Promise<Response> {
+): Promise<NuclenFetchResult<T>> {
   let attempt = 0;
   let delay = initialDelayMs;
   let lastError: Error | undefined;
@@ -13,10 +20,22 @@ export async function nuclenFetchWithRetry(
   while (attempt <= retries) {
     try {
       const response = await fetch(url, options);
-      if (!response.ok) {
-        throw new Error(`Network response was not ok (HTTP ${response.status})`);
+      const { status, ok } = response;
+      const bodyText = await response.text().catch(() => '');
+      let data: T | null = null;
+      if (bodyText) {
+        try {
+          data = JSON.parse(bodyText) as T;
+        } catch {
+          // body is not JSON
+        }
       }
-      return response;
+
+      if (ok) {
+        return { ok: true, status, data };
+      }
+
+      return { ok: false, status, data, error: bodyText };
     } catch (error: any) {
       lastError = error as Error;
       if (attempt === retries) {
@@ -24,7 +43,7 @@ export async function nuclenFetchWithRetry(
       }
 
       logger.warn(
-        `Retrying request to ${url} with method ${options.method || 'GET'} (${retries - attempt} attempts left).`,
+        `Retrying request to ${url} with method ${options.method || 'GET'} (${retries - attempt} attempts left). Error: ${lastError.message}`,
         lastError
       );
       await new Promise((resolve) => setTimeout(resolve, delay));
@@ -59,14 +78,17 @@ export async function nuclenFetchUpdates(generationId?: string) {
     formData.append('generation_id', generationId);
   }
 
-  const response = await nuclenFetchWithRetry(window.nuclenAjax.ajax_url, {
+  const result = await nuclenFetchWithRetry<any>(window.nuclenAjax.ajax_url, {
     method: 'POST',
     body: formData,
     credentials: 'same-origin',
   });
 
-  const data = await response.json();
-  return data;
+  if (!result.ok) {
+    throw new Error(result.error || `HTTP ${result.status}`);
+  }
+
+  return result.data;
 }
 
 export async function NuclenStartGeneration(dataToSend: Record<string, any>) {
@@ -82,16 +104,19 @@ export async function NuclenStartGeneration(dataToSend: Record<string, any>) {
   }
   formData.append('security', window.nuclenAjax.nonce);
 
-  const response = await nuclenFetchWithRetry(window.nuclenAdminVars.ajax_url, {
+  const result = await nuclenFetchWithRetry<any>(window.nuclenAdminVars.ajax_url, {
     method: 'POST',
     body: formData,
     credentials: 'same-origin',
   });
 
-  const data = await response.json();
-  if (!data.success) {
-    const errMsg =
-      data.message || data.data?.message || 'Generation start failed (unknown error).';
+  if (!result.ok) {
+    throw new Error(result.error || `HTTP ${result.status}`);
+  }
+
+  const data = result.data;
+  if (!data?.success) {
+    const errMsg = data?.message || data?.data?.message || 'Generation start failed (unknown error).';
     throw new Error(errMsg);
   }
 
