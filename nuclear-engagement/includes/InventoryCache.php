@@ -29,13 +29,21 @@ final class InventoryCache {
      */
     public static function register_hooks(): void {
         $cb = [ self::class, 'clear' ];
-        foreach ( [ 'save_post', 'deleted_post', 'trashed_post', 'untrashed_post', 'transition_post_status' ] as $hook ) {
+        foreach ( [ 'save_post', 'delete_post', 'deleted_post', 'trashed_post', 'untrashed_post', 'transition_post_status' ] as $hook ) {
             add_action( $hook, $cb );
         }
         foreach ( [ 'added_post_meta', 'updated_post_meta', 'deleted_post_meta' ] as $hook ) {
             add_action( $hook, $cb );
         }
-        foreach ( [ 'created_term', 'edited_term', 'delete_term', 'set_object_terms' ] as $hook ) {
+        foreach ( [
+            'create_term',
+            'created_term',
+            'edit_term',
+            'edited_term',
+            'delete_term',
+            'deleted_term',
+            'set_object_terms',
+        ] as $hook ) {
             add_action( $hook, $cb );
         }
         add_action( 'switch_blog', $cb );
