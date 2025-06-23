@@ -25,6 +25,13 @@ composer lint
 composer test
 ```
 
+## Skipping CI for docs
+
+If your commit only touches documentation or other non-code files, you may avoid
+running the full GitHub Actions workflow by appending `[skip ci]` or
+`skip-checks: true` to the commit message. See
+[docs/CI_GUIDELINES.md](docs/CI_GUIDELINES.md) for details.
+
 If you modify any TypeScript files, rebuild the assets:
 
 ```bash
@@ -40,3 +47,4 @@ npm run dev
 ## Further Reading
 
 For design context and architectural decisions, see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+For instructions on suppressing unnecessary CI runs, see [docs/CI_GUIDELINES.md](docs/CI_GUIDELINES.md).
