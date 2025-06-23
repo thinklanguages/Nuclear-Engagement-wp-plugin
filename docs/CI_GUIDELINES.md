@@ -1,6 +1,6 @@
 # Continuous Integration Guidelines
 
-This project relies on GitHub Actions for linting, testing and building assets. To keep those checks fast and inexpensive we allow contributors to skip workflows when a change cannot affect production code.
+GitHub Actions workflows are currently **disabled** to reduce usage costs. Run `composer lint` and `composer test` locally before committing changes. The instructions below remain for reference should CI be re-enabled.
 
 ## Ad‑hoc CI skips
 
