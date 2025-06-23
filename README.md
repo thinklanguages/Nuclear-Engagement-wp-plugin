@@ -64,3 +64,4 @@ npm run dev
 - [User Guide](docs/USER_GUIDE.md)
 - [Translation Guide](docs/TRANSLATION.md)
 - [Hooks Reference](docs/hooks.md)
+- [CI Guidelines](docs/CI_GUIDELINES.md)
