@@ -2,6 +2,17 @@
 
 This document records major architectural decisions and refactoring efforts.
 
+## Module Overview
+
+The plugin is organized by concern:
+
+- `admin/` handles all wp-admin functionality and bundles TypeScript under `src/admin`.
+- `front/` contains public-facing assets and `src/front` for TypeScript sources.
+- `includes/` holds framework-agnostic services and core classes.
+- `modules/` groups optional features such as the Table of Contents.
+
+Each folder stays under the 300 LOC guideline described in `nuclear-engagement/AGENTS.md`.
+
 ## Settings Sanitization Refactor
 
 The settings sanitization logic originally lived inside `SettingsRepository`. To
@@ -130,6 +141,11 @@ resides in a dedicated `LoggingService` under `includes/Services/`.
   service method.
 - The autoloader maps `NuclearEngagement\Services\LoggingService`.
 
+The service now checks that the uploads directory and log file are writable
+before attempting to write. When writing fails, it falls back to PHP's
+`error_log()` and registers an admin notice via the `admin_notices` hook so
+administrators are alerted to permission issues.
+
 This keeps `Utils` slim while ensuring logging responsibilities are centralized.
 
 ## Posts Query Service
@@ -168,4 +184,11 @@ color fields on the settings page. To further reduce dependencies, these
 fields now use the browser's native `<input type="color">` element. The
 `SettingsColorPickerTrait` no longer enqueues `wp-color-picker` scripts and is
 a no-op kept for backward compatibility.
+
+## Version Constant from Plugin Header
+
+`bootstrap.php` no longer hardcodes the plugin version. Instead it loads the
+plugin header with `get_plugin_data()` and defines `NUCLEN_PLUGIN_VERSION` from
+the returned value. All other code references this constant so updating the
+header automatically propagates the new version.
 

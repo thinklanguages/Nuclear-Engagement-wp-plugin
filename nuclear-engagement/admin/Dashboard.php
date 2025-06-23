@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 /**
  * admin/Dashboard.php
  *
@@ -24,6 +25,20 @@ $settings_repo = \NuclearEngagement\Container::getInstance()->get('settings');
 $admin = new \NuclearEngagement\Admin\Admin('nuclear-engagement', NUCLEN_PLUGIN_VERSION, $settings_repo);
 $allowed_post_types = $settings_repo->get('generation_post_types', array('post'));
 $allowed_post_types = is_array($allowed_post_types) ? $allowed_post_types : array('post');
+
+/* Attempt to use cached inventory unless refresh requested */
+$inventory_cache = \NuclearEngagement\InventoryCache::get();
+if (
+    isset( $_GET['nuclen_refresh_inventory'] ) &&
+    isset( $_GET['nuclen_refresh_inventory_nonce'] ) &&
+    wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['nuclen_refresh_inventory_nonce'] ) ), 'nuclen_refresh_inventory' ) &&
+    current_user_can( 'manage_options' )
+) {
+    \NuclearEngagement\InventoryCache::clear();
+    $inventory_cache = null;
+    wp_safe_redirect( remove_query_arg( array( 'nuclen_refresh_inventory', 'nuclen_refresh_inventory_nonce' ) ) );
+    exit;
+}
 
 /* ──────────────────────────────────────────────────────────────
  * 2. Convenience helpers
@@ -107,6 +122,8 @@ function nuclen_get_dual_counts( string $group_by, array $post_types, array $sta
  * 3. Build every stats table we need (quiz + summary)
  * ──────────────────────────────────────────────────────────── */
 $post_statuses = array( 'publish', 'pending', 'draft', 'future' );
+
+if ( null === $inventory_cache ) {
 
 /* — By Post Status — */
 $status_rows    = nuclen_get_dual_counts( 'p.post_status', $allowed_post_types, $post_statuses );
@@ -208,6 +225,53 @@ $by_author_quiz       = $drop_zeros( $by_author_quiz );
 $by_author_summary    = $drop_zeros( $by_author_summary );
 $by_category_quiz     = $drop_zeros( $by_category_quiz );
 $by_category_summary  = $drop_zeros( $by_category_summary );
+
+    \NuclearEngagement\InventoryCache::set(
+        array(
+            'by_status_quiz'       => $by_status_quiz,
+            'by_status_summary'    => $by_status_summary,
+            'by_post_type_quiz'    => $by_post_type_quiz,
+            'by_post_type_summary' => $by_post_type_summary,
+            'by_author_quiz'       => $by_author_quiz,
+            'by_author_summary'    => $by_author_summary,
+            'by_category_quiz'     => $by_category_quiz,
+            'by_category_summary'  => $by_category_summary,
+        )
+    );
+} else {
+    $by_status_quiz       = $inventory_cache['by_status_quiz'] ?? array();
+    $by_status_summary    = $inventory_cache['by_status_summary'] ?? array();
+    $by_post_type_quiz    = $inventory_cache['by_post_type_quiz'] ?? array();
+    $by_post_type_summary = $inventory_cache['by_post_type_summary'] ?? array();
+    $by_author_quiz       = $inventory_cache['by_author_quiz'] ?? array();
+    $by_author_summary    = $inventory_cache['by_author_summary'] ?? array();
+    $by_category_quiz     = $inventory_cache['by_category_quiz'] ?? array();
+    $by_category_summary  = $inventory_cache['by_category_summary'] ?? array();
+}
+
+/* ──────────────────────────────────────────────────────────────
+ * 4b. Gather scheduled generation tasks
+ * ──────────────────────────────────────────────────────────── */
+$active_generations = get_option( 'nuclen_active_generations', array() );
+$scheduled_tasks    = array();
+
+foreach ( $active_generations as $gen_id => $info ) {
+    $post_id   = (int) ( $info['post_ids'][0] ?? 0 );
+    $title     = $post_id ? get_the_title( $post_id ) : $gen_id;
+    $next_poll = isset( $info['next_poll'] )
+        ? date_i18n(
+            get_option( 'date_format' ) . ' ' . get_option( 'time_format' ),
+            (int) $info['next_poll']
+        )
+        : '';
+
+    $scheduled_tasks[] = array(
+        'post_title'    => $title,
+        'workflow_type' => $info['workflow_type'] ?? '',
+        'attempt'       => (int) ( $info['attempt'] ?? 1 ),
+        'next_poll'     => $next_poll,
+    );
+}
 
 /* ──────────────────────────────────────────────────────────────
  * 5. Render dashboard (same partial as before)

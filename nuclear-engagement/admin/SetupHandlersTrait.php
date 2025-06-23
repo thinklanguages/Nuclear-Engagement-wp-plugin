@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 /**
  * File: admin/SetupHandlersTrait.php
  *
@@ -16,7 +17,7 @@ namespace NuclearEngagement\Admin;
 use NuclearEngagement\SettingsRepository;
 use NuclearEngagement\Services\SetupService;
 
-if (!defined('ABSPATH')) {
+if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
@@ -25,7 +26,7 @@ trait SetupHandlersTrait {
     /*--------------------------------------------------------------
      #  STEP 1 – Store the Gold Code
      --------------------------------------------------------------*/
-    public function nuclen_handle_connect_app() {
+    public function nuclen_handle_connect_app(): void {
 
         if ( ! isset( $_POST['nuclen_connect_app_nonce'], $_POST['nuclen_api_key'] ) ||
              ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['nuclen_connect_app_nonce'] ) ), 'nuclen_connect_app_action' )
@@ -66,7 +67,7 @@ trait SetupHandlersTrait {
     /*--------------------------------------------------------------
      #  STEP 2 – Generate & store plugin App Password
      --------------------------------------------------------------*/
-    public function nuclen_handle_generate_app_password( $bypass_nonce = false ) {
+    public function nuclen_handle_generate_app_password( $bypass_nonce = false ): void {
 
         if ( ! $bypass_nonce ) {
             if ( ! isset( $_POST['nuclen_generate_app_password_nonce'] ) ||
@@ -139,7 +140,7 @@ trait SetupHandlersTrait {
     /*--------------------------------------------------------------
      #  Reset handlers
      --------------------------------------------------------------*/
-    public function nuclen_handle_reset_api_key() {
+    public function nuclen_handle_reset_api_key(): void {
 
         if ( ! isset( $_POST['nuclen_reset_api_key_nonce'] ) ||
              ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['nuclen_reset_api_key_nonce'] ) ), 'nuclen_reset_api_key_action' )
@@ -161,7 +162,7 @@ trait SetupHandlersTrait {
         $this->nuclen_redirect_with_success( 'Gold Code reset. Site disconnected.' );
     }
 
-    public function nuclen_handle_reset_wp_app_connection() {
+    public function nuclen_handle_reset_wp_app_connection(): void {
 
         if ( ! isset( $_POST['nuclen_reset_wp_app_nonce'] ) ||
              ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['nuclen_reset_wp_app_nonce'] ) ), 'nuclen_reset_wp_app_action' )
@@ -188,7 +189,7 @@ trait SetupHandlersTrait {
        }
 
 
-    private function nuclen_redirect_with_error( $msg ) {
+    private function nuclen_redirect_with_error( $msg ): void {
         wp_redirect(
             add_query_arg(
                 array(
@@ -202,7 +203,7 @@ trait SetupHandlersTrait {
         exit;
     }
 
-    private function nuclen_redirect_with_success( $msg ) {
+    private function nuclen_redirect_with_success( $msg ): void {
         wp_redirect(
             add_query_arg(
                 array(

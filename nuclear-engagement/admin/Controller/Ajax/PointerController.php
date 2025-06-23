@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 /**
  * File: admin/Controller/Ajax/PointerController.php
 
@@ -11,7 +12,7 @@ namespace NuclearEngagement\Admin\Controller\Ajax;
 
 use NuclearEngagement\Services\PointerService;
 
-if (!defined('ABSPATH')) {
+if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
@@ -50,9 +51,9 @@ class PointerController extends BaseController {
             wp_send_json_success(['message' => __('Pointer dismissed.', 'nuclear-engagement')]);
 
         } catch (\InvalidArgumentException $e) {
-            wp_send_json_error(['message' => $e->getMessage()]);
+            $this->sendError($e->getMessage());
         } catch (\Exception $e) {
-            wp_send_json_error(['message' => __('An error occurred', 'nuclear-engagement')]);
+            $this->sendError(__('An error occurred', 'nuclear-engagement'));
         }
     }
 }

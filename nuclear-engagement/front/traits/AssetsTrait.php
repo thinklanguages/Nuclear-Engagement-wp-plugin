@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 /**
  * File: front/traits/assets-trait.php
  *
@@ -13,23 +14,84 @@
 
 namespace NuclearEngagement\Front;
 
+use NuclearEngagement\AssetVersions;
+use NuclearEngagement\Themes;
+
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
 trait AssetsTrait {
 
+    /** Force asset enqueue regardless of detection checks. */
+    private bool $force_assets = false;
+
+    /**
+     * Determine if front-end assets should load on the current request.
+     *
+     * @return bool
+     */
+    private function should_load_assets(): bool {
+        if ( $this->force_assets ) {
+            return true;
+        }
+        if ( is_admin() || ! is_singular() ) {
+            return false;
+        }
+
+        $post_id = get_the_ID();
+        if ( ! $post_id ) {
+            return false;
+        }
+
+        $post    = get_post( $post_id );
+        $content = $post ? $post->post_content : '';
+
+        if ( function_exists( 'has_block' ) && $post ) {
+            if ( has_block( 'nuclear-engagement/quiz', $post ) || has_block( 'nuclear-engagement/summary', $post ) ) {
+                return true;
+            }
+        }
+
+        if ( has_shortcode( $content, 'nuclear_engagement_quiz' ) || has_shortcode( $content, 'nuclear_engagement_summary' ) ) {
+            return true;
+        }
+
+        $settings_repo   = $this->nuclen_get_settings_repository();
+        $display_quiz    = $settings_repo->get( 'display_quiz', 'manual' );
+        $display_summary = $settings_repo->get( 'display_summary', 'manual' );
+
+        if ( $display_quiz !== 'manual' && $display_quiz !== 'none' ) {
+            $quiz_meta = maybe_unserialize( get_post_meta( $post_id, 'nuclen-quiz-data', true ) );
+            if ( is_array( $quiz_meta ) && ! empty( $quiz_meta['questions'] ) ) {
+                return true;
+            }
+        }
+
+        if ( $display_summary !== 'manual' && $display_summary !== 'none' ) {
+            $summary_meta = get_post_meta( $post_id, 'nuclen-summary-data', true );
+            if ( is_array( $summary_meta ) && ! empty( trim( $summary_meta['summary'] ?? '' ) ) ) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     /* ────────────────────────────
        STYLES
     ──────────────────────────── */
     public function wp_enqueue_styles() {
+        if ( ! $this->should_load_assets() ) {
+            return;
+        }
 
         /* Base CSS */
         wp_enqueue_style(
             $this->plugin_name,
             plugin_dir_url( __FILE__ ) . '../css/nuclen-front.css',
             array(),
-            filemtime( plugin_dir_path( __FILE__ ) . '../css/nuclen-front.css' ),
+            AssetVersions::get( 'front_css' ),
             'all'
         );
 
@@ -41,22 +103,26 @@ trait AssetsTrait {
             return;
         }
 
-        if ( $theme_choice === 'bright' ) {
-            $theme_url = plugin_dir_url( __FILE__ ) . '../css/nuclen-theme-bright.css';
-        } elseif ( $theme_choice === 'dark' ) {
-            $theme_url = plugin_dir_url( __FILE__ ) . '../css/nuclen-theme-dark.css';
+        if ( isset( \NuclearEngagement\Themes::MAP[ $theme_choice ] ) ) {
+            $theme_file   = \NuclearEngagement\Themes::MAP[ $theme_choice ];
+            $version_key  = $theme_choice === 'dark' ? 'theme_dark_css' : 'theme_bright_css';
+            $theme_url    = plugin_dir_url( __FILE__ ) . '../css/' . $theme_file;
+            $theme_v      = AssetVersions::get( $version_key );
         } elseif ( $theme_choice === 'custom' ) {
             $css_info  = \NuclearEngagement\Utils::nuclen_get_custom_css_info();
             $theme_url = $css_info['url'];
+            $theme_v   = get_option( 'nuclen_custom_css_version', AssetVersions::get( 'theme_bright_css' ) );
         } else {
-            $theme_url = plugin_dir_url( __FILE__ ) . '../css/nuclen-theme-bright.css';
+            $theme_file = \NuclearEngagement\Themes::MAP['bright'];
+            $theme_url  = plugin_dir_url( __FILE__ ) . '../css/' . $theme_file;
+            $theme_v    = AssetVersions::get( 'theme_bright_css' );
         }
 
         wp_enqueue_style(
             $this->plugin_name . '-theme',
             $theme_url,
             array(),
-            filemtime( str_replace( content_url(), WP_CONTENT_DIR, $theme_url ) ),
+            $theme_v,
             'all'
         );
     }
@@ -65,13 +131,16 @@ trait AssetsTrait {
        SCRIPTS
     ──────────────────────────── */
     public function wp_enqueue_scripts() {
+        if ( ! $this->should_load_assets() ) {
+            return;
+        }
 
         /* Main bundle */
         wp_enqueue_script(
             $this->plugin_name . '-front',
             plugin_dir_url( dirname( __FILE__ ) ) . 'js/nuclen-front.js',
             array(),
-            NUCLEN_ASSET_VERSION,
+            AssetVersions::get( 'front_js' ),
             true
         );
 
@@ -119,5 +188,27 @@ trait AssetsTrait {
                 'answers_per_question' => $settings_repo->get_int( 'answers_per_question', 4 ),
             )
         );
+
+        /* Translatable strings for the quiz */
+        $ne_strings = array(
+            'retake_test'   => $settings_repo->get( 'quiz_label_retake_test', __( 'Retake Test', 'nuclear-engagement' ) ),
+            'your_score'    => $settings_repo->get( 'quiz_label_your_score', __( 'Your Score', 'nuclear-engagement' ) ),
+            'perfect'       => $settings_repo->get( 'quiz_label_perfect', __( 'Perfect!', 'nuclear-engagement' ) ),
+            'well_done'     => $settings_repo->get( 'quiz_label_well_done', __( 'Well done!', 'nuclear-engagement' ) ),
+            'retake_prompt' => $settings_repo->get( 'quiz_label_retake_prompt', __( 'Why not retake the test?', 'nuclear-engagement' ) ),
+            'correct'       => $settings_repo->get( 'quiz_label_correct', __( 'Correct:', 'nuclear-engagement' ) ),
+            'your_answer'   => $settings_repo->get( 'quiz_label_your_answer', __( 'Your answer:', 'nuclear-engagement' ) ),
+        );
+        wp_localize_script( $this->plugin_name . '-front', 'NuclenStrings', $ne_strings );
+    }
+
+    /**
+     * Force asset enqueue when shortcodes run outside post content.
+     */
+    public function nuclen_force_enqueue_assets(): void {
+        $this->force_assets = true;
+        $this->wp_enqueue_styles();
+        $this->wp_enqueue_scripts();
+        $this->force_assets = false;
     }
 }

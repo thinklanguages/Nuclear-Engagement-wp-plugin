@@ -18,4 +18,20 @@ class OptinDataTest extends TestCase {
     public function test_escape_csv_field_unchanged() {
         $this->assertSame('plain', $this->escapeMethod->invoke(null, 'plain'));
     }
+
+    public function test_dbDelta_not_called_when_table_exists() {
+        global $dbDelta_called, $wpdb;
+
+        $dbDelta_called = false;
+        $wpdb = new class {
+            public $prefix = 'wp_';
+            public function get_charset_collate() { return ''; }
+            public function prepare($query, $param) { return $param; }
+            public function get_var($query) { return 'wp_nuclen_optins'; }
+        };
+
+        OptinData::maybe_create_table();
+
+        $this->assertFalse($dbDelta_called);
+    }
 }

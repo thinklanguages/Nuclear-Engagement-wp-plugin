@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 /**
  * File: includes/Services/GenerationService.php
 
@@ -13,8 +14,9 @@ use NuclearEngagement\Requests\GenerateRequest;
 use NuclearEngagement\Responses\GenerationResponse;
 use NuclearEngagement\SettingsRepository;
 use NuclearEngagement\Utils;
+use NuclearEngagement\Services\ApiException;
 
-if (!defined('ABSPATH')) {
+if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
@@ -23,7 +25,7 @@ if (!defined('ABSPATH')) {
  */
 class GenerationService {
     /** Seconds to wait between polling events. */
-    public const POLL_DELAY = NUCLEN_GENERATION_POLL_DELAY;
+    public const POLL_DELAY = defined('NUCLEN_GENERATION_POLL_DELAY') ? NUCLEN_GENERATION_POLL_DELAY : 30;
     /**
      * @var SettingsRepository
      */
@@ -85,38 +87,28 @@ class GenerationService {
         ];
 
         // Send to API
-        $result = $this->api->sendPostsToGenerate([
-            'posts' => $posts,
-            'workflow' => $workflow,
-            'generation_id' => $request->generationId,
-        ]);
+        try {
+            $result = $this->api->sendPostsToGenerate([
+                'posts' => $posts,
+                'workflow' => $workflow,
+                'generation_id' => $request->generationId,
+            ]);
+        } catch (\Throwable $e) {
+            $response = new GenerationResponse();
+            $response->generationId = $request->generationId;
+            $response->success = false;
+            $response->error = $e->getMessage();
+            $code = $e->getCode();
+            $response->statusCode = is_numeric($code) ? (int) $code : 0;
+            if ($e instanceof ApiException) {
+                $response->errorCode = $e->getErrorCode();
+            }
+            return $response;
+        }
 
         // Create response
         $response = new GenerationResponse();
         $response->generationId = $request->generationId;
-
-        // Handle API errors
-        if (!empty($result['status_code']) && in_array($result['status_code'], [401, 403], true)) {
-            $response->success = false;
-            $response->statusCode = $result['status_code'];
-            $response->errorCode = $result['error_code'] ?? null;
-
-            if (!empty($result['error_code']) && $result['error_code'] === 'invalid_api_key') {
-                $response->error = 'Invalid API key.';
-            } elseif (!empty($result['error_code']) && $result['error_code'] === 'invalid_wp_app_pass') {
-                $response->error = 'Invalid WP App Password.';
-            } else {
-                $response->error = 'Authentication error.';
-            }
-
-            return $response;
-        }
-
-        if (!empty($result['error'])) {
-            $response->success = false;
-            $response->error = $result['error'];
-            return $response;
-        }
 
         // Process immediate results if any
         if (!empty($result['results']) && is_array($result['results'])) {
@@ -155,6 +147,14 @@ class GenerationService {
 
         try {
             $response = $this->generateContent($request);
+
+            if (!$response->success) {
+                throw new ApiException(
+                    $response->error ?? 'Generation failed',
+                    $response->statusCode ?? 0,
+                    $response->errorCode
+                );
+            }
 
             // If no immediate results, schedule polling
             if (empty($response->results)) {

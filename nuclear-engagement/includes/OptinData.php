@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 /**
  * file: includes/OptinData.php
  * Class: NuclearEngagement\OptinData
@@ -11,6 +12,8 @@
  */
 
 namespace NuclearEngagement;
+
+use NuclearEngagement\Services\LoggingService;
 
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
@@ -41,19 +44,35 @@ class OptinData {
         return $wpdb->prefix . self::TABLE_SLUG;
     }
     /**
+     * Cached flag to avoid repeated SHOW TABLES queries.
+     *
+     * @var bool|null
+     */
+    private static ?bool $table_exists_cache = null;
+
+    /**
      * Check whether the opt-in table already exists.
      */
     public static function table_exists(): bool {
+        if ( null !== self::$table_exists_cache ) {
+            return self::$table_exists_cache;
+        }
+
         global $wpdb;
         $table = self::table_name();
-        return $wpdb->get_var( $wpdb->prepare( "SHOW TABLES LIKE %s", $table ) ) === $table;
+        self::$table_exists_cache = $wpdb->get_var( $wpdb->prepare( "SHOW TABLES LIKE %s", $table ) ) === $table;
+        return self::$table_exists_cache;
     }
 
     /**
-     * Create / migrate the opt-in table.
-     * Safe to run many times – dbDelta() is idempotent.
+     * Create the opt-in table if it doesn't already exist.
+     * Safe to run many times – dbDelta() is idempotent but skipped when not needed.
      */
-    public static function maybe_create_table(): void {
+    public static function maybe_create_table(): bool {
+        if ( self::table_exists() ) {
+            return true;
+        }
+
         global $wpdb;
 
         $charset = $wpdb->get_charset_collate();
@@ -71,11 +90,22 @@ class OptinData {
             ) {$charset};";
 
         require_once ABSPATH . 'wp-admin/includes/upgrade.php';
-        dbDelta( $sql );
+        $result = dbDelta( $sql );
+        if ( ! empty( $wpdb->last_error ) ) {
+            LoggingService::log( 'dbDelta error: ' . $wpdb->last_error );
+            LoggingService::notify_admin( 'Nuclear Engagement table creation failed. Check logs.' );
+            return false;
+        }
+        if ( empty( $result ) ) {
+            LoggingService::log( 'dbDelta executed with no changes.' );
+        }
+
+        self::$table_exists_cache = true;
+        return true;
     }
 
     /**
-     * Insert one submission. Automatically ensures the table exists.
+     * Insert one submission.
      *
      * @return bool  True on success, false on failure.
      */
@@ -85,9 +115,6 @@ class OptinData {
         if ( empty( $email ) || ! is_email( $email ) ) {
             return false;
         }
-
-        /* Make sure the table is present (first-ever submission, etc.) */
-        self::maybe_create_table();
 
         global $wpdb;
         $ok = $wpdb->insert(
@@ -101,8 +128,12 @@ class OptinData {
             [ '%s', '%s', '%s', '%s' ]
         );
 
-return (bool) $ok;
-}
+        if ( false === $ok ) {
+            LoggingService::log( 'Insert error: ' . $wpdb->last_error );
+        }
+
+        return (bool) $ok;
+    }
 
     /**
      * Escape potential spreadsheet formulas in a CSV field.
@@ -125,8 +156,12 @@ return (bool) $ok;
         $email = sanitize_email(      wp_unslash( $_POST['email'] ?? '' ) );
         $url   = esc_url_raw(        wp_unslash( $_POST['url']   ?? '' ) );
 
+        if ( empty( $email ) || ! is_email( $email ) ) {
+            wp_send_json_error( [ 'message' => 'Please enter a valid email address.' ], 400 );
+        }
+
         if ( ! self::insert( $name, $email, $url ) ) {
-            wp_send_json_error( [ 'message' => 'Unable to save. Invalid email or DB error.' ], 500 );
+            wp_send_json_error( [ 'message' => 'Unable to save your submission. Please try again later.' ], 500 );
         }
 
         wp_send_json_success();

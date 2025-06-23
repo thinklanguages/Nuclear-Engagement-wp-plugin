@@ -20,6 +20,7 @@ import type {
     mountOptinBeforeResults,
     attachInlineOptinHandlers,
   } from './nuclen-quiz-optin';
+import * as logger from './logger';
 
   /* Globals injected by wp_localize_script */
   declare const postQuizData: QuizQuestion[];
@@ -33,6 +34,16 @@ import type {
   declare const NuclenOptinButtonText: string;
 
   declare const NuclenOptinAjax: { url: string; nonce: string };
+
+  declare const NuclenStrings: {
+    retake_test: string;
+    your_score: string;
+    perfect: string;
+    well_done: string;
+    retake_prompt: string;
+    correct: string;
+    your_answer: string;
+  };
 
   declare function gtag(...args: any[]): void;
 
@@ -52,7 +63,7 @@ import type {
       !quizContainer || !qContainer || !aContainer || !progBar ||
       !finalContainer || !nextBtn || !explContainer
     ) {
-      console.warn('[NE] Quiz markup missing — init aborted.');
+      logger.warn('[NE] Quiz markup missing — init aborted.');
       return;
     }
 
@@ -210,16 +221,16 @@ import type {
 
       /* 2. score block */
       html += `
-        <div id="nuclen-quiz-results-title" class="nuclen-fg">Your Score</div>
+        <div id="nuclen-quiz-results-title" class="nuclen-fg">${NuclenStrings.your_score}</div>
         <div id="nuclen-quiz-results-score" class="nuclen-fg">
           ${score} / ${questions.length}
         </div>`;
       const comment =
         score === questions.length
-          ? 'Perfect!'
+          ? NuclenStrings.perfect
           : score > questions.length / 2
-          ? 'Well done!'
-          : 'Why not retake the test?';
+          ? NuclenStrings.well_done
+          : NuclenStrings.retake_prompt;
       html += `<div id="nuclen-quiz-score-comment">${comment}</div>`;
 
       /* 3. tabs + detail container */
@@ -242,7 +253,7 @@ import type {
       /* 5. retake button */
       html += `
         <button id="nuclen-quiz-retake-button"
-                onclick="nuclearEngagementRetakeQuiz()">Retake Test</button>`;
+                onclick="nuclearEngagementRetakeQuiz()">${NuclenStrings.retake_test}</button>`;
 
       finalContainer!.innerHTML = html;
 
@@ -257,11 +268,11 @@ import type {
         const ua = userAnswers[idx];
         (document.getElementById('nuclen-quiz-result-details-container') as HTMLElement).innerHTML = `
           <p class="nuclen-quiz-detail-question">${escapeHtml(q.question)}</p>
-          <p class="nuclen-quiz-detail-correct"><strong>Correct:</strong> ${escapeHtml(q.answers[0])}</p>
+          <p class="nuclen-quiz-detail-correct"><strong>${NuclenStrings.correct}</strong> ${escapeHtml(q.answers[0])}</p>
           ${
             ua === 0
-              ? `<p class="nuclen-quiz-detail-chosen"><strong>Your answer:</strong> ${escapeHtml(q.answers[0])} <span class="nuclen-quiz-checkmark">✔️</span></p>`
-              : `<p class="nuclen-quiz-detail-chosen"><strong>Your answer:</strong> ${escapeHtml(q.answers[ua] ?? '[No data]')}</p>`
+              ? `<p class="nuclen-quiz-detail-chosen"><strong>${NuclenStrings.your_answer}</strong> ${escapeHtml(q.answers[0])} <span class="nuclen-quiz-checkmark">✔️</span></p>`
+              : `<p class="nuclen-quiz-detail-chosen"><strong>${NuclenStrings.your_answer}</strong> ${escapeHtml(q.answers[ua] ?? '[No data]')}</p>`
           }
           <p class="nuclen-quiz-detail-explanation">${escapeHtml(q.explanation)}</p>`;
         Array.from(document.getElementsByClassName('nuclen-quiz-result-tab')).forEach((el) =>

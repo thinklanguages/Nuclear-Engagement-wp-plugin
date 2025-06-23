@@ -1,10 +1,11 @@
 <?php
+declare(strict_types=1);
 
 namespace NuclearEngagement;
 
 use NuclearEngagement\SettingsRepository;
 
-if (!defined('ABSPATH')) {
+if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 

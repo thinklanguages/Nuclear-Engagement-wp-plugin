@@ -1,8 +1,12 @@
 // nuclen-front-lazy.ts
 
 /*************************************************
- * 2) Lazy-Load + GA Intersection Observers
- *************************************************/
+* 2) Lazy-Load + GA Intersection Observers
+*
+* Using IntersectionObserver delays expensive quiz
+* initialization until the component scrolls into view.
+* This minimizes network requests on initial page load.
+*************************************************/
 
 /**
  * 2a) Lazy-load container. Observes 'containerId' and triggers `initFunctionName` once visible.

@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 /**
  * File: includes/ContainerRegistrar.php
  *
@@ -7,7 +8,7 @@
 
 namespace NuclearEngagement;
 
-use NuclearEngagement\Services\{GenerationService, RemoteApiService, ContentStorageService, PointerService, PostsQueryService, AutoGenerationService};
+use NuclearEngagement\Services\{GenerationService, RemoteApiService, ContentStorageService, PointerService, PostsQueryService, AutoGenerationService, GenerationPoller, PublishGenerationHandler, VersionService};
 use NuclearEngagement\Admin\Controller\Ajax\{GenerateController, UpdatesController, PointerController, PostsCountController};
 use NuclearEngagement\Admin\Controller\OptinExportController;
 use NuclearEngagement\Front\Controller\Rest\ContentController;
@@ -23,10 +24,22 @@ final class ContainerRegistrar {
         $container->register( 'remote_api', static fn( $c ) => new RemoteApiService( $c->get( 'settings' ) ) );
         $container->register( 'content_storage', static fn( $c ) => new ContentStorageService( $c->get( 'settings' ) ) );
 
-        $container->register( 'auto_generation_service', static fn( $c ) => new AutoGenerationService(
+        $container->register( 'generation_poller', static fn( $c ) => new GenerationPoller(
             $c->get( 'settings' ),
             $c->get( 'remote_api' ),
             $c->get( 'content_storage' )
+        ) );
+
+        $container->register( 'publish_generation_handler', static fn( $c ) => new PublishGenerationHandler(
+            $c->get( 'settings' )
+        ) );
+
+        $container->register( 'auto_generation_service', static fn( $c ) => new AutoGenerationService(
+            $c->get( 'settings' ),
+            $c->get( 'remote_api' ),
+            $c->get( 'content_storage' ),
+            $c->get( 'generation_poller' ),
+            $c->get( 'publish_generation_handler' )
         ) );
 
         $container->register( 'generation_service', static fn( $c ) => new GenerationService(
@@ -37,6 +50,7 @@ final class ContainerRegistrar {
 
         $container->register( 'pointer_service', static fn() => new PointerService() );
         $container->register( 'posts_query_service', static fn() => new PostsQueryService() );
+        $container->register( 'version_service', static fn() => new VersionService() );
 
         $container->register( 'generate_controller', static fn( $c ) => new GenerateController( $c->get( 'generation_service' ) ) );
         $container->register( 'updates_controller', static fn( $c ) => new UpdatesController( $c->get( 'remote_api' ), $c->get( 'content_storage' ) ) );

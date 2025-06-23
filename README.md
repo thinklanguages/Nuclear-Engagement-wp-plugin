@@ -16,7 +16,17 @@ Nuclear Engagement stands out with true sitewide automation: process hundreds or
 - **Mobile-Optimized**: Responsive layouts for any device.
 - **Lightweight & Fast**: Minimal codebase with lazy loading for optimal performance.
 
+## Requirements
+
+- PHP 7.4 or higher
+- WordPress 6.1 or higher
+- Node 18+ (Node 20 recommended) for building assets
+
 Learn more:
+See [CHANGELOG](docs/CHANGELOG.md) for release notes.
+See [Installation & Workflow Guide](docs/USAGE.md) for setup and usage.
+See [TRANSLATION](docs/TRANSLATION.md) for localization instructions.
+
 https://www.nuclearengagement.com
 
 ## Development
@@ -32,3 +42,26 @@ Run the PHPUnit test suite with:
 ```bash
 composer test
 ```
+
+### Building assets
+
+TypeScript source files live in `src/` and need to be compiled before the plugin can run. Install Node dependencies and build the JavaScript with:
+
+```bash
+npm install
+npm run build
+```
+
+During development you can rebuild on the fly with:
+
+```bash
+npm run dev
+```
+
+## Documentation
+
+- [Architecture](docs/ARCHITECTURE.md)
+- [User Guide](docs/USER_GUIDE.md)
+- [Translation Guide](docs/TRANSLATION.md)
+- [Hooks Reference](docs/hooks.md)
+- [CI Guidelines](docs/CI_GUIDELINES.md)

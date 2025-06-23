@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 /**
  * File: admin/Onboarding.php
  *
@@ -13,6 +14,7 @@
 namespace NuclearEngagement\Admin;
 
 use NuclearEngagement\Admin\OnboardingPointers;
+use NuclearEngagement\AssetVersions;
 
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
@@ -85,7 +87,7 @@ class Onboarding {
                         'nuclen-onboarding',
                         plugin_dir_url( __DIR__ ) . 'admin/js/onboarding-pointers.js',
                         array( 'wp-util' ),
-                        defined( 'NUCLEN_ASSET_VERSION' ) ? NUCLEN_ASSET_VERSION : '1',
+                        AssetVersions::get( 'onboarding_js' ),
                         true
                 );
 

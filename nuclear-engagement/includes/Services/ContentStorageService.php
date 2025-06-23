@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 /**
  * File: includes/Services/ContentStorageService.php
  *
@@ -12,7 +13,7 @@ namespace NuclearEngagement\Services;
 use NuclearEngagement\SettingsRepository;
 use NuclearEngagement\Utils;
 
-if (!defined('ABSPATH')) {
+if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 

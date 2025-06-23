@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 /**
  * Plugin Name:       Nuclear Engagement
  * Plugin URI:        https://www.nuclearengagement.com
@@ -14,7 +15,7 @@
  * Domain Path:       /
  */
 
-if (!defined('ABSPATH')) {
+if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 

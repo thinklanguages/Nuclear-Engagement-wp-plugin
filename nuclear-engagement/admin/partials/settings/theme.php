@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 // File: admin/partials/settings/theme.php
 if ( ! defined( 'ABSPATH' ) ) {
         exit;

@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 /**
  * File: includes/SettingsRepository.php
  *
@@ -9,7 +10,7 @@ namespace NuclearEngagement;
 use NuclearEngagement\SettingsSanitizer;
 use NuclearEngagement\SettingsCache;
 
-if (!defined('ABSPATH')) {
+if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
@@ -236,6 +237,10 @@ final class SettingsRepository
      */
     public static function _reset_for_tests(): void {
         self::$instance = null;
-        wp_cache_flush_group( SettingsCache::CACHE_GROUP );
+        if ( function_exists( 'wp_cache_flush_group' ) ) {
+            wp_cache_flush_group( SettingsCache::CACHE_GROUP );
+        } else {
+            wp_cache_flush();
+        }
     }
 }

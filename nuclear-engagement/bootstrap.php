@@ -1,21 +1,46 @@
 <?php
+declare(strict_types=1);
 use NuclearEngagement\SettingsRepository;
 use NuclearEngagement\Defaults;
 use NuclearEngagement\Activator;
 use NuclearEngagement\Deactivator;
 use NuclearEngagement\MetaRegistration;
+use NuclearEngagement\AssetVersions;
 use NuclearEngagement\Plugin;
+use NuclearEngagement\InventoryCache;
 
-if (!defined('ABSPATH')) {
+if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
 define('NUCLEN_PLUGIN_DIR', plugin_dir_path(NUCLEN_PLUGIN_FILE));
-define('NUCLEN_PLUGIN_VERSION', '1.1');
+
+if ( ! defined( 'NUCLEN_PLUGIN_VERSION' ) ) {
+    if ( ! function_exists( 'get_plugin_data' ) ) {
+        require_once ABSPATH . 'wp-admin/includes/plugin.php';
+    }
+    $data = get_plugin_data( NUCLEN_PLUGIN_FILE );
+    define( 'NUCLEN_PLUGIN_VERSION', $data['Version'] );
+}
+
 define('NUCLEN_ASSET_VERSION', '250613-30');
 
-require_once NUCLEN_PLUGIN_DIR . 'includes/autoload.php';
-require_once NUCLEN_PLUGIN_DIR . 'includes/constants.php';
+$autoload = __DIR__ . '/vendor/autoload.php';
+if ( ! file_exists( $autoload ) ) {
+    $autoload = dirname( __DIR__ ) . '/vendor/autoload.php';
+}
+if ( file_exists( $autoload ) ) {
+    require_once $autoload;
+} else {
+    error_log( 'Nuclear Engagement: vendor autoload not found.' );
+}
+if ( file_exists( NUCLEN_PLUGIN_DIR . 'includes/constants.php' ) ) {
+    require_once NUCLEN_PLUGIN_DIR . 'includes/constants.php';
+} else {
+    error_log( 'Nuclear Engagement: constants.php missing.' );
+}
+
+AssetVersions::init();
 
 function nuclear_engagement_load_textdomain() {
     load_plugin_textdomain(
@@ -77,6 +102,15 @@ function nuclen_update_migrate_post_meta() {
 
     global $wpdb;
 
+    $check_error = static function () use ( $wpdb ) {
+        if ( ! empty( $wpdb->last_error ) ) {
+            \NuclearEngagement\Services\LoggingService::log( 'Meta migration error: ' . $wpdb->last_error );
+            update_option( 'nuclen_meta_migration_error', $wpdb->last_error );
+            return false;
+        }
+        return true;
+    };
+
     $wpdb->query(
         $wpdb->prepare(
             "UPDATE {$wpdb->postmeta} SET meta_key = %s WHERE meta_key = %s",
@@ -84,6 +118,10 @@ function nuclen_update_migrate_post_meta() {
             'ne-summary-data'
         )
     );
+    if ( ! $check_error() ) {
+        return;
+    }
+
     $wpdb->query(
         $wpdb->prepare(
             "UPDATE {$wpdb->postmeta} SET meta_key = %s WHERE meta_key = %s",
@@ -91,7 +129,11 @@ function nuclen_update_migrate_post_meta() {
             'ne-quiz-data'
         )
     );
+    if ( ! $check_error() ) {
+        return;
+    }
 
+    delete_option('nuclen_meta_migration_error');
     update_option('nuclen_meta_migration_done', true);
 }
 add_action('admin_init', 'nuclen_update_migrate_post_meta', 20);
@@ -102,4 +144,16 @@ function nuclear_engagement_run_plugin() {
     $plugin->nuclen_run();
 }
 
-nuclear_engagement_run_plugin();
+function nuclear_engagement_init() {
+    try {
+        InventoryCache::register_hooks();
+    } catch ( \Throwable $e ) {
+        error_log( 'Nuclear Engagement: Cache registration failed - ' . $e->getMessage() );
+        add_action( 'admin_notices', static function () {
+            echo '<div class="error"><p>Nuclear Engagement: Cache system initialization failed.</p></div>';
+        } );
+    }
+
+    nuclear_engagement_run_plugin();
+}
+add_action( 'plugins_loaded', 'nuclear_engagement_init' );

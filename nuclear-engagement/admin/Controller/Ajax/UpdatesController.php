@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 /**
  * File: admin/Controller/Ajax/UpdatesController.php
  *
@@ -13,6 +14,7 @@ use NuclearEngagement\Requests\UpdatesRequest;
 use NuclearEngagement\Services\RemoteApiService;
 use NuclearEngagement\Services\ContentStorageService;
 use NuclearEngagement\Responses\UpdatesResponse;
+use NuclearEngagement\Services\ApiException;
 use NuclearEngagement\Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -99,9 +101,13 @@ class UpdatesController extends BaseController {
 
             wp_send_json_success( $response->toArray() );
 
-        } catch ( \Exception $e ) {
-\NuclearEngagement\Services\LoggingService::log( 'Error fetching updates: ' . $e->getMessage() );
-            wp_send_json_error( array( 'message' => $e->getMessage() ) );
+        } catch ( ApiException $e ) {
+            \NuclearEngagement\Services\LoggingService::log( 'Error fetching updates: ' . $e->getMessage() );
+            $message = __( 'Failed to fetch updates. Please try again later.', 'nuclear-engagement' );
+            $this->sendError( $message, $e->getCode() ?: 500 );
+        } catch ( \Throwable $e ) {
+            \NuclearEngagement\Services\LoggingService::log( 'Error fetching updates: ' . $e->getMessage() );
+            $this->sendError( __( 'An unexpected error occurred.', 'nuclear-engagement' ) );
         }
     }
 }

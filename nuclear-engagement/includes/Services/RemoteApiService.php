@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 /**
  * File: includes/Services/RemoteApiService.php
 
@@ -11,8 +12,9 @@ namespace NuclearEngagement\Services;
 
 use NuclearEngagement\SettingsRepository;
 use NuclearEngagement\Utils;
+use NuclearEngagement\Services\ApiException;
 
-if (!defined('ABSPATH')) {
+if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
@@ -46,10 +48,33 @@ class RemoteApiService {
     }
 
     /**
+     * Parse an error response body.
+     *
+     * @param string $body
+     * @return array{message:string|null,error_code:?string}
+     */
+    private function parseErrorResponse(string $body): array {
+        $data = json_decode($body, true);
+        $msg  = null;
+        $code = null;
+        if (is_array($data)) {
+            if (isset($data['error'])) {
+                $msg = (string) $data['error'];
+            } elseif (isset($data['message'])) {
+                $msg = (string) $data['message'];
+            }
+            if (isset($data['error_code'])) {
+                $code = (string) $data['error_code'];
+            }
+        }
+        return ['message' => $msg, 'error_code' => $code];
+    }
+
+    /**
      * Send posts to remote API for content generation
      *
      * @param array $data
-     * @return array
+     * @return array Response data on success
      * @throws \RuntimeException On API errors
      */
     public function sendPostsToGenerate(array $data): array {
@@ -94,28 +119,37 @@ class RemoteApiService {
         if (is_wp_error($response)) {
             $error = 'API request failed: ' . $response->get_error_message();
 \NuclearEngagement\Services\LoggingService::log($error);
-            return ['error' => $error];
+            throw new ApiException($error);
         }
 
         $code = wp_remote_retrieve_response_code($response);
         $body = wp_remote_retrieve_body($response);
+        \NuclearEngagement\Services\LoggingService::debug("API response body: {$body}");
 
-\NuclearEngagement\Services\LoggingService::log("API response code: {$code}");
+        \NuclearEngagement\Services\LoggingService::log("API response code: {$code}");
+        \NuclearEngagement\Services\LoggingService::debug("API response body: {$body}");
 
         // Check for auth errors
         if ($code === 401 || $code === 403) {
-            return $this->handleAuthError($body, $code);
+            $authResult = $this->handleAuthError($body, $code);
+            throw new ApiException($authResult['error'], $authResult['status_code'], $authResult['error_code'] ?? null);
         }
 
         if ($code !== 200) {
 \NuclearEngagement\Services\LoggingService::log("Unexpected response code: {$code}, body: {$body}");
-            return ['error' => "Failed to fetch updates, code: {$code}"];
+            $parsed = $this->parseErrorResponse($body);
+            $msg = $parsed['message'] ?? "Failed to fetch updates, code: {$code}";
+            throw new ApiException($msg, $code, $parsed['error_code']);
         }
 
         $data = json_decode($body, true);
         if (!is_array($data)) {
-\NuclearEngagement\Services\LoggingService::log("Invalid JSON response: {$body}");
-            return ['error' => 'Invalid data received from API'];
+            \NuclearEngagement\Services\LoggingService::log("Invalid JSON response: {$body}");
+            throw new ApiException('Invalid data received from API', $code);
+        }
+        if (isset($data['success']) && $data['success'] === false) {
+            $msg = $data['error'] ?? 'API error';
+            throw new ApiException($msg, $code, $data['error_code'] ?? null);
         }
 
         return $data;
@@ -164,7 +198,7 @@ class RemoteApiService {
         if (is_wp_error($response)) {
             $error = 'API request failed: ' . $response->get_error_message();
 \NuclearEngagement\Services\LoggingService::log($error);
-            throw new \RuntimeException($error);
+            throw new ApiException($error);
         }
 
         $code = wp_remote_retrieve_response_code($response);
@@ -173,18 +207,24 @@ class RemoteApiService {
         // Check for auth errors
         if ($code === 401 || $code === 403) {
             $authResult = $this->handleAuthError($body, $code);
-            throw new \RuntimeException($authResult['error']);
+            throw new ApiException($authResult['error'], $authResult['status_code'], $authResult['error_code'] ?? null);
         }
 
         if ($code !== 200) {
 \NuclearEngagement\Services\LoggingService::log("Unexpected response code: {$code}, body: {$body}");
-            throw new \RuntimeException("Failed to fetch updates, code: {$code}");
+            $parsed = $this->parseErrorResponse($body);
+            $msg = $parsed['message'] ?? "Failed to fetch updates, code: {$code}";
+            throw new ApiException($msg, $code, $parsed['error_code']);
         }
 
         $data = json_decode($body, true);
         if (!is_array($data)) {
-\NuclearEngagement\Services\LoggingService::log("Invalid JSON response: {$body}");
-            throw new \RuntimeException('Invalid data received from API');
+            \NuclearEngagement\Services\LoggingService::log("Invalid JSON response: {$body}");
+            throw new ApiException('Invalid data received from API', $code);
+        }
+        if (isset($data['success']) && $data['success'] === false) {
+            $msg = $data['error'] ?? 'API error';
+            throw new ApiException($msg, $code, $data['error_code'] ?? null);
         }
 
         return $data;

@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 /**
  * File: admin/Controller/Ajax/PostsCountController.php
 
@@ -12,7 +13,7 @@ namespace NuclearEngagement\Admin\Controller\Ajax;
 use NuclearEngagement\Requests\PostsCountRequest;
 use NuclearEngagement\Services\PostsQueryService;
 
-if (!defined('ABSPATH')) {
+if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
@@ -52,7 +53,7 @@ class PostsCountController extends BaseController {
             wp_send_json_success($result);
 
         } catch (\Exception $e) {
-            wp_send_json_error(['message' => $e->getMessage()]);
+            $this->sendError($e->getMessage());
         }
     }
 }

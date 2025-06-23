@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 /**
  * File: front/Controller/Rest/ContentController.php
  *
@@ -13,7 +14,7 @@ use NuclearEngagement\Requests\ContentRequest;
 use NuclearEngagement\Services\ContentStorageService;
 use NuclearEngagement\Utils;
 
-if (!defined('ABSPATH')) {
+if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 

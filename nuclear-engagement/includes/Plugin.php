@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 /**
  * File: includes/Plugin.php
  *
@@ -50,7 +51,12 @@ class Plugin {
             dirname( dirname( __FILE__ ) ) . '/nuclear-engagement.php',
             function() {
                 if ( ! \NuclearEngagement\OptinData::table_exists() ) {
-                    \NuclearEngagement\OptinData::maybe_create_table();
+                    $created = \NuclearEngagement\OptinData::maybe_create_table();
+                    if ( ! $created ) {
+                        \NuclearEngagement\Services\LoggingService::notify_admin(
+                            'Nuclear Engagement could not create required database tables.'
+                        );
+                    }
                 }
             }
         );
@@ -149,6 +155,7 @@ class Plugin {
         $this->loader->nuclen_add_action( 'init', $plugin_public, 'nuclen_register_quiz_shortcode' );
         $this->loader->nuclen_add_action( 'init', $plugin_public, 'nuclen_register_summary_shortcode' );
         $this->loader->nuclen_add_filter( 'the_content', $plugin_public, 'nuclen_auto_insert_shortcodes', 50 );
+        $this->loader->nuclen_add_action( 'init', '\\NuclearEngagement\\Blocks', 'register' );
     }
 
     /* ─────────────────────────────────────────────

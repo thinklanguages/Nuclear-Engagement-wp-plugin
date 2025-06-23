@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 /**
  * File: includes/Utils.php
  * Implementation of changes required by WordPress.org guidelines.
@@ -41,11 +42,11 @@ class Utils {
         $custom_css_path    = $custom_dir . '/' . $base_css_file_name;
 
         // Get the stored version hash or generate a new one if the file exists
-        $version = get_option('nuclen_custom_css_version', '');
-        if (file_exists($custom_css_path)) {
-            $file_mtime = filemtime($custom_css_path);
-            $file_hash = md5_file($custom_css_path);
-            $version = $file_mtime . '-' . substr($file_hash, 0, 8);
+        $version = get_option( 'nuclen_custom_css_version', '' );
+        if ( $version === '' && file_exists( $custom_css_path ) ) {
+            $file_mtime = filemtime( $custom_css_path );
+            $file_hash  = md5_file( $custom_css_path );
+            $version    = $file_mtime . '-' . substr( $file_hash, 0, 8 );
         }
 
         $custom_css_url = $upload_dir['baseurl'] . '/nuclear-engagement/' . $base_css_file_name . '?v=' . $version;

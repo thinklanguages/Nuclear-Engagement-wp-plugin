@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 /**
  * File: admin/Setup.php
  *
@@ -15,7 +16,7 @@ namespace NuclearEngagement\Admin;
 use NuclearEngagement\SettingsRepository;
 use NuclearEngagement\Services\SetupService;
 
-if (!defined('ABSPATH')) {
+if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 

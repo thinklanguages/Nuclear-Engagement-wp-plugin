@@ -3,16 +3,18 @@ export const REST_ENDPOINT =
   '/wp-json/nuclear-engagement/v1/receive-content';
 
 export const REST_NONCE = (window as any).nuclenAdminVars?.rest_nonce || '';
+import { displayError } from '../utils/displayError';
 
 export function nuclenAlertApiError(errMsg: string): void {
-  if (errMsg.includes('Invalid API key')) {
-    alert('Your API key is invalid. Please go to the Setup page and enter a new one.');
-  } else if (errMsg.includes('Invalid WP App Password')) {
-    alert('Your WP App Password is invalid. Please re-generate it on the Setup page.');
-  } else if (errMsg.includes('Not enough credits')) {
-    alert('Not enough credits. Please top up your account or reduce the number of posts.');
+  const cleanMsg = errMsg.replace(/<[^>]+>/g, '');
+  if (cleanMsg.includes('Invalid API key')) {
+    displayError('Your API key is invalid. Please go to the Setup page and enter a new one.');
+  } else if (cleanMsg.includes('Invalid WP App Password')) {
+    displayError('Your WP App Password is invalid. Please re-generate it on the Setup page.');
+  } else if (cleanMsg.includes('Not enough credits')) {
+    displayError('Not enough credits. Please top up your account or reduce the number of posts.');
   } else {
-    alert(`Error: ${errMsg}`);
+    displayError(`Error: ${cleanMsg}`);
   }
 }
 
@@ -27,6 +29,13 @@ export async function nuclenStoreGenerationResults(workflow: string, results: an
     credentials: 'include',
     body: JSON.stringify(payload),
   });
-  const data = await resp.json();
+  let data: any = null;
+  if (resp.ok) {
+    try {
+      data = await resp.json();
+    } catch (err) {
+      return { ok: false, data: { message: 'Invalid JSON' } };
+    }
+  }
   return { ok: resp.ok, data };
 }

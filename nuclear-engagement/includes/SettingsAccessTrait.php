@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 /**
  * File: includes/SettingsAccessTrait.php
  *
@@ -9,7 +10,7 @@
 
 namespace NuclearEngagement;
 
-if (!defined('ABSPATH')) {
+if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 

@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 /**
  * File: admin/Controller/Ajax/BaseController.php
  *
@@ -9,7 +10,7 @@
 
 namespace NuclearEngagement\Admin\Controller\Ajax;
 
-if (!defined('ABSPATH')) {
+if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
@@ -17,6 +18,22 @@ if (!defined('ABSPATH')) {
  * Provides common security helpers for AJAX controllers.
  */
 abstract class BaseController {
+    /**
+     * Send a standardized JSON error response.
+     *
+     * @param string $message Error message.
+     * @param int    $code    HTTP status code.
+     */
+    protected function sendError(string $message, int $code = 500): void {
+        status_header($code);
+        wp_send_json_error(
+            [
+                'message' => $message,
+            ],
+            $code
+        );
+    }
+
     /**
      * Verify nonce and permissions.
      *
@@ -31,14 +48,15 @@ abstract class BaseController {
         string $capability = 'manage_options'
     ): bool {
         if (!check_ajax_referer($nonceAction, $nonceField, false)) {
-            status_header(403);
-            wp_send_json_error(['message' => 'Security check failed']);
+            $this->sendError(
+                __('Security check failed', 'nuclear-engagement'),
+                403
+            );
             return false;
         }
 
         if (!current_user_can($capability)) {
-            status_header(403);
-            wp_send_json_error(['message' => 'Not allowed']);
+            $this->sendError(__('Not allowed', 'nuclear-engagement'), 403);
             return false;
         }
 

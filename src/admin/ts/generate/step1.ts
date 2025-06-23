@@ -12,11 +12,13 @@ import {
   nuclenStoreFilters,
   type NuclenFilterValues,
 } from './filters';
+import { displayError } from '../utils/displayError';
+import * as logger from '../utils/logger';
 
 export function initStep1(elements: GeneratePageElements): void {
   elements.getPostsBtn?.addEventListener('click', () => {
     if (!(window as any).nuclenAjax || !(window as any).nuclenAjax.ajax_url) {
-      alert('Error: Ajax is not configured properly. Please check the plugin settings.');
+      displayError('Error: Ajax is not configured properly. Please check the plugin settings.');
       return;
     }
     if (elements.postsCountEl) {
@@ -42,13 +44,14 @@ export function initStep1(elements: GeneratePageElements): void {
           if (elements.postsCountEl) {
             elements.postsCountEl.innerText = 'Error retrieving post count.';
           }
-          if (data.data?.message) {
-            if (data.data.message.includes('Invalid API key')) {
-              alert('Your Gold Code (API key) is invalid. Please create a new one on the NE app and enter it on the plugin Setup page.');
-            } else if (data.data.message.includes('Invalid WP App Password')) {
-              alert('Your WP App Password is invalid. Please go to the plugin Setup page and re-generate it.');
+          const errMsg = data.message || data.data?.message;
+          if (errMsg) {
+            if (errMsg.includes('Invalid API key')) {
+              displayError('Your Gold Code (API key) is invalid. Please create a new one on the NE app and enter it on the plugin Setup page.');
+            } else if (errMsg.includes('Invalid WP App Password')) {
+              displayError('Your WP App Password is invalid. Please go to the plugin Setup page and re-generate it.');
             } else {
-              alert(data.data.message);
+              displayError(errMsg);
             }
           }
           return;
@@ -83,7 +86,7 @@ export function initStep1(elements: GeneratePageElements): void {
             elements.creditsInfoEl.textContent = `This will consume ${neededCredits} credit(s). You have ${remainingCredits} left.`;
           }
           if (remainingCredits < neededCredits) {
-            alert('Not enough credits. Please top up or reduce the number of posts.');
+            displayError('Not enough credits. Please top up or reduce the number of posts.');
             if (elements.submitBtn) {
               elements.submitBtn.disabled = true;
             }
@@ -92,7 +95,7 @@ export function initStep1(elements: GeneratePageElements): void {
             elements.submitBtn.disabled = false;
           }
         } catch (err: any) {
-          console.error('Error fetching remaining credits:', err);
+          logger.error('Error fetching remaining credits:', err);
           if (elements.creditsInfoEl) {
             elements.creditsInfoEl.textContent = `Unable to retrieve your credits: ${err.message}`;
           }
@@ -102,7 +105,7 @@ export function initStep1(elements: GeneratePageElements): void {
         }
       })
       .catch((error) => {
-        console.error('Error retrieving post count:', error);
+        logger.error('Error retrieving post count:', error);
         if (elements.postsCountEl) {
           elements.postsCountEl.innerText = 'Error retrieving post count. Please try again later.';
         }

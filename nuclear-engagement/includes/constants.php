@@ -1,9 +1,17 @@
 <?php
+declare(strict_types=1);
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-/** Plugin-wide constants for numeric values. */
+/**
+ * Plugin-wide numeric configuration.
+ *
+ * These constants centralize all tunable numeric values used across the
+ * plugin. Keeping them in one place avoids "magic numbers" sprinkled in
+ * the codebase and makes it easier to tweak behaviour without hunting
+ * through multiple files.
+ */
 
 /** Maximum log file size in bytes. */
 define( 'NUCLEN_LOG_FILE_MAX_SIZE', MB_IN_BYTES );
@@ -47,5 +55,9 @@ define( 'NUCLEN_SUMMARY_ITEMS_MAX', 7 );
 /** Default scroll offset for the table of contents in pixels. */
 define( 'NUCLEN_TOC_SCROLL_OFFSET_DEFAULT', 72 );
 
-/** Position of the plugin top-level menu. */
+/**
+ * Position of the plugin top-level menu.
+ * WordPress core menus typically occupy positions below 25, so
+ * 30 avoids most conflicts with other plugins.
+ */
 define( 'NUCLEN_ADMIN_MENU_POSITION', 30 );

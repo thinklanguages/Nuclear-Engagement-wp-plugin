@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 /**
  * File: admin/trait-settings-page-save.php
  *
@@ -132,6 +133,27 @@ trait SettingsPageSaveTrait {
             : '';
         $raw['quiz_title']    = isset( $_POST['quiz_title'] )    ? sanitize_text_field( wp_unslash( $_POST['quiz_title'] ) )    : '';
         $raw['summary_title'] = isset( $_POST['summary_title'] ) ? sanitize_text_field( wp_unslash( $_POST['summary_title'] ) ) : '';
+        $raw['quiz_label_retake_test']   = isset( $_POST['quiz_label_retake_test'] )
+            ? sanitize_text_field( wp_unslash( $_POST['quiz_label_retake_test'] ) )
+            : '';
+        $raw['quiz_label_your_score']    = isset( $_POST['quiz_label_your_score'] )
+            ? sanitize_text_field( wp_unslash( $_POST['quiz_label_your_score'] ) )
+            : '';
+        $raw['quiz_label_perfect']       = isset( $_POST['quiz_label_perfect'] )
+            ? sanitize_text_field( wp_unslash( $_POST['quiz_label_perfect'] ) )
+            : '';
+        $raw['quiz_label_well_done']     = isset( $_POST['quiz_label_well_done'] )
+            ? sanitize_text_field( wp_unslash( $_POST['quiz_label_well_done'] ) )
+            : '';
+        $raw['quiz_label_retake_prompt'] = isset( $_POST['quiz_label_retake_prompt'] )
+            ? sanitize_text_field( wp_unslash( $_POST['quiz_label_retake_prompt'] ) )
+            : '';
+        $raw['quiz_label_correct']       = isset( $_POST['quiz_label_correct'] )
+            ? sanitize_text_field( wp_unslash( $_POST['quiz_label_correct'] ) )
+            : '';
+        $raw['quiz_label_your_answer']   = isset( $_POST['quiz_label_your_answer'] )
+            ? sanitize_text_field( wp_unslash( $_POST['quiz_label_your_answer'] ) )
+            : '';
 
         /* —— Opt-in block —— */
         $raw['enable_optin']      = isset( $_POST['enable_optin'] )      ? (bool) wp_unslash( $_POST['enable_optin'] )      : false;

@@ -1,0 +1,63 @@
+<?php
+use PHPUnit\Framework\TestCase;
+use NuclearEngagement\Services\SetupService;
+use NuclearEngagement\Services\LoggingService;
+
+namespace NuclearEngagement\Services {
+    class LoggingService {
+        public static array $logs = [];
+        public static function log(string $msg): void { self::$logs[] = $msg; }
+    }
+    function wp_remote_post(string $url, array $args = []) {
+        return $GLOBALS['ss_response'];
+    }
+    function wp_remote_retrieve_response_code($res) {
+        return is_array($res) ? ($res['code'] ?? 0) : 0;
+    }
+    function wp_json_encode($data) { return json_encode($data); }
+}
+
+namespace {
+    use NuclearEngagement\Services\SetupService;
+    use NuclearEngagement\Services\LoggingService;
+
+    if (!defined('NUCLEN_PLUGIN_VERSION')) { define('NUCLEN_PLUGIN_VERSION', '1.0'); }
+    if (!defined('NUCLEN_API_TIMEOUT')) { define('NUCLEN_API_TIMEOUT', 30); }
+
+    class SetupServiceTest extends TestCase {
+        protected function setUp(): void {
+            $GLOBALS['ss_response'] = null;
+            LoggingService::$logs = [];
+        }
+
+        public function test_validate_api_key_success(): void {
+            $GLOBALS['ss_response'] = ['code' => 200];
+            $svc = new SetupService();
+            $this->assertTrue($svc->validate_api_key('key'));
+            $this->assertEmpty(LoggingService::$logs);
+        }
+
+        public function test_validate_api_key_failure_logs_error(): void {
+            $GLOBALS['ss_response'] = new \WP_Error();
+            $svc = new SetupService();
+            $this->assertFalse($svc->validate_api_key('key'));
+            $this->assertSame(['API-key validation error: error'], LoggingService::$logs);
+        }
+
+        public function test_send_app_password_success(): void {
+            $GLOBALS['ss_response'] = ['code' => 200];
+            $svc = new SetupService();
+            $data = ['appApiKey' => 'key', 'user' => 'u'];
+            $this->assertTrue($svc->send_app_password($data));
+            $this->assertEmpty(LoggingService::$logs);
+        }
+
+        public function test_send_app_password_failure_logs_error(): void {
+            $GLOBALS['ss_response'] = new \WP_Error();
+            $svc = new SetupService();
+            $data = ['appApiKey' => 'key', 'user' => 'u'];
+            $this->assertFalse($svc->send_app_password($data));
+            $this->assertSame(['Error sending creds: error'], LoggingService::$logs);
+        }
+    }
+}

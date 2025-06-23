@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 /**
  * File: includes/Services/PostsQueryService.php
  *
@@ -11,7 +12,7 @@ namespace NuclearEngagement\Services;
 
 use NuclearEngagement\Requests\PostsCountRequest;
 
-if (!defined('ABSPATH')) {
+if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
@@ -73,6 +74,11 @@ class PostsQueryService {
         if (count($metaQuery) > 1) {
             $queryArgs['meta_query'] = $metaQuery;
         }
+
+        // Disable caching for performance during counts
+        $queryArgs['update_post_meta_cache'] = false;
+        $queryArgs['update_post_term_cache'] = false;
+        $queryArgs['cache_results'] = false;
 
         return $queryArgs;
     }

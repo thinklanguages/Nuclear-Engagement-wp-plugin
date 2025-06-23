@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 /**
  * File: modules/toc/includes/class-nuclen-toc-assets.php
  *
@@ -8,6 +9,8 @@
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
+
+use NuclearEngagement\AssetVersions;
 
 final class Nuclen_TOC_Assets {
         /** Default vertical offset for scroll-to behaviour. */
@@ -50,8 +53,8 @@ final class Nuclen_TOC_Assets {
                 $css_p = NUCLEN_TOC_DIR . 'assets/css/nuclen-toc-front.css';
                 $js_p  = NUCLEN_TOC_DIR . 'assets/js/nuclen-toc-front.js';
 
-                $css_v = file_exists( $css_p ) ? filemtime( $css_p ) : NUCLEN_ASSET_VERSION;
-                $js_v  = file_exists( $js_p )  ? filemtime( $js_p )  : NUCLEN_ASSET_VERSION;
+                $css_v = AssetVersions::get( 'toc_front_css' );
+                $js_v  = AssetVersions::get( 'toc_front_js' );
 
                 wp_register_style(
                         'nuclen-toc-front',

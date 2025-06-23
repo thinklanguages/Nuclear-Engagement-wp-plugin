@@ -15,5 +15,8 @@ import './nuclen-admin-generate-page';
 // Admin UI (tabs, color pickers, theme toggles)
 import './nuclen-admin-ui';
 
-// Onboardingh
+// Onboarding
 import './nuclen-admin-onboarding';
+
+// Gutenberg block registrations
+import './blocks/nuclen-editor-blocks';
