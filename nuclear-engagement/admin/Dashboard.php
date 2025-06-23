@@ -28,9 +28,16 @@ $allowed_post_types = is_array($allowed_post_types) ? $allowed_post_types : arra
 
 /* Attempt to use cached inventory unless refresh requested */
 $inventory_cache = \NuclearEngagement\InventoryCache::get();
-if ( isset( $_GET['nuclen_refresh_inventory'] ) ) {
+if (
+    isset( $_GET['nuclen_refresh_inventory'] ) &&
+    isset( $_GET['nuclen_refresh_inventory_nonce'] ) &&
+    wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['nuclen_refresh_inventory_nonce'] ) ), 'nuclen_refresh_inventory' ) &&
+    current_user_can( 'manage_options' )
+) {
     \NuclearEngagement\InventoryCache::clear();
     $inventory_cache = null;
+    wp_safe_redirect( remove_query_arg( array( 'nuclen_refresh_inventory', 'nuclen_refresh_inventory_nonce' ) ) );
+    exit;
 }
 
 /* ──────────────────────────────────────────────────────────────

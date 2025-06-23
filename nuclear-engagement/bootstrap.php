@@ -144,5 +144,16 @@ function nuclear_engagement_run_plugin() {
     $plugin->nuclen_run();
 }
 
-InventoryCache::register_hooks();
-nuclear_engagement_run_plugin();
+function nuclear_engagement_init() {
+    try {
+        InventoryCache::register_hooks();
+    } catch ( \Throwable $e ) {
+        error_log( 'Nuclear Engagement: Cache registration failed - ' . $e->getMessage() );
+        add_action( 'admin_notices', static function () {
+            echo '<div class="error"><p>Nuclear Engagement: Cache system initialization failed.</p></div>';
+        } );
+    }
+
+    nuclear_engagement_run_plugin();
+}
+add_action( 'plugins_loaded', 'nuclear_engagement_init' );

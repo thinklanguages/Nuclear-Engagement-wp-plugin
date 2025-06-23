@@ -71,8 +71,9 @@ final class InventoryCache {
      * Get cached inventory data.
      */
     public static function get(): ?array {
-        $cached = wp_cache_get( self::get_cache_key(), self::CACHE_GROUP );
-        return is_array( $cached ) ? $cached : null;
+        $found  = false;
+        $cached = wp_cache_get( self::get_cache_key(), self::CACHE_GROUP, false, $found );
+        return $found && is_array( $cached ) ? $cached : null;
     }
 
     /**
@@ -89,8 +90,6 @@ final class InventoryCache {
         wp_cache_delete( self::get_cache_key(), self::CACHE_GROUP );
         if ( function_exists( 'wp_cache_flush_group' ) ) {
             wp_cache_flush_group( self::CACHE_GROUP );
-        } else {
-            wp_cache_flush();
         }
     }
 }
