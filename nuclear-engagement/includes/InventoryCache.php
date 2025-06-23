@@ -15,7 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 final class InventoryCache {
-    /** Cache key for inventory data. */
+    /** Cache key base for inventory data. */
     public const CACHE_KEY = 'nuclen_inventory_data';
 
     /** Cache group used for inventory. */
@@ -29,7 +29,15 @@ final class InventoryCache {
      */
     public static function register_hooks(): void {
         $cb = [ self::class, 'clear' ];
-        foreach ( [ 'save_post', 'delete_post', 'deleted_post', 'trashed_post', 'untrashed_post', 'transition_post_status' ] as $hook ) {
+        foreach ( [
+            'save_post',
+            'delete_post',
+            'deleted_post',
+            'trashed_post',
+            'untrashed_post',
+            'transition_post_status',
+            'clean_post_cache',
+        ] as $hook ) {
             add_action( $hook, $cb );
         }
         foreach ( [ 'added_post_meta', 'updated_post_meta', 'deleted_post_meta' ] as $hook ) {
@@ -43,6 +51,9 @@ final class InventoryCache {
             'delete_term',
             'deleted_term',
             'set_object_terms',
+            'added_term_relationship',
+            'deleted_term_relationships',
+            'edited_terms',
         ] as $hook ) {
             add_action( $hook, $cb );
         }
@@ -50,10 +61,17 @@ final class InventoryCache {
     }
 
     /**
+     * Get the cache key for the current site.
+     */
+    private static function get_cache_key(): string {
+        return self::CACHE_KEY . '_' . get_current_blog_id();
+    }
+
+    /**
      * Get cached inventory data.
      */
     public static function get(): ?array {
-        $cached = wp_cache_get( self::CACHE_KEY, self::CACHE_GROUP );
+        $cached = wp_cache_get( self::get_cache_key(), self::CACHE_GROUP );
         return is_array( $cached ) ? $cached : null;
     }
 
@@ -61,14 +79,14 @@ final class InventoryCache {
      * Store inventory data in cache.
      */
     public static function set( array $data ): void {
-        wp_cache_set( self::CACHE_KEY, $data, self::CACHE_GROUP, self::CACHE_EXPIRATION );
+        wp_cache_set( self::get_cache_key(), $data, self::CACHE_GROUP, self::CACHE_EXPIRATION );
     }
 
     /**
      * Clear the inventory cache.
      */
     public static function clear(): void {
-        wp_cache_delete( self::CACHE_KEY, self::CACHE_GROUP );
+        wp_cache_delete( self::get_cache_key(), self::CACHE_GROUP );
         if ( function_exists( 'wp_cache_flush_group' ) ) {
             wp_cache_flush_group( self::CACHE_GROUP );
         } else {
