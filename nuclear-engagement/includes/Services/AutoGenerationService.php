@@ -210,7 +210,7 @@ class AutoGenerationService {
                             'generation_id' => $generation_id,
                         )
                     );
-                } catch ( ApiException $e ) {
+                } catch ( \Throwable $e ) {
                     \NuclearEngagement\Services\LoggingService::log( 'Failed to start generation: ' . $e->getMessage() );
                     \NuclearEngagement\Services\LoggingService::notify_admin( 'Auto-generation failed: ' . $e->getMessage() );
                     continue;
