@@ -74,11 +74,11 @@ if ( $delete_log ) {
 
 // Remove custom theme file if requested.
 if ( $delete_css ) {
-		$info = \NuclearEngagement\Utils::nuclen_get_custom_css_info();
-	if ( file_exists( $info['path'] ) ) {
-			wp_delete_file( $info['path'] );
-	}
-		delete_option( 'nuclen_custom_css_version' );
+                $info = \NuclearEngagement\Utils::nuclen_get_custom_css_info();
+        if ( ! empty( $info ) && file_exists( $info['path'] ) ) {
+                        wp_delete_file( $info['path'] );
+        }
+                delete_option( 'nuclen_custom_css_version' );
 }
 
 // Drop opt-in table only when the user opts to delete settings or generated

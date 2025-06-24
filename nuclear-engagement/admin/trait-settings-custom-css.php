@@ -123,9 +123,13 @@ trait SettingsPageCustomCSSTrait {
 }
 CSS;
 
-		$css_info        = \NuclearEngagement\Utils::nuclen_get_custom_css_info();
-		$custom_dir      = $css_info['dir'];
-		$custom_css_path = $css_info['path'];
+                $css_info = \NuclearEngagement\Utils::nuclen_get_custom_css_info();
+                if ( empty( $css_info ) ) {
+                        \NuclearEngagement\Services\LoggingService::notify_admin( __( 'Could not create custom CSS directory.', 'nuclear-engagement' ) );
+                        return;
+                }
+                $custom_dir      = $css_info['dir'];
+                $custom_css_path = $css_info['path'];
 
 		if ( ! function_exists( 'WP_Filesystem' ) ) {
 			require_once ABSPATH . 'wp-admin/includes/file.php';

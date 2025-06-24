@@ -32,18 +32,18 @@ trait AssetsTrait {
 	private function get_theme_assets( string $theme_choice ): array {
 		$default = 'bright';
 
-		if ( $theme_choice === 'custom' ) {
-			$css_info = \NuclearEngagement\Utils::nuclen_get_custom_css_info();
-			if ( empty( $css_info['url'] ) ) {
-				error_log( 'Invalid custom CSS info - falling back to bright theme' );
-				$theme_choice = $default;
-			} else {
-				return array(
-					'url'     => $css_info['url'],
-					'version' => get_option( 'nuclen_custom_css_version', AssetVersions::get( 'theme_bright_css' ) ),
-				);
-			}
-		}
+                if ( $theme_choice === 'custom' ) {
+                        $css_info = \NuclearEngagement\Utils::nuclen_get_custom_css_info();
+                        if ( empty( $css_info ) || empty( $css_info['url'] ) ) {
+                                \NuclearEngagement\Services\LoggingService::log( 'Invalid custom CSS info - falling back to bright theme' );
+                                $theme_choice = $default;
+                        } else {
+                                return array(
+                                        'url'     => $css_info['url'],
+                                        'version' => get_option( 'nuclen_custom_css_version', AssetVersions::get( 'theme_bright_css' ) ),
+                                );
+                        }
+                }
 
 		$themes      = ThemeRegistry::get_themes();
 		$theme       = isset( $themes[ $theme_choice ] ) ? $theme_choice : $default;
