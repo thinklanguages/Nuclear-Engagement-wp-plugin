@@ -27,27 +27,42 @@ define( 'NUCLEN_ASSET_VERSION', '250624-1' );
 
 $autoload = __DIR__ . '/vendor/autoload.php';
 if ( ! file_exists( $autoload ) ) {
-	$autoload = dirname( __DIR__ ) . '/vendor/autoload.php';
+        $autoload = dirname( __DIR__ ) . '/vendor/autoload.php';
 }
 if ( file_exists( $autoload ) ) {
         require_once $autoload;
 } else {
         error_log( 'Nuclear Engagement: vendor autoload not found.' );
-        spl_autoload_register(
-                static function ( $class ) {
-                        $prefix = 'NuclearEngagement\\';
-                        if ( strpos( $class, $prefix ) !== 0 ) {
-                                return;
-                        }
-
-                        $relative = str_replace( '\\', '/', substr( $class, strlen( $prefix ) ) );
-                        $path     = NUCLEN_PLUGIN_DIR . $relative . '.php';
-                        if ( file_exists( $path ) ) {
-                                require_once $path;
-                        }
-                }
-        );
 }
+
+// Register plugin autoloader for internal classes.
+spl_autoload_register(
+        static function ( $class ) {
+                $prefix = 'NuclearEngagement\\';
+                if ( strpos( $class, $prefix ) !== 0 ) {
+                        return;
+                }
+
+                $relative = substr( $class, strlen( $prefix ) );
+                $parts    = explode( '\\', $relative );
+
+                if ( count( $parts ) === 1 ) {
+                        $file = $parts[0];
+                        $path = NUCLEN_PLUGIN_DIR . 'includes/' . $file . '.php';
+                        if ( ! file_exists( $path ) ) {
+                                $snake = 'class-' . strtolower( preg_replace( '/(?<!^)([A-Z])/', '-$1', $file ) ) . '.php';
+                                $path  = NUCLEN_PLUGIN_DIR . 'includes/' . $snake;
+                        }
+                } else {
+                        $dir  = strtolower( array_shift( $parts ) );
+                        $path = NUCLEN_PLUGIN_DIR . $dir . '/' . implode( '/', $parts ) . '.php';
+                }
+
+                if ( file_exists( $path ) ) {
+                        require_once $path;
+                }
+        }
+);
 if ( file_exists( NUCLEN_PLUGIN_DIR . 'includes/constants.php' ) ) {
 	require_once NUCLEN_PLUGIN_DIR . 'includes/constants.php';
 } else {
