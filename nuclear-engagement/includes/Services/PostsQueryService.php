@@ -11,6 +11,7 @@ declare(strict_types=1);
 namespace NuclearEngagement\Services;
 
 use NuclearEngagement\Requests\PostsCountRequest;
+use NuclearEngagement\Services\LoggingService;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -130,6 +131,10 @@ class PostsQueryService {
 
                $post_ids = $wpdb->get_col( "SELECT p.ID $sql" );
                $count    = (int) $wpdb->get_var( "SELECT COUNT(*) $sql" );
+
+               if ( $wpdb->last_error ) {
+                       LoggingService::log( 'Posts query error: ' . $wpdb->last_error );
+               }
 
                return array(
                        'count'    => $count,

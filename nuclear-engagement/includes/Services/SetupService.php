@@ -127,12 +127,20 @@ class SetupService {
 			)
 		);
 
-		if ( is_wp_error( $response ) ) {
-			\NuclearEngagement\Services\LoggingService::log( 'Error sending creds: ' . $response->get_error_message() );
-			return false;
-		}
+                if ( is_wp_error( $response ) ) {
+                        \NuclearEngagement\Services\LoggingService::log( 'Error sending creds: ' . $response->get_error_message() );
+                        return false;
+                }
 
-		\NuclearEngagement\Services\LoggingService::debug( 'Send creds response: ' . wp_remote_retrieve_body( $response ) );
-		return wp_remote_retrieve_response_code( $response ) === 200;
-	}
+                $code = wp_remote_retrieve_response_code( $response );
+                $body = wp_remote_retrieve_body( $response );
+                \NuclearEngagement\Services\LoggingService::debug( 'Send creds response: ' . $body );
+
+                if ( 200 !== $code ) {
+                        \NuclearEngagement\Services\LoggingService::log( 'Unexpected creds response code: ' . $code . ', body: ' . $body );
+                        return false;
+                }
+
+                return true;
+        }
 }
