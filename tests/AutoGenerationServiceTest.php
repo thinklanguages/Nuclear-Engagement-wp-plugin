@@ -46,7 +46,7 @@ class AutoGenerationServiceTest extends TestCase {
         $wp_posts[1] = (object)[ 'ID' => 1, 'post_title' => 'T', 'post_content' => 'C' ];
         $service = $this->makeService();
         $service->generate_single(1, 'quiz');
-        $this->assertSame('no', $wp_autoload['nuclen_active_generations']);
+        $this->assertSame('no', $wp_autoload['nuclen_autogen_queue']);
     }
 
     public function test_generate_single_does_not_schedule_on_error(): void {
@@ -56,8 +56,10 @@ class AutoGenerationServiceTest extends TestCase {
         $api->generateResponse = new ApiException('nope');
         $service = $this->makeService($api);
         $service->generate_single(1, 'quiz');
+        $service->process_queue();
         $this->assertEmpty($wp_events);
         $this->assertEmpty($wp_options['nuclen_active_generations'] ?? []);
+        $this->assertArrayNotHasKey('nuclen_autogen_queue', $wp_options);
     }
 
     public function test_poll_generation_removes_entry_after_success(): void {
@@ -67,7 +69,7 @@ class AutoGenerationServiceTest extends TestCase {
         $api = new DummyRemoteApiService();
         $api->updates[$id] = ['results' => ['1'=>['ok']]];
         $service = $this->makeService($api);
-        $service->poll_generation($id, 'quiz', 1, 1);
+        $service->poll_generation($id, 'quiz', [1], 1);
         $this->assertArrayNotHasKey($id, $wp_options['nuclen_active_generations'] ?? []);
     }
 
@@ -77,7 +79,7 @@ class AutoGenerationServiceTest extends TestCase {
         $wp_options['nuclen_active_generations'] = [ $id => ['foo'=>'bar'] ];
         $api = new DummyRemoteApiService();
         $service = $this->makeService($api);
-        $service->poll_generation($id, 'quiz', 1, AutoGenerationService::MAX_ATTEMPTS);
+        $service->poll_generation($id, 'quiz', [1], AutoGenerationService::MAX_ATTEMPTS);
         $this->assertArrayNotHasKey($id, $wp_options['nuclen_active_generations'] ?? []);
     }
 

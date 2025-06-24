@@ -20,8 +20,17 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 class AutoGenerationService {
-	/** Cron hook used to start a generation task. */
-	public const START_HOOK = 'nuclen_start_generation';
+        /** Cron hook used to start a generation task. */
+        public const START_HOOK = 'nuclen_start_generation';
+
+        /** Cron hook for processing the queued posts. */
+        public const QUEUE_HOOK = 'nuclen_process_autogen_queue';
+
+        /** Maximum number of posts to send in one batch. */
+        public const BATCH_SIZE = 5;
+
+        /** Option name storing the queued post IDs. */
+        private const QUEUE_OPTION = 'nuclen_autogen_queue';
 
 	/** Number of seconds before the first poll runs. */
 	public const INITIAL_POLL_DELAY = NUCLEN_INITIAL_POLL_DELAY;
@@ -89,12 +98,14 @@ class AutoGenerationService {
 	public function register_hooks(): void {
 		$this->poller->register_hooks();
 
-		add_action(
-			self::START_HOOK,
-			array( $this, 'run_generation' ),
-			10,
-			2 // post_id, workflow_type
-		);
+                add_action(
+                        self::START_HOOK,
+                        array( $this, 'run_generation' ),
+                        10,
+                        2 // post_id, workflow_type
+                );
+
+                add_action( self::QUEUE_HOOK, array( $this, 'process_queue' ) );
 
 		$this->publish_handler->register_hooks();
 	}
@@ -116,100 +127,128 @@ class AutoGenerationService {
 	 * @param int    $post_id Post ID
 	 * @param string $workflow_type Type of content to generate (quiz/summary)
 	 */
-	public function generate_single( int $post_id, string $workflow_type ): void {
-		$post = get_post( $post_id );
-		if ( ! $post ) {
-			return;
-		}
+    public function generate_single( int $post_id, string $workflow_type ): void {
+        $this->queue_post( $post_id, $workflow_type );
+    }
 
-		// Skip if protected (double-check)
-		$meta_key = $workflow_type === 'quiz' ? 'nuclen_quiz_protected' : 'nuclen_summary_protected';
-		if ( get_post_meta( $post_id, $meta_key, true ) ) {
-			return;
-		}
+    /**
+     * Add a post to the pending generation queue and schedule processing.
+     */
+    private function queue_post( int $post_id, string $workflow_type ): void {
+        $queue = get_option( self::QUEUE_OPTION, array() );
+        if ( ! isset( $queue[ $workflow_type ] ) ) {
+            $queue[ $workflow_type ] = array();
+        }
+        if ( ! in_array( $post_id, $queue[ $workflow_type ], true ) ) {
+            $queue[ $workflow_type ][] = $post_id;
+            update_option( self::QUEUE_OPTION, $queue, 'no' );
+        }
+        if ( ! wp_next_scheduled( self::QUEUE_HOOK ) ) {
+            wp_schedule_single_event( time(), self::QUEUE_HOOK, array() );
+        }
+    }
 
-		try {
-			$post_data = array(
-				array(
-					'id'      => $post_id,
-					'title'   => get_the_title( $post_id ),
-					'content' => wp_strip_all_tags( $post->post_content ),
-				),
-			);
+    /**
+     * Process queued posts in batches.
+     */
+    public function process_queue(): void {
+        $queue = get_option( self::QUEUE_OPTION, array() );
+        if ( empty( $queue ) ) {
+            return;
+        }
 
-			$workflow = array(
-				'type'                    => $workflow_type,
-				'summary_format'          => 'paragraph',
-				'summary_length'          => self::SUMMARY_LENGTH,
-				'summary_number_of_items' => self::SUMMARY_ITEMS,
-			);
+        $generations = get_option( 'nuclen_active_generations', array() );
 
-			$generation_id = 'gen_' . uniqid( 'auto_', true );
+        foreach ( $queue as $workflow_type => $ids ) {
+            $ids = array_map( 'absint', $ids );
+            while ( ! empty( $ids ) ) {
+                $batch       = array_splice( $ids, 0, self::BATCH_SIZE );
+                $post_data   = array();
 
-			$data_to_send = array(
-				'posts'         => $post_data,
-				'workflow'      => $workflow,
-				'generation_id' => $generation_id,
-			);
+                foreach ( $batch as $pid ) {
+                    $post = get_post( $pid );
+                    if ( ! $post ) {
+                        continue;
+                    }
+                    $meta_key = $workflow_type === 'quiz' ? 'nuclen_quiz_protected' : 'nuclen_summary_protected';
+                    if ( get_post_meta( $pid, $meta_key, true ) ) {
+                        continue;
+                    }
+                    $post_data[] = array(
+                        'id'      => $pid,
+                        'title'   => get_the_title( $pid ),
+                        'content' => wp_strip_all_tags( $post->post_content ),
+                    );
+                }
 
-			try {
-					$this->remote_api->send_posts_to_generate( $data_to_send );
-			} catch ( ApiException $e ) {
-				\NuclearEngagement\Services\LoggingService::log(
-					'Failed to start generation: ' . $e->getMessage()
-				);
-				\NuclearEngagement\Services\LoggingService::notify_admin( 'Auto-generation failed: ' . $e->getMessage() );
-				$gens = get_option( 'nuclen_active_generations', array() );
-				if ( isset( $gens[ $generation_id ] ) ) {
-					unset( $gens[ $generation_id ] );
-					if ( empty( $gens ) ) {
-						delete_option( 'nuclen_active_generations' );
-					} else {
-						update_option( 'nuclen_active_generations', $gens, 'no' );
-					}
-				}
-				return;
-			}
+                if ( empty( $post_data ) ) {
+                    continue;
+                }
 
-			// Schedule the first poll with a slight random offset to avoid collisions
-			$next_poll = time() + self::INITIAL_POLL_DELAY + mt_rand( 1, 5 );
+                $workflow = array(
+                    'type'                    => $workflow_type,
+                    'summary_format'          => 'paragraph',
+                    'summary_length'          => self::SUMMARY_LENGTH,
+                    'summary_number_of_items' => self::SUMMARY_ITEMS,
+                );
 
-			// Store the generation ID in options for the cron job
-			$generations                   = get_option( 'nuclen_active_generations', array() );
-			$generations[ $generation_id ] = array(
-				'started_at'    => current_time( 'mysql' ),
-				'post_ids'      => array( $post_id ),
-				'next_poll'     => $next_poll,
-				'attempt'       => 1,
-				'workflow_type' => $workflow_type,
-			);
-			// Do not autoload active generation state
-			update_option( 'nuclen_active_generations', $generations, 'no' );
+                $generation_id = 'gen_' . uniqid( 'auto_', true );
 
-			// Schedule the cron event
-			$event_args = array( $generation_id, $workflow_type, $post_id, 1 );
-			if ( ! wp_next_scheduled( 'nuclen_poll_generation', $event_args ) ) {
-				wp_schedule_single_event( $next_poll, 'nuclen_poll_generation', $event_args );
-			}
-		} catch ( \Throwable $e ) {
-			\NuclearEngagement\Services\LoggingService::log(
-				'Error in generate_single: ' . $e->getMessage()
-			);
-			\NuclearEngagement\Services\LoggingService::notify_admin( 'Auto-generation error: ' . $e->getMessage() );
-		}
-	}
+                try {
+                    $this->remote_api->send_posts_to_generate(
+                        array(
+                            'posts'         => $post_data,
+                            'workflow'      => $workflow,
+                            'generation_id' => $generation_id,
+                        )
+                    );
+                } catch ( ApiException $e ) {
+                    \NuclearEngagement\Services\LoggingService::log( 'Failed to start generation: ' . $e->getMessage() );
+                    \NuclearEngagement\Services\LoggingService::notify_admin( 'Auto-generation failed: ' . $e->getMessage() );
+                    continue;
+                }
+
+                $next_poll                    = time() + self::INITIAL_POLL_DELAY + mt_rand( 1, 5 );
+                $generations[ $generation_id ] = array(
+                    'started_at'    => current_time( 'mysql' ),
+                    'post_ids'      => $batch,
+                    'next_poll'     => $next_poll,
+                    'attempt'       => 1,
+                    'workflow_type' => $workflow_type,
+                );
+
+                update_option( 'nuclen_active_generations', $generations, 'no' );
+                wp_schedule_single_event( $next_poll, 'nuclen_poll_generation', array( $generation_id, $workflow_type, $batch, 1 ) );
+            }
+
+            $queue[ $workflow_type ] = $ids;
+        }
+
+        foreach ( $queue as $type => $ids ) {
+            if ( empty( $ids ) ) {
+                unset( $queue[ $type ] );
+            }
+        }
+
+        if ( empty( $queue ) ) {
+            delete_option( self::QUEUE_OPTION );
+        } else {
+            update_option( self::QUEUE_OPTION, $queue, 'no' );
+            wp_schedule_single_event( time() + 1, self::QUEUE_HOOK, array() );
+        }
+    }
 
 	/**
 	 * Poll for generation updates
 	 *
 	 * @param string $generation_id Generation ID
 	 * @param string $workflow_type Type of workflow (quiz/summary)
-	 * @param int    $post_id Post ID
-	 * @param int    $attempt Current attempt number
-	 */
-	public function poll_generation( string $generation_id, string $workflow_type, int $post_id, int $attempt ): void {
-		$this->poller->poll_generation( $generation_id, $workflow_type, $post_id, $attempt );
-	}
+         * @param array $post_ids List of post IDs
+         * @param int   $attempt  Current attempt number
+         */
+    public function poll_generation( string $generation_id, string $workflow_type, array $post_ids, int $attempt ): void {
+        $this->poller->poll_generation( $generation_id, $workflow_type, $post_ids, $attempt );
+    }
 
 	/**
 	 * Cron callback to start a generation task for a post.
