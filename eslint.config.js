@@ -2,8 +2,11 @@ import tsPlugin from '@typescript-eslint/eslint-plugin';
 import tsParser from '@typescript-eslint/parser';
 import js from '@eslint/js';
 import fs from 'fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const tsconfigPath = new URL('./tsconfig.json', import.meta.url).pathname;
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const tsconfigPath = path.join(__dirname, 'tsconfig.json');
 if (!fs.existsSync(tsconfigPath)) {
   console.error('tsconfig.json not found at', tsconfigPath);
 }
@@ -18,7 +21,7 @@ export default [
     languageOptions: {
       parser: tsParser,
       parserOptions: {
-        project: './tsconfig.json',
+        project: tsconfigPath,
         tsconfigRootDir: __dirname
       }
     },
