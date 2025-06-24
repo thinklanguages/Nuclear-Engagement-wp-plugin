@@ -38,6 +38,8 @@ if ( file_exists( $autoload ) ) {
         require_once $autoload;
 } else {
         \NuclearEngagement\Services\LoggingService::log( 'Nuclear Engagement: vendor autoload not found.' );
+        \NuclearEngagement\Services\LoggingService::notify_admin( 'Nuclear Engagement dependencies missing. Please run composer install.' );
+        return;
 }
 
 // Register plugin autoloader for internal classes.
