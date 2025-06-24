@@ -47,12 +47,12 @@ class GenerationPoller {
 	 * Register WordPress hook for polling events.
 	 */
 	public function register_hooks(): void {
-		add_action(
-			'nuclen_poll_generation',
-			array( $this, 'poll_generation' ),
-			10,
-			4 // generation_id, workflow_type, post_id, attempt
-		);
+        add_action(
+                        'nuclen_poll_generation',
+                        array( $this, 'poll_generation' ),
+                        10,
+                        4 // generation_id, workflow_type, post_ids, attempt
+                );
 	}
 
 	/**
@@ -60,10 +60,10 @@ class GenerationPoller {
 	 *
 	 * @param string $generation_id Generation ID
 	 * @param string $workflow_type  Type of workflow (quiz/summary)
-	 * @param int    $post_id        Post ID
-	 * @param int    $attempt        Current attempt number
-	 */
-	public function poll_generation( string $generation_id, string $workflow_type, int $post_id, int $attempt ): void {
+         * @param array $post_ids      List of post IDs in this batch
+         * @param int   $attempt       Current attempt number
+         */
+        public function poll_generation( string $generation_id, string $workflow_type, array $post_ids, int $attempt ): void {
 		$max_attempts = AutoGenerationService::MAX_ATTEMPTS;
 		$retry_delay  = AutoGenerationService::RETRY_DELAY;
 
@@ -78,38 +78,38 @@ class GenerationPoller {
 
 			if ( ! empty( $data['results'] ) && is_array( $data['results'] ) ) {
 				$this->content_storage->storeResults( $data['results'], $workflow_type );
-				\NuclearEngagement\Services\LoggingService::log(
-					"Poll success for post {$post_id} ({$workflow_type}), generation {$generation_id}"
-				);
+                                \NuclearEngagement\Services\LoggingService::log(
+                                        "Poll success for generation {$generation_id}"
+                                );
 				$this->cleanup_generation( $generation_id );
 				return;
 			}
 
 			if ( isset( $data['success'] ) && $data['success'] === true ) {
-				\NuclearEngagement\Services\LoggingService::log(
-					"Still processing post {$post_id} ({$workflow_type}), attempt {$attempt}/{$max_attempts}"
-				);
+                                \NuclearEngagement\Services\LoggingService::log(
+                                        "Still processing generation {$generation_id}, attempt {$attempt}/{$max_attempts}"
+                                );
 			}
 		} catch ( ApiException $e ) {
-			\NuclearEngagement\Services\LoggingService::log(
-				"Polling error for post {$post_id} ({$workflow_type}): " . $e->getMessage()
-			);
+                                \NuclearEngagement\Services\LoggingService::log(
+                                        "Polling error for generation {$generation_id}: " . $e->getMessage()
+                                );
 			if ( $attempt >= $max_attempts ) {
 				$this->cleanup_generation( $generation_id );
 				return;
 			}
 		} catch ( \Throwable $e ) {
-			\NuclearEngagement\Services\LoggingService::log(
-				"Polling error for post {$post_id} ({$workflow_type}): " . $e->getMessage()
-			);
+                                \NuclearEngagement\Services\LoggingService::log(
+                                        "Polling error for generation {$generation_id}: " . $e->getMessage()
+                                );
 			if ( $attempt >= $max_attempts ) {
 				$this->cleanup_generation( $generation_id );
 				return;
 			}
 		}
 
-		if ( $attempt < $max_attempts ) {
-			$event_args = array( $generation_id, $workflow_type, $post_id, $attempt + 1 );
+                if ( $attempt < $max_attempts ) {
+                        $event_args = array( $generation_id, $workflow_type, $post_ids, $attempt + 1 );
 			wp_schedule_single_event(
 				time() + $retry_delay,
 				'nuclen_poll_generation',
@@ -117,7 +117,7 @@ class GenerationPoller {
 			);
 		} else {
 			\NuclearEngagement\Services\LoggingService::log(
-				"Polling aborted after {$max_attempts} attempts for post {$post_id} ({$workflow_type})"
+                                "Polling aborted after {$max_attempts} attempts for generation {$generation_id}"
 			);
 			$this->cleanup_generation( $generation_id );
 		}

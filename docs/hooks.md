@@ -10,7 +10,7 @@ into two groups: **actions** (events you can run code on) and
 | Hook | Parameters | Usage |
 | --- | --- | --- |
 | `nuclen_start_generation` | `int $post_id`, `string $workflow_type` | Fired by WP‑Cron to kick off generation of a quiz or summary for a post. You can hook in to log or modify the process before content is generated. |
-| `nuclen_poll_generation` | `string $generation_id`, `string $workflow_type`, `int $post_id`, `int $attempt` | Runs on a schedule to poll the Nuclear Engagement API for generation results. Useful for monitoring or altering the polling behaviour. |
+| `nuclen_poll_generation` | `string $generation_id`, `string $workflow_type`, `array $post_ids`, `int $attempt` | Runs on a schedule to poll the Nuclear Engagement API for generation results. Useful for monitoring or altering the polling behaviour. |
 | `wp_ajax_nuclen_trigger_generation` | `$_POST` data | AJAX endpoint to start manual generation from the admin. |
 | `wp_ajax_nuclen_fetch_app_updates` | `$_POST` data | Retrieves generation progress updates via AJAX. |
 | `wp_ajax_nuclen_get_posts_count` | `$_POST` data | Returns the number of posts that match the current bulk generate filters. |
