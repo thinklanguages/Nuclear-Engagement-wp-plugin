@@ -106,7 +106,15 @@ if (!function_exists('is_wp_error')) {
 }
 if (!class_exists('WP_Error')) {
     class WP_Error {
-        public function get_error_message() { return 'error'; }
+        public $data;
+        public $code;
+        public $message;
+        public function __construct($code = '', $message = '', $data = null) {
+            $this->code = $code;
+            $this->message = $message;
+            $this->data = $data;
+        }
+        public function get_error_message() { return $this->message ?: 'error'; }
     }
 }
 
