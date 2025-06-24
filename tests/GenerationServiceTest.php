@@ -34,7 +34,7 @@ class GenerationServiceTest extends TestCase {
     protected function setUp(): void {
         global $wp_posts, $wp_options, $wp_autoload;
         $wp_posts = $wp_options = $wp_autoload = [];
-        SettingsRepository::_reset_for_tests();
+        SettingsRepository::reset_for_tests();
     }
 
     private function makeService(): GenerationService {

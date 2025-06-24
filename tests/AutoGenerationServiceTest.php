@@ -27,7 +27,7 @@ class AutoGenerationServiceTest extends TestCase {
     protected function setUp(): void {
         global $wp_options, $wp_autoload, $wp_posts, $wp_meta, $wp_events;
         $wp_options = $wp_autoload = $wp_posts = $wp_meta = $wp_events = [];
-        SettingsRepository::_reset_for_tests();
+        SettingsRepository::reset_for_tests();
     }
 
     private function makeService(?DummyRemoteApiService $api = null): AutoGenerationService {

@@ -24,7 +24,7 @@ class SettingsRepositoryTest extends TestCase {
     }
 
     public function test_sanitize_post_types_removes_invalid() {
-        SettingsRepository::_reset_for_tests();
+        SettingsRepository::reset_for_tests();
         $ref = new \ReflectionMethod(SettingsSanitizer::class, 'sanitize_post_types');
         $ref->setAccessible(true);
         $input = ['POST', 'page', 'invalid', 'custom?'];
@@ -33,7 +33,7 @@ class SettingsRepositoryTest extends TestCase {
     }
 
     public function test_should_autoload_based_on_size() {
-        SettingsRepository::_reset_for_tests();
+        SettingsRepository::reset_for_tests();
         $instance = SettingsRepository::get_instance();
         $ref = new \ReflectionMethod(SettingsRepository::class, 'should_autoload');
         $ref->setAccessible(true);
@@ -44,7 +44,7 @@ class SettingsRepositoryTest extends TestCase {
     }
 
     public function test_get_defaults_includes_custom_values() {
-        SettingsRepository::_reset_for_tests();
+        SettingsRepository::reset_for_tests();
         $instance = SettingsRepository::get_instance(['foo' => 'bar', 'theme' => 'dark']);
         $defaults = $instance->get_defaults();
         $this->assertSame('bar', $defaults['foo']);

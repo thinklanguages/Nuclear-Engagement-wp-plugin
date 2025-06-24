@@ -111,10 +111,11 @@ final class SettingsRepository {
 	}
 
 
-	/*
-	===================================================================
-	 * GETTERS
-	 * =================================================================== */
+       /*
+       ===================================================================
+        * GETTERS
+        * ===================================================================
+        */
 
 	/**
 	 * Get all settings with defaults merged in.
@@ -178,10 +179,11 @@ final class SettingsRepository {
 	use PendingSettingsTrait;
 
 
-	/*
-	===================================================================
-	 * SAVE/PERSISTENCE
-	 * =================================================================== */
+       /*
+       ===================================================================
+        * SAVE/PERSISTENCE
+        * ===================================================================
+        */
 
 	/**
 	 * Save pending settings to database.
@@ -229,10 +231,11 @@ final class SettingsRepository {
 	}
 
 
-	/*
-	===================================================================
-	 * CACHE MANAGEMENT
-	 * =================================================================== */
+       /*
+       ===================================================================
+        * CACHE MANAGEMENT
+        * ===================================================================
+        */
 
 	/**
 	 * Invalidate the settings cache.
@@ -252,9 +255,10 @@ final class SettingsRepository {
 	 * @param mixed  $old_value The old option value.
 	 * @param mixed  $value     The new option value.
 	 */
-	public function maybe_invalidate_cache( $option, $old_value, $value ): void {
-		$this->cache->maybe_invalidate_cache( $option );
-	}
+       public function maybe_invalidate_cache( $option, $old_value, $value ): void {
+               unset( $old_value, $value );
+               $this->cache->maybe_invalidate_cache( $option );
+       }
 
 	/**
 	 * Handle option deletion to invalidate cache.
@@ -267,10 +271,11 @@ final class SettingsRepository {
 		$this->cache->maybe_invalidate_cache( $option );
 	}
 
-	/*
-	===================================================================
-	 * HELPERS
-	 * =================================================================== */
+       /*
+       ===================================================================
+        * HELPERS
+        * ===================================================================
+        */
 
 	/**
 	 * Check if a setting exists.
@@ -294,10 +299,10 @@ final class SettingsRepository {
 	 * @param array $settings The settings array to check.
 	 * @return bool True if settings should be autoloaded, false otherwise.
 	 */
-	private function should_autoload( array $settings ): bool {
-		$size = strlen( serialize( $settings ) );
-		return $size <= self::MAX_AUTOLOAD_SIZE;
-	}
+       private function should_autoload( array $settings ): bool {
+               $size = strlen( wp_json_encode( $settings ) );
+               return $size <= self::MAX_AUTOLOAD_SIZE;
+       }
 
 	/**
 	 * Get the default values.
@@ -324,12 +329,12 @@ final class SettingsRepository {
 	 *
 	 * @since 1.0.0
 	 */
-	public static function _reset_for_tests(): void {
-		self::$instance = null;
-		if ( function_exists( 'wp_cache_flush_group' ) ) {
-			wp_cache_flush_group( SettingsCache::CACHE_GROUP );
-		} else {
-			wp_cache_flush();
-		}
-	}
+       public static function reset_for_tests(): void {
+               self::$instance = null;
+               if ( function_exists( 'wp_cache_flush_group' ) ) {
+                       wp_cache_flush_group( SettingsCache::CACHE_GROUP );
+               } else {
+                       wp_cache_flush();
+               }
+       }
 }

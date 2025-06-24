@@ -21,7 +21,7 @@ namespace {
 class RemoteApiServiceTest extends TestCase {
     protected function setUp(): void {
         $GLOBALS['test_api_response'] = null;
-        SettingsRepository::_reset_for_tests();
+        SettingsRepository::reset_for_tests();
         $settings = SettingsRepository::get_instance();
         $settings->set_string('api_key', 'key')->save();
     }
