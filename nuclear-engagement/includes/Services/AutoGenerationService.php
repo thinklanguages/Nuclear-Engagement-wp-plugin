@@ -173,15 +173,22 @@ class AutoGenerationService {
                         'orderby'                => 'post__in',
                         'update_post_meta_cache' => false,
                         'update_post_term_cache' => false,
+                        'meta_query'             => array(
+                            'relation' => 'AND',
+                            array(
+                                'key'     => 'nuclen_quiz_protected',
+                                'compare' => 'NOT EXISTS',
+                            ),
+                            array(
+                                'key'     => 'nuclen_summary_protected',
+                                'compare' => 'NOT EXISTS',
+                            ),
+                        ),
                     )
                 );
 
                 foreach ( $posts as $post ) {
-                    $pid      = (int) $post->ID;
-                    $meta_key = $workflow_type === 'quiz' ? 'nuclen_quiz_protected' : 'nuclen_summary_protected';
-                    if ( get_post_meta( $pid, $meta_key, true ) ) {
-                        continue;
-                    }
+                    $pid = (int) $post->ID;
                     $post_data[] = array(
                         'id'      => $pid,
                         'title'   => get_the_title( $pid ),
