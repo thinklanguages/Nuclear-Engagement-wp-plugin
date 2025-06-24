@@ -65,28 +65,34 @@ spl_autoload_register(
                         } else {
                                 $path = NUCLEN_PLUGIN_DIR . $dir . '/' . implode( '/', $parts ) . '.php';
                                 if ( ! file_exists( $path ) ) {
+                                    $traits_path = NUCLEN_PLUGIN_DIR . $dir . '/traits/' . implode( '/', $parts ) . '.php';
+                                    if ( file_exists( $traits_path ) ) {
+                                        $path = $traits_path;
+                                    } else {
                                         $class_part = implode( '_', $parts );
 
                                         if ( strpos( $class_part, 'Admin_' ) === 0 ) {
-                                                $rest = substr( $class_part, strlen( 'Admin_' ) );
-                                                if ( substr( $rest, -8 ) === '_Metabox' ) {
-                                                        $rest = 'metabox-' . substr( $rest, 0, -8 );
-                                                } else {
-                                                        $rest = str_replace( '_', '-', $rest );
-                                                }
-                                                $alt   = 'trait-admin-' . strtolower( $rest ) . '.php';
+                                        $rest = substr( $class_part, strlen( 'Admin_' ) );
+                                        if ( substr( $rest, -8 ) === '_Metabox' ) {
+                                            $rest = 'metabox-' . substr( $rest, 0, -8 );
                                         } else {
-                                                $slug  = preg_replace( '/(?<!^)([A-Z])/', '-$1', $class_part );
-                                                $slug  = strtolower( str_replace( '_', '-', $slug ) );
-                                                $slug  = preg_replace( '/-trait$/', '', $slug );
-                                                $alt   = 'trait-' . $slug . '.php';
+                                            $rest = str_replace( '_', '-', $rest );
+                                        }
+                                        $alt = 'trait-admin-' . strtolower( $rest ) . '.php';
+                                        } else {
+                                        $slug = preg_replace( '/(?<!^)([A-Z])/', '-$1', $class_part );
+                                        $slug = strtolower( str_replace( '_', '-', $slug ) );
+                                        $slug = preg_replace( '/-trait$/', '', $slug );
+                                        $alt  = 'trait-' . $slug . '.php';
                                         }
 
                                         $alt_path = NUCLEN_PLUGIN_DIR . $dir . '/' . $alt;
                                         if ( file_exists( $alt_path ) ) {
-                                                $path = $alt_path;
+                                            $path = $alt_path;
                                         }
+                                    }
                                 }
+                            }
                         }
                 }
 
