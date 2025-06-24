@@ -39,8 +39,8 @@ class GenerationPoller {
 		ContentStorageService $content_storage
 	) {
 		$this->settings_repository = $settings_repository;
-		$this->remote_api		  = $remote_api;
-		$this->content_storage	 = $content_storage;
+		$this->remote_api          = $remote_api;
+		$this->content_storage     = $content_storage;
 	}
 
 	/**
@@ -60,15 +60,15 @@ class GenerationPoller {
 	 *
 	 * @param string $generation_id Generation ID
 	 * @param string $workflow_type  Type of workflow (quiz/summary)
-	 * @param int	$post_id		Post ID
-	 * @param int	$attempt		Current attempt number
+	 * @param int    $post_id        Post ID
+	 * @param int    $attempt        Current attempt number
 	 */
 	public function poll_generation( string $generation_id, string $workflow_type, int $post_id, int $attempt ): void {
 		$max_attempts = AutoGenerationService::MAX_ATTEMPTS;
 		$retry_delay  = AutoGenerationService::RETRY_DELAY;
 
 		try {
-			$connected	  = $this->settings_repository->get( 'connected', false );
+			$connected      = $this->settings_repository->get( 'connected', false );
 			$wp_app_created = $this->settings_repository->get( 'wp_app_pass_created', false );
 			if ( ! $connected || ! $wp_app_created ) {
 				return;

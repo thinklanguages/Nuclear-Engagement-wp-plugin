@@ -30,10 +30,10 @@ class PostsQueryService {
 		$metaQuery = array( 'relation' => 'AND' );
 
 		$queryArgs = array(
-			'post_type'	  => $request->postType,
+			'post_type'      => $request->postType,
 			'posts_per_page' => -1,
-			'post_status'	=> $request->postStatus,
-			'fields'		 => 'ids',
+			'post_status'    => $request->postStatus,
+			'fields'         => 'ids',
 		);
 
 		if ( $request->categoryId ) {
@@ -46,9 +46,9 @@ class PostsQueryService {
 
 		// Skip existing data if not allowing regeneration
 		if ( ! $request->allowRegenerate ) {
-			$metaKey	 = $request->workflow === 'quiz' ? 'nuclen-quiz-data' : 'nuclen-summary-data';
+			$metaKey     = $request->workflow === 'quiz' ? 'nuclen-quiz-data' : 'nuclen-summary-data';
 			$metaQuery[] = array(
-				'key'	 => $metaKey,
+				'key'     => $metaKey,
 				'compare' => 'NOT EXISTS',
 			);
 		}
@@ -59,11 +59,11 @@ class PostsQueryService {
 			$metaQuery[]  = array(
 				'relation' => 'OR',
 				array(
-					'key'	 => $protectedKey,
+					'key'     => $protectedKey,
 					'compare' => 'NOT EXISTS',
 				),
 				array(
-					'key'	 => $protectedKey,
+					'key'     => $protectedKey,
 					'value'   => '1',
 					'compare' => '!=',
 				),
@@ -78,7 +78,7 @@ class PostsQueryService {
 		// Disable caching for performance during counts
 		$queryArgs['update_post_meta_cache'] = false;
 		$queryArgs['update_post_term_cache'] = false;
-		$queryArgs['cache_results']		  = false;
+		$queryArgs['cache_results']          = false;
 
 		return $queryArgs;
 	}
@@ -91,10 +91,10 @@ class PostsQueryService {
 	 */
 	public function getPostsCount( PostsCountRequest $request ): array {
 		$queryArgs = $this->buildQueryArgs( $request );
-		$query	 = new \WP_Query( $queryArgs );
+		$query     = new \WP_Query( $queryArgs );
 
 		return array(
-			'count'	=> $query->found_posts,
+			'count'    => $query->found_posts,
 			'post_ids' => $query->posts ?: array(),
 		);
 	}

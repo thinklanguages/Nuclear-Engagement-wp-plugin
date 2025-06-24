@@ -65,8 +65,8 @@ class AutoGenerationService {
 	/**
 	 * Constructor
 	 *
-	 * @param SettingsRepository	$settings_repository
-	 * @param RemoteApiService	  $remote_api
+	 * @param SettingsRepository    $settings_repository
+	 * @param RemoteApiService      $remote_api
 	 * @param ContentStorageService $content_storage
 	 */
 	public function __construct(
@@ -77,10 +77,10 @@ class AutoGenerationService {
 		PublishGenerationHandler $publish_handler
 	) {
 		$this->settings_repository = $settings_repository;
-		$this->remote_api		  = $remote_api;
-		$this->content_storage	 = $content_storage;
-		$this->poller			  = $poller;
-		$this->publish_handler	 = $publish_handler;
+		$this->remote_api          = $remote_api;
+		$this->content_storage     = $content_storage;
+		$this->poller              = $poller;
+		$this->publish_handler     = $publish_handler;
 	}
 
 	/**
@@ -113,7 +113,7 @@ class AutoGenerationService {
 	/**
 	 * Generate content for a single post
 	 *
-	 * @param int	$post_id Post ID
+	 * @param int    $post_id Post ID
 	 * @param string $workflow_type Type of content to generate (quiz/summary)
 	 */
 	public function generate_single( int $post_id, string $workflow_type ): void {
@@ -131,29 +131,29 @@ class AutoGenerationService {
 		try {
 			$post_data = array(
 				array(
-					'id'	  => $post_id,
+					'id'      => $post_id,
 					'title'   => get_the_title( $post_id ),
 					'content' => wp_strip_all_tags( $post->post_content ),
 				),
 			);
 
 			$workflow = array(
-				'type'					=> $workflow_type,
-				'summary_format'		  => 'paragraph',
-				'summary_length'		  => self::SUMMARY_LENGTH,
+				'type'                    => $workflow_type,
+				'summary_format'          => 'paragraph',
+				'summary_length'          => self::SUMMARY_LENGTH,
 				'summary_number_of_items' => self::SUMMARY_ITEMS,
 			);
 
 			$generation_id = 'gen_' . uniqid( 'auto_', true );
 
 			$data_to_send = array(
-				'posts'		 => $post_data,
-				'workflow'	  => $workflow,
+				'posts'         => $post_data,
+				'workflow'      => $workflow,
 				'generation_id' => $generation_id,
 			);
 
-						try {
-								$this->remote_api->send_posts_to_generate( $data_to_send );
+			try {
+					$this->remote_api->send_posts_to_generate( $data_to_send );
 			} catch ( ApiException $e ) {
 				\NuclearEngagement\Services\LoggingService::log(
 					'Failed to start generation: ' . $e->getMessage()
@@ -175,12 +175,12 @@ class AutoGenerationService {
 			$next_poll = time() + self::INITIAL_POLL_DELAY + mt_rand( 1, 5 );
 
 			// Store the generation ID in options for the cron job
-			$generations				   = get_option( 'nuclen_active_generations', array() );
+			$generations                   = get_option( 'nuclen_active_generations', array() );
 			$generations[ $generation_id ] = array(
-				'started_at'	=> current_time( 'mysql' ),
-				'post_ids'	  => array( $post_id ),
-				'next_poll'	 => $next_poll,
-				'attempt'	   => 1,
+				'started_at'    => current_time( 'mysql' ),
+				'post_ids'      => array( $post_id ),
+				'next_poll'     => $next_poll,
+				'attempt'       => 1,
 				'workflow_type' => $workflow_type,
 			);
 			// Do not autoload active generation state
@@ -204,8 +204,8 @@ class AutoGenerationService {
 	 *
 	 * @param string $generation_id Generation ID
 	 * @param string $workflow_type Type of workflow (quiz/summary)
-	 * @param int	$post_id Post ID
-	 * @param int	$attempt Current attempt number
+	 * @param int    $post_id Post ID
+	 * @param int    $attempt Current attempt number
 	 */
 	public function poll_generation( string $generation_id, string $workflow_type, int $post_id, int $attempt ): void {
 		$this->poller->poll_generation( $generation_id, $workflow_type, $post_id, $attempt );
@@ -214,7 +214,7 @@ class AutoGenerationService {
 	/**
 	 * Cron callback to start a generation task for a post.
 	 *
-	 * @param int	$post_id	   Post ID
+	 * @param int    $post_id       Post ID
 	 * @param string $workflow_type Type of content to generate
 	 */
 	public function run_generation( int $post_id, string $workflow_type ): void {
@@ -224,7 +224,7 @@ class AutoGenerationService {
 	/**
 	 * Generate content for a single post (public alias for backward compatibility)
 	 *
-	 * @param int	$post_id Post ID
+	 * @param int    $post_id Post ID
 	 * @param string $workflow_type Type of content to generate (quiz/summary)
 	 */
 	public function generateSingle( int $post_id, string $workflow_type ): void {

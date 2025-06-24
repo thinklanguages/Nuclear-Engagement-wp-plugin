@@ -4,9 +4,9 @@
  *
  * Centralized, type-safe settings repository for Nuclear Engagement plugin.
  *
- * @package	NuclearEngagement
+ * @package NuclearEngagement
  * @subpackage Core
- * @since	  1.0.0
+ * @since     1.0.0
  */
 
 declare( strict_types = 1 );
@@ -106,13 +106,13 @@ final class SettingsRepository {
 	private function __construct( array $defaults = array() ) {
 		// Merge provided defaults with built-in defaults.
 		$this->defaults = wp_parse_args( $defaults, Defaults::nuclen_get_default_settings() );
-		$this->cache	= new SettingsCache();
+		$this->cache    = new SettingsCache();
 		$this->cache->register_hooks();
 	}
 
 
-	   /*
-	   ===================================================================
+		/*
+		===================================================================
 		* GETTERS
 		* ===================================================================
 		*/
@@ -131,7 +131,7 @@ final class SettingsRepository {
 		}
 
 		// Not in cache, fetch from database.
-		$saved	= get_option( self::OPTION, array() );
+		$saved    = get_option( self::OPTION, array() );
 		$settings = wp_parse_args(
 			is_array( $saved ) ? $saved : array(),
 			$this->defaults
@@ -159,7 +159,7 @@ final class SettingsRepository {
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param string $key	 The setting key to retrieve.
+	 * @param string $key    The setting key to retrieve.
 	 * @param mixed  $fallback Optional. Fallback value if the setting doesn't exist.
 	 * @return mixed The setting value, or fallback if not found.
 	 */
@@ -179,8 +179,8 @@ final class SettingsRepository {
 	use PendingSettingsTrait;
 
 
-	   /*
-	   ===================================================================
+		/*
+		===================================================================
 		* SAVE/PERSISTENCE
 		* ===================================================================
 		*/
@@ -199,7 +199,7 @@ final class SettingsRepository {
 
 		$current   = $this->all();
 		$sanitized = SettingsSanitizer::sanitize_settings( $this->pending );
-		$merged	= wp_parse_args( $sanitized, $current );
+		$merged    = wp_parse_args( $sanitized, $current );
 
 		// Clear pending settings.
 		$this->pending = array();
@@ -215,11 +215,11 @@ final class SettingsRepository {
 			// Also update legacy option for backward compatibility.
 			if ( $result && false !== get_option( 'nuclear_engagement_setup' ) ) {
 				$legacy_data = array(
-					'api_key'			 => $merged['api_key'] ?? '',
-					'connected'		   => $merged['connected'] ?? false,
+					'api_key'             => $merged['api_key'] ?? '',
+					'connected'           => $merged['connected'] ?? false,
 					'wp_app_pass_created' => $merged['wp_app_pass_created'] ?? false,
-					'wp_app_pass_uuid'	=> $merged['wp_app_pass_uuid'] ?? '',
-					'plugin_password'	 => $merged['plugin_password'] ?? '',
+					'wp_app_pass_uuid'    => $merged['wp_app_pass_uuid'] ?? '',
+					'plugin_password'     => $merged['plugin_password'] ?? '',
 				);
 				update_option( 'nuclear_engagement_setup', $legacy_data );
 			}
@@ -231,8 +231,8 @@ final class SettingsRepository {
 	}
 
 
-	   /*
-	   ===================================================================
+		/*
+		===================================================================
 		* CACHE MANAGEMENT
 		* ===================================================================
 		*/
@@ -251,14 +251,14 @@ final class SettingsRepository {
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param string $option	The option name being updated.
+	 * @param string $option    The option name being updated.
 	 * @param mixed  $old_value The old option value.
-	 * @param mixed  $value	 The new option value.
+	 * @param mixed  $value  The new option value.
 	 */
-	   public function maybe_invalidate_cache( $option, $old_value, $value ): void {
-			   unset( $old_value, $value );
-			   $this->cache->maybe_invalidate_cache( $option );
-	   }
+	public function maybe_invalidate_cache( $option, $old_value, $value ): void {
+			unset( $old_value, $value );
+			$this->cache->maybe_invalidate_cache( $option );
+	}
 
 	/**
 	 * Handle option deletion to invalidate cache.
@@ -271,8 +271,8 @@ final class SettingsRepository {
 		$this->cache->maybe_invalidate_cache( $option );
 	}
 
-	   /*
-	   ===================================================================
+		/*
+		===================================================================
 		* HELPERS
 		* ===================================================================
 		*/
@@ -299,10 +299,10 @@ final class SettingsRepository {
 	 * @param array $settings The settings array to check.
 	 * @return bool True if settings should be autoloaded, false otherwise.
 	 */
-	   private function should_autoload( array $settings ): bool {
-			   $size = strlen( wp_json_encode( $settings ) );
-			   return $size <= self::MAX_AUTOLOAD_SIZE;
-	   }
+	private function should_autoload( array $settings ): bool {
+			$size = strlen( wp_json_encode( $settings ) );
+			return $size <= self::MAX_AUTOLOAD_SIZE;
+	}
 
 	/**
 	 * Get the default values.
@@ -329,12 +329,12 @@ final class SettingsRepository {
 	 *
 	 * @since 1.0.0
 	 */
-	   public static function reset_for_tests(): void {
-			   self::$instance = null;
-			   if ( function_exists( 'wp_cache_flush_group' ) ) {
-					   wp_cache_flush_group( SettingsCache::CACHE_GROUP );
-			   } else {
-					   wp_cache_flush();
-			   }
-	   }
+	public static function reset_for_tests(): void {
+			self::$instance = null;
+		if ( function_exists( 'wp_cache_flush_group' ) ) {
+				wp_cache_flush_group( SettingsCache::CACHE_GROUP );
+		} else {
+					wp_cache_flush();
+		}
+	}
 }

@@ -30,7 +30,7 @@ class UpdatesRequest {
 	 * @return self
 	 */
 	public static function fromPost( array $post ): self {
-		$request			   = new self();
+		$request               = new self();
 		$request->generationId = isset( $post['generation_id'] )
 			? sanitize_text_field( wp_unslash( $post['generation_id'] ) )
 			: '';

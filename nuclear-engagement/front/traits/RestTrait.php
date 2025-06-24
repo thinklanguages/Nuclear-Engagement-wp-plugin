@@ -49,7 +49,7 @@ trait RestTrait {
 		try {
 						$container = $this->get_container();
 						$api       = $container->get( 'remote_api' );
-                        return $api->send_posts_to_generate( $data_to_send );
+						return $api->send_posts_to_generate( $data_to_send );
 		} catch ( \RuntimeException $e ) {
 			\NuclearEngagement\Services\LoggingService::log( 'Error sending data: ' . $e->getMessage() );
 			return false;

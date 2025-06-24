@@ -4,9 +4,9 @@
  *
  * Provides sanitization helpers for plugin settings.
  *
- * @package	NuclearEngagement
+ * @package NuclearEngagement
  * @subpackage Core
- * @since	  1.0.0
+ * @since     1.0.0
  */
 
 declare( strict_types = 1 );
@@ -35,39 +35,39 @@ final class SettingsSanitizer {
 	 * @since 1.0.0
 	 * @var array<string, callable|string>
 	private const SANITIZATION_RULES = array(
-		'api_key'							   => 'sanitize_text_field',
-		'theme'								 => 'sanitize_text_field',
-		'font_size'							 => 'absint',
-		'font_color'							=> 'sanitize_hex_color',
-		'bg_color'							  => 'sanitize_hex_color',
-		'border_color'						  => 'sanitize_hex_color',
-		'border_style'						  => 'sanitize_text_field',
-		'border_width'						  => 'absint',
-		'quiz_title'							=> 'sanitize_text_field',
-		'summary_title'						 => 'sanitize_text_field',
-		'toc_title'							 => 'sanitize_text_field',
-		'quiz_label_retake_test'				=> 'sanitize_text_field',
-		'quiz_label_your_score'				 => 'sanitize_text_field',
-		'quiz_label_perfect'					=> 'sanitize_text_field',
-		'quiz_label_well_done'				  => 'sanitize_text_field',
-		'quiz_label_retake_prompt'			  => 'sanitize_text_field',
-		'quiz_label_correct'					=> 'sanitize_text_field',
-		'quiz_label_your_answer'				=> 'sanitize_text_field',
-		'show_attribution'					  => 'rest_sanitize_boolean',
-		'display_summary'					   => 'sanitize_text_field',
-		'display_quiz'						  => 'sanitize_text_field',
-		'display_toc'						   => 'sanitize_text_field',
-		'connected'							 => 'rest_sanitize_boolean',
-		'wp_app_pass_created'				   => 'rest_sanitize_boolean',
-		'wp_app_pass_uuid'					  => 'sanitize_text_field',
-		'plugin_password'					   => 'sanitize_text_field',
-		'delete_settings_on_uninstall'		  => 'rest_sanitize_boolean',
+		'api_key'                              => 'sanitize_text_field',
+		'theme'                              => 'sanitize_text_field',
+		'font_size'                          => 'absint',
+		'font_color'                            => 'sanitize_hex_color',
+		'bg_color'                            => 'sanitize_hex_color',
+		'border_color'                        => 'sanitize_hex_color',
+		'border_style'                        => 'sanitize_text_field',
+		'border_width'                        => 'absint',
+		'quiz_title'                            => 'sanitize_text_field',
+		'summary_title'                      => 'sanitize_text_field',
+		'toc_title'                          => 'sanitize_text_field',
+		'quiz_label_retake_test'                => 'sanitize_text_field',
+		'quiz_label_your_score'              => 'sanitize_text_field',
+		'quiz_label_perfect'                    => 'sanitize_text_field',
+		'quiz_label_well_done'                => 'sanitize_text_field',
+		'quiz_label_retake_prompt'            => 'sanitize_text_field',
+		'quiz_label_correct'                    => 'sanitize_text_field',
+		'quiz_label_your_answer'                => 'sanitize_text_field',
+		'show_attribution'                    => 'rest_sanitize_boolean',
+		'display_summary'                      => 'sanitize_text_field',
+		'display_quiz'                        => 'sanitize_text_field',
+		'display_toc'                          => 'sanitize_text_field',
+		'connected'                          => 'rest_sanitize_boolean',
+		'wp_app_pass_created'                  => 'rest_sanitize_boolean',
+		'wp_app_pass_uuid'                    => 'sanitize_text_field',
+		'plugin_password'                      => 'sanitize_text_field',
+		'delete_settings_on_uninstall'        => 'rest_sanitize_boolean',
 		'delete_generated_content_on_uninstall' => 'rest_sanitize_boolean',
-		'delete_optin_data_on_uninstall'		=> 'rest_sanitize_boolean',
-		'delete_log_file_on_uninstall'		  => 'rest_sanitize_boolean',
-		'delete_custom_css_on_uninstall'		=> 'rest_sanitize_boolean',
-		'toc_heading_levels'					=> array( self::class, 'sanitize_heading_levels' ),
-		'generation_post_types'				 => array( self::class, 'sanitize_post_types' ),
+		'delete_optin_data_on_uninstall'        => 'rest_sanitize_boolean',
+		'delete_log_file_on_uninstall'        => 'rest_sanitize_boolean',
+		'delete_custom_css_on_uninstall'        => 'rest_sanitize_boolean',
+		'toc_heading_levels'                    => array( self::class, 'sanitize_heading_levels' ),
+		'generation_post_types'              => array( self::class, 'sanitize_post_types' ),
 	);
 
 	/**

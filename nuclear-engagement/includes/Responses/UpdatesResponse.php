@@ -19,14 +19,14 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class UpdatesResponse {
 
-	public bool $success		  = true;
-	public ?int $processed		= null;
-	public ?int $total			= null;
-	public ?array $results		= null;
-	public ?string $workflow	  = null; // NEW
+	public bool $success          = true;
+	public ?int $processed        = null;
+	public ?int $total            = null;
+	public ?array $results        = null;
+	public ?string $workflow      = null; // NEW
 	public ?int $remainingCredits = null;
-	public ?string $message	   = null;
-	public ?int $statusCode	   = null;
+	public ?string $message       = null;
+	public ?int $statusCode       = null;
 
 	/**
 	 * Convert to array for JSON response.

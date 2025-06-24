@@ -16,8 +16,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 use NuclearEngagement\SettingsRepository;
 
 	/**
-	* Handle the [nuclear_engagement_toc] shortcode output.
-	*/
+	 * Handle the [nuclear_engagement_toc] shortcode output.
+	 */
 final class Nuclen_TOC_Render {
 	/**
 	 * Assets manager instance.
@@ -54,18 +54,18 @@ final class Nuclen_TOC_Render {
 	}
 
 	/**
-	* Sanitize and sort heading levels.
-	*
-	* @param array|string $heading_levels Provided heading levels.
-	* @return array Sanitized heading levels array.
-	*/
+	 * Sanitize and sort heading levels.
+	 *
+	 * @param array|string $heading_levels Provided heading levels.
+	 * @return array Sanitized heading levels array.
+	 */
 	private function validate_heading_levels( $heading_levels ): array {
 		if ( ! is_array( $heading_levels ) ) {
-		if ( is_string( $heading_levels ) ) {
-			$heading_levels = explode( ',', $heading_levels );
-		} else {
+			if ( is_string( $heading_levels ) ) {
+				$heading_levels = explode( ',', $heading_levels );
+			} else {
 				return range( 2, 6 );
-		}
+			}
 		}
 		$heading_levels = array_map( 'intval', $heading_levels );
 		$heading_levels = array_filter(
@@ -83,11 +83,11 @@ final class Nuclen_TOC_Render {
 	}
 
 	/**
-	* Sanitize shortcode attributes.
-	*
-	* @param array $atts Raw shortcode attributes.
-	* @return array Validated attributes.
-	*/
+	 * Sanitize shortcode attributes.
+	 *
+	 * @param array $atts Raw shortcode attributes.
+	 * @return array Validated attributes.
+	 */
 	private function validate_shortcode_atts( array $atts ): array {
 		$valid_lists    = array( 'ul', 'ol' );
 		$valid_booleans = array( 'true', 'false' );
@@ -97,9 +97,9 @@ final class Nuclen_TOC_Render {
 			$atts['list'] = 'ul';
 		}
 		foreach ( array( 'toggle', 'collapsed', 'smooth', 'highlight' ) as $bool_attr ) {
-		if ( isset( $atts[ $bool_attr ] ) && ! in_array( strtolower( $atts[ $bool_attr ] ), $valid_booleans, true ) ) {
+			if ( isset( $atts[ $bool_attr ] ) && ! in_array( strtolower( $atts[ $bool_attr ] ), $valid_booleans, true ) ) {
 				$atts[ $bool_attr ] = 'true';
-		}
+			}
 		}
 		if ( isset( $atts['offset'] ) ) {
 			$atts['offset'] = max( 0, min( 500, intval( $atts['offset'] ) ) );
@@ -120,12 +120,12 @@ final class Nuclen_TOC_Render {
 	}
 
 	/**
-	* Merge defaults with shortcode attributes and settings.
-	*
-	* @param array              $atts     Shortcode attributes.
-	* @param SettingsRepository $settings Settings API wrapper.
-	* @return array Prepared attributes.
-	*/
+	 * Merge defaults with shortcode attributes and settings.
+	 *
+	 * @param array              $atts     Shortcode attributes.
+	 * @param SettingsRepository $settings Settings API wrapper.
+	 * @return array Prepared attributes.
+	 */
 	private function prepare_shortcode_attributes( array $atts, SettingsRepository $settings ): array {
 		$heading_levels = $settings->get_array( 'toc_heading_levels', range( 2, 6 ) );
 		$heading_levels = $this->validate_heading_levels( $heading_levels );
@@ -157,11 +157,11 @@ final class Nuclen_TOC_Render {
 	}
 
 	/**
-	* Shortcode callback for rendering the table of contents.
-	*
-	* @param array $atts Shortcode attributes.
-	* @return string Generated HTML markup.
-	*/
+	 * Shortcode callback for rendering the table of contents.
+	 *
+	 * @param array $atts Shortcode attributes.
+	 * @return string Generated HTML markup.
+	 */
 	public function nuclen_toc_shortcode( array $atts ): string {
 		global $post;
 		if ( empty( $post ) ) {

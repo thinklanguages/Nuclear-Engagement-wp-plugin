@@ -61,7 +61,7 @@ class OptinData {
 		}
 
 		global $wpdb;
-		$table					= self::table_name();
+		$table                    = self::table_name();
 		self::$table_exists_cache = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table ) ) === $table;
 		return self::$table_exists_cache;
 	}
@@ -123,9 +123,9 @@ class OptinData {
 			self::table_name(),
 			array(
 				'submitted_at' => current_time( 'mysql', true ),
-				'url'		  => esc_url_raw( $url ),
-				'name'		 => sanitize_text_field( $name ),
-				'email'		=> sanitize_email( $email ),
+				'url'          => esc_url_raw( $url ),
+				'name'         => sanitize_text_field( $name ),
+				'email'        => sanitize_email( $email ),
 			),
 			array( '%s', '%s', '%s', '%s' )
 		);

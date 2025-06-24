@@ -56,8 +56,8 @@ class GenerationResponse {
 	public function toArray(): array {
 		$data = array(
 			'generation_id' => $this->generationId,
-			'results'	   => $this->results,
-			'success'	   => $this->success,
+			'results'       => $this->results,
+			'success'       => $this->success,
 		);
 
 		if ( $this->error !== null ) {

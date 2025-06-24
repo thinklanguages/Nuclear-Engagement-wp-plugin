@@ -38,7 +38,7 @@ class ContentStorageService {
 	 */
 	public function __construct( SettingsRepository $settings ) {
 		$this->settings = $settings;
-		$this->utils	= new Utils();
+		$this->utils    = new Utils();
 	}
 
 	/**
@@ -49,7 +49,7 @@ class ContentStorageService {
 	 */
 	public function storeResults( array $results, string $workflowType ): void {
 		$updateLastModified = $this->settings->get_bool( 'update_last_modified', false );
-		$dateNow			= current_time( 'mysql' );
+		$dateNow            = current_time( 'mysql' );
 
 		foreach ( $results as $postIdString => $data ) {
 			$postId = (int) $postIdString;
@@ -97,14 +97,14 @@ class ContentStorageService {
 			'questions' => array_map(
 				function ( $q ) {
 					return array(
-						'question'	=> $q['question'] ?? '',
-						'answers'	 => $q['answers'] ?? array(),
+						'question'    => $q['question'] ?? '',
+						'answers'     => $q['answers'] ?? array(),
 						'explanation' => $q['explanation'] ?? '',
 					);
 				},
 				$data['questions']
 			),
-			'date'	  => $data['date'] ?? current_time( 'mysql' ),
+			'date'      => $data['date'] ?? current_time( 'mysql' ),
 		);
 
 		if ( ! update_post_meta( $postId, 'nuclen-quiz-data', $formatted ) ) {
@@ -130,29 +130,29 @@ class ContentStorageService {
 		}
 
 		$allowedHtml = array(
-			'a'	  => array(
+			'a'      => array(
 				'href'   => array(),
 				'title'  => array(),
 				'target' => array(),
 			),
-			'br'	 => array(),
-			'em'	 => array(),
+			'br'     => array(),
+			'em'     => array(),
 			'strong' => array(),
-			'p'	  => array(),
-			'ul'	 => array(),
-			'ol'	 => array(),
-			'li'	 => array(),
-			'h1'	 => array(),
-			'h2'	 => array(),
-			'h3'	 => array(),
-			'h4'	 => array(),
-			'div'	=> array( 'class' => array() ),
+			'p'      => array(),
+			'ul'     => array(),
+			'ol'     => array(),
+			'li'     => array(),
+			'h1'     => array(),
+			'h2'     => array(),
+			'h3'     => array(),
+			'h4'     => array(),
+			'div'    => array( 'class' => array() ),
 			'span'   => array( 'class' => array() ),
 		);
 
 		$formatted = array(
 			'summary' => wp_kses( $data['summary'], $allowedHtml ),
-			'date'	=> $data['date'] ?? current_time( 'mysql' ),
+			'date'    => $data['date'] ?? current_time( 'mysql' ),
 		);
 
 		if ( ! update_post_meta( $postId, 'nuclen-summary-data', $formatted ) ) {
@@ -169,8 +169,8 @@ class ContentStorageService {
 		$time   = current_time( 'mysql' );
 		$result = wp_update_post(
 			array(
-				'ID'				=> $postId,
-				'post_modified'	 => $time,
+				'ID'                => $postId,
+				'post_modified'     => $time,
 				'post_modified_gmt' => get_gmt_from_date( $time ),
 			)
 		);

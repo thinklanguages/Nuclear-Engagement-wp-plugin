@@ -107,7 +107,7 @@ trait Admin_AutoGenerate {
 			$api       = $container->get( 'remote_api' );
 			$storage   = $container->get( 'content_storage' );
 
-                        $data = $api->fetch_updates( $generation_id );
+						$data = $api->fetch_updates( $generation_id );
 
 			// Check if we have results
 			if ( ! empty( $data['results'] ) && is_array( $data['results'] ) ) {

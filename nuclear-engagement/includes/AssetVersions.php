@@ -10,7 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Handles versioning for compiled plugin assets.
  */
 final class AssetVersions {
-	private const OPTION		= 'nuclen_asset_versions';
+	private const OPTION        = 'nuclen_asset_versions';
 	private const PLUGIN_OPTION = 'nuclen_asset_versions_build';
 
 	/**
@@ -44,18 +44,18 @@ final class AssetVersions {
 	 */
 	private static function compute(): array {
 		$files = array(
-			'admin_css'		=> NUCLEN_PLUGIN_DIR . 'admin/css/nuclen-admin.css',
+			'admin_css'        => NUCLEN_PLUGIN_DIR . 'admin/css/nuclen-admin.css',
 			'admin_dashboard'  => NUCLEN_PLUGIN_DIR . 'admin/css/nuclen-admin-dashboard.css',
-			'admin_js'		 => NUCLEN_PLUGIN_DIR . 'admin/js/nuclen-admin.js',
-			'onboarding_js'	=> NUCLEN_PLUGIN_DIR . 'admin/js/onboarding-pointers.js',
-			'front_css'		=> NUCLEN_PLUGIN_DIR . 'front/css/nuclen-front.css',
-			'front_js'		 => NUCLEN_PLUGIN_DIR . 'front/js/nuclen-front.js',
+			'admin_js'         => NUCLEN_PLUGIN_DIR . 'admin/js/nuclen-admin.js',
+			'onboarding_js'    => NUCLEN_PLUGIN_DIR . 'admin/js/onboarding-pointers.js',
+			'front_css'        => NUCLEN_PLUGIN_DIR . 'front/css/nuclen-front.css',
+			'front_js'         => NUCLEN_PLUGIN_DIR . 'front/js/nuclen-front.js',
 			'theme_bright_css' => NUCLEN_PLUGIN_DIR . 'front/css/nuclen-theme-bright.css',
 			'theme_dark_css'   => NUCLEN_PLUGIN_DIR . 'front/css/nuclen-theme-dark.css',
-			'toc_admin_css'	=> NUCLEN_PLUGIN_DIR . 'modules/toc/assets/css/nuclen-toc-admin.css',
-			'toc_admin_js'	 => NUCLEN_PLUGIN_DIR . 'modules/toc/assets/js/nuclen-toc-admin.js',
-			'toc_front_css'	=> NUCLEN_PLUGIN_DIR . 'modules/toc/assets/css/nuclen-toc-front.css',
-			'toc_front_js'	 => NUCLEN_PLUGIN_DIR . 'modules/toc/assets/js/nuclen-toc-front.js',
+			'toc_admin_css'    => NUCLEN_PLUGIN_DIR . 'modules/toc/assets/css/nuclen-toc-admin.css',
+			'toc_admin_js'     => NUCLEN_PLUGIN_DIR . 'modules/toc/assets/js/nuclen-toc-admin.js',
+			'toc_front_css'    => NUCLEN_PLUGIN_DIR . 'modules/toc/assets/css/nuclen-toc-front.css',
+			'toc_front_js'     => NUCLEN_PLUGIN_DIR . 'modules/toc/assets/js/nuclen-toc-front.js',
 		);
 
 		$versions = array();

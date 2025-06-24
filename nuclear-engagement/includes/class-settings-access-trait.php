@@ -4,9 +4,9 @@
  *
  * Provides typed getter and setter helpers for SettingsRepository.
  *
- * @package	NuclearEngagement
+ * @package NuclearEngagement
  * @subpackage Traits
- * @since	  1.0.0
+ * @since     1.0.0
  */
 
 declare( strict_types = 1 );
@@ -32,7 +32,7 @@ trait SettingsAccessTrait {
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param string $key		   Setting key.
+	 * @param string $key          Setting key.
 	 * @param string $default_value Default value if setting doesn't exist. Default empty string.
 	 * @return string Setting value.
 	 */
@@ -46,8 +46,8 @@ trait SettingsAccessTrait {
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param string $key		   Setting key.
-	 * @param int	$default_value Default value if setting doesn't exist. Default 0.
+	 * @param string $key          Setting key.
+	 * @param int    $default_value Default value if setting doesn't exist. Default 0.
 	 * @return int Setting value.
 	 */
 	public function get_int( string $key, int $default_value = 0 ): int {
@@ -60,7 +60,7 @@ trait SettingsAccessTrait {
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param string $key		   Setting key.
+	 * @param string $key          Setting key.
 	 * @param bool   $default_value Default value if setting doesn't exist. Default false.
 	 * @return bool Setting value.
 	 */
@@ -73,7 +73,7 @@ trait SettingsAccessTrait {
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param string $key		   Setting key.
+	 * @param string $key          Setting key.
 	 * @param array  $default_value Default value if setting doesn't exist. Default empty array.
 	 * @return array Setting value.
 	 */
@@ -115,7 +115,7 @@ trait SettingsAccessTrait {
 	 * @since 1.0.0
 	 *
 	 * @param string $key   Setting key.
-	 * @param int	$value Setting value.
+	 * @param int    $value Setting value.
 	 * @return self
 	 */
 	public function set_int( string $key, int $value ): self {
