@@ -3,7 +3,10 @@
  * File: modules/toc/includes/class-nuclen-toc-view.php
  *
  * Generates the HTML markup for the front-end TOC.
+ *
+ * @package NuclearEngagement
  */
+
 declare(strict_types=1);
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -15,7 +18,6 @@ use NuclearEngagement\SettingsRepository;
 /**
  * Output builder for the front-end table of contents.
  */
-
 final class Nuclen_TOC_View {
 	private const DEFAULT_STICKY_OFFSET_X  = 20;
 	private const DEFAULT_STICKY_OFFSET_Y  = 20;

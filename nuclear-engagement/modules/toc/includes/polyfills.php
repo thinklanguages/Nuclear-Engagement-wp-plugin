@@ -4,7 +4,10 @@
  *
  * Poly‑fills for PHP 7.4 and name‑spaced helpers.
  * All helpers are prefixed `nuclen_` to avoid collisions in large stacks.
+ *
+ * @package NuclearEngagement
  */
+
 declare(strict_types=1);
 
 if ( ! defined( 'ABSPATH' ) ) {

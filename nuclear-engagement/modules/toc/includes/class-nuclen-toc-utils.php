@@ -6,7 +6,10 @@
  *   ▸ heading extraction with skip‑rules
  *   ▸ slug deduplication
  *   ▸ object‑cache wrapper
+ *
+ * @package NuclearEngagement
  */
+
 declare(strict_types=1);
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -77,7 +80,8 @@ final class Nuclen_TOC_Utils {
 			return $hit;
 		}
 
-		self::$ids_in_post = $out = array();
+                $out = array();
+                self::$ids_in_post = $out;
 
 		if ( preg_match_all( '/<(h[1-6])([^>]*)>(.*?)<\/\1>/is', $html, $m, PREG_SET_ORDER ) ) {
 			foreach ( $m as $row ) {
@@ -117,13 +121,19 @@ final class Nuclen_TOC_Utils {
 		return $out;
 	}
 
-	/*
-	---------------------------------------------------------- */
-	/*
-		Helpers                                                   */
-	/* ---------------------------------------------------------- */
+        /*
+         * ----------------------------------------------------------
+         * Helpers
+         * ----------------------------------------------------------
+         */
 
-	private static function unique_id_from_text( string $txt ): string {
+        /**
+         * Generate a unique slug from heading text.
+         *
+         * @param string $txt Heading text.
+         * @return string Unique slug.
+         */
+        private static function unique_id_from_text( string $txt ): string {
 		$base = sanitize_title( $txt );
 		$id   = $base;
 		$n    = 2;

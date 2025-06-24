@@ -3,7 +3,10 @@
  * File: modules/toc/includes/class-nuclen-toc-render.php
  *
  * Public-facing shortcode handler for the TOC module.
+ *
+ * @package NuclearEngagement
  */
+
 declare(strict_types=1);
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -16,10 +19,19 @@ use NuclearEngagement\SettingsRepository;
 		 * Handle the [nuclear_engagement_toc] shortcode output.
 		 */
 final class Nuclen_TOC_Render {
-	/** Assets manager instance. */
-	private Nuclen_TOC_Assets $assets;
-	/** View helper instance. */
-	private Nuclen_TOC_View $view;
+       /**
+        * Assets manager instance.
+        *
+        * @var Nuclen_TOC_Assets
+        */
+       private Nuclen_TOC_Assets $assets;
+
+       /**
+        * View helper instance.
+        *
+        * @var Nuclen_TOC_View
+        */
+       private Nuclen_TOC_View $view;
 
 	/** Class constructor. */
 	public function __construct() {
