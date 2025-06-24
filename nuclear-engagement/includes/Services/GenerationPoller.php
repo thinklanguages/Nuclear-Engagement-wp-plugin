@@ -110,12 +110,17 @@ class GenerationPoller {
 
                 if ( $attempt < $max_attempts ) {
                         $event_args = array( $generation_id, $workflow_type, $post_ids, $attempt + 1 );
-			wp_schedule_single_event(
-				time() + $retry_delay,
-				'nuclen_poll_generation',
-				$event_args
-			);
-		} else {
+                        $scheduled  = wp_schedule_single_event(
+                                time() + $retry_delay,
+                                'nuclen_poll_generation',
+                                $event_args
+                        );
+                        if ( false === $scheduled ) {
+                                \NuclearEngagement\Services\LoggingService::log(
+                                        'Failed to schedule event nuclen_poll_generation for generation ' . $generation_id
+                                );
+                        }
+                } else {
 			\NuclearEngagement\Services\LoggingService::log(
                                 "Polling aborted after {$max_attempts} attempts for generation {$generation_id}"
 			);

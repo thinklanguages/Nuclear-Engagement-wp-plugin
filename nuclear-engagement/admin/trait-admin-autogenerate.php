@@ -132,13 +132,18 @@ trait Admin_AutoGenerate {
 		}
 
 		// Schedule next poll if not at max attempts
-		if ( $attempt < $max_attempts ) {
-			wp_schedule_single_event(
-				time() + $retry_delay,
-				'nuclen_poll_generation',
-				array( $generation_id, $workflow_type, $post_id, $attempt + 1 )
-			);
-		} else {
+                if ( $attempt < $max_attempts ) {
+                        $scheduled = wp_schedule_single_event(
+                                time() + $retry_delay,
+                                'nuclen_poll_generation',
+                                array( $generation_id, $workflow_type, $post_id, $attempt + 1 )
+                        );
+                        if ( false === $scheduled ) {
+                                \NuclearEngagement\Services\LoggingService::log(
+                                        'Failed to schedule event nuclen_poll_generation for generation ' . $generation_id
+                                );
+                        }
+                } else {
 			\NuclearEngagement\Services\LoggingService::log(
 				"Polling aborted after {$max_attempts} attempts for post {$post_id} ({$workflow_type})"
 			);
