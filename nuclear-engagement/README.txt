@@ -133,7 +133,7 @@ I'm also looking forward to get feature requests and suggestions. Help me make N
 2. Create a **free account** on the [Nuclear Engagement app](https://app.nuclearengagement.com/signup?ref=wp_listing&link=nuclear_engagement_app)
 3. On the NE app, create a **Gold Code** (API key used for authentication)
 4. On the plugin's **setup page**, enter the Gold Code (to connect your site to the NE app)
-5. A WordPress application password is generated automatically, completing setup (to allow the NE app to send data to your site)
+5. A plugin password is generated automatically, completing setup (used for secure communication with the NE app)
 6. Done! You are ready to generate engaging content.
 
 [youtube https://www.youtube.com/watch?v=NJBjsCSEj34]
