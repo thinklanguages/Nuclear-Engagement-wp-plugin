@@ -17,7 +17,6 @@ Each folder stays under the 300 LOC guideline described in `nuclear-engagement/
 
 The file `nuclear-engagement/AGENTS.md` defines the high‑level folder layout for the plugin:
 
-```
 plugin-root/
 ├── inc/
 │   ├── Modules/
@@ -32,7 +31,6 @@ plugin-root/
 ├── assets/                # compiled JS/CSS
 ├── languages/
 └── tests/
-```
 
 Key guidelines from that document include:
 

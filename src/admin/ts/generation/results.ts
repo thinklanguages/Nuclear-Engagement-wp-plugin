@@ -4,6 +4,7 @@ export const REST_ENDPOINT =
 
 export const REST_NONCE = (window as any).nuclenAdminVars?.rest_nonce || '';
 import { displayError } from '../utils/displayError';
+import * as logger from '../utils/logger';
 
 export function nuclenAlertApiError(errMsg: string): void {
   const cleanMsg = errMsg.replace(/<[^>]+>/g, '');
@@ -20,15 +21,22 @@ export function nuclenAlertApiError(errMsg: string): void {
 
 export async function nuclenStoreGenerationResults(workflow: string, results: any) {
   const payload = { workflow, results };
-  const resp = await fetch(REST_ENDPOINT, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-WP-Nonce': REST_NONCE,
-    },
-    credentials: 'include',
-    body: JSON.stringify(payload),
-  });
+  let resp: Response;
+  try {
+    resp = await fetch(REST_ENDPOINT, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-WP-Nonce': REST_NONCE,
+      },
+      credentials: 'include',
+      body: JSON.stringify(payload),
+    });
+  } catch (err) {
+    logger.error('Fetch failed in nuclenStoreGenerationResults:', err);
+    displayError('Network error');
+    return { ok: false, data: { message: 'Network error' } };
+  }
   let data: any = null;
   if (resp.ok) {
     try {
