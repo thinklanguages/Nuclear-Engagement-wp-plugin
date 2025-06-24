@@ -31,12 +31,12 @@ final class Nuclen_TOC_Utils {
          */
         private static int $last_parse_ms = 0;
 
-		/**
-		 * Track generated IDs to ensure uniqueness within a post.
-		 *
-		 * @var string[]
-		 */
-	private static array $ids_in_post = array();
+       /**
+        * Track generated IDs to ensure uniqueness within a post.
+        *
+        * @var array<string,bool>
+        */
+       private static array $ids_in_post = array();
 
 	/**
 	 * Parse H1–H6 headings from raw HTML, respecting heading levels array,
@@ -82,14 +82,14 @@ final class Nuclen_TOC_Utils {
 		$key = md5( $html ) . '_' . implode( '', $heading_levels );
 		$hit = wp_cache_get( $key, self::CACHE_GROUP );
 
-                if ( false !== $hit ) {
-                        self::$ids_in_post = wp_list_pluck( $hit, 'id' );
-                        self::$last_parse_ms = (int) round( ( microtime( true ) - $t0 ) * 1000 );
-                        return $hit;
-                }
+               if ( false !== $hit ) {
+                       self::$ids_in_post = array_fill_keys( wp_list_pluck( $hit, 'id' ), true );
+                       self::$last_parse_ms = (int) round( ( microtime( true ) - $t0 ) * 1000 );
+                       return $hit;
+               }
 
-                $out               = array();
-                self::$ids_in_post = $out;
+               $out               = array();
+               self::$ids_in_post = array();
 
                 if ( nuclen_str_contains( $html, '<h' ) ) {
                         libxml_use_internal_errors( true );
@@ -153,16 +153,18 @@ final class Nuclen_TOC_Utils {
 		 * @param string $txt Heading text.
 		 * @return string Unique slug.
 		 */
-        private static function unique_id_from_text( string $txt ): string {
-                $base = sanitize_title( $txt );
-                $id   = $base;
-                $n    = 2;
-                while ( in_array( $id, self::$ids_in_post, true ) ) {
-                        $id = $base . '-' . ( $n++ );
-                }
-                self::$ids_in_post[] = $id;
-                return $id;
-        }
+       private static function unique_id_from_text( string $txt ): string {
+               $base = sanitize_title( $txt );
+               $id   = $base;
+               $n    = 2;
+
+               while ( isset( self::$ids_in_post[ $id ] ) ) {
+                       $id = $base . '-' . ( $n++ );
+               }
+
+               self::$ids_in_post[ $id ] = true;
+               return $id;
+       }
 
         /**
          * Retrieve the inner HTML of a DOM element.
