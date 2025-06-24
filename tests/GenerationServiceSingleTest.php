@@ -38,7 +38,7 @@ namespace {
         protected function setUp(): void {
             global $wp_posts, $wp_events, $wp_options, $wp_meta, $wp_autoload;
             $wp_posts = $wp_events = $wp_options = $wp_meta = $wp_autoload = [];
-            SettingsRepository::_reset_for_tests();
+            SettingsRepository::reset_for_tests();
         }
 
         private function makeService(?DummyGenApi $api = null, ?DummyStorage $store = null): GenerationService {

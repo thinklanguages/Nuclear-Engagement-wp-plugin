@@ -167,7 +167,7 @@ class TocModuleTest extends TestCase {
         global $wp_posts, $wp_cache;
         $wp_posts = [];
         $wp_cache = [];
-        SettingsRepository::_reset_for_tests();
+        SettingsRepository::reset_for_tests();
         Container::getInstance()->reset();
     }
 
