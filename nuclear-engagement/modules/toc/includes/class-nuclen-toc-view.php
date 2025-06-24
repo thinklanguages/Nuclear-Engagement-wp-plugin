@@ -27,7 +27,7 @@ final class Nuclen_TOC_View {
 	 * @param SettingsRepository $settings Plugin settings repository.
 	 * @return string Sanitized title string.
 	 */
-public function get_toc_title( SettingsRepository $settings ): string {
+	public function get_toc_title( SettingsRepository $settings ): string {
 		$title = $settings->get_string( 'toc_title' );
 		if ( empty( $title ) ) {
 			return esc_html__( 'Table of Contents', 'nuclen-toc-shortcode' );
@@ -42,7 +42,7 @@ public function get_toc_title( SettingsRepository $settings ): string {
 	 * @param SettingsRepository $settings Settings repository.
 	 * @return array{classes:array,sticky_attrs:string,show_toggle:bool,hidden:bool}
 	 */
-public function build_wrapper_props( array $atts, SettingsRepository $settings ): array {
+	public function build_wrapper_props( array $atts, SettingsRepository $settings ): array {
 		$classes = array( 'nuclen-toc-wrapper' );
 
 		if ( in_array( $atts['theme'], array( 'dark', 'auto' ), true ) ) {
@@ -85,18 +85,18 @@ public function build_wrapper_props( array $atts, SettingsRepository $settings )
 			$classes[] = 'nuclen-has-highlight';
 		}
 
-$z_index = $settings->get_int( 'toc_z_index', 100 );
-$z_index = max( 1, min( 9999, $z_index ) );
-	
+		$z_index = $settings->get_int( 'toc_z_index', 100 );
+		$z_index = max( 1, min( 9999, $z_index ) );
+
 			return array(
-			'classes'      => $classes,
-			'sticky_attrs' => $sticky_attrs,
-			'show_toggle'  => $show_toggle,
-			'hidden'       => $hidden,
-		);
+				'classes'      => $classes,
+				'sticky_attrs' => $sticky_attrs,
+				'show_toggle'  => $show_toggle,
+				'hidden'       => $hidden,
+			);
 	}
 
-/**
+	/**
 	 * Build the toggle button HTML if toggling is enabled.
 	 *
 	 * @param bool   $show    Whether to show the toggle.
@@ -106,7 +106,7 @@ $z_index = max( 1, min( 9999, $z_index ) );
 	 * @return string Button markup or empty string.
 	 */
 	public function build_toggle_button( bool $show, bool $hidden, array $atts, string $nav_id ): string {
-			if ( ! $show ) {
+		if ( ! $show ) {
 			return '';
 		}
 		$toggle_text = $hidden ? $atts['show_text'] : $atts['hide_text'];
@@ -118,7 +118,7 @@ $z_index = max( 1, min( 9999, $z_index ) );
 		);
 	}
 
-/**
+	/**
 	 * Render the nested heading list.
 	 *
 	 * @param array  $heads Parsed heading data.
@@ -126,8 +126,8 @@ $z_index = max( 1, min( 9999, $z_index ) );
 	 * @return string HTML list markup.
 	 */
 	public function render_headings_list( array $heads, string $list ): string {
-			$out   = '';
-		$stack = array();
+			$out = '';
+		$stack   = array();
 		foreach ( $heads as $h ) {
 			$l = $h['level'];
 			while ( $stack && end( $stack ) > $l ) {
@@ -155,26 +155,26 @@ $z_index = max( 1, min( 9999, $z_index ) );
 	 * @param array  $heads     Parsed heading data.
 	 * @param string $list      Tag name for list wrapper.
 	 * @param array  $atts      Shortcode attributes.
-		 * @param string $nav_id    Navigation element ID.
-		 * @param string $toc_title Title for accessibility label.
-		 * @param bool   $hidden    Whether the list starts hidden.
-		 * @return string HTML navigation markup.
+	 * @param string $nav_id    Navigation element ID.
+	 * @param string $toc_title Title for accessibility label.
+	 * @param bool   $hidden    Whether the list starts hidden.
+	 * @return string HTML navigation markup.
 	 */
-		public function build_nav_markup( array $heads, string $list, array $atts, string $nav_id, string $toc_title, bool $hidden ): string {
-				$nav = sprintf(
+	public function build_nav_markup( array $heads, string $list, array $atts, string $nav_id, string $toc_title, bool $hidden ): string {
+			$nav = sprintf(
 				'<nav id="%s" class="nuclen-toc" aria-label="%s"%s%s>',
 				esc_attr( $nav_id ),
 				esc_attr( $toc_title ),
 				$hidden ? ' style="display:none"' : '',
 				'true' === $atts['highlight'] ? ' data-highlight="true"' : ''
-				);
+			);
 
 		if ( '' !== $atts['title'] ) {
 				$nav .= '<strong class="toc-title">' . esc_html( $atts['title'] ) . '</strong>';
-}
+		}
 
-				$nav .= $this->render_headings_list( $heads, $list ) . '</nav>';
+			$nav .= $this->render_headings_list( $heads, $list ) . '</nav>';
 
-			return $nav;
+		return $nav;
 	}
 }

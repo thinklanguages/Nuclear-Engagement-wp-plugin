@@ -12,13 +12,20 @@
  * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
  * Text Domain:       nuclear-engagement
  * Domain Path:       /
+ *
+ * @package    Nuclear_Engagement
+ * @since      1.0.0
  */
+
 declare(strict_types=1);
 
-if ( ! defined( 'ABSPATH' ) ) {
+// If this file is called directly, abort.
+if (!defined('ABSPATH')) {
 	exit;
 }
 
-define( 'NUCLEN_PLUGIN_FILE', __FILE__ );
+// Define plugin constants.
+define('NUCLEN_PLUGIN_FILE', __FILE__);
 
+// Include the main plugin class.
 require_once __DIR__ . '/bootstrap.php';

@@ -13,8 +13,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 use NuclearEngagement\SettingsRepository;
 
 		/**
-	 * Handle the [nuclear_engagement_toc] shortcode output.
-	 */
+		 * Handle the [nuclear_engagement_toc] shortcode output.
+		 */
 final class Nuclen_TOC_Render {
 	/** Assets manager instance. */
 	private Nuclen_TOC_Assets $assets;
@@ -47,7 +47,7 @@ final class Nuclen_TOC_Render {
 	 * @param array|string $heading_levels Provided heading levels.
 	 * @return array Sanitized heading levels array.
 	 */
-private function validate_heading_levels( $heading_levels ): array {
+	private function validate_heading_levels( $heading_levels ): array {
 		if ( ! is_array( $heading_levels ) ) {
 			if ( is_string( $heading_levels ) ) {
 				$heading_levels = explode( ',', $heading_levels );
@@ -76,7 +76,7 @@ private function validate_heading_levels( $heading_levels ): array {
 	 * @param array $atts Raw shortcode attributes.
 	 * @return array Validated attributes.
 	 */
-private function validate_shortcode_atts( array $atts ): array {
+	private function validate_shortcode_atts( array $atts ): array {
 			$valid_lists    = array( 'ul', 'ol' );
 			$valid_booleans = array( 'true', 'false' );
 			$valid_themes   = array( 'light', 'dark', 'auto' );
@@ -114,7 +114,7 @@ private function validate_shortcode_atts( array $atts ): array {
 	 * @param SettingsRepository $settings Settings API wrapper.
 	 * @return array Prepared attributes.
 	 */
-private function prepare_shortcode_attributes( array $atts, SettingsRepository $settings ): array {
+	private function prepare_shortcode_attributes( array $atts, SettingsRepository $settings ): array {
 			$heading_levels = $settings->get_array( 'toc_heading_levels', range( 2, 6 ) );
 			$heading_levels = $this->validate_heading_levels( $heading_levels );
 
@@ -150,7 +150,7 @@ private function prepare_shortcode_attributes( array $atts, SettingsRepository $
 		 * @param array $atts Shortcode attributes.
 		 * @return string Generated HTML markup.
 		 */
-public function nuclen_toc_shortcode( array $atts ): string {
+	public function nuclen_toc_shortcode( array $atts ): string {
 			global $post;
 		if ( empty( $post ) ) {
 				return '';

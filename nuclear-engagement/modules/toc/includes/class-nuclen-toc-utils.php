@@ -21,14 +21,14 @@ use function nuclen_str_contains;
 final class Nuclen_TOC_Utils {
 
 	private const CACHE_GROUP = 'nuclen_toc';
-        private const CACHE_TTL   = 6 * HOUR_IN_SECONDS;          // 6 hours.
+	private const CACHE_TTL   = 6 * HOUR_IN_SECONDS;          // 6 hours.
 
-        /**
-         * Track generated IDs to ensure uniqueness within a post.
-         *
-         * @var string[]
-         */
-        private static array $ids_in_post = array();
+		/**
+		 * Track generated IDs to ensure uniqueness within a post.
+		 *
+		 * @var string[]
+		 */
+	private static array $ids_in_post = array();
 
 	/**
 	 * Parse H1–H6 headings from raw HTML, respecting heading levels array,
@@ -128,20 +128,20 @@ final class Nuclen_TOC_Utils {
 		$id   = $base;
 		$n    = 2;
 		while ( in_array( $id, self::$ids_in_post, true ) ) {
-			$id = $base . '-' . ($n++);
+			$id = $base . '-' . ( $n++ );
 		}
 		self::$ids_in_post[] = $id;
 		return $id;
 	}
 
-        /**
-         * Tiny wrapper so callers can import just one name.
-         *
-         * @param string $haystack The string to search in.
-         * @param string $needle   The substring to look for.
-         * @return bool Whether the haystack contains the needle.
-         */
-        public static function str_contains( string $haystack, string $needle ): bool {
-                return nuclen_str_contains( $haystack, $needle );
-        }
+		/**
+		 * Tiny wrapper so callers can import just one name.
+		 *
+		 * @param string $haystack The string to search in.
+		 * @param string $needle   The substring to look for.
+		 * @return bool Whether the haystack contains the needle.
+		 */
+	public static function str_contains( string $haystack, string $needle ): bool {
+			return nuclen_str_contains( $haystack, $needle );
+	}
 }
