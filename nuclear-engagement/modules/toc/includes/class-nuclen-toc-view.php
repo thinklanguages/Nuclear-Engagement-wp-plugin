@@ -1,10 +1,10 @@
 <?php
-declare(strict_types=1);
 /**
  * File: modules/toc/includes/class-nuclen-toc-view.php
  *
  * Generates the HTML markup for the front-end TOC.
  */
+declare(strict_types=1);
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -12,13 +12,22 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 use NuclearEngagement\SettingsRepository;
 
+/**
+ * Output builder for the front-end table of contents.
+ */
+
 final class Nuclen_TOC_View {
 	private const DEFAULT_STICKY_OFFSET_X  = 20;
 	private const DEFAULT_STICKY_OFFSET_Y  = 20;
 	private const DEFAULT_STICKY_MAX_WIDTH = 300;
 
-	/** Retrieve the translated TOC title with a fallback. */
-	public function get_toc_title( SettingsRepository $settings ): string {
+	/**
+	 * Retrieve the translated TOC title with a fallback.
+	 *
+	 * @param SettingsRepository $settings Plugin settings repository.
+	 * @return string Sanitized title string.
+	 */
+public function get_toc_title( SettingsRepository $settings ): string {
 		$title = $settings->get_string( 'toc_title' );
 		if ( empty( $title ) ) {
 			return esc_html__( 'Table of Contents', 'nuclen-toc-shortcode' );
@@ -29,9 +38,11 @@ final class Nuclen_TOC_View {
 	/**
 	 * Build wrapper classes and sticky attributes.
 	 *
+	 * @param array              $atts     Shortcode attributes.
+	 * @param SettingsRepository $settings Settings repository.
 	 * @return array{classes:array,sticky_attrs:string,show_toggle:bool,hidden:bool}
 	 */
-	public function build_wrapper_props( array $atts, SettingsRepository $settings ): array {
+public function build_wrapper_props( array $atts, SettingsRepository $settings ): array {
 		$classes = array( 'nuclen-toc-wrapper' );
 
 		if ( in_array( $atts['theme'], array( 'dark', 'auto' ), true ) ) {
@@ -70,15 +81,14 @@ final class Nuclen_TOC_View {
 			);
 		}
 
-		if ( $atts['highlight'] === 'true' ) {
+		if ( 'true' === $atts['highlight'] ) {
 			$classes[] = 'nuclen-has-highlight';
 		}
 
-		$z_index = $settings->get_int( 'toc_z_index', 100 );
-		$z_index = max( 1, min( 9999, $z_index ) );
-		( $z_index );
-
-		return array(
+$z_index = $settings->get_int( 'toc_z_index', 100 );
+$z_index = max( 1, min( 9999, $z_index ) );
+	
+			return array(
 			'classes'      => $classes,
 			'sticky_attrs' => $sticky_attrs,
 			'show_toggle'  => $show_toggle,
@@ -86,9 +96,17 @@ final class Nuclen_TOC_View {
 		);
 	}
 
-	/** Build the toggle button HTML if toggling is enabled. */
+/**
+	 * Build the toggle button HTML if toggling is enabled.
+	 *
+	 * @param bool   $show    Whether to show the toggle.
+	 * @param bool   $hidden  Whether the content is hidden.
+	 * @param array  $atts    Shortcode attributes.
+	 * @param string $nav_id  Navigation element ID.
+	 * @return string Button markup or empty string.
+	 */
 	public function build_toggle_button( bool $show, bool $hidden, array $atts, string $nav_id ): string {
-		if ( ! $show ) {
+			if ( ! $show ) {
 			return '';
 		}
 		$toggle_text = $hidden ? $atts['show_text'] : $atts['hide_text'];
@@ -100,9 +118,15 @@ final class Nuclen_TOC_View {
 		);
 	}
 
-	/** Render the nested heading list. */
+/**
+	 * Render the nested heading list.
+	 *
+	 * @param array  $heads Parsed heading data.
+	 * @param string $list  Tag name for list wrapper.
+	 * @return string HTML list markup.
+	 */
 	public function render_headings_list( array $heads, string $list ): string {
-		$out   = '';
+			$out   = '';
 		$stack = array();
 		foreach ( $heads as $h ) {
 			$l = $h['level'];
@@ -127,22 +151,30 @@ final class Nuclen_TOC_View {
 
 	/**
 	 * Build the navigation markup containing the heading list.
+	 *
+	 * @param array  $heads     Parsed heading data.
+	 * @param string $list      Tag name for list wrapper.
+	 * @param array  $atts      Shortcode attributes.
+		 * @param string $nav_id    Navigation element ID.
+		 * @param string $toc_title Title for accessibility label.
+		 * @param bool   $hidden    Whether the list starts hidden.
+		 * @return string HTML navigation markup.
 	 */
-	public function build_nav_markup( array $heads, string $list, array $atts, string $nav_id, string $toc_title, bool $hidden ): string {
-		$nav = sprintf(
-			'<nav id="%s" class="nuclen-toc" aria-label="%s"%s%s>',
-			esc_attr( $nav_id ),
-			esc_attr__( $toc_title, 'nuclen-toc-shortcode' ),
-			$hidden ? ' style="display:none"' : '',
-			$atts['highlight'] === 'true' ? ' data-highlight="true"' : ''
-		);
+		public function build_nav_markup( array $heads, string $list, array $atts, string $nav_id, string $toc_title, bool $hidden ): string {
+				$nav = sprintf(
+				'<nav id="%s" class="nuclen-toc" aria-label="%s"%s%s>',
+				esc_attr( $nav_id ),
+				esc_attr( $toc_title ),
+				$hidden ? ' style="display:none"' : '',
+				'true' === $atts['highlight'] ? ' data-highlight="true"' : ''
+				);
 
-		if ( $atts['title'] !== '' ) {
-			$nav .= '<strong class="toc-title">' . esc_html__( $atts['title'], 'nuclen-toc-shortcode' ) . '</strong>';
-		}
+		if ( '' !== $atts['title'] ) {
+				$nav .= '<strong class="toc-title">' . esc_html( $atts['title'] ) . '</strong>';
+}
 
-		$nav .= $this->render_headings_list( $heads, $list ) . '</nav>';
+				$nav .= $this->render_headings_list( $heads, $list ) . '</nav>';
 
-		return $nav;
+			return $nav;
 	}
 }
