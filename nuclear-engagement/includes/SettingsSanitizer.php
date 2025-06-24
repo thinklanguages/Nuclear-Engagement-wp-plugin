@@ -1,25 +1,39 @@
 <?php
-declare(strict_types=1);
 /**
  * File: includes/SettingsSanitizer.php
  *
  * Provides sanitization helpers for plugin settings.
  *
- * @package NuclearEngagement
+ * @package    NuclearEngagement
+ * @subpackage Core
+ * @since      1.0.0
  */
+
+declare( strict_types = 1 );
 
 namespace NuclearEngagement;
 
+// If this file is called directly, abort.
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+/**
+ * Handles sanitization of all plugin settings.
+ *
+ * This class provides methods to sanitize various types of settings
+ * according to WordPress security best practices.
+ *
+ * @since 1.0.0
+ */
 final class SettingsSanitizer {
 	/**
 	 * Sanitization rules for settings.
 	 *
+	 * Maps setting keys to their respective sanitization callbacks.
+	 *
+	 * @since 1.0.0
 	 * @var array<string, callable|string>
-	 */
 	private const SANITIZATION_RULES = array(
 		'api_key'                               => 'sanitize_text_field',
 		'theme'                                 => 'sanitize_text_field',
@@ -59,8 +73,10 @@ final class SettingsSanitizer {
 	/**
 	 * Sanitize an array of settings values.
 	 *
-	 * @param array $settings Raw settings.
-	 * @return array Sanitized settings.
+	 * @since 1.0.0
+	 *
+	 * @param array $settings Raw settings array to sanitize.
+	 * @return array Sanitized settings array.
 	 */
 	public static function sanitize_settings( array $settings ): array {
 		$sanitized = array();
@@ -76,8 +92,10 @@ final class SettingsSanitizer {
 	/**
 	 * Sanitize a single setting value.
 	 *
-	 * @param string $key   Setting key.
-	 * @param mixed  $value Setting value.
+	 * @since 1.0.0
+	 *
+	 * @param string $key   Setting key to identify the sanitization rule.
+	 * @param mixed  $value Setting value to sanitize.
 	 * @return mixed Sanitized value.
 	 */
 	public static function sanitize_setting( string $key, $value ) {
@@ -104,8 +122,11 @@ final class SettingsSanitizer {
 	/**
 	 * Recursively sanitize an array of values.
 	 *
+	 * @since 1.0.0
+	 * @access private
+	 *
 	 * @param array $values Values to sanitize.
-	 * @return array Sanitized values.
+	 * @return array Sanitized values with all strings properly escaped.
 	 */
 	private static function sanitize_array( array $values ): array {
 		return array_map(
@@ -122,8 +143,10 @@ final class SettingsSanitizer {
 	/**
 	 * Sanitize heading levels array.
 	 *
-	 * @param mixed $value Raw value.
-	 * @return array<int> Sanitized levels.
+	 * @since 1.0.0
+	 *
+	 * @param mixed $value Raw value to sanitize as heading levels.
+	 * @return array<int> Sanitized array of heading levels (1-6).
 	 */
 	public static function sanitize_heading_levels( $value ): array {
 		if ( ! is_array( $value ) ) {
@@ -142,8 +165,10 @@ final class SettingsSanitizer {
 	/**
 	 * Sanitize post types array.
 	 *
-	 * @param mixed $value Raw value.
-	 * @return array<int,string> Sanitized post types.
+	 * @since 1.0.0
+	 *
+	 * @param mixed $value Raw value to sanitize as post types.
+	 * @return array<int,string> Sanitized array of valid post type slugs.
 	 */
 	public static function sanitize_post_types( $value ): array {
 		if ( ! is_array( $value ) ) {
