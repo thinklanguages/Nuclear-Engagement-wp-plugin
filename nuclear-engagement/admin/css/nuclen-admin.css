@@ -164,27 +164,27 @@ Classes for form groups, labels, inputs, and buttons.
 }
 
 .nuclen-input:focus {
-        border-color: #007cba;
-        outline: none;
+		border-color: #007cba;
+		outline: none;
 }
 
 /* Utility inputs */
 .nuclen-width-full {
-        width: 100%;
+		width: 100%;
 }
 
 .nuclen-meta-date-input {
-        width: 100%;
-        background: #f9f9f9;
+		width: 100%;
+		background: #f9f9f9;
 }
 
 .nuclen-answer-correct {
-        font-weight: bold;
-        background: #e6ffe6;
+		font-weight: bold;
+		background: #e6ffe6;
 }
 
 .nuclen-answer-label {
-        margin-bottom: 0.5em;
+		margin-bottom: 0.5em;
 }
 
 /* Buttons */
@@ -379,16 +379,16 @@ Quick helper classes for display, text alignment, etc.
 }
 
 .nuclen-center-text {
-        text-align: center;
+		text-align: center;
 }
 
 .nuclen-error-toast {
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        background: #d63638;
-        color: #fff;
-        padding: 12px 16px;
-        border-radius: 3px;
-        z-index: 100000;
+		position: fixed;
+		bottom: 20px;
+		right: 20px;
+		background: #d63638;
+		color: #fff;
+		padding: 12px 16px;
+		border-radius: 3px;
+		z-index: 100000;
 }

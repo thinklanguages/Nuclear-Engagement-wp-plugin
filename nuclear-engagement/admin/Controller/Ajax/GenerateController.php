@@ -14,68 +14,68 @@ use NuclearEngagement\Requests\GenerateRequest;
 use NuclearEngagement\Services\GenerationService;
 
 if ( ! defined( 'ABSPATH' ) ) {
-    exit;
+	exit;
 }
 
 /**
  * Controller for content generation
  */
 class GenerateController extends BaseController {
-    /**
-     * @var GenerationService
-     */
-    private GenerationService $service;
+	/**
+	 * @var GenerationService
+	 */
+	private GenerationService $service;
 
-    /**
-     * Constructor
-     *
-     * @param GenerationService $service
-     */
-    public function __construct(GenerationService $service) {
-        $this->service = $service;
-    }
+	/**
+	 * Constructor
+	 *
+	 * @param GenerationService $service
+	 */
+	public function __construct( GenerationService $service ) {
+		$this->service = $service;
+	}
 
-    /**
-     * Handle generation request
-     */
-    public function handle(): void {
-        try {
+	/**
+	 * Handle generation request
+	 */
+	public function handle(): void {
+		try {
 
-            if (!$this->verifyRequest('nuclen_admin_ajax_nonce')) {
-                return;
-            }
+			if ( ! $this->verifyRequest( 'nuclen_admin_ajax_nonce' ) ) {
+				return;
+			}
 
-            if (empty($_POST['payload'])) {
-                $this->sendError(
-                    __('Missing payload in request', 'nuclear-engagement'),
-                    400
-                );
-                return;
-            }
+			if ( empty( $_POST['payload'] ) ) {
+				$this->sendError(
+					__( 'Missing payload in request', 'nuclear-engagement' ),
+					400
+				);
+				return;
+			}
 
-            // Parse request
-            $request = GenerateRequest::fromPost($_POST);
+			// Parse request
+			$request = GenerateRequest::fromPost( $_POST );
 
-            // Process generation
-            $response = $this->service->generateContent($request);
+			// Process generation
+			$response = $this->service->generateContent( $request );
 
-            // Return response
-            wp_send_json_success($response->toArray());
+			// Return response
+			wp_send_json_success( $response->toArray() );
 
-        } catch (\InvalidArgumentException $e) {
-            \NuclearEngagement\Services\LoggingService::log(
-                'Nuclear Engagement validation error: ' . $e->getMessage()
-            );
-            $this->sendError($e->getMessage(), 400);
-        } catch (\Exception $e) {
-            \NuclearEngagement\Services\LoggingService::log(
-                'Nuclear Engagement generation error: ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine()
-            );
-            \NuclearEngagement\Services\LoggingService::log('Stack trace: ' . $e->getTraceAsString());
-            $this->sendError(
-                __('An unexpected error occurred. Please check your error logs.', 'nuclear-engagement'),
-                500
-            );
-        }
-    }
+		} catch ( \InvalidArgumentException $e ) {
+			\NuclearEngagement\Services\LoggingService::log(
+				'Nuclear Engagement validation error: ' . $e->getMessage()
+			);
+			$this->sendError( $e->getMessage(), 400 );
+		} catch ( \Exception $e ) {
+			\NuclearEngagement\Services\LoggingService::log(
+				'Nuclear Engagement generation error: ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine()
+			);
+			\NuclearEngagement\Services\LoggingService::log( 'Stack trace: ' . $e->getTraceAsString() );
+			$this->sendError(
+				__( 'An unexpected error occurred. Please check your error logs.', 'nuclear-engagement' ),
+				500
+			);
+		}
+	}
 }

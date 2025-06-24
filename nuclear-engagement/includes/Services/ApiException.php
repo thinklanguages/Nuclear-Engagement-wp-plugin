@@ -8,19 +8,19 @@ declare(strict_types=1);
 
 namespace NuclearEngagement\Services;
 
-if (!defined('ABSPATH')) {
-    exit;
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
 }
 
 class ApiException extends \RuntimeException {
-    private ?string $errorCode;
+	private ?string $errorCode;
 
-    public function __construct(string $message, int $code = 500, ?string $errorCode = null) {
-        parent::__construct($message, $code);
-        $this->errorCode = $errorCode;
-    }
+	public function __construct( string $message, int $code = 500, ?string $errorCode = null ) {
+		parent::__construct( $message, $code );
+		$this->errorCode = $errorCode;
+	}
 
-    public function getErrorCode(): ?string {
-        return $this->errorCode;
-    }
+	public function getErrorCode(): ?string {
+		return $this->errorCode;
+	}
 }

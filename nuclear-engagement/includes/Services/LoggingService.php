@@ -11,128 +11,127 @@ declare(strict_types=1);
 namespace NuclearEngagement\Services;
 
 if ( ! defined( 'ABSPATH' ) ) {
-    exit;
+	exit;
 }
 
 class LoggingService {
-    /**
-     * @var array<string>
-     */
-    private static array $admin_notices = [];
+	/**
+	 * @var array<string>
+	 */
+	private static array $admin_notices = array();
 
-    /**
-     * Get directory, path and URL for the log file.
-     */
-    public static function get_log_file_info(): array {
-        $upload_dir = wp_upload_dir();
+	/**
+	 * Get directory, path and URL for the log file.
+	 */
+	public static function get_log_file_info(): array {
+		$upload_dir = wp_upload_dir();
 
-        $log_folder = $upload_dir['basedir'] . '/nuclear-engagement';
-        $log_file   = $log_folder . '/log.txt';
-        $log_url    = $upload_dir['baseurl'] . '/nuclear-engagement/log.txt';
+		$log_folder = $upload_dir['basedir'] . '/nuclear-engagement';
+		$log_file   = $log_folder . '/log.txt';
+		$log_url    = $upload_dir['baseurl'] . '/nuclear-engagement/log.txt';
 
-        return [
-            'dir'  => $log_folder,
-            'path' => $log_file,
-            'url'  => $log_url,
-        ];
-    }
+		return array(
+			'dir'  => $log_folder,
+			'path' => $log_file,
+			'url'  => $log_url,
+		);
+	}
 
-    /**
-     * Store an admin notice and ensure the hook is registered.
-     */
-    private static function add_admin_notice(string $message): void {
-        self::$admin_notices[] = $message;
-        if (count(self::$admin_notices) === 1) {
-            add_action('admin_notices', [self::class, 'render_admin_notices']);
-        }
-    }
+	/**
+	 * Store an admin notice and ensure the hook is registered.
+	 */
+	private static function add_admin_notice( string $message ): void {
+		self::$admin_notices[] = $message;
+		if ( count( self::$admin_notices ) === 1 ) {
+			add_action( 'admin_notices', array( self::class, 'render_admin_notices' ) );
+		}
+	}
 
-    /**
-     * Public helper to show an admin error notice.
-     */
-    public static function notify_admin(string $message): void {
-        self::add_admin_notice($message);
-    }
+	/**
+	 * Public helper to show an admin error notice.
+	 */
+	public static function notify_admin( string $message ): void {
+		self::add_admin_notice( $message );
+	}
 
-    /**
-     * Debug level logging, only when WP_DEBUG is true.
-     */
-    public static function debug(string $message): void {
-        if (defined('WP_DEBUG') && WP_DEBUG) {
-            self::log('[DEBUG] ' . $message);
-        }
-    }
+	/**
+	 * Debug level logging, only when WP_DEBUG is true.
+	 */
+	public static function debug( string $message ): void {
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			self::log( '[DEBUG] ' . $message );
+		}
+	}
 
-    /**
-     * Output stored admin notices.
-     */
-    public static function render_admin_notices(): void {
-        foreach (self::$admin_notices as $notice) {
-            echo '<div class="notice notice-error"><p>' . esc_html($notice) . '</p></div>';
-        }
-    }
+	/**
+	 * Output stored admin notices.
+	 */
+	public static function render_admin_notices(): void {
+		foreach ( self::$admin_notices as $notice ) {
+			echo '<div class="notice notice-error"><p>' . esc_html( $notice ) . '</p></div>';
+		}
+	}
 
-    /**
-     * Fallback when writing to the log fails.
-     */
-    private static function fallback(string $original, string $error): void {
-        $timestamp = gmdate('Y-m-d H:i:s');
-        error_log("[Nuclear Engagement] [$timestamp] {$original} - {$error}");
-        self::add_admin_notice($error);
-    }
+	/**
+	 * Fallback when writing to the log fails.
+	 */
+	private static function fallback( string $original, string $error ): void {
+		$timestamp = gmdate( 'Y-m-d H:i:s' );
+		error_log( "[Nuclear Engagement] [$timestamp] {$original} - {$error}" );
+		self::add_admin_notice( $error );
+	}
 
-    /**
-     * Append a message to the plugin log file.
-     */
-    public static function log(string $message): void {
-        if ($message === '') {
-            return;
-        }
+	/**
+	 * Append a message to the plugin log file.
+	 */
+	public static function log( string $message ): void {
+		if ( $message === '' ) {
+			return;
+		}
 
-        // Strip any HTML and limit length to avoid leaking sensitive data
-        $message = wp_strip_all_tags($message);
-        if (strlen($message) > 1000) {
-            $message = substr($message, 0, 1000) . '...';
-        }
+		// Strip any HTML and limit length to avoid leaking sensitive data
+		$message = wp_strip_all_tags( $message );
+		if ( strlen( $message ) > 1000 ) {
+			$message = substr( $message, 0, 1000 ) . '...';
+		}
 
-        $info       = self::get_log_file_info();
-        $log_folder = $info['dir'];
-        $log_file   = $info['path'];
-        $max_size   = defined('NUCLEN_LOG_FILE_MAX_SIZE') ? NUCLEN_LOG_FILE_MAX_SIZE : MB_IN_BYTES;
+		$info       = self::get_log_file_info();
+		$log_folder = $info['dir'];
+		$log_file   = $info['path'];
+		$max_size   = defined( 'NUCLEN_LOG_FILE_MAX_SIZE' ) ? NUCLEN_LOG_FILE_MAX_SIZE : MB_IN_BYTES;
 
-        if (!file_exists($log_folder)) {
-            if (!wp_mkdir_p($log_folder)) {
-                self::fallback($message, 'Failed to create log directory: ' . $log_folder);
-                return;
-            }
-        }
+		if ( ! file_exists( $log_folder ) ) {
+			if ( ! wp_mkdir_p( $log_folder ) ) {
+				self::fallback( $message, 'Failed to create log directory: ' . $log_folder );
+				return;
+			}
+		}
 
-        if (!is_writable($log_folder)) {
-            self::fallback($message, 'Log directory not writable: ' . $log_folder);
-            return;
-        }
+		if ( ! is_writable( $log_folder ) ) {
+			self::fallback( $message, 'Log directory not writable: ' . $log_folder );
+			return;
+		}
 
-        if (file_exists($log_file) && !is_writable($log_file)) {
-            self::fallback($message, 'Log file not writable: ' . $log_file);
-            return;
-        }
-        if (file_exists($log_file) && filesize($log_file) > $max_size) {
-            $timestamped = $log_folder . '/log-' . gmdate('Y-m-d-His') . '.txt';
-            @rename($log_file, $timestamped);
-        }
+		if ( file_exists( $log_file ) && ! is_writable( $log_file ) ) {
+			self::fallback( $message, 'Log file not writable: ' . $log_file );
+			return;
+		}
+		if ( file_exists( $log_file ) && filesize( $log_file ) > $max_size ) {
+			$timestamped = $log_folder . '/log-' . gmdate( 'Y-m-d-His' ) . '.txt';
+			@rename( $log_file, $timestamped );
+		}
 
-        if (!file_exists($log_file)) {
-            $timestamp = gmdate('Y-m-d H:i:s');
-            if (file_put_contents($log_file, "[$timestamp] Log file created\n", FILE_APPEND | LOCK_EX) === false) {
-                self::fallback($message, 'Failed to create log file: ' . $log_file);
-                return;
-            }
-        }
+		if ( ! file_exists( $log_file ) ) {
+			$timestamp = gmdate( 'Y-m-d H:i:s' );
+			if ( file_put_contents( $log_file, "[$timestamp] Log file created\n", FILE_APPEND | LOCK_EX ) === false ) {
+				self::fallback( $message, 'Failed to create log file: ' . $log_file );
+				return;
+			}
+		}
 
-        $timestamp = gmdate('Y-m-d H:i:s');
-        if (file_put_contents($log_file, "[$timestamp] {$message}\n", FILE_APPEND | LOCK_EX) === false) {
-            self::fallback($message, 'Failed to write to log file: ' . $log_file);
-        }
-    }
+		$timestamp = gmdate( 'Y-m-d H:i:s' );
+		if ( file_put_contents( $log_file, "[$timestamp] {$message}\n", FILE_APPEND | LOCK_EX ) === false ) {
+			self::fallback( $message, 'Failed to write to log file: ' . $log_file );
+		}
+	}
 }
-

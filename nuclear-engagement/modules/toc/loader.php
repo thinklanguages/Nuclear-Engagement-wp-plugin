@@ -7,17 +7,21 @@ declare(strict_types=1);
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
-    exit;
+	exit;
 }
 
+/*
+------------------------------------------------------------------ */
+/*
+	Local constants (prefixed, module-scoped)                         */
 /* ------------------------------------------------------------------ */
-/*  Local constants (prefixed, module-scoped)                         */
-/* ------------------------------------------------------------------ */
-define( 'NUCLEN_TOC_DIR',       __DIR__ . '/' );
-define( 'NUCLEN_TOC_URL',       plugin_dir_url( __FILE__ ) );
+define( 'NUCLEN_TOC_DIR', __DIR__ . '/' );
+define( 'NUCLEN_TOC_URL', plugin_dir_url( __FILE__ ) );
 
-/* ------------------------------------------------------------------ */
-/*  Includes                                                          */
+/*
+------------------------------------------------------------------ */
+/*
+	Includes                                                          */
 /* ------------------------------------------------------------------ */
 require_once NUCLEN_TOC_DIR . 'includes/polyfills.php';
 require_once NUCLEN_TOC_DIR . 'includes/class-nuclen-toc-utils.php';
@@ -27,13 +31,18 @@ require_once NUCLEN_TOC_DIR . 'includes/class-nuclen-toc-headings.php';
 require_once NUCLEN_TOC_DIR . 'includes/class-nuclen-toc-render.php';
 require_once NUCLEN_TOC_DIR . 'includes/class-nuclen-toc-admin.php';
 
+/*
+------------------------------------------------------------------ */
+/*
+	Spin-up                                                            */
 /* ------------------------------------------------------------------ */
-/*  Spin-up                                                            */
-/* ------------------------------------------------------------------ */
-add_action( 'plugins_loaded', static function () {
-        new Nuclen_TOC_Headings();  // filter for heading IDs
-        new Nuclen_TOC_Render();    // shortcode handler
-        if ( is_admin() ) {
-                new Nuclen_TOC_Admin();    // settings page
-        }
-} );
+add_action(
+	'plugins_loaded',
+	static function () {
+		new Nuclen_TOC_Headings();  // filter for heading IDs
+		new Nuclen_TOC_Render();    // shortcode handler
+		if ( is_admin() ) {
+			new Nuclen_TOC_Admin();    // settings page
+		}
+	}
+);

@@ -17,200 +17,202 @@ use NuclearEngagement\Utils;
 use NuclearEngagement\Services\ApiException;
 
 if ( ! defined( 'ABSPATH' ) ) {
-    exit;
+	exit;
 }
 
 /**
  * Service for handling content generation
  */
 class GenerationService {
-    /** Seconds to wait between polling events. */
-    public const POLL_DELAY = defined('NUCLEN_GENERATION_POLL_DELAY') ? NUCLEN_GENERATION_POLL_DELAY : 30;
-    /**
-     * @var SettingsRepository
-     */
-    private SettingsRepository $settings;
+	/** Seconds to wait between polling events. */
+	public const POLL_DELAY = defined( 'NUCLEN_GENERATION_POLL_DELAY' ) ? NUCLEN_GENERATION_POLL_DELAY : 30;
+	/**
+	 * @var SettingsRepository
+	 */
+	private SettingsRepository $settings;
 
-    /**
-     * @var RemoteApiService
-     */
-    private RemoteApiService $api;
+	/**
+	 * @var RemoteApiService
+	 */
+	private RemoteApiService $api;
 
-    /**
-     * @var ContentStorageService
-     */
-    private ContentStorageService $storage;
+	/**
+	 * @var ContentStorageService
+	 */
+	private ContentStorageService $storage;
 
-    /**
-     * @var Utils
-     */
-    private Utils $utils;
+	/**
+	 * @var Utils
+	 */
+	private Utils $utils;
 
-    /**
-     * Constructor
-     *
-     * @param SettingsRepository $settings
-     * @param RemoteApiService $api
-     * @param ContentStorageService $storage
-     */
-    public function __construct(
-        SettingsRepository $settings,
-        RemoteApiService $api,
-        ContentStorageService $storage
-    ) {
-        $this->settings = $settings;
-        $this->api = $api;
-        $this->storage = $storage;
-        $this->utils = new Utils();
-    }
+	/**
+	 * Constructor
+	 *
+	 * @param SettingsRepository    $settings
+	 * @param RemoteApiService      $api
+	 * @param ContentStorageService $storage
+	 */
+	public function __construct(
+		SettingsRepository $settings,
+		RemoteApiService $api,
+		ContentStorageService $storage
+	) {
+		$this->settings = $settings;
+		$this->api      = $api;
+		$this->storage  = $storage;
+		$this->utils    = new Utils();
+	}
 
-    /**
-     * Generate content for multiple posts
-     *
-     * @param GenerateRequest $request
-     * @return GenerationResponse
-     * @throws \RuntimeException On API errors
-     */
-    public function generateContent(GenerateRequest $request): GenerationResponse {
-        // Get posts data
-        $posts = $this->getPostsData($request->postIds, $request->postType, $request->postStatus);
-        if (empty($posts)) {
-            throw new \RuntimeException('No matching posts found');
-        }
+	/**
+	 * Generate content for multiple posts
+	 *
+	 * @param GenerateRequest $request
+	 * @return GenerationResponse
+	 * @throws \RuntimeException On API errors
+	 */
+	public function generateContent( GenerateRequest $request ): GenerationResponse {
+		// Get posts data
+		$posts = $this->getPostsData( $request->postIds, $request->postType, $request->postStatus );
+		if ( empty( $posts ) ) {
+			throw new \RuntimeException( 'No matching posts found' );
+		}
 
-        // Build workflow data
-        $workflow = [
-            'type' => $request->workflowType,
-            'summary_format' => $request->summaryFormat,
-            'summary_length' => $request->summaryLength,
-            'summary_number_of_items' => $request->summaryItems,
-        ];
+		// Build workflow data
+		$workflow = array(
+			'type'                    => $request->workflowType,
+			'summary_format'          => $request->summaryFormat,
+			'summary_length'          => $request->summaryLength,
+			'summary_number_of_items' => $request->summaryItems,
+		);
 
-        // Send to API
-        try {
-            $result = $this->api->sendPostsToGenerate([
-                'posts' => $posts,
-                'workflow' => $workflow,
-                'generation_id' => $request->generationId,
-            ]);
-        } catch (\Throwable $e) {
-            $response = new GenerationResponse();
-            $response->generationId = $request->generationId;
-            $response->success = false;
-            $response->error = $e->getMessage();
-            $code = $e->getCode();
-            $response->statusCode = is_numeric($code) ? (int) $code : 0;
-            if ($e instanceof ApiException) {
-                $response->errorCode = $e->getErrorCode();
-            }
-            return $response;
-        }
+		// Send to API
+		try {
+			$result = $this->api->sendPostsToGenerate(
+				array(
+					'posts'         => $posts,
+					'workflow'      => $workflow,
+					'generation_id' => $request->generationId,
+				)
+			);
+		} catch ( \Throwable $e ) {
+			$response               = new GenerationResponse();
+			$response->generationId = $request->generationId;
+			$response->success      = false;
+			$response->error        = $e->getMessage();
+			$code                   = $e->getCode();
+			$response->statusCode   = is_numeric( $code ) ? (int) $code : 0;
+			if ( $e instanceof ApiException ) {
+				$response->errorCode = $e->getErrorCode();
+			}
+			return $response;
+		}
 
-        // Create response
-        $response = new GenerationResponse();
-        $response->generationId = $request->generationId;
+		// Create response
+		$response               = new GenerationResponse();
+		$response->generationId = $request->generationId;
 
-        // Process immediate results if any
-        if (!empty($result['results']) && is_array($result['results'])) {
-            $this->storage->storeResults($result['results'], $request->workflowType);
-            $response->results = $result['results'];
-        }
+		// Process immediate results if any
+		if ( ! empty( $result['results'] ) && is_array( $result['results'] ) ) {
+			$this->storage->storeResults( $result['results'], $request->workflowType );
+			$response->results = $result['results'];
+		}
 
-        return $response;
-    }
+		return $response;
+	}
 
-    /**
-     * Generate content for a single post
-     *
-     * @param int $postId
-     * @param string $workflowType
-     * @throws \InvalidArgumentException If post not found
-     */
-    public function generateSingle(int $postId, string $workflowType): void {
-        $post = get_post($postId);
-        if (!$post) {
-            throw new \InvalidArgumentException("Post {$postId} not found");
-        }
+	/**
+	 * Generate content for a single post
+	 *
+	 * @param int    $postId
+	 * @param string $workflowType
+	 * @throws \InvalidArgumentException If post not found
+	 */
+	public function generateSingle( int $postId, string $workflowType ): void {
+		$post = get_post( $postId );
+		if ( ! $post ) {
+			throw new \InvalidArgumentException( "Post {$postId} not found" );
+		}
 
-        // Check if protected
-        if ($this->isProtected($postId, $workflowType)) {
-\NuclearEngagement\Services\LoggingService::log("Skipping protected {$workflowType} for post {$postId}");
-            return;
-        }
+		// Check if protected
+		if ( $this->isProtected( $postId, $workflowType ) ) {
+			\NuclearEngagement\Services\LoggingService::log( "Skipping protected {$workflowType} for post {$postId}" );
+			return;
+		}
 
-        $request = new GenerateRequest();
-        $request->postIds = [$postId];
-        $request->workflowType = $workflowType;
-        $request->generationId = 'auto_' . $postId . '_' . time();
-        $request->postType = $post->post_type;
-        $request->postStatus = $post->post_status;
+		$request               = new GenerateRequest();
+		$request->postIds      = array( $postId );
+		$request->workflowType = $workflowType;
+		$request->generationId = 'auto_' . $postId . '_' . time();
+		$request->postType     = $post->post_type;
+		$request->postStatus   = $post->post_status;
 
-        try {
-            $response = $this->generateContent($request);
+		try {
+			$response = $this->generateContent( $request );
 
-            if (!$response->success) {
-                throw new ApiException(
-                    $response->error ?? 'Generation failed',
-                    $response->statusCode ?? 0,
-                    $response->errorCode
-                );
-            }
+			if ( ! $response->success ) {
+				throw new ApiException(
+					$response->error ?? 'Generation failed',
+					$response->statusCode ?? 0,
+					$response->errorCode
+				);
+			}
 
-            // If no immediate results, schedule polling
-            if (empty($response->results)) {
-                wp_schedule_single_event(
-                    time() + self::POLL_DELAY,
-                    'nuclen_poll_generation',
-                    [$response->generationId, $workflowType, $postId, 1]
-                );
-\NuclearEngagement\Services\LoggingService::log("Scheduled polling for post {$postId}, generation {$response->generationId}");
-            }
-        } catch (\Exception $e) {
-\NuclearEngagement\Services\LoggingService::log("Error generating {$workflowType} for post {$postId}: " . $e->getMessage());
-            throw $e;
-        }
-    }
+			// If no immediate results, schedule polling
+			if ( empty( $response->results ) ) {
+				wp_schedule_single_event(
+					time() + self::POLL_DELAY,
+					'nuclen_poll_generation',
+					array( $response->generationId, $workflowType, $postId, 1 )
+				);
+				\NuclearEngagement\Services\LoggingService::log( "Scheduled polling for post {$postId}, generation {$response->generationId}" );
+			}
+		} catch ( \Exception $e ) {
+			\NuclearEngagement\Services\LoggingService::log( "Error generating {$workflowType} for post {$postId}: " . $e->getMessage() );
+			throw $e;
+		}
+	}
 
-    /**
-     * Get posts data for generation
-     *
-     * @param array $postIds
-     * @param string $postType
-     * @param string $postStatus
-     * @return array
-     */
-    private function getPostsData(array $postIds, string $postType, string $postStatus): array {
-        $args = [
-            'post__in' => $postIds,
-            'numberposts' => -1,
-            'post_type' => $postType,
-            'post_status' => $postStatus,
-            'orderby' => 'post__in',
-        ];
+	/**
+	 * Get posts data for generation
+	 *
+	 * @param array  $postIds
+	 * @param string $postType
+	 * @param string $postStatus
+	 * @return array
+	 */
+	private function getPostsData( array $postIds, string $postType, string $postStatus ): array {
+		$args = array(
+			'post__in'    => $postIds,
+			'numberposts' => -1,
+			'post_type'   => $postType,
+			'post_status' => $postStatus,
+			'orderby'     => 'post__in',
+		);
 
-        $posts = get_posts($args);
-        $data = [];
+		$posts = get_posts( $args );
+		$data  = array();
 
-        foreach ($posts as $post) {
-            $data[] = [
-                'id' => $post->ID,
-                'title' => get_the_title($post->ID),
-                'content' => wp_strip_all_tags($post->post_content),
-            ];
-        }
+		foreach ( $posts as $post ) {
+			$data[] = array(
+				'id'      => $post->ID,
+				'title'   => get_the_title( $post->ID ),
+				'content' => wp_strip_all_tags( $post->post_content ),
+			);
+		}
 
-        return $data;
-    }
+		return $data;
+	}
 
-    /**
-     * Check if content is protected from regeneration
-     *
-     * @param int $postId
-     * @param string $workflowType
-     * @return bool
-     */
-    private function isProtected(int $postId, string $workflowType): bool {
-        $metaKey = $workflowType === 'quiz' ? 'nuclen_quiz_protected' : 'nuclen_summary_protected';
-        return (bool) get_post_meta($postId, $metaKey, true);
-    }
+	/**
+	 * Check if content is protected from regeneration
+	 *
+	 * @param int    $postId
+	 * @param string $workflowType
+	 * @return bool
+	 */
+	private function isProtected( int $postId, string $workflowType ): bool {
+		$metaKey = $workflowType === 'quiz' ? 'nuclen_quiz_protected' : 'nuclen_summary_protected';
+		return (bool) get_post_meta( $postId, $metaKey, true );
+	}
 }

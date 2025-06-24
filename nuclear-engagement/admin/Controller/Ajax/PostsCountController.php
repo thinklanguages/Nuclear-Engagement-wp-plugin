@@ -14,46 +14,46 @@ use NuclearEngagement\Requests\PostsCountRequest;
 use NuclearEngagement\Services\PostsQueryService;
 
 if ( ! defined( 'ABSPATH' ) ) {
-    exit;
+	exit;
 }
 
 /**
  * Controller for getting posts count
  */
 class PostsCountController extends BaseController {
-    /**
-     * @var PostsQueryService
-     */
-    private PostsQueryService $service;
+	/**
+	 * @var PostsQueryService
+	 */
+	private PostsQueryService $service;
 
-    /**
-     * Constructor
-     *
-     * @param PostsQueryService $service
-     */
-    public function __construct(PostsQueryService $service) {
-        $this->service = $service;
-    }
+	/**
+	 * Constructor
+	 *
+	 * @param PostsQueryService $service
+	 */
+	public function __construct( PostsQueryService $service ) {
+		$this->service = $service;
+	}
 
-    /**
-     * Handle posts count request
-     */
-    public function handle(): void {
-        try {
-            if (!$this->verifyRequest('nuclen_admin_ajax_nonce')) {
-                return;
-            }
+	/**
+	 * Handle posts count request
+	 */
+	public function handle(): void {
+		try {
+			if ( ! $this->verifyRequest( 'nuclen_admin_ajax_nonce' ) ) {
+				return;
+			}
 
-            // Parse request
-            $request = PostsCountRequest::fromPost($_POST);
+			// Parse request
+			$request = PostsCountRequest::fromPost( $_POST );
 
-            // Get posts
-            $result = $this->service->getPostsCount($request);
+			// Get posts
+			$result = $this->service->getPostsCount( $request );
 
-            wp_send_json_success($result);
+			wp_send_json_success( $result );
 
-        } catch (\Exception $e) {
-            $this->sendError($e->getMessage());
-        }
-    }
+		} catch ( \Exception $e ) {
+			$this->sendError( $e->getMessage() );
+		}
+	}
 }

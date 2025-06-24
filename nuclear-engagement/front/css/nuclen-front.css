@@ -4,11 +4,11 @@
 */
 
 .nuclen-root .nuclen-quiz {
-        color: var(--nuclen-quiz-font-color, var(--nuclen-fg-color, #000));
+		color: var(--nuclen-quiz-font-color, var(--nuclen-fg-color, #000));
 }
 
 .nuclen-root .nuclen-summary {
-        color: var(--nuclen-summary-font-color, var(--nuclen-fg-color, #000));
+		color: var(--nuclen-summary-font-color, var(--nuclen-fg-color, #000));
 }
 
 .nuclen-root .nuclen-quiz {
@@ -246,18 +246,18 @@
 
 /* Utility classes */
 .nuclen-root .nuclen-quiz-hidden {
-        display: none;
+		display: none;
 }
 
 .nuclen-root .nuclen-optin-btn-row {
-        margin-top: 1em;
-        display: flex;
-        gap: 10px;
+		margin-top: 1em;
+		display: flex;
+		gap: 10px;
 }
 
 .nuclen-root .nuclen-optin-skip {
-        margin-top: 0.5em;
-        font-size: .85em;
+		margin-top: 0.5em;
+		font-size: .85em;
 }
 
 .nuclen-root .nuclen-quiz-pulse {

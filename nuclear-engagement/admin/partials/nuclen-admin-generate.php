@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 if ( ! defined( 'ABSPATH' ) ) {
-    exit;
+	exit;
 }
 /**
  * File: admin/partials/nuclen-admin-generate.php
@@ -33,19 +33,19 @@ $utils->display_nuclen_page_header();
 
 <div class="wrap nuclen-container">
 
-    <div id="nuclen-progress-bar" class="nuclen-step-bar">
-        <div id="nuclen-step-bar-1" class="nuclen-step-bar-step nuclen-step-todo"><?php esc_html_e( '1. Select', 'nuclear-engagement' ); ?></div>
-        <div id="nuclen-step-bar-2" class="nuclen-step-bar-step nuclen-step-todo"><?php esc_html_e( '2. Confirm', 'nuclear-engagement' ); ?></div>
-        <div id="nuclen-step-bar-3" class="nuclen-step-bar-step nuclen-step-todo"><?php esc_html_e( '3. Generate', 'nuclear-engagement' ); ?></div>
-        <div id="nuclen-step-bar-4" class="nuclen-step-bar-step nuclen-step-todo"><?php esc_html_e( '4. Save', 'nuclear-engagement' ); ?></div>
-    </div>
+	<div id="nuclen-progress-bar" class="nuclen-step-bar">
+		<div id="nuclen-step-bar-1" class="nuclen-step-bar-step nuclen-step-todo"><?php esc_html_e( '1. Select', 'nuclear-engagement' ); ?></div>
+		<div id="nuclen-step-bar-2" class="nuclen-step-bar-step nuclen-step-todo"><?php esc_html_e( '2. Confirm', 'nuclear-engagement' ); ?></div>
+		<div id="nuclen-step-bar-3" class="nuclen-step-bar-step nuclen-step-todo"><?php esc_html_e( '3. Generate', 'nuclear-engagement' ); ?></div>
+		<div id="nuclen-step-bar-4" class="nuclen-step-bar-step nuclen-step-todo"><?php esc_html_e( '4. Save', 'nuclear-engagement' ); ?></div>
+	</div>
 
-    <h1 class="nuclen-heading"><?php esc_html_e( 'Generate Content', 'nuclear-engagement' ); ?></h1>
+	<h1 class="nuclen-heading"><?php esc_html_e( 'Generate Content', 'nuclear-engagement' ); ?></h1>
 <?php
-        $generate_dir = plugin_dir_path( __FILE__ ) . 'generate/';
-        require $generate_dir . 'filters.php';
-        require $generate_dir . 'confirm.php';
-        require $generate_dir . 'progress.php';
+		$generate_dir = plugin_dir_path( __FILE__ ) . 'generate/';
+		require $generate_dir . 'filters.php';
+		require $generate_dir . 'confirm.php';
+		require $generate_dir . 'progress.php';
 ?>
 
 </div>

@@ -16,9 +16,9 @@ declare(strict_types=1);
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
-    exit;
+	exit;
 }
 
-define('NUCLEN_PLUGIN_FILE', __FILE__);
+define( 'NUCLEN_PLUGIN_FILE', __FILE__ );
 
 require_once __DIR__ . '/bootstrap.php';

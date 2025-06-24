@@ -11,36 +11,38 @@ declare(strict_types=1);
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
-    exit;
+	exit;
 }
 
 use NuclearEngagement\Utils;
 
 global $wpdb;
 
-/* ──────────────────────────────────────────────────────────────
+/*
+──────────────────────────────────────────────────────────────
  * 1. Determine which post-types we need to examine
  * ──────────────────────────────────────────────────────────── */
-$settings_repo = \NuclearEngagement\Container::getInstance()->get('settings');
-$admin = new \NuclearEngagement\Admin\Admin('nuclear-engagement', NUCLEN_PLUGIN_VERSION, $settings_repo);
-$allowed_post_types = $settings_repo->get('generation_post_types', array('post'));
-$allowed_post_types = is_array($allowed_post_types) ? $allowed_post_types : array('post');
+$settings_repo      = \NuclearEngagement\Container::getInstance()->get( 'settings' );
+$admin              = new \NuclearEngagement\Admin\Admin( 'nuclear-engagement', NUCLEN_PLUGIN_VERSION, $settings_repo );
+$allowed_post_types = $settings_repo->get( 'generation_post_types', array( 'post' ) );
+$allowed_post_types = is_array( $allowed_post_types ) ? $allowed_post_types : array( 'post' );
 
 /* Attempt to use cached inventory unless refresh requested */
 $inventory_cache = \NuclearEngagement\InventoryCache::get();
 if (
-    isset( $_GET['nuclen_refresh_inventory'] ) &&
-    isset( $_GET['nuclen_refresh_inventory_nonce'] ) &&
-    wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['nuclen_refresh_inventory_nonce'] ) ), 'nuclen_refresh_inventory' ) &&
-    current_user_can( 'manage_options' )
+	isset( $_GET['nuclen_refresh_inventory'] ) &&
+	isset( $_GET['nuclen_refresh_inventory_nonce'] ) &&
+	wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['nuclen_refresh_inventory_nonce'] ) ), 'nuclen_refresh_inventory' ) &&
+	current_user_can( 'manage_options' )
 ) {
-    \NuclearEngagement\InventoryCache::clear();
-    $inventory_cache = null;
-    wp_safe_redirect( remove_query_arg( array( 'nuclen_refresh_inventory', 'nuclen_refresh_inventory_nonce' ) ) );
-    exit;
+	\NuclearEngagement\InventoryCache::clear();
+	$inventory_cache = null;
+	wp_safe_redirect( remove_query_arg( array( 'nuclen_refresh_inventory', 'nuclen_refresh_inventory_nonce' ) ) );
+	exit;
 }
 
-/* ──────────────────────────────────────────────────────────────
+/*
+──────────────────────────────────────────────────────────────
  * 2. Convenience helpers
  * ──────────────────────────────────────────────────────────── */
 
@@ -54,19 +56,19 @@ if (
  * @return array               Rows: [ [ g => value, w => 'with|without', c => count ], … ]
  */
 function nuclen_get_group_counts( string $group_by, string $meta_key, array $post_types, array $statuses ): array {
-    global $wpdb;
+	global $wpdb;
 
-    // Sanitize post types and statuses
-    $post_types = array_map( 'sanitize_key', $post_types );
-    $statuses   = array_map( 'sanitize_key', $statuses );
+	// Sanitize post types and statuses
+	$post_types = array_map( 'sanitize_key', $post_types );
+	$statuses   = array_map( 'sanitize_key', $statuses );
 
-    // Create placeholders for the IN clauses
-    $placeholders_pt = implode( ',', array_fill( 0, count( $post_types ), '%s' ) );
-    $placeholders_st = implode( ',', array_fill( 0, count( $statuses ), '%s' ) );
+	// Create placeholders for the IN clauses
+	$placeholders_pt = implode( ',', array_fill( 0, count( $post_types ), '%s' ) );
+	$placeholders_st = implode( ',', array_fill( 0, count( $statuses ), '%s' ) );
 
-    // Prepare the query with placeholders
-    $sql = $wpdb->prepare(
-        "SELECT $group_by               AS g,
+	// Prepare the query with placeholders
+	$sql = $wpdb->prepare(
+		"SELECT $group_by               AS g,
                CASE WHEN pm.meta_id IS NULL THEN 'without' ELSE 'with' END AS w,
                COUNT(*)                 AS c
         FROM {$wpdb->posts} p
@@ -76,11 +78,10 @@ function nuclen_get_group_counts( string $group_by, string $meta_key, array $pos
         WHERE p.post_type  IN ($placeholders_pt)
           AND p.post_status IN ($placeholders_st)
         GROUP BY $group_by, w",
-        array_merge( [ $meta_key ], $post_types, $statuses )
-    );
+		array_merge( array( $meta_key ), $post_types, $statuses )
+	);
 
-    return $wpdb->get_results( $sql, ARRAY_A );
-
+	return $wpdb->get_results( $sql, ARRAY_A );
 }
 
 /**
@@ -92,16 +93,16 @@ function nuclen_get_group_counts( string $group_by, string $meta_key, array $pos
  * @return array             Rows with counts for quiz and summary.
  */
 function nuclen_get_dual_counts( string $group_by, array $post_types, array $statuses ): array {
-       global $wpdb;
+		global $wpdb;
 
-       $post_types = array_map( 'sanitize_key', $post_types );
-       $statuses   = array_map( 'sanitize_key', $statuses );
+		$post_types = array_map( 'sanitize_key', $post_types );
+		$statuses   = array_map( 'sanitize_key', $statuses );
 
-       $placeholders_pt = implode( ',', array_fill( 0, count( $post_types ), '%s' ) );
-       $placeholders_st = implode( ',', array_fill( 0, count( $statuses ), '%s' ) );
+		$placeholders_pt = implode( ',', array_fill( 0, count( $post_types ), '%s' ) );
+		$placeholders_st = implode( ',', array_fill( 0, count( $statuses ), '%s' ) );
 
-       $sql = $wpdb->prepare(
-               "SELECT $group_by AS g,
+		$sql = $wpdb->prepare(
+			"SELECT $group_by AS g,
                        SUM(CASE WHEN pm_q.meta_id IS NULL THEN 0 ELSE 1 END) AS quiz_with,
                        SUM(CASE WHEN pm_q.meta_id IS NULL THEN 1 ELSE 0 END) AS quiz_without,
                        SUM(CASE WHEN pm_s.meta_id IS NULL THEN 0 ELSE 1 END) AS summary_with,
@@ -112,75 +113,76 @@ function nuclen_get_dual_counts( string $group_by, array $post_types, array $sta
                 WHERE p.post_type  IN ($placeholders_pt)
                   AND p.post_status IN ($placeholders_st)
                 GROUP BY $group_by",
-               array_merge( $post_types, $statuses )
-       );
+			array_merge( $post_types, $statuses )
+		);
 
-       return $wpdb->get_results( $sql, ARRAY_A );
+		return $wpdb->get_results( $sql, ARRAY_A );
 }
 
-/* ──────────────────────────────────────────────────────────────
+/*
+──────────────────────────────────────────────────────────────
  * 3. Build every stats table we need (quiz + summary)
  * ──────────────────────────────────────────────────────────── */
 $post_statuses = array( 'publish', 'pending', 'draft', 'future' );
 
 if ( null === $inventory_cache ) {
 
-/* — By Post Status — */
-$status_rows    = nuclen_get_dual_counts( 'p.post_status', $allowed_post_types, $post_statuses );
-$status_objects = get_post_stati( array(), 'objects' );
-$by_status_quiz = $by_status_summary = array();
+	/* — By Post Status — */
+	$status_rows    = nuclen_get_dual_counts( 'p.post_status', $allowed_post_types, $post_statuses );
+	$status_objects = get_post_stati( array(), 'objects' );
+	$by_status_quiz = $by_status_summary = array();
 
-foreach ( $status_rows as $r ) {
-        $label = $status_objects[ $r['g'] ]->label ?? ucfirst( $r['g'] );
-        $by_status_quiz[ $label ]['with']    = (int) $r['quiz_with'];
-        $by_status_quiz[ $label ]['without'] = (int) $r['quiz_without'];
-        $by_status_summary[ $label ]['with']    = (int) $r['summary_with'];
-        $by_status_summary[ $label ]['without'] = (int) $r['summary_without'];
-}
+	foreach ( $status_rows as $r ) {
+		$label                                  = $status_objects[ $r['g'] ]->label ?? ucfirst( $r['g'] );
+		$by_status_quiz[ $label ]['with']       = (int) $r['quiz_with'];
+		$by_status_quiz[ $label ]['without']    = (int) $r['quiz_without'];
+		$by_status_summary[ $label ]['with']    = (int) $r['summary_with'];
+		$by_status_summary[ $label ]['without'] = (int) $r['summary_without'];
+	}
 
-/* — By Post Type — */
-$ptype_rows = nuclen_get_dual_counts( 'p.post_type', $allowed_post_types, $post_statuses );
+	/* — By Post Type — */
+	$ptype_rows = nuclen_get_dual_counts( 'p.post_type', $allowed_post_types, $post_statuses );
 
-$by_post_type_quiz = $by_post_type_summary = array();
-foreach ( $ptype_rows as $r ) {
-        $pt_obj = get_post_type_object( $r['g'] );
-        $label  = $pt_obj->labels->name ?? ucfirst( $r['g'] );
-        $by_post_type_quiz[ $label ]['with']    = (int) $r['quiz_with'];
-        $by_post_type_quiz[ $label ]['without'] = (int) $r['quiz_without'];
-        $by_post_type_summary[ $label ]['with']    = (int) $r['summary_with'];
-        $by_post_type_summary[ $label ]['without'] = (int) $r['summary_without'];
-}
+	$by_post_type_quiz = $by_post_type_summary = array();
+	foreach ( $ptype_rows as $r ) {
+		$pt_obj                                    = get_post_type_object( $r['g'] );
+		$label                                     = $pt_obj->labels->name ?? ucfirst( $r['g'] );
+		$by_post_type_quiz[ $label ]['with']       = (int) $r['quiz_with'];
+		$by_post_type_quiz[ $label ]['without']    = (int) $r['quiz_without'];
+		$by_post_type_summary[ $label ]['with']    = (int) $r['summary_with'];
+		$by_post_type_summary[ $label ]['without'] = (int) $r['summary_without'];
+	}
 
-/* — By Author — */
-$author_rows = nuclen_get_dual_counts( 'p.post_author', $allowed_post_types, $post_statuses );
+	/* — By Author — */
+	$author_rows = nuclen_get_dual_counts( 'p.post_author', $allowed_post_types, $post_statuses );
 
-$by_author_quiz = $by_author_summary = array();
-foreach ( $author_rows as $r ) {
-        $name = get_the_author_meta( 'display_name', (int) $r['g'] ) ?: __( 'Unknown Author', 'nuclear-engagement' );
-        $by_author_quiz[ $name ]['with']    = (int) $r['quiz_with'];
-        $by_author_quiz[ $name ]['without'] = (int) $r['quiz_without'];
-        $by_author_summary[ $name ]['with']    = (int) $r['summary_with'];
-        $by_author_summary[ $name ]['without'] = (int) $r['summary_without'];
-}
+	$by_author_quiz = $by_author_summary = array();
+	foreach ( $author_rows as $r ) {
+		$name                                  = get_the_author_meta( 'display_name', (int) $r['g'] ) ?: __( 'Unknown Author', 'nuclear-engagement' );
+		$by_author_quiz[ $name ]['with']       = (int) $r['quiz_with'];
+		$by_author_quiz[ $name ]['without']    = (int) $r['quiz_without'];
+		$by_author_summary[ $name ]['with']    = (int) $r['summary_with'];
+		$by_author_summary[ $name ]['without'] = (int) $r['summary_without'];
+	}
 
-/* — By Category — (only for post-types that use the “category” taxonomy) */
-$with_cat_pt = array_filter(
-    $allowed_post_types,
-    fn( $pt ) => in_array( 'category', get_object_taxonomies( $pt ), true )
-);
-$by_category_quiz = $by_category_summary = array();
+	/* — By Category — (only for post-types that use the “category” taxonomy) */
+	$with_cat_pt      = array_filter(
+		$allowed_post_types,
+		fn( $pt ) => in_array( 'category', get_object_taxonomies( $pt ), true )
+	);
+	$by_category_quiz = $by_category_summary = array();
 
-if ( $with_cat_pt ) {
+	if ( $with_cat_pt ) {
 
-        // Sanitize inputs and build placeholders for prepare()
-        $sanitized_pt = array_map( 'sanitize_key', $with_cat_pt );
-        $sanitized_st = array_map( 'sanitize_key', $post_statuses );
+		// Sanitize inputs and build placeholders for prepare()
+		$sanitized_pt = array_map( 'sanitize_key', $with_cat_pt );
+		$sanitized_st = array_map( 'sanitize_key', $post_statuses );
 
-        $placeholders_pt = implode( ',', array_fill( 0, count( $sanitized_pt ), '%s' ) );
-        $placeholders_st = implode( ',', array_fill( 0, count( $sanitized_st ), '%s' ) );
+		$placeholders_pt = implode( ',', array_fill( 0, count( $sanitized_pt ), '%s' ) );
+		$placeholders_st = implode( ',', array_fill( 0, count( $sanitized_st ), '%s' ) );
 
-        $sql_cat = $wpdb->prepare(
-                "SELECT t.term_id,
+		$sql_cat      = $wpdb->prepare(
+			"SELECT t.term_id,
                        t.name AS cat_name,
                        SUM(CASE WHEN pm_q.meta_id IS NULL THEN 0 ELSE 1 END) AS quiz_with,
                        SUM(CASE WHEN pm_q.meta_id IS NULL THEN 1 ELSE 0 END) AS quiz_without,
@@ -195,85 +197,88 @@ if ( $with_cat_pt ) {
                 WHERE p.post_type  IN ($placeholders_pt)
                   AND p.post_status IN ($placeholders_st)
                 GROUP BY t.term_id",
-                array_merge( $sanitized_pt, $sanitized_st )
-        );
-        $cat_rows = $wpdb->get_results( $sql_cat, ARRAY_A );
+			array_merge( $sanitized_pt, $sanitized_st )
+		);
+			$cat_rows = $wpdb->get_results( $sql_cat, ARRAY_A );
 
-        foreach ( $cat_rows as $r ) {
-                $by_category_quiz[ $r['cat_name'] ]['with']    = (int) $r['quiz_with'];
-                $by_category_quiz[ $r['cat_name'] ]['without'] = (int) $r['quiz_without'];
-                $by_category_summary[ $r['cat_name'] ]['with']    = (int) $r['summary_with'];
-                $by_category_summary[ $r['cat_name'] ]['without'] = (int) $r['summary_without'];
-        }
-}
+		foreach ( $cat_rows as $r ) {
+			$by_category_quiz[ $r['cat_name'] ]['with']       = (int) $r['quiz_with'];
+			$by_category_quiz[ $r['cat_name'] ]['without']    = (int) $r['quiz_without'];
+			$by_category_summary[ $r['cat_name'] ]['with']    = (int) $r['summary_with'];
+			$by_category_summary[ $r['cat_name'] ]['without'] = (int) $r['summary_without'];
+		}
+	}
 
-/* ──────────────────────────────────────────────────────────────
- * 4. Drop any rows where total = 0
- * ──────────────────────────────────────────────────────────── */
-$drop_zeros = static function ( array $arr ) {
-    return array_filter(
-        $arr,
-        static fn ( $c ) => ( ( $c['with'] ?? 0 ) + ( $c['without'] ?? 0 ) ) > 0
-    );
-};
+	/*
+	──────────────────────────────────────────────────────────────
+	* 4. Drop any rows where total = 0
+	* ──────────────────────────────────────────────────────────── */
+	$drop_zeros = static function ( array $arr ) {
+		return array_filter(
+			$arr,
+			static fn ( $c ) => ( ( $c['with'] ?? 0 ) + ( $c['without'] ?? 0 ) ) > 0
+		);
+	};
 
-$by_status_quiz       = $drop_zeros( $by_status_quiz );
-$by_status_summary    = $drop_zeros( $by_status_summary );
-$by_post_type_quiz    = $drop_zeros( $by_post_type_quiz );
-$by_post_type_summary = $drop_zeros( $by_post_type_summary );
-$by_author_quiz       = $drop_zeros( $by_author_quiz );
-$by_author_summary    = $drop_zeros( $by_author_summary );
-$by_category_quiz     = $drop_zeros( $by_category_quiz );
-$by_category_summary  = $drop_zeros( $by_category_summary );
+	$by_status_quiz       = $drop_zeros( $by_status_quiz );
+	$by_status_summary    = $drop_zeros( $by_status_summary );
+	$by_post_type_quiz    = $drop_zeros( $by_post_type_quiz );
+	$by_post_type_summary = $drop_zeros( $by_post_type_summary );
+	$by_author_quiz       = $drop_zeros( $by_author_quiz );
+	$by_author_summary    = $drop_zeros( $by_author_summary );
+	$by_category_quiz     = $drop_zeros( $by_category_quiz );
+	$by_category_summary  = $drop_zeros( $by_category_summary );
 
-    \NuclearEngagement\InventoryCache::set(
-        array(
-            'by_status_quiz'       => $by_status_quiz,
-            'by_status_summary'    => $by_status_summary,
-            'by_post_type_quiz'    => $by_post_type_quiz,
-            'by_post_type_summary' => $by_post_type_summary,
-            'by_author_quiz'       => $by_author_quiz,
-            'by_author_summary'    => $by_author_summary,
-            'by_category_quiz'     => $by_category_quiz,
-            'by_category_summary'  => $by_category_summary,
-        )
-    );
+	\NuclearEngagement\InventoryCache::set(
+		array(
+			'by_status_quiz'       => $by_status_quiz,
+			'by_status_summary'    => $by_status_summary,
+			'by_post_type_quiz'    => $by_post_type_quiz,
+			'by_post_type_summary' => $by_post_type_summary,
+			'by_author_quiz'       => $by_author_quiz,
+			'by_author_summary'    => $by_author_summary,
+			'by_category_quiz'     => $by_category_quiz,
+			'by_category_summary'  => $by_category_summary,
+		)
+	);
 } else {
-    $by_status_quiz       = $inventory_cache['by_status_quiz'] ?? array();
-    $by_status_summary    = $inventory_cache['by_status_summary'] ?? array();
-    $by_post_type_quiz    = $inventory_cache['by_post_type_quiz'] ?? array();
-    $by_post_type_summary = $inventory_cache['by_post_type_summary'] ?? array();
-    $by_author_quiz       = $inventory_cache['by_author_quiz'] ?? array();
-    $by_author_summary    = $inventory_cache['by_author_summary'] ?? array();
-    $by_category_quiz     = $inventory_cache['by_category_quiz'] ?? array();
-    $by_category_summary  = $inventory_cache['by_category_summary'] ?? array();
+	$by_status_quiz       = $inventory_cache['by_status_quiz'] ?? array();
+	$by_status_summary    = $inventory_cache['by_status_summary'] ?? array();
+	$by_post_type_quiz    = $inventory_cache['by_post_type_quiz'] ?? array();
+	$by_post_type_summary = $inventory_cache['by_post_type_summary'] ?? array();
+	$by_author_quiz       = $inventory_cache['by_author_quiz'] ?? array();
+	$by_author_summary    = $inventory_cache['by_author_summary'] ?? array();
+	$by_category_quiz     = $inventory_cache['by_category_quiz'] ?? array();
+	$by_category_summary  = $inventory_cache['by_category_summary'] ?? array();
 }
 
-/* ──────────────────────────────────────────────────────────────
+/*
+──────────────────────────────────────────────────────────────
  * 4b. Gather scheduled generation tasks
  * ──────────────────────────────────────────────────────────── */
 $active_generations = get_option( 'nuclen_active_generations', array() );
 $scheduled_tasks    = array();
 
 foreach ( $active_generations as $gen_id => $info ) {
-    $post_id   = (int) ( $info['post_ids'][0] ?? 0 );
-    $title     = $post_id ? get_the_title( $post_id ) : $gen_id;
-    $next_poll = isset( $info['next_poll'] )
-        ? date_i18n(
-            get_option( 'date_format' ) . ' ' . get_option( 'time_format' ),
-            (int) $info['next_poll']
-        )
-        : '';
+	$post_id   = (int) ( $info['post_ids'][0] ?? 0 );
+	$title     = $post_id ? get_the_title( $post_id ) : $gen_id;
+	$next_poll = isset( $info['next_poll'] )
+		? date_i18n(
+			get_option( 'date_format' ) . ' ' . get_option( 'time_format' ),
+			(int) $info['next_poll']
+		)
+		: '';
 
-    $scheduled_tasks[] = array(
-        'post_title'    => $title,
-        'workflow_type' => $info['workflow_type'] ?? '',
-        'attempt'       => (int) ( $info['attempt'] ?? 1 ),
-        'next_poll'     => $next_poll,
-    );
+	$scheduled_tasks[] = array(
+		'post_title'    => $title,
+		'workflow_type' => $info['workflow_type'] ?? '',
+		'attempt'       => (int) ( $info['attempt'] ?? 1 ),
+		'next_poll'     => $next_poll,
+	);
 }
 
-/* ──────────────────────────────────────────────────────────────
+/*
+──────────────────────────────────────────────────────────────
  * 5. Render dashboard (same partial as before)
  * ──────────────────────────────────────────────────────────── */
 require plugin_dir_path( __FILE__ ) . 'partials/nuclen-dashboard-page.php';

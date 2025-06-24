@@ -11,16 +11,16 @@
 	--nuclen-toc-offset:72px;
 }
 
- .nuclen-root .nuclen-toc {
-        font-size: var(--nuclen-toc-font-size, 0.9em);
+.nuclen-root .nuclen-toc {
+		font-size: var(--nuclen-toc-font-size, 0.9em);
 }
- .nuclen-root .nuclen-toc li{margin:.25em 0}
+.nuclen-root .nuclen-toc li{margin:.25em 0}
 
- .nuclen-root .nuclen-toc a{
+.nuclen-root .nuclen-toc a{
 	text-decoration:none;
 	color:var(--nuclen-toc-link);
 }
- .nuclen-root .nuclen-toc a.is-active[aria-current="location"]{
+.nuclen-root .nuclen-toc a.is-active[aria-current="location"]{
 	font-weight:700;
 }
 
@@ -32,73 +32,73 @@
 /* Front-end TOC styles (leveraging root variables) */
 
 /* Sticky TOC styles */
- .nuclen-root .nuclen-toc-wrapper.nuclen-toc-sticky {
-    position: relative;
-    z-index: 100;
-    transition: all 0.3s ease;
-    display: flex;
-    flex-direction: column;
-    width: auto;
-    box-sizing: border-box;
-    overflow: visible;
-    /* Position will be set by JavaScript */
+.nuclen-root .nuclen-toc-wrapper.nuclen-toc-sticky {
+	position: relative;
+	z-index: 100;
+	transition: all 0.3s ease;
+	display: flex;
+	flex-direction: column;
+	width: auto;
+	box-sizing: border-box;
+	overflow: visible;
+	/* Position will be set by JavaScript */
 }
 
 /* Toggle button styles */
- .nuclen-root .nuclen-toc-toggle {
-    background: none;
-    color: inherit;
-    cursor: pointer;
-    font-size: 0.7em;
-    margin-bottom: 0.5em;
-    transition: color 0.2s ease;
+.nuclen-root .nuclen-toc-toggle {
+	background: none;
+	color: inherit;
+	cursor: pointer;
+	font-size: 0.7em;
+	margin-bottom: 0.5em;
+	transition: color 0.2s ease;
 }
 
 /* Toggle icon */
- .nuclen-root .nuclen-toc-toggle:after {
-    content: '▼';
-    display: inline-block;
-    margin-left: 8px;
-    font-size: 0.7em;
-    transition: transform 0.2s ease;
+.nuclen-root .nuclen-toc-toggle:after {
+	content: '▼';
+	display: inline-block;
+	margin-left: 8px;
+	font-size: 0.7em;
+	transition: transform 0.2s ease;
 }
 
- .nuclen-root .nuclen-toc-wrapper.nuclen-toc-collapsed .nuclen-toc-toggle:after {
-    transform: rotate(-90deg);
+.nuclen-root .nuclen-toc-wrapper.nuclen-toc-collapsed .nuclen-toc-toggle:after {
+	transform: rotate(-90deg);
 }
 
 /* TOC content transitions */
- .nuclen-root .nuclen-toc {
-    transition: opacity 0.2s ease-in-out;
+.nuclen-root .nuclen-toc {
+	transition: opacity 0.2s ease-in-out;
 }
 
 /* Ensure TOC content respects container width */
- .nuclen-root .nuclen-toc-sticky .nuclen-toc {
-    width: 100%;
-    overflow: hidden;
+.nuclen-root .nuclen-toc-sticky .nuclen-toc {
+	width: 100%;
+	overflow: hidden;
 }
 
 /* Ensure TOC list items don't overflow */
- .nuclen-root .nuclen-toc-sticky .nuclen-toc ul,
- .nuclen-root .nuclen-toc-sticky .nuclen-toc ol {
-    margin: 0;
-    padding-left: 0.5em;
-    overflow: hidden;
-    text-overflow: ellipsis;
+.nuclen-root .nuclen-toc-sticky .nuclen-toc ul,
+.nuclen-root .nuclen-toc-sticky .nuclen-toc ol {
+	margin: 0;
+	padding-left: 0.5em;
+	overflow: hidden;
+	text-overflow: ellipsis;
 }
 
 /* Make sure links don't cause horizontal overflow */
- .nuclen-root .nuclen-toc-sticky .nuclen-toc a {
-    display: inline-block;
-    max-width: 100%;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    vertical-align: middle;
+.nuclen-root .nuclen-toc-sticky .nuclen-toc a {
+	display: inline-block;
+	max-width: 100%;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	vertical-align: middle;
 }
 
 /* Stuck state – applied by JavaScript */
- .nuclen-root .nuclen-toc-wrapper.nuclen-toc-sticky.nuclen-toc-stuck .nuclen-toc {
+.nuclen-root .nuclen-toc-wrapper.nuclen-toc-sticky.nuclen-toc-stuck .nuclen-toc {
 	position: fixed;
 	top: 20px;                     /* offset from top (overridden in JS if needed) */
 	overflow-y: auto;
@@ -108,126 +108,126 @@
 }
 
 /* Collapsed state */
- .nuclen-root .nuclen-toc-sticky.nuclen-toc-collapsed {
-    width: 40px;
-    height: 40px;
-    opacity: 0.8;
-    overflow: hidden;
-    border-radius: 50%;
-    background-color: #f5f5f5;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-    cursor: pointer;
+.nuclen-root .nuclen-toc-sticky.nuclen-toc-collapsed {
+	width: 40px;
+	height: 40px;
+	opacity: 0.8;
+	overflow: hidden;
+	border-radius: 50%;
+	background-color: #f5f5f5;
+	box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+	cursor: pointer;
 }
 
- .nuclen-root .nuclen-toc-sticky.nuclen-toc-collapsed .nuclen-toc-toggle {
-    display: none;
+.nuclen-root .nuclen-toc-sticky.nuclen-toc-collapsed .nuclen-toc-toggle {
+	display: none;
 }
 
- .nuclen-root .nuclen-toc-sticky.nuclen-toc-collapsed .nuclen-toc-content {
-    display: none;
+.nuclen-root .nuclen-toc-sticky.nuclen-toc-collapsed .nuclen-toc-content {
+	display: none;
 }
 
- .nuclen-root .nuclen-toc-sticky .nuclen-toc-content {
-    flex: 1;
-    overflow-y: auto;
-    max-height: calc(90vh - 50px);
-    padding-right: 5px;
-    scrollbar-width: thin;
-    scrollbar-color: rgba(0,0,0,0.2) transparent;
-    -webkit-overflow-scrolling: touch;
+.nuclen-root .nuclen-toc-sticky .nuclen-toc-content {
+	flex: 1;
+	overflow-y: auto;
+	max-height: calc(90vh - 50px);
+	padding-right: 5px;
+	scrollbar-width: thin;
+	scrollbar-color: rgba(0,0,0,0.2) transparent;
+	-webkit-overflow-scrolling: touch;
 }
 
 /* Webkit scrollbar styling */
- .nuclen-root .nuclen-toc-sticky .nuclen-toc-content::-webkit-scrollbar {
-    width: 6px;
+.nuclen-root .nuclen-toc-sticky .nuclen-toc-content::-webkit-scrollbar {
+	width: 6px;
 }
 
- .nuclen-root .nuclen-toc-sticky .nuclen-toc-content::-webkit-scrollbar-track {
-    background: transparent;
-    margin: 5px 0;
+.nuclen-root .nuclen-toc-sticky .nuclen-toc-content::-webkit-scrollbar-track {
+	background: transparent;
+	margin: 5px 0;
 }
 
- .nuclen-root .nuclen-toc-sticky .nuclen-toc-content::-webkit-scrollbar-thumb {
-    background-color: rgba(0,0,0,0.2);
-    border-radius: 3px;
+.nuclen-root .nuclen-toc-sticky .nuclen-toc-content::-webkit-scrollbar-thumb {
+	background-color: rgba(0,0,0,0.2);
+	border-radius: 3px;
 }
 
- .nuclen-root .nuclen-toc-sticky .nuclen-toc-content::-webkit-scrollbar-thumb:hover {
-    background-color: rgba(0,0,0,0.3);
+.nuclen-root .nuclen-toc-sticky .nuclen-toc-content::-webkit-scrollbar-thumb:hover {
+	background-color: rgba(0,0,0,0.3);
 }
 
 /* Toggle button */
- .nuclen-root .nuclen-toc-collapse-toggle {
-    display: none;
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 40px;
-    height: 40px;
-    background: none;
-    border: none;
-    cursor: pointer;
-    z-index: 101;
-    padding: 0;
-    color: #333;
+.nuclen-root .nuclen-toc-collapse-toggle {
+	display: none;
+	position: absolute;
+	top: 0;
+	right: 0;
+	width: 40px;
+	height: 40px;
+	background: none;
+	border: none;
+	cursor: pointer;
+	z-index: 101;
+	padding: 0;
+	color: #333;
 }
 
- .nuclen-root .nuclen-toc-sticky .nuclen-toc-collapse-toggle {
-    display: block;
+.nuclen-root .nuclen-toc-sticky .nuclen-toc-collapse-toggle {
+	display: block;
 }
 
- .nuclen-root .nuclen-toc-collapse-toggle:before {
-    content: '\2630';
-    font-size: 24px;
-    line-height: 40px;
+.nuclen-root .nuclen-toc-collapse-toggle:before {
+	content: '\2630';
+	font-size: 24px;
+	line-height: 40px;
 }
 
- .nuclen-root .nuclen-toc-sticky:not(.nuclen-toc-collapsed) .nuclen-toc-collapse-toggle:before {
-    content: '×';
-    font-size: 32px;
-    line-height: 36px;
+.nuclen-root .nuclen-toc-sticky:not(.nuclen-toc-collapsed) .nuclen-toc-collapse-toggle:before {
+	content: '×';
+	font-size: 32px;
+	line-height: 36px;
 }
 
 /* TOC content wrapper */
- .nuclen-root .nuclen-toc-content {
-    transition: all 0.3s ease;
+.nuclen-root .nuclen-toc-content {
+	transition: all 0.3s ease;
 }
 
- .nuclen-root .nuclen-toc-wrapper.nuclen-toc-sticky .nuclen-toc {
-    position: relative;
+.nuclen-root .nuclen-toc-wrapper.nuclen-toc-sticky .nuclen-toc {
+	position: relative;
 }
 
 /* Ensure the TOC stays within its parent width when sticky */
- .nuclen-root .nuclen-toc-stuck {
-    max-width: 100% !important;
+.nuclen-root .nuclen-toc-stuck {
+	max-width: 100% !important;
 }
 
- .nuclen-root .nuclen-toc-wrapper{
+.nuclen-root .nuclen-toc-wrapper{
 	background:var(--nuclen-toc-bg-color);
 	color:var(--nuclen-toc-font-color);
 	border:var(--nuclen-toc-border-width) var(--nuclen-toc-border-style) var(--nuclen-toc-border-color);
 	border-radius:var(--nuclen-toc-border-radius);
 	box-shadow:0 0 var(--nuclen-toc-shadow-blur) var(--nuclen-toc-shadow-color);
 	padding:1rem;
-        margin-bottom:1.5rem;
-        font-size: var(--nuclen-toc-font-size, 0.9em);
+		margin-bottom:1.5rem;
+		font-size: var(--nuclen-toc-font-size, 0.9em);
 }
 
- .nuclen-root .nuclen-toc ul,
- .nuclen-root .nuclen-toc ol{
+.nuclen-root .nuclen-toc ul,
+.nuclen-root .nuclen-toc ol{
 	list-style: none;
 	margin:0;
 	padding:0;
 }
 
- .nuclen-root .nuclen-toc a:hover,
- .nuclen-root .nuclen-toc a:focus{
+.nuclen-root .nuclen-toc a:hover,
+.nuclen-root .nuclen-toc a:focus{
 	text-decoration:underline;
 }
 
 
- .nuclen-root .nuclen-has-highlight [data-highlight="true"] a.nuclen-current,
- .nuclen-root .nuclen-has-highlight [data-highlight="true"] a.nuclen-current:hover{
+.nuclen-root .nuclen-has-highlight [data-highlight="true"] a.nuclen-current,
+.nuclen-root .nuclen-has-highlight [data-highlight="true"] a.nuclen-current:hover{
 	font-weight:bold;
 	text-decoration:underline;
 }
