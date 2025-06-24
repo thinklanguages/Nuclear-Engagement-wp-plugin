@@ -12,6 +12,7 @@ namespace NuclearEngagement\Front\Controller\Rest;
 
 use NuclearEngagement\Requests\ContentRequest;
 use NuclearEngagement\Services\ContentStorageService;
+use NuclearEngagement\SettingsRepository;
 use NuclearEngagement\Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -19,13 +20,22 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * REST controller for receiving content
+ * REST controller for receiving content.
+ *
+ * Accepts authentication via the custom header `X-WP-App-Password`
+ * using the plugin-generated password, or falls back to a standard
+ * admin nonce check when present.
  */
 class ContentController {
 	/**
 	 * @var ContentStorageService
 	 */
-	private ContentStorageService $storage;
+        private ContentStorageService $storage;
+
+        /**
+         * @var SettingsRepository
+         */
+        private SettingsRepository $settings;
 
 	/**
 	 * @var Utils
@@ -37,10 +47,11 @@ class ContentController {
 	 *
 	 * @param ContentStorageService $storage
 	 */
-	public function __construct( ContentStorageService $storage ) {
-		$this->storage = $storage;
-		$this->utils   = new Utils();
-	}
+        public function __construct( ContentStorageService $storage, SettingsRepository $settings ) {
+                $this->storage  = $storage;
+                $this->settings = $settings;
+                $this->utils    = new Utils();
+        }
 
 	/**
 	 * Handle content receive request
@@ -48,15 +59,11 @@ class ContentController {
 	 * @param \WP_REST_Request $request
 	 * @return \WP_REST_Response|\WP_Error
 	 */
-	public function handle( \WP_REST_Request $request ) {
-		try {
-			// Verify REST nonce before processing any data
-			$nonce = $request->get_header( 'X-WP-Nonce' );
-			if ( ! wp_verify_nonce( $nonce, 'wp_rest' ) ) {
-				return new \WP_Error( 'rest_invalid_nonce', __( 'Invalid nonce', 'nuclear-engagement' ), array( 'status' => 403 ) );
-			}
+        public function handle( \WP_REST_Request $request ) {
+                try {
+                        // Authentication handled in permissions()
 
-			$data = $request->get_json_params();
+                        $data = $request->get_json_params();
 
 			\NuclearEngagement\Services\LoggingService::log(
 				'Received content via REST: ' . json_encode(
@@ -106,7 +113,19 @@ class ContentController {
 	 *
 	 * @return bool
 	 */
-	public function permissions(): bool {
-		return current_user_can( 'manage_options' );
-	}
+        public function permissions( \WP_REST_Request $request ): bool {
+                $header_pass = sanitize_text_field( (string) $request->get_header( 'X-WP-App-Password' ) );
+                $stored_pass = $this->settings->get_string( 'plugin_password', '' );
+
+                if ( ! empty( $stored_pass ) && hash_equals( $stored_pass, $header_pass ) ) {
+                        return true;
+                }
+
+                $nonce = $request->get_header( 'X-WP-Nonce' );
+                if ( wp_verify_nonce( $nonce, 'wp_rest' ) && current_user_can( 'manage_options' ) ) {
+                        return true;
+                }
+
+                return false;
+        }
 }

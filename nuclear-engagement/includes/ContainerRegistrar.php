@@ -68,7 +68,13 @@ final class ContainerRegistrar {
 		$container->register( 'updates_controller', static fn( $c ) => new UpdatesController( $c->get( 'remote_api' ), $c->get( 'content_storage' ) ) );
 		$container->register( 'pointer_controller', static fn( $c ) => new PointerController( $c->get( 'pointer_service' ) ) );
 		$container->register( 'posts_count_controller', static fn( $c ) => new PostsCountController( $c->get( 'posts_query_service' ) ) );
-		$container->register( 'content_controller', static fn( $c ) => new ContentController( $c->get( 'content_storage' ) ) );
+                $container->register(
+                        'content_controller',
+                        static fn( $c ) => new ContentController(
+                                $c->get( 'content_storage' ),
+                                $c->get( 'settings' )
+                        )
+                );
 		$container->register( 'optin_export_controller', static fn() => new OptinExportController() );
 	}
 }

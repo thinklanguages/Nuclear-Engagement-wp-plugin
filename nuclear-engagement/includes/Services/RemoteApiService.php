@@ -257,11 +257,11 @@ class RemoteApiService {
 			}
 
 			if ( 'invalid_wp_app_pass' === $error_code ) {
-				return array(
-					'error'       => 'Invalid WP App Password. Please re-generate on the Setup page.',
-					'error_code'  => 'invalid_wp_app_pass',
-					'status_code' => $code,
-				);
+                               return array(
+                                       'error'       => 'Invalid plugin password. Please re-generate on the Setup page.',
+                                       'error_code'  => 'invalid_wp_app_pass',
+                                       'status_code' => $code,
+                               );
 			}
 		}
 
@@ -273,17 +273,17 @@ class RemoteApiService {
 			);
 		}
 
-		if ( false !== strpos( $body, 'invalid_wp_app_pass' ) ) {
-			return array(
-				'error'       => 'Invalid WP App Password. Please re-generate on the Setup page.',
-				'error_code'  => 'invalid_wp_app_pass',
-				'status_code' => $code,
-			);
-		}
+                if ( false !== strpos( $body, 'invalid_wp_app_pass' ) ) {
+                        return array(
+                                'error'       => 'Invalid plugin password. Please re-generate on the Setup page.',
+                                'error_code'  => 'invalid_wp_app_pass',
+                                'status_code' => $code,
+                        );
+                }
 
-		return array(
-			'error'       => 'Authentication error (API key or WP App Password may be invalid).',
-			'status_code' => $code,
-		);
+                return array(
+                        'error'       => 'Authentication error (API key or plugin password may be invalid).',
+                        'status_code' => $code,
+                );
 	}
 }
