@@ -25,6 +25,12 @@ namespace NuclearEngagement\Services {
     function error_log($msg) {
         $GLOBALS['ls_errors'][] = $msg;
     }
+    function rename($from, $to) {
+        if (!empty($GLOBALS['ls_rename_fail'])) {
+            return false;
+        }
+        return \rename($from, $to);
+    }
     if (!function_exists('apply_filters')) {
         function apply_filters($hook, $value) {
             if ($hook === 'nuclen_enable_log_buffer' && isset($GLOBALS['ls_filter_buffer'])) {
@@ -48,6 +54,7 @@ namespace {
             $GLOBALS['ls_base'] = sys_get_temp_dir() . '/ls_' . uniqid();
             mkdir($GLOBALS['ls_base']);
             $GLOBALS['ls_filter_buffer'] = false;
+            $GLOBALS['ls_rename_fail'] = false;
         }
 
         protected function tearDown(): void {
@@ -56,6 +63,7 @@ namespace {
                 $cb();
             }
             unset($GLOBALS['ls_filter_buffer']);
+            unset($GLOBALS['ls_rename_fail']);
             $base = $GLOBALS['ls_base'];
             foreach (glob("$base/*") as $file) {
                 @unlink($file);
@@ -117,6 +125,23 @@ namespace {
             $this->assertCount(1, $GLOBALS['ls_puts']);
             $contents = file_get_contents($info['path']);
             $this->assertStringContainsString('msg 4', $contents);
+        }
+
+        public function test_rotation_failure_triggers_fallback(): void {
+            if (!defined('NUCLEN_LOG_FILE_MAX_SIZE')) {
+                define('NUCLEN_LOG_FILE_MAX_SIZE', 1);
+            }
+            $info = LoggingService::get_log_file_info();
+            if (!file_exists($info['dir'])) {
+                mkdir($info['dir'], 0777, true);
+            }
+            file_put_contents($info['path'], 'aa');
+            $GLOBALS['ls_rename_fail'] = true;
+
+            LoggingService::log('rotate');
+
+            $this->assertNotEmpty($GLOBALS['ls_errors']);
+            $this->assertStringContainsString('Failed to rotate log file', $GLOBALS['ls_errors'][0]);
         }
     }
 }

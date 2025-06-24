@@ -153,7 +153,12 @@ class LoggingService {
 
                 if ( file_exists( $log_file ) && filesize( $log_file ) > $max_size ) {
                         $timestamped = $log_folder . '/log-' . gmdate( 'Y-m-d-His' ) . '.txt';
-                        @rename( $log_file, $timestamped );
+                        $renamed     = rename( $log_file, $timestamped );
+                        if ( ! $renamed ) {
+                                foreach ( $messages as $msg ) {
+                                        self::fallback( $msg, 'Failed to rotate log file: ' . $timestamped );
+                                }
+                        }
                 }
 
                 $data = '';
