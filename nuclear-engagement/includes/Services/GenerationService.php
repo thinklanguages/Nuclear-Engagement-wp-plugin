@@ -197,11 +197,16 @@ class GenerationService {
 
         foreach ( array_chunk( $postIds, 50 ) as $chunk ) {
             $args = array(
-                'post__in'    => $chunk,
-                'numberposts' => -1,
-                'post_type'   => $postType,
-                'post_status' => $postStatus,
-                'orderby'     => 'post__in',
+                'post__in'               => $chunk,
+                'numberposts'            => -1,
+                'post_type'              => $postType,
+                'post_status'            => $postStatus,
+                'orderby'                => 'post__in',
+                // Disable caching for performance when bulk generating.
+                'update_post_meta_cache' => false,
+                'update_post_term_cache' => false,
+                'cache_results'          => false,
+                'no_found_rows'          => true,
             );
 
             $posts = get_posts( $args );
