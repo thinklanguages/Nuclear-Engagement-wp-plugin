@@ -31,6 +31,21 @@ into two groups: **actions** (events you can run code on) and
 
 ## Usage Examples
 
+Register a callback when generation begins:
+
+```php
+add_action( 'nuclen_start_generation', function ( $post_id, $workflow_type ) {
+    error_log( "Starting $workflow_type for post $post_id" );
+} );
+```
+
+Override a saved setting when retrieved:
+
+```php
+add_filter( 'nuclen_setting_api_timeout', function ( $value ) {
+    return 30; // seconds
+} );
+
 Register a callback for the `nuclen_start_generation` action:
 
 ```php
