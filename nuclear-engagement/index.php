@@ -1,5 +1,4 @@
 <?php
-declare(strict_types=1);
 /**
  * Nuclear Engagement plugin bootstrap file.
  *
@@ -7,6 +6,8 @@ declare(strict_types=1);
  *
  * @package NuclearEngagement
  */
+declare(strict_types=1);
+
 if ( ! defined( 'ABSPATH' ) ) {
-        exit;
+    exit;
 } // Silence is golden
