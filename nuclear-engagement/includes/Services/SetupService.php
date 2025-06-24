@@ -14,7 +14,6 @@ declare( strict_types = 1 );
 namespace NuclearEngagement\Services;
 
 use NuclearEngagement\Utils;
-use WP_Error;
 
 // If this file is called directly, abort.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -106,9 +105,7 @@ class SetupService {
 	 * @since 1.0.0
 	 *
 	 * @param array $data Credential payload containing appApiKey and other credentials.
-	 * @return bool Whether the request succeeded.
-	 *
-	 * @throws WP_Error If there's an error with the request.
+         * @return bool True on success, false on failure.
 	 */
 	public function send_app_password( array $data ): bool {
 		if ( empty( $data['appApiKey'] ) ) {
