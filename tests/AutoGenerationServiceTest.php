@@ -62,6 +62,19 @@ class AutoGenerationServiceTest extends TestCase {
         $this->assertArrayNotHasKey('nuclen_autogen_queue', $wp_options);
     }
 
+    public function test_process_queue_handles_runtime_exception(): void {
+        global $wp_posts, $wp_events, $wp_options;
+        $wp_posts[1] = (object)[ 'ID' => 1, 'post_title' => 'T', 'post_content' => 'C' ];
+        $api = new DummyRemoteApiService();
+        $api->generateResponse = new \RuntimeException('missing key');
+        $service = $this->makeService($api);
+        $service->generate_single(1, 'quiz');
+        $service->process_queue();
+        $this->assertEmpty($wp_events);
+        $this->assertEmpty($wp_options['nuclen_active_generations'] ?? []);
+        $this->assertArrayNotHasKey('nuclen_autogen_queue', $wp_options);
+    }
+
     public function test_poll_generation_removes_entry_after_success(): void {
         global $wp_options;
         $id = 'gen123';
