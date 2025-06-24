@@ -137,14 +137,20 @@ trait Admin_Summary_Metabox {
 			remove_action( 'save_post', array( $this, 'nuclen_save_quiz_data_meta' ), 10 );
 			remove_action( 'save_post', array( $this, 'nuclen_save_summary_data_meta' ), 10 );
 
-			$time = current_time( 'mysql' );
-			wp_update_post(
-				array(
-					'ID'                => $post_id,
-					'post_modified'     => $time,
-					'post_modified_gmt' => get_gmt_from_date( $time ),
-				)
-			);
+                        $time   = current_time( 'mysql' );
+                        $result = wp_update_post(
+                                array(
+                                        'ID'                => $post_id,
+                                        'post_modified'     => $time,
+                                        'post_modified_gmt' => get_gmt_from_date( $time ),
+                                ),
+                                true
+                        );
+
+                        if ( is_wp_error( $result ) ) {
+                                \NuclearEngagement\Services\LoggingService::log( 'Failed to update modified time for post ' . $post_id . ': ' . $result->get_error_message() );
+                                \NuclearEngagement\Services\LoggingService::notify_admin( 'Failed to update modified time for post ' . $post_id . ': ' . $result->get_error_message() );
+                        }
 
 			add_action( 'save_post', array( $this, 'nuclen_save_quiz_data_meta' ), 10, 1 );
 			add_action( 'save_post', array( $this, 'nuclen_save_summary_data_meta' ), 10, 1 );
