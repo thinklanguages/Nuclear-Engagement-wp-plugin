@@ -1,5 +1,4 @@
 <?php
-declare(strict_types=1);
 /**
  * File: modules/toc/includes/class-nuclen-toc-utils.php
  *
@@ -8,19 +7,28 @@ declare(strict_types=1);
  *   ▸ slug deduplication
  *   ▸ object‑cache wrapper
  */
+declare(strict_types=1);
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-use function nuclen_str_contains as _nc;
+use function nuclen_str_contains;
 
+/**
+ * Utility helpers for TOC parsing and slug generation.
+ */
 final class Nuclen_TOC_Utils {
 
 	private const CACHE_GROUP = 'nuclen_toc';
-	private const CACHE_TTL   = 6 * HOUR_IN_SECONDS;          // 6 hours
+        private const CACHE_TTL   = 6 * HOUR_IN_SECONDS;          // 6 hours.
 
-	private static array $ids_in_post = array();
+        /**
+         * Track generated IDs to ensure uniqueness within a post.
+         *
+         * @var string[]
+         */
+        private static array $ids_in_post = array();
 
 	/**
 	 * Parse H1–H6 headings from raw HTML, respecting heading levels array,
@@ -38,12 +46,12 @@ final class Nuclen_TOC_Utils {
 	 * ]
 	 */
 	public static function extract( string $html, array $heading_levels ): array {
-		// If no specific levels provided, use defaults (2-6)
+		// If no specific levels provided, use defaults (2-6).
 		if ( empty( $heading_levels ) ) {
 			$heading_levels = range( 2, 6 );
 		}
 
-		// Sanitize and validate heading levels
+		// Sanitize and validate heading levels.
 		$heading_levels = array_filter(
 			array_map( 'intval', $heading_levels ),
 			function ( $level ) {
@@ -51,20 +59,20 @@ final class Nuclen_TOC_Utils {
 			}
 		);
 
-		// If still no valid levels, use defaults (2-6)
+		// If still no valid levels, use defaults (2-6).
 		if ( empty( $heading_levels ) ) {
 			$heading_levels = range( 2, 6 );
 		}
 
-		// Sort and make unique
+		// Sort and make unique.
 		sort( $heading_levels );
 		$heading_levels = array_unique( $heading_levels );
 
-		// Generate cache key based on content and heading levels
+		// Generate cache key based on content and heading levels.
 		$key = md5( $html ) . '_' . implode( '', $heading_levels );
 		$hit = wp_cache_get( $key, self::CACHE_GROUP );
 
-		if ( $hit !== false ) {
+		if ( false !== $hit ) {
 			self::$ids_in_post = wp_list_pluck( $hit, 'id' );
 			return $hit;
 		}
@@ -76,7 +84,7 @@ final class Nuclen_TOC_Utils {
 				$tag = strtolower( $row[1] );
 				$lvl = (int) substr( $tag, 1 );
 
-				// Skip if not in allowed levels or has skip classes/attributes
+				// Skip if not in allowed levels or has skip classes/attributes.
 				if ( ! in_array( $lvl, $heading_levels, true ) ) {
 					continue; }
 				if ( preg_match( '/\bno-?toc\b/i', $row[2] ) ) {
@@ -84,13 +92,13 @@ final class Nuclen_TOC_Utils {
 				if ( preg_match( '/data-toc\s*=\s*["\']?false/i', $row[2] ) ) {
 					continue; }
 
-				// Process the heading
+				// Process the heading.
 				$inner = $row[3];
 				$text  = wp_strip_all_tags( $inner );
-				if ( $text === '' ) {
+				if ( '' === $text ) {
 					continue; }
 
-				// Get or generate ID
+				// Get or generate ID.
 				$id = ( preg_match( '/\bid=["\']([^"\']+)["\']/', $row[2], $id_m ) )
 					? sanitize_html_class( $id_m[1] )
 					: self::unique_id_from_text( $text );
@@ -120,14 +128,20 @@ final class Nuclen_TOC_Utils {
 		$id   = $base;
 		$n    = 2;
 		while ( in_array( $id, self::$ids_in_post, true ) ) {
-			$id = $base . '-' . $n++;
+			$id = $base . '-' . ($n++);
 		}
 		self::$ids_in_post[] = $id;
 		return $id;
 	}
 
-	/** tiny wrapper so callers can import just one name */
-	public static function str_contains( string $haystack, string $needle ): bool {
-		return _nc( $haystack, $needle );
-	}
+        /**
+         * Tiny wrapper so callers can import just one name.
+         *
+         * @param string $haystack The string to search in.
+         * @param string $needle   The substring to look for.
+         * @return bool Whether the haystack contains the needle.
+         */
+        public static function str_contains( string $haystack, string $needle ): bool {
+                return nuclen_str_contains( $haystack, $needle );
+        }
 }

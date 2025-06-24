@@ -1,10 +1,10 @@
 <?php
-declare(strict_types=1);
 /**
  * File: modules/toc/includes/class-nuclen-toc-render.php
  *
  * Public-facing shortcode handler for the TOC module.
  */
+declare(strict_types=1);
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -12,17 +12,23 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 use NuclearEngagement\SettingsRepository;
 
+		/**
+	 * Handle the [nuclear_engagement_toc] shortcode output.
+	 */
 final class Nuclen_TOC_Render {
+	/** Assets manager instance. */
 	private Nuclen_TOC_Assets $assets;
+	/** View helper instance. */
 	private Nuclen_TOC_View $view;
 
+	/** Class constructor. */
 	public function __construct() {
 			$this->assets = new Nuclen_TOC_Assets();
 			$this->view   = new Nuclen_TOC_View();
 
 			add_shortcode( 'nuclear_engagement_toc', array( $this, 'nuclen_toc_shortcode' ) );
 
-			// i18n for strings inside this class
+			// i18n for strings inside this class.
 			add_action(
 				'init',
 				static function () {
@@ -35,7 +41,13 @@ final class Nuclen_TOC_Render {
 			);
 	}
 
-	private function validate_heading_levels( $heading_levels ): array {
+	/**
+	 * Sanitize and sort heading levels.
+	 *
+	 * @param array|string $heading_levels Provided heading levels.
+	 * @return array Sanitized heading levels array.
+	 */
+private function validate_heading_levels( $heading_levels ): array {
 		if ( ! is_array( $heading_levels ) ) {
 			if ( is_string( $heading_levels ) ) {
 				$heading_levels = explode( ',', $heading_levels );
@@ -58,7 +70,13 @@ final class Nuclen_TOC_Render {
 			return array_values( $heading_levels );
 	}
 
-	private function validate_shortcode_atts( array $atts ): array {
+	/**
+	 * Sanitize shortcode attributes.
+	 *
+	 * @param array $atts Raw shortcode attributes.
+	 * @return array Validated attributes.
+	 */
+private function validate_shortcode_atts( array $atts ): array {
 			$valid_lists    = array( 'ul', 'ol' );
 			$valid_booleans = array( 'true', 'false' );
 			$valid_themes   = array( 'light', 'dark', 'auto' );
@@ -89,7 +107,14 @@ final class Nuclen_TOC_Render {
 			return $atts;
 	}
 
-	private function prepare_shortcode_attributes( array $atts, SettingsRepository $settings ): array {
+	/**
+	 * Merge defaults with shortcode attributes and settings.
+	 *
+	 * @param array              $atts     Shortcode attributes.
+	 * @param SettingsRepository $settings Settings API wrapper.
+	 * @return array Prepared attributes.
+	 */
+private function prepare_shortcode_attributes( array $atts, SettingsRepository $settings ): array {
 			$heading_levels = $settings->get_array( 'toc_heading_levels', range( 2, 6 ) );
 			$heading_levels = $this->validate_heading_levels( $heading_levels );
 
@@ -119,7 +144,13 @@ final class Nuclen_TOC_Render {
 			return $atts;
 	}
 
-	public function nuclen_toc_shortcode( array $atts ): string {
+		/**
+		 * Shortcode callback for rendering the table of contents.
+		 *
+		 * @param array $atts Shortcode attributes.
+		 * @return string Generated HTML markup.
+		 */
+public function nuclen_toc_shortcode( array $atts ): string {
 			global $post;
 		if ( empty( $post ) ) {
 				return '';
