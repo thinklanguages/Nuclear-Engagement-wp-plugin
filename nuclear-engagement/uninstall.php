@@ -32,7 +32,25 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 // If uninstall not called from WordPress, then exit.
 if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
-		exit;
+                exit;
+}
+
+// Load the plugin autoloader when available.
+$autoload = __DIR__ . '/vendor/autoload.php';
+if ( ! file_exists( $autoload ) ) {
+    $autoload = dirname( __DIR__ ) . '/vendor/autoload.php';
+}
+if ( file_exists( $autoload ) ) {
+    require_once $autoload;
+} else {
+    $utils    = __DIR__ . '/includes/class-utils.php';
+    $logging  = __DIR__ . '/includes/Services/LoggingService.php';
+    if ( file_exists( $utils ) ) {
+        require_once $utils;
+    }
+    if ( file_exists( $logging ) ) {
+        require_once $logging;
+    }
 }
 
 // Get plugin settings.
