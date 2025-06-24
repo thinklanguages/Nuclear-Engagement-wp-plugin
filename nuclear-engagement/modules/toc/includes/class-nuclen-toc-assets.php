@@ -1,10 +1,11 @@
 <?php
-declare(strict_types=1);
 /**
- * File: modules/toc/includes/class-nuclen-toc-assets.php
+ * Front-end asset registration and enqueueing for the TOC module.
  *
- * Handles front-end asset registration and enqueueing for the TOC module.
+ * @package NuclearEngagement
  */
+
+declare(strict_types=1);
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -12,39 +13,48 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 use NuclearEngagement\AssetVersions;
 
+/**
+ * Front-end assets helper for the TOC module.
+ */
 final class Nuclen_TOC_Assets {
-		/** Default vertical offset for scroll-to behaviour. */
-	public const DEFAULT_SCROLL_OFFSET = NUCLEN_TOC_SCROLL_OFFSET_DEFAULT;
+       /** Default vertical offset for scroll-to behaviour. */
+       public const DEFAULT_SCROLL_OFFSET = NUCLEN_TOC_SCROLL_OFFSET_DEFAULT;
 
-	private bool $registered   = false;
-	private int $scroll_offset = self::DEFAULT_SCROLL_OFFSET;
+       /** Whether assets have been registered. */
+       private bool $registered   = false;
+       /** Current scroll offset in pixels. */
+       private int $scroll_offset = self::DEFAULT_SCROLL_OFFSET;
 
-		/**
-		 * Enqueue assets and apply runtime tweaks.
-		 */
-	public function enqueue( array $a ): void {
+       /**
+        * Enqueue assets and apply runtime tweaks.
+        *
+        * @param array $a Shortcode attributes.
+        */
+       public function enqueue( array $a ): void {
 		if ( ! is_singular() ) {
 				return;
 		}
-		if ( ! $this->registered ) {
-				$this->register();
-		}
+               if ( ! $this->registered ) {
+                       $this->register();
+               }
 			wp_enqueue_style( 'nuclen-toc-front' );
-		if ( $a['toggle'] === 'true' || $a['highlight'] === 'true' ) {
-				wp_enqueue_script( 'nuclen-toc-front' );
-		}
+               if ( 'true' === $a['toggle'] || 'true' === $a['highlight'] ) {
+                       wp_enqueue_script( 'nuclen-toc-front' );
+               }
 			$off = max( 0, min( 500, (int) $a['offset'] ) );
-		if ( $off !== $this->scroll_offset ) {
-				wp_add_inline_style( 'nuclen-toc-front', ':root{--nuclen-toc-offset:' . $off . 'px}' );
-				$this->scroll_offset = $off;
-		}
-		if ( $a['smooth'] === 'true' ) {
-				wp_add_inline_style( 'nuclen-toc-front', 'html{scroll-behavior:smooth}' );
-		}
+               if ( $this->scroll_offset !== $off ) {
+                       wp_add_inline_style( 'nuclen-toc-front', ':root{--nuclen-toc-offset:' . $off . 'px}' );
+                       $this->scroll_offset = $off;
+               }
+               if ( 'true' === $a['smooth'] ) {
+                       wp_add_inline_style( 'nuclen-toc-front', 'html{scroll-behavior:smooth}' );
+               }
 	}
 
-		/** Register scripts and styles. */
-	private function register(): void {
+       /**
+        * Register scripts and styles.
+        */
+       private function register(): void {
 		if ( $this->registered ) {
 				return;
 		}

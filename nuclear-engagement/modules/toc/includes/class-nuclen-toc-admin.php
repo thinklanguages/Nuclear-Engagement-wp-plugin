@@ -1,10 +1,11 @@
 <?php
-declare(strict_types=1);
 /**
- * File: modules/toc/includes/class-nuclen-toc-admin.php
+ * Settings→Nuclen TOC — live shortcode generator.
  *
- * Settings→Nuclen TOC  — live shortcode generator.
+ * @package NuclearEngagement
  */
+
+declare(strict_types=1);
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -12,17 +13,26 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 use NuclearEngagement\AssetVersions;
 
+/**
+ * Admin page for generating TOC shortcodes.
+ */
 final class Nuclen_TOC_Admin {
 
-	private string $hook = '';
+       /** Hook suffix for the options page. */
+       private string $hook = '';
 
-	public function __construct() {
-		add_action( 'admin_menu', array( $this, 'menu' ) );
-		add_action( 'admin_enqueue_scripts', array( $this, 'assets' ) );
-	}
+       /**
+        * Register admin hooks.
+        */
+       public function __construct() {
+               add_action( 'admin_menu', array( $this, 'menu' ) );
+               add_action( 'admin_enqueue_scripts', array( $this, 'assets' ) );
+       }
 
-	/* ───────────────── menu item ─────────────────────────────── */
-	public function menu(): void {
+       /**
+        * Register the settings page.
+        */
+       public function menu(): void {
 		$this->hook = add_options_page(
 			__( 'Nuclen TOC', 'nuclen-toc-shortcode' ),
 			__( 'Nuclen TOC', 'nuclen-toc-shortcode' ),
@@ -32,8 +42,12 @@ final class Nuclen_TOC_Admin {
 		);
 	}
 
-	/* ───────────────── admin assets ──────────────────────────── */
-	public function assets( string $hook ): void {
+       /**
+        * Enqueue scripts and styles for the admin page.
+        *
+        * @param string $hook Current admin page hook.
+        */
+       public function assets( string $hook ): void {
 		if ( $hook !== $this->hook ) {
 			return; }
 
@@ -70,8 +84,10 @@ final class Nuclen_TOC_Admin {
 		wp_enqueue_script( 'nuclen-toc-admin' );
 	}
 
-	/* ───────────────── page HTML ─────────────────────────────── */
-	public function page(): void {
+       /**
+        * Render the settings page markup.
+        */
+       public function page(): void {
 		if ( ! current_user_can( 'manage_options' ) ) {
 			return; }
 
@@ -109,18 +125,33 @@ final class Nuclen_TOC_Admin {
 			'</button></p></div>';
 	}
 
-	/* helpers */
-	private function select_row( string $id, string $label, int $def ): void {
+       /* helpers */
+
+       /**
+        * Output a select row for heading levels.
+        *
+        * @param string $id    DOM id for the select element.
+        * @param string $label Row label.
+        * @param int    $def   Default selected heading level.
+        */
+       private function select_row( string $id, string $label, int $def ): void {
 		echo '<tr><th><label for="' . esc_attr( $id ) . '">' . esc_html( $label ) .
 			'</label></th><td><select id="' . esc_attr( $id ) . '">';
-		for ( $i = 1; $i <= 6; $i++ ) {
-			echo '<option value="' . $i . '"' . selected( $def, $i, false ) . '>H' . $i . '</option>';
-		}
-		echo '</select></td></tr>';
-	}
-	private function checkbox_row( string $id, string $label, bool $checked ): void {
-		echo '<tr><th>' . esc_html( $label ) . '</th><td><label><input type="checkbox" id="' .
-			esc_attr( $id ) . '"' . checked( $checked, true, false ) . '> ' .
-			esc_html( $label ) . '</label></td></tr>';
-	}
+               for ( $i = 1; $i <= 6; $i++ ) {
+                       echo '<option value="' . esc_attr( $i ) . '"' . selected( $def, $i, false ) . '>H' . esc_html( $i ) . '</option>';
+               }
+               echo '</select></td></tr>';
+       }
+       /**
+        * Output a checkbox row.
+        *
+        * @param string $id      DOM id for the checkbox.
+        * @param string $label   Row label.
+        * @param bool   $checked Whether the checkbox should be checked.
+        */
+       private function checkbox_row( string $id, string $label, bool $checked ): void {
+               echo '<tr><th>' . esc_html( $label ) . '</th><td><label><input type="checkbox" id="' .
+                       esc_attr( $id ) . '"' . checked( $checked, true, false ) . '> ' .
+                       esc_html( $label ) . '</label></td></tr>';
+       }
 }
