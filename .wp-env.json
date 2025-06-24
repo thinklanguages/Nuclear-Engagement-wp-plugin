@@ -1,0 +1,8 @@
+{
+    "plugins": [ "/nuclear-engagement" ],
+    "config": {
+      "WP_DEBUG": true,
+      "SCRIPT_DEBUG": true
+    }
+}
+  
