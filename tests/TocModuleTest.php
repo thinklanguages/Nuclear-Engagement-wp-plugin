@@ -20,6 +20,7 @@ if ( ! defined( 'NUCLEN_TOC_URL' ) ) {
 }
 
 $GLOBALS['wp_cache'] = [];
+$GLOBALS['transients'] = [];
 
 if ( ! function_exists( 'wp_cache_get' ) ) {
     function wp_cache_get( $key, $group = '' ) {
@@ -39,6 +40,22 @@ if ( ! function_exists( 'wp_cache_delete' ) ) {
 if ( ! function_exists( 'wp_cache_flush_group' ) ) {
     function wp_cache_flush_group( $group ) {
         unset( $GLOBALS['wp_cache'][ $group ] );
+    }
+}
+
+if ( ! function_exists( 'get_transient' ) ) {
+    function get_transient( $key ) {
+        return $GLOBALS['transients'][ $key ] ?? false;
+    }
+}
+if ( ! function_exists( 'set_transient' ) ) {
+    function set_transient( $key, $value, $ttl = 0 ) {
+        $GLOBALS['transients'][ $key ] = $value;
+    }
+}
+if ( ! function_exists( 'delete_transient' ) ) {
+    function delete_transient( $key ) {
+        unset( $GLOBALS['transients'][ $key ] );
     }
 }
 if ( ! function_exists( 'wp_list_pluck' ) ) {
@@ -164,9 +181,10 @@ require_once dirname(__DIR__) . '/nuclear-engagement/includes/Container.php';
 
 class TocModuleTest extends TestCase {
     protected function setUp(): void {
-        global $wp_posts, $wp_cache;
-        $wp_posts = [];
-        $wp_cache = [];
+        global $wp_posts, $wp_cache, $transients;
+        $wp_posts   = [];
+        $wp_cache   = [];
+        $transients = [];
         SettingsRepository::reset_for_tests();
         Container::getInstance()->reset();
     }

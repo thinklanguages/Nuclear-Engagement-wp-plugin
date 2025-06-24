@@ -77,17 +77,25 @@ final class InventoryCache {
 	 * Get cached inventory data.
 	 */
 	public static function get(): ?array {
-		$found  = false;
-		$cached = wp_cache_get( self::get_cache_key(), self::CACHE_GROUP, false, $found );
-		return $found && is_array( $cached ) ? $cached : null;
-	}
+                $key    = self::get_cache_key();
+                $found  = false;
+                $cached = wp_cache_get( $key, self::CACHE_GROUP, false, $found );
+                if ( ! $found ) {
+                        $cached = get_transient( $key );
+                }
+
+                return is_array( $cached ) ? $cached : null;
+        }
 
 	/**
 	 * Store inventory data in cache.
 	 */
 	public static function set( array $data ): void {
-		wp_cache_set( self::get_cache_key(), $data, self::CACHE_GROUP, self::CACHE_EXPIRATION );
-	}
+                $key = self::get_cache_key();
+
+                wp_cache_set( $key, $data, self::CACHE_GROUP, self::CACHE_EXPIRATION );
+                set_transient( $key, $data, self::CACHE_EXPIRATION );
+        }
 
 	/**
 	 * Clear the inventory cache.
@@ -102,7 +110,10 @@ final class InventoryCache {
 
                wp_cache_set( self::CLEAR_TS_KEY, $now, self::CACHE_GROUP, self::CLEAR_DEBOUNCE * 2 );
 
-               wp_cache_delete( self::get_cache_key(), self::CACHE_GROUP );
+               $key = self::get_cache_key();
+
+               wp_cache_delete( $key, self::CACHE_GROUP );
+               delete_transient( $key );
 
                if ( function_exists( 'wp_cache_flush_group' ) ) {
                        wp_cache_flush_group( self::CACHE_GROUP );
