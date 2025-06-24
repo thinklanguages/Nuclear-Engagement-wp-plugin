@@ -10,50 +10,45 @@ class ComposerStaticInitfc36c474efe2c092ff4053937f5e49fb
         'N' => 
         array (
             'NuclearEngagement\\Services\\' => 27,
-            'NuclearEngagement\\Responses\\' => 28,
             'NuclearEngagement\\Requests\\' => 27,
-            'NuclearEngagement\\' => 18,
+            'NuclearEngagement\\Responses\\' => 28,
         ),
     );
 
     public static $prefixDirsPsr4 = array (
-        'NuclearEngagement\\Services\\' => 
+        'NuclearEngagement\\Services\\' =>
         array (
-            0 => __DIR__ . '/../..' . '/nuclear-engagement/includes/Services',
+            0 => __DIR__ . '/../..' . '/includes/Services',
         ),
-        'NuclearEngagement\\Responses\\' => 
+        'NuclearEngagement\\Requests\\' =>
         array (
-            0 => __DIR__ . '/../..' . '/nuclear-engagement/includes/Responses',
+            0 => __DIR__ . '/../..' . '/includes/Requests',
         ),
-        'NuclearEngagement\\Requests\\' => 
+        'NuclearEngagement\\Responses\\' =>
         array (
-            0 => __DIR__ . '/../..' . '/nuclear-engagement/includes/Requests',
-        ),
-        'NuclearEngagement\\' => 
-        array (
-            0 => __DIR__ . '/../..' . '/nuclear-engagement',
+            0 => __DIR__ . '/../..' . '/includes/Responses',
         ),
     );
 
     public static $classMap = array (
         'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
-        'NuclearEngagement\\Requests\\ContentRequest' => __DIR__ . '/../..' . '/nuclear-engagement/includes/Requests/ContentRequest.php',
-        'NuclearEngagement\\Requests\\GenerateRequest' => __DIR__ . '/../..' . '/nuclear-engagement/includes/Requests/GenerateRequest.php',
-        'NuclearEngagement\\Requests\\PostsCountRequest' => __DIR__ . '/../..' . '/nuclear-engagement/includes/Requests/PostsCountRequest.php',
-        'NuclearEngagement\\Requests\\UpdatesRequest' => __DIR__ . '/../..' . '/nuclear-engagement/includes/Requests/UpdatesRequest.php',
-        'NuclearEngagement\\Responses\\GenerationResponse' => __DIR__ . '/../..' . '/nuclear-engagement/includes/Responses/GenerationResponse.php',
-        'NuclearEngagement\\Responses\\UpdatesResponse' => __DIR__ . '/../..' . '/nuclear-engagement/includes/Responses/UpdatesResponse.php',
-        'NuclearEngagement\\Services\\ApiException' => __DIR__ . '/../..' . '/nuclear-engagement/includes/Services/ApiException.php',
-        'NuclearEngagement\\Services\\AutoGenerationService' => __DIR__ . '/../..' . '/nuclear-engagement/includes/Services/AutoGenerationService.php',
-        'NuclearEngagement\\Services\\ContentStorageService' => __DIR__ . '/../..' . '/nuclear-engagement/includes/Services/ContentStorageService.php',
-        'NuclearEngagement\\Services\\GenerationPoller' => __DIR__ . '/../..' . '/nuclear-engagement/includes/Services/GenerationPoller.php',
-        'NuclearEngagement\\Services\\GenerationService' => __DIR__ . '/../..' . '/nuclear-engagement/includes/Services/GenerationService.php',
-        'NuclearEngagement\\Services\\LoggingService' => __DIR__ . '/../..' . '/nuclear-engagement/includes/Services/LoggingService.php',
-        'NuclearEngagement\\Services\\PointerService' => __DIR__ . '/../..' . '/nuclear-engagement/includes/Services/PointerService.php',
-        'NuclearEngagement\\Services\\PostsQueryService' => __DIR__ . '/../..' . '/nuclear-engagement/includes/Services/PostsQueryService.php',
-        'NuclearEngagement\\Services\\PublishGenerationHandler' => __DIR__ . '/../..' . '/nuclear-engagement/includes/Services/PublishGenerationHandler.php',
-        'NuclearEngagement\\Services\\RemoteApiService' => __DIR__ . '/../..' . '/nuclear-engagement/includes/Services/RemoteApiService.php',
-        'NuclearEngagement\\Services\\SetupService' => __DIR__ . '/../..' . '/nuclear-engagement/includes/Services/SetupService.php',
+        'NuclearEngagement\\Requests\\ContentRequest' => __DIR__ . '/../..' . '/includes/Requests/ContentRequest.php',
+        'NuclearEngagement\\Requests\\GenerateRequest' => __DIR__ . '/../..' . '/includes/Requests/GenerateRequest.php',
+        'NuclearEngagement\\Requests\\PostsCountRequest' => __DIR__ . '/../..' . '/includes/Requests/PostsCountRequest.php',
+        'NuclearEngagement\\Requests\\UpdatesRequest' => __DIR__ . '/../..' . '/includes/Requests/UpdatesRequest.php',
+        'NuclearEngagement\\Responses\\GenerationResponse' => __DIR__ . '/../..' . '/includes/Responses/GenerationResponse.php',
+        'NuclearEngagement\\Responses\\UpdatesResponse' => __DIR__ . '/../..' . '/includes/Responses/UpdatesResponse.php',
+        'NuclearEngagement\\Services\\ApiException' => __DIR__ . '/../..' . '/includes/Services/ApiException.php',
+        'NuclearEngagement\\Services\\AutoGenerationService' => __DIR__ . '/../..' . '/includes/Services/AutoGenerationService.php',
+        'NuclearEngagement\\Services\\ContentStorageService' => __DIR__ . '/../..' . '/includes/Services/ContentStorageService.php',
+        'NuclearEngagement\\Services\\GenerationPoller' => __DIR__ . '/../..' . '/includes/Services/GenerationPoller.php',
+        'NuclearEngagement\\Services\\GenerationService' => __DIR__ . '/../..' . '/includes/Services/GenerationService.php',
+        'NuclearEngagement\\Services\\LoggingService' => __DIR__ . '/../..' . '/includes/Services/LoggingService.php',
+        'NuclearEngagement\\Services\\PointerService' => __DIR__ . '/../..' . '/includes/Services/PointerService.php',
+        'NuclearEngagement\\Services\\PostsQueryService' => __DIR__ . '/../..' . '/includes/Services/PostsQueryService.php',
+        'NuclearEngagement\\Services\\PublishGenerationHandler' => __DIR__ . '/../..' . '/includes/Services/PublishGenerationHandler.php',
+        'NuclearEngagement\\Services\\RemoteApiService' => __DIR__ . '/../..' . '/includes/Services/RemoteApiService.php',
+        'NuclearEngagement\\Services\\SetupService' => __DIR__ . '/../..' . '/includes/Services/SetupService.php',
     );
 
     public static function getInitializer(ClassLoader $loader)

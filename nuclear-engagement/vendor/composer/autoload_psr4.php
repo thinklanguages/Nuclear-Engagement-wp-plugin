@@ -6,8 +6,7 @@ $vendorDir = dirname(__DIR__);
 $baseDir = dirname($vendorDir);
 
 return array(
-    'NuclearEngagement\\Services\\' => array($baseDir . '/nuclear-engagement/includes/Services'),
-    'NuclearEngagement\\Responses\\' => array($baseDir . '/nuclear-engagement/includes/Responses'),
-    'NuclearEngagement\\Requests\\' => array($baseDir . '/nuclear-engagement/includes/Requests'),
-    'NuclearEngagement\\' => array($baseDir . '/nuclear-engagement'),
+    'NuclearEngagement\\Services\\' => array($baseDir . '/includes/Services'),
+    'NuclearEngagement\\Requests\\' => array($baseDir . '/includes/Requests'),
+    'NuclearEngagement\\Responses\\' => array($baseDir . '/includes/Responses'),
 );
