@@ -43,67 +43,6 @@ if ( file_exists( $autoload ) ) {
         return;
 }
 
-// Register plugin autoloader for internal classes.
-spl_autoload_register(
-        static function ( $class ) {
-                $prefix = 'NuclearEngagement\\';
-                if ( strpos( $class, $prefix ) !== 0 ) {
-                        return;
-                }
-
-                $relative = substr( $class, strlen( $prefix ) );
-                $parts    = explode( '\\', $relative );
-
-                if ( count( $parts ) === 1 ) {
-                        $file = $parts[0];
-                        $path = NUCLEN_PLUGIN_DIR . 'includes/' . $file . '.php';
-                        if ( ! file_exists( $path ) ) {
-                                $snake = 'class-' . strtolower( preg_replace( '/(?<!^)([A-Z])/', '-$1', $file ) ) . '.php';
-                                $path  = NUCLEN_PLUGIN_DIR . 'includes/' . $snake;
-                        }
-                } else {
-                        $dir = strtolower( array_shift( $parts ) );
-
-                        if ( in_array( $dir, array( 'services', 'requests', 'responses' ), true ) ) {
-                                $path = NUCLEN_PLUGIN_DIR . 'includes/' . ucfirst( $dir ) . '/' . implode( '/', $parts ) . '.php';
-                        } else {
-                                $path = NUCLEN_PLUGIN_DIR . $dir . '/' . implode( '/', $parts ) . '.php';
-                                if ( ! file_exists( $path ) ) {
-                                    $traits_path = NUCLEN_PLUGIN_DIR . $dir . '/traits/' . implode( '/', $parts ) . '.php';
-                                    if ( file_exists( $traits_path ) ) {
-                                        $path = $traits_path;
-                                    } else {
-                                        $class_part = implode( '_', $parts );
-
-                                        if ( strpos( $class_part, 'Admin_' ) === 0 ) {
-                                            $rest = substr( $class_part, strlen( 'Admin_' ) );
-                                            if ( substr( $rest, -8 ) === '_Metabox' ) {
-                                                $rest = 'metabox-' . substr( $rest, 0, -8 );
-                                            } else {
-                                                $rest = str_replace( '_', '-', $rest );
-                                            }
-                                            $alt = 'trait-admin-' . strtolower( $rest ) . '.php';
-                                        } else {
-                                            $slug = preg_replace( '/(?<!^)([A-Z])/', '-$1', $class_part );
-                                            $slug = strtolower( str_replace( '_', '-', $slug ) );
-                                            $slug = preg_replace( '/-trait$/', '', $slug );
-                                            $alt  = 'trait-' . $slug . '.php';
-                                        }
-
-                                        $alt_path = NUCLEN_PLUGIN_DIR . $dir . '/' . $alt;
-                                        if ( file_exists( $alt_path ) ) {
-                                            $path = $alt_path;
-                                        }
-                                    }
-                                }
-                        }
-                }
-
-                if ( file_exists( $path ) ) {
-                        require_once $path;
-                }
-        }
-);
 
 if ( file_exists( NUCLEN_PLUGIN_DIR . 'includes/constants.php' ) ) {
     require_once NUCLEN_PLUGIN_DIR . 'includes/constants.php';

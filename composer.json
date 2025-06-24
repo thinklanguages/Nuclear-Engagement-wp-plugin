@@ -5,7 +5,8 @@
     "psr-4": {
       "NuclearEngagement\\Services\\": "includes/Services/",
       "NuclearEngagement\\Requests\\": "includes/Requests/",
-      "NuclearEngagement\\Responses\\": "includes/Responses/"
+      "NuclearEngagement\\Responses\\": "includes/Responses/",
+      "NuclearEngagement\\": "nuclear-engagement/"
     }
   },
   "config": {

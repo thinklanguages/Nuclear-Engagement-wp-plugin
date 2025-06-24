@@ -26,20 +26,20 @@ namespace NuclearEngagement\Services {
 }
 
 namespace {
-    require_once dirname(__DIR__) . '/nuclear-engagement/admin/trait-admin-metabox-quiz.php';
-    require_once dirname(__DIR__) . '/nuclear-engagement/admin/trait-admin-metabox-summary.php';
+    require_once dirname(__DIR__) . '/nuclear-engagement/admin/Traits/AdminQuizMetabox.php';
+    require_once dirname(__DIR__) . '/nuclear-engagement/admin/Traits/AdminSummaryMetabox.php';
 
     class DummyRepo {
         public function get($key, $default = 0) { return 1; }
     }
 
     class QuizBox {
-        use \NuclearEngagement\Admin\Admin_Quiz_Metabox;
+        use \NuclearEngagement\Admin\Traits\AdminQuizMetabox;
         public function nuclen_get_settings_repository() { return new DummyRepo(); }
     }
 
     class SummaryBox {
-        use \NuclearEngagement\Admin\Admin_Summary_Metabox;
+        use \NuclearEngagement\Admin\Traits\AdminSummaryMetabox;
         public function nuclen_get_settings_repository() { return new DummyRepo(); }
     }
 

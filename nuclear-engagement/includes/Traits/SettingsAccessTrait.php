@@ -1,6 +1,6 @@
 <?php
 /**
- * File: includes/SettingsAccessTrait.php
+ * File: includes/Traits/SettingsAccessTrait.php
  *
  * Provides typed getter and setter helpers for SettingsRepository.
  *
@@ -11,7 +11,7 @@
 
 declare( strict_types = 1 );
 
-namespace NuclearEngagement;
+namespace NuclearEngagement\Traits;
 
 // If this file is called directly, abort.
 if ( ! defined( 'ABSPATH' ) ) {

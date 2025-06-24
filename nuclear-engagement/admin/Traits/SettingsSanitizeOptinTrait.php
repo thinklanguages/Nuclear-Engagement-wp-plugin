@@ -1,14 +1,14 @@
 <?php
 declare(strict_types=1);
 /**
- * File: admin/trait-settings-sanitize-optin.php
+ * File: admin/Traits/SettingsSanitizeOptinTrait.php
  *
  * Sanitises only the Opt-In section.
  *
  * @package NuclearEngagement\Admin
  */
 
-namespace NuclearEngagement\Admin;
+namespace NuclearEngagement\Admin\Traits;
 
 trait SettingsSanitizeOptinTrait {
 

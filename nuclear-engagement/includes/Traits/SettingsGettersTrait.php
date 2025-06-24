@@ -1,6 +1,6 @@
 <?php
 /**
- * File: includes/class-settings-getters-trait.php
+ * File: includes/Traits/SettingsGettersTrait.php
  *
  * Provides getter helpers for SettingsRepository.
  *
@@ -11,7 +11,7 @@
 
 declare( strict_types = 1 );
 
-namespace NuclearEngagement;
+namespace NuclearEngagement\Traits;
 
 // If this file is called directly, abort.
 if ( ! defined( 'ABSPATH' ) ) {

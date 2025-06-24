@@ -1,18 +1,18 @@
 <?php
 declare(strict_types=1);
 /**
- * File: admin/trait-admin-metabox-quiz.php
+ * File: admin/Traits/AdminQuizMetabox.php
  *
  * Handles Quiz meta-box registration, rendering, and saving.
  */
 
-namespace NuclearEngagement\Admin;
+namespace NuclearEngagement\Admin\Traits;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-trait Admin_Quiz_Metabox {
+trait AdminQuizMetabox {
 
 	/*
 	-------------------------------------------------------------------------

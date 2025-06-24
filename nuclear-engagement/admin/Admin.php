@@ -17,13 +17,17 @@ if ( ! defined( 'ABSPATH' ) ) {
 use NuclearEngagement\Utils;
 use NuclearEngagement\SettingsRepository;
 use NuclearEngagement\Container;
+use NuclearEngagement\Admin\Traits\AdminMetaboxes;
+use NuclearEngagement\Admin\Traits\AdminAjax;
+use NuclearEngagement\Admin\Traits\AdminMenu;
+use NuclearEngagement\Admin\Traits\AdminAssets;
 
 class Admin {
 
-	use Admin_Metaboxes;
-	use Admin_Ajax;
-	use Admin_Menu;
-	use Admin_Assets;
+    use AdminMetaboxes;
+    use AdminAjax;
+    use AdminMenu;
+    use AdminAssets;
 
 	private $plugin_name;
 	private $version;

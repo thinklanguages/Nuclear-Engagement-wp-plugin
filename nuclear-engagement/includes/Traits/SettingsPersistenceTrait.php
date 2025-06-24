@@ -1,6 +1,6 @@
 <?php
 /**
- * File: includes/class-settings-persistence-trait.php
+ * File: includes/Traits/SettingsPersistenceTrait.php
  *
  * Handles saving logic for SettingsRepository.
  *
@@ -11,7 +11,7 @@
 
 declare( strict_types = 1 );
 
-namespace NuclearEngagement;
+namespace NuclearEngagement\Traits;
 
 use NuclearEngagement\SettingsSanitizer;
 

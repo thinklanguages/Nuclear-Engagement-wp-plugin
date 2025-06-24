@@ -9,6 +9,8 @@ declare(strict_types=1);
  */
 
 namespace NuclearEngagement\Admin;
+use NuclearEngagement\Admin\Traits\SettingsSanitizeCoreTrait;
+use NuclearEngagement\Admin\Traits\SettingsSanitizeOptinTrait;
 
 trait SettingsSanitizeTrait {
 

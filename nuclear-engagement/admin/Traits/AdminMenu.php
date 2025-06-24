@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 /**
- * File: admin/trait-admin-menu.php
+ * File: admin/Traits/AdminMenu.php
  *
  * Adds the Nuclear Engagement admin menu and hides the “Generate” page
  * until **both** setup steps are finished (API key + WP App Password).
@@ -9,7 +9,7 @@ declare(strict_types=1);
  * @package NuclearEngagement\Admin
  */
 
-namespace NuclearEngagement\Admin;
+namespace NuclearEngagement\Admin\Traits;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 use NuclearEngagement\Admin\Settings;
 
-trait Admin_Menu {
+trait AdminMenu {
 
 	/**
 	 * Register top‑level menu and sub‑pages.
