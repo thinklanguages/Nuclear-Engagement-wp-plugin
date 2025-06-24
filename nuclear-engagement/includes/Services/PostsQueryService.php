@@ -89,13 +89,51 @@ class PostsQueryService {
 	 * @param PostsCountRequest $request
 	 * @return array
 	 */
-	public function getPostsCount( PostsCountRequest $request ): array {
-		$queryArgs = $this->buildQueryArgs( $request );
-		$query     = new \WP_Query( $queryArgs );
+       public function getPostsCount( PostsCountRequest $request ): array {
+               global $wpdb;
 
-		return array(
-			'count'    => $query->found_posts,
-			'post_ids' => $query->posts ?: array(),
-		);
-	}
+               $joins  = array();
+               $wheres = array();
+
+               $wheres[] = $wpdb->prepare( 'p.post_type = %s', $request->postType );
+
+               if ( 'any' !== $request->postStatus ) {
+                       $wheres[] = $wpdb->prepare( 'p.post_status = %s', $request->postStatus );
+               }
+
+               if ( $request->authorId ) {
+                       $wheres[] = $wpdb->prepare( 'p.post_author = %d', $request->authorId );
+               }
+
+               if ( $request->categoryId ) {
+                       $joins[]  = "JOIN {$wpdb->term_relationships} tr ON tr.object_id = p.ID";
+                       $joins[]  = "JOIN {$wpdb->term_taxonomy} tt ON tt.term_taxonomy_id = tr.term_taxonomy_id AND tt.taxonomy = 'category'";
+                       $wheres[] = $wpdb->prepare( 'tt.term_id = %d', $request->categoryId );
+               }
+
+               if ( ! $request->allowRegenerate ) {
+                       $meta_key = $request->workflow === 'quiz' ? 'nuclen-quiz-data' : 'nuclen-summary-data';
+                       $joins[]  = $wpdb->prepare( "LEFT JOIN {$wpdb->postmeta} pm_exist ON pm_exist.post_id = p.ID AND pm_exist.meta_key = %s", $meta_key );
+                       $wheres[] = 'pm_exist.meta_id IS NULL';
+               }
+
+               if ( ! $request->regenerateProtected ) {
+                       $prot_key = $request->workflow === 'quiz' ? 'nuclen_quiz_protected' : 'nuclen_summary_protected';
+                       $joins[]  = $wpdb->prepare( "LEFT JOIN {$wpdb->postmeta} pm_prot ON pm_prot.post_id = p.ID AND pm_prot.meta_key = %s", $prot_key );
+                       $wheres[] = "(pm_prot.meta_id IS NULL OR pm_prot.meta_value != '1')";
+               }
+
+               $sql  = "FROM {$wpdb->posts} p " . implode( ' ', $joins );
+               if ( $wheres ) {
+                       $sql .= ' WHERE ' . implode( ' AND ', $wheres );
+               }
+
+               $post_ids = $wpdb->get_col( "SELECT p.ID $sql" );
+               $count    = (int) $wpdb->get_var( "SELECT COUNT(*) $sql" );
+
+               return array(
+                       'count'    => $count,
+                       'post_ids' => $post_ids,
+               );
+       }
 }
