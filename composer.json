@@ -3,6 +3,9 @@
   },
   "autoload": {
     "psr-4": {
+      "NuclearEngagement\\Services\\": "nuclear-engagement/includes/Services/",
+      "NuclearEngagement\\Requests\\": "nuclear-engagement/includes/Requests/",
+      "NuclearEngagement\\Responses\\": "nuclear-engagement/includes/Responses/",
       "NuclearEngagement\\": "nuclear-engagement/"
     }
   },
