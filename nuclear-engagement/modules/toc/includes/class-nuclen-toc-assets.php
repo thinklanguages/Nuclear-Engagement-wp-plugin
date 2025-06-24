@@ -17,55 +17,55 @@ use NuclearEngagement\AssetVersions;
  * Front-end assets helper for the TOC module.
  */
 final class Nuclen_TOC_Assets {
-		/** Default vertical offset for scroll-to behaviour. */
+	/** Default vertical offset for scroll-to behaviour. */
 	public const DEFAULT_SCROLL_OFFSET = NUCLEN_TOC_SCROLL_OFFSET_DEFAULT;
 
-        /**
-         * Whether assets have been registered.
-         *
-         * @var bool
-         */
-        private bool $registered = false;
+	/**
+	 * Whether assets have been registered.
+	 *
+	 * @var bool
+	 */
+	private bool $registered = false;
 
-        /**
-         * Current scroll offset in pixels.
-         *
-         * @var int
-         */
-        private int $scroll_offset = self::DEFAULT_SCROLL_OFFSET;
+	/**
+	 * Current scroll offset in pixels.
+	 *
+	 * @var int
+	 */
+	private int $scroll_offset = self::DEFAULT_SCROLL_OFFSET;
 
-		/**
-		 * Enqueue assets and apply runtime tweaks.
-		 *
-		 * @param array $a Shortcode attributes.
-		 */
+	/**
+	 * Enqueue assets and apply runtime tweaks.
+	 *
+	 * @param array $a Shortcode attributes.
+	 */
 	public function enqueue( array $a ): void {
 		if ( ! is_singular() ) {
-				return;
+			return;
 		}
 		if ( ! $this->registered ) {
-				$this->register();
+			$this->register();
 		}
 		wp_enqueue_style( 'nuclen-toc-front' );
 		if ( 'true' === $a['toggle'] || 'true' === $a['highlight'] ) {
-					wp_enqueue_script( 'nuclen-toc-front' );
+			wp_enqueue_script( 'nuclen-toc-front' );
 		}
-				$off = max( 0, min( 500, (int) $a['offset'] ) );
+		$off = max( 0, min( 500, (int) $a['offset'] ) );
 		if ( $this->scroll_offset !== $off ) {
-					wp_add_inline_style( 'nuclen-toc-front', ':root{--nuclen-toc-offset:' . $off . 'px}' );
-					$this->scroll_offset = $off;
+			wp_add_inline_style( 'nuclen-toc-front', ':root{--nuclen-toc-offset:' . $off . 'px}' );
+			$this->scroll_offset = $off;
 		}
 		if ( 'true' === $a['smooth'] ) {
-				wp_add_inline_style( 'nuclen-toc-front', 'html{scroll-behavior:smooth}' );
+			wp_add_inline_style( 'nuclen-toc-front', 'html{scroll-behavior:smooth}' );
 		}
 	}
 
-		/**
-		 * Register scripts and styles.
-		 */
+	/**
+	 * Register scripts and styles.
+	 */
 	private function register(): void {
 		if ( $this->registered ) {
-				return;
+			return;
 		}
 		$this->registered = true;
 
