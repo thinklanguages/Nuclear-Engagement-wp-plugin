@@ -76,9 +76,14 @@ class PublishGenerationHandler {
 			$protected = get_post_meta( $post->ID, 'nuclen_quiz_protected', true );
 			if ( ! $protected ) {
 				$args = array( $post->ID, 'quiz' );
-				if ( ! wp_next_scheduled( AutoGenerationService::START_HOOK, $args ) ) {
-					wp_schedule_single_event( time(), AutoGenerationService::START_HOOK, $args );
-				}
+                                if ( ! wp_next_scheduled( AutoGenerationService::START_HOOK, $args ) ) {
+                                        $scheduled = wp_schedule_single_event( time(), AutoGenerationService::START_HOOK, $args );
+                                        if ( false === $scheduled ) {
+                                                \NuclearEngagement\Services\LoggingService::log(
+                                                        'Failed to schedule event ' . AutoGenerationService::START_HOOK
+                                                );
+                                        }
+                                }
 			}
 		}
 
@@ -86,9 +91,14 @@ class PublishGenerationHandler {
 			$protected = get_post_meta( $post->ID, 'nuclen_summary_protected', true );
 			if ( ! $protected ) {
 				$args = array( $post->ID, 'summary' );
-				if ( ! wp_next_scheduled( AutoGenerationService::START_HOOK, $args ) ) {
-					wp_schedule_single_event( time(), AutoGenerationService::START_HOOK, $args );
-				}
+                                if ( ! wp_next_scheduled( AutoGenerationService::START_HOOK, $args ) ) {
+                                        $scheduled = wp_schedule_single_event( time(), AutoGenerationService::START_HOOK, $args );
+                                        if ( false === $scheduled ) {
+                                                \NuclearEngagement\Services\LoggingService::log(
+                                                        'Failed to schedule event ' . AutoGenerationService::START_HOOK
+                                                );
+                                        }
+                                }
 			}
 		}
 	}

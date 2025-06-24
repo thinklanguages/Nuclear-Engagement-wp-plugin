@@ -164,14 +164,19 @@ class GenerationService {
 			}
 
 			// If no immediate results, schedule polling
-			if ( empty( $response->results ) ) {
-                                wp_schedule_single_event(
+                        if ( empty( $response->results ) ) {
+                                $scheduled = wp_schedule_single_event(
                                         time() + $this->pollDelay,
                                         'nuclen_poll_generation',
                                         array( $response->generationId, $workflowType, $postId, 1 )
                                 );
-				\NuclearEngagement\Services\LoggingService::log( "Scheduled polling for post {$postId}, generation {$response->generationId}" );
-			}
+                                if ( false === $scheduled ) {
+                                        \NuclearEngagement\Services\LoggingService::log(
+                                                'Failed to schedule event nuclen_poll_generation for generation ' . $response->generationId
+                                        );
+                                }
+                                \NuclearEngagement\Services\LoggingService::log( "Scheduled polling for post {$postId}, generation {$response->generationId}" );
+                        }
 		} catch ( \Exception $e ) {
 			\NuclearEngagement\Services\LoggingService::log( "Error generating {$workflowType} for post {$postId}: " . $e->getMessage() );
 			throw $e;

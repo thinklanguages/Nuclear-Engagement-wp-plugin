@@ -144,7 +144,12 @@ class AutoGenerationService {
             update_option( self::QUEUE_OPTION, $queue, 'no' );
         }
         if ( ! wp_next_scheduled( self::QUEUE_HOOK ) ) {
-            wp_schedule_single_event( time(), self::QUEUE_HOOK, array() );
+            $scheduled = wp_schedule_single_event( time(), self::QUEUE_HOOK, array() );
+            if ( false === $scheduled ) {
+                \NuclearEngagement\Services\LoggingService::log(
+                    'Failed to schedule event ' . self::QUEUE_HOOK
+                );
+            }
         }
     }
 
@@ -226,7 +231,12 @@ class AutoGenerationService {
                 );
 
                 update_option( 'nuclen_active_generations', $generations, 'no' );
-                wp_schedule_single_event( $next_poll, 'nuclen_poll_generation', array( $generation_id, $workflow_type, $batch, 1 ) );
+                $scheduled = wp_schedule_single_event( $next_poll, 'nuclen_poll_generation', array( $generation_id, $workflow_type, $batch, 1 ) );
+                if ( false === $scheduled ) {
+                    \NuclearEngagement\Services\LoggingService::log(
+                        'Failed to schedule event nuclen_poll_generation for generation ' . $generation_id
+                    );
+                }
             }
 
             $queue[ $workflow_type ] = $ids;
@@ -242,7 +252,12 @@ class AutoGenerationService {
             delete_option( self::QUEUE_OPTION );
         } else {
             update_option( self::QUEUE_OPTION, $queue, 'no' );
-            wp_schedule_single_event( time() + 1, self::QUEUE_HOOK, array() );
+            $scheduled = wp_schedule_single_event( time() + 1, self::QUEUE_HOOK, array() );
+            if ( false === $scheduled ) {
+                \NuclearEngagement\Services\LoggingService::log(
+                    'Failed to schedule event ' . self::QUEUE_HOOK
+                );
+            }
         }
     }
 
