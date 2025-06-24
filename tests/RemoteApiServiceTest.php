@@ -35,7 +35,7 @@ class RemoteApiServiceTest extends TestCase {
         $svc = $this->makeService();
         $this->expectException(ApiException::class);
         $this->expectExceptionMessage('bad');
-        try { $svc->sendPostsToGenerate(['posts'=>[], 'workflow'=>[]]); } catch (ApiException $e) {
+        try { $svc->send_posts_to_generate(['posts'=>[], 'workflow'=>[]]); } catch (ApiException $e) {
             $this->assertSame(400, $e->getCode());
             throw $e;
         }
@@ -45,7 +45,7 @@ class RemoteApiServiceTest extends TestCase {
         $GLOBALS['test_api_response'] = ['code'=>401,'body'=>json_encode(['error_code'=>'invalid_api_key'])];
         $svc = $this->makeService();
         try {
-            $svc->sendPostsToGenerate(['posts'=>[], 'workflow'=>[]]);
+            $svc->send_posts_to_generate(['posts'=>[], 'workflow'=>[]]);
         } catch (ApiException $e) {
             $this->assertSame(401, $e->getCode());
             $this->assertSame('invalid_api_key', $e->getErrorCode());
@@ -59,7 +59,7 @@ class RemoteApiServiceTest extends TestCase {
         $GLOBALS['test_api_response'] = ['code'=>500,'body'=>json_encode(['error'=>'oops'])];
         $svc = $this->makeService();
         try {
-            $svc->sendPostsToGenerate(['posts'=>[], 'workflow'=>[]]);
+            $svc->send_posts_to_generate(['posts'=>[], 'workflow'=>[]]);
         } catch (ApiException $e) {
             $this->assertSame(500, $e->getCode());
             $this->assertSame('oops', $e->getMessage());

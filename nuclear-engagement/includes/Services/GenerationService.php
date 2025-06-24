@@ -87,8 +87,8 @@ class GenerationService {
 		);
 
 		// Send to API
-		try {
-			$result = $this->api->sendPostsToGenerate(
+                try {
+                        $result = $this->api->send_posts_to_generate(
 				array(
 					'posts'         => $posts,
 					'workflow'      => $workflow,

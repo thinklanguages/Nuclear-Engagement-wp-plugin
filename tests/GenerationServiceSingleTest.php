@@ -18,13 +18,13 @@ namespace {
     class DummyGenApi {
         public ?\Exception $exception = null;
         public array $response = [];
-        public function sendPostsToGenerate(array $data): array {
+        public function send_posts_to_generate(array $data): array {
             if ($this->exception) {
                 throw $this->exception;
             }
             return $this->response;
         }
-        public function fetchUpdates(string $id): array { return []; }
+        public function fetch_updates(string $id): array { return []; }
     }
 
     class DummyStorage {
