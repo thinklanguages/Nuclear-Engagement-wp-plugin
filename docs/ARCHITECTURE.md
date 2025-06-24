@@ -15,9 +15,8 @@ Each folder stays under the 300 LOC guideline described in `nuclear-engagement/
 
 ## Folder Structure
 
-The `nuclear-engagement/AGENTS.md` file outlines the recommended layout for plugin code. Features live under a common `inc/Modules/` directory and each feature has its own folder:
+The file `nuclear-engagement/AGENTS.md` defines the high‑level folder layout for the plugin:
 
-```text
 plugin-root/
 ├── inc/
 │   ├── Modules/
@@ -32,18 +31,17 @@ plugin-root/
 ├── assets/                # compiled JS/CSS
 ├── languages/
 └── tests/
-```
 
-Key maintainability rules from the same document include:
+Key guidelines from that document include:
 
-- Keep the central bootloader under 50 lines; it only registers the autoloader and hooks into WordPress.
-- One class performs one responsibility. Separate classes handle data access, admin screens and AJAX endpoints for each feature.
-- Avoid mixing HTML with PHP. Use small view partials and pass data into them.
-- Refactor when a file exceeds 300 lines or a class contains more than 15 methods.
-- Access options through a repository wrapper rather than calling `get_option()` directly.
-- Register scripts and styles once and enqueue them by handle from modules.
-- Namespace everything and rely on Composer's PSR-4 autoloader.
-- Enforce quality gates with PHPUnit, WP-Mock, PHPStan and PHPCS on every PR.
+- Keep the bootloader under **50 lines**—it only registers the autoloader and hooks.
+- **One class per responsibility**; e.g., data services, admin UI and AJAX endpoints live in separate classes.
+- **Never mix PHP logic with HTML**; use view partials and pass only the data they need.
+- **Refactor when a file exceeds 300 lines or a class has more than 15 methods**.
+- Store options through a repository wrapper to isolate `get_option()` calls.
+- Register all scripts and styles once in `Core\Assets` and enqueue them by handle.
+- Use namespaces with Composer autoloading and maintain CI with PHPUnit, WP‑Mock, PHPCS and PHPStan.
+- Document major decisions and keep activation/deactivation idempotent.
 
 ## Settings Sanitization Refactor
 
