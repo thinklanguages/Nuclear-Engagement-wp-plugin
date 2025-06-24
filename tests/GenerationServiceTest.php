@@ -10,7 +10,22 @@ if (!function_exists('get_posts')) {
         $ids = $args['post__in'] ?? [];
         $posts = [];
         foreach ($ids as $id) {
-            if (isset($GLOBALS['wp_posts'][$id])) {
+            if (!isset($GLOBALS['wp_posts'][$id])) {
+                continue;
+            }
+            $include = true;
+            if (!empty($args['meta_query'])) {
+                foreach ($args['meta_query'] as $mq) {
+                    if (!is_array($mq) || !isset($mq['key'])) {
+                        continue;
+                    }
+                    if (($mq['compare'] ?? '') === 'NOT EXISTS' && isset($GLOBALS['wp_meta'][$id][$mq['key']])) {
+                        $include = false;
+                        break;
+                    }
+                }
+            }
+            if ($include) {
                 $posts[] = $GLOBALS['wp_posts'][$id];
             }
         }

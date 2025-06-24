@@ -7,10 +7,12 @@ use NuclearEngagement\Services\ApiException;
 class DummyRemoteApiService {
     public array $updates = [];
     public $generateResponse = [];
+    public array $lastData = [];
     public function send_posts_to_generate(array $data): array {
         if ($this->generateResponse instanceof \Exception) {
             throw $this->generateResponse;
         }
+        $this->lastData = $data;
         return $this->generateResponse;
     }
     public function fetch_updates(string $id): array { return $this->updates[$id] ?? []; }
@@ -120,5 +122,24 @@ class AutoGenerationServiceTest extends TestCase {
         $event = $wp_events[0];
         $this->assertSame('nuclen_start_generation', $event['hook']);
         $this->assertSame([5, 'quiz'], $event['args']);
+    }
+
+    public function test_process_queue_skips_protected_posts(): void {
+        global $wp_posts, $wp_meta, $wp_events;
+
+        $wp_posts[1] = (object) [ 'ID' => 1, 'post_title' => 'A', 'post_content' => 'C1' ];
+        $wp_posts[2] = (object) [ 'ID' => 2, 'post_title' => 'B', 'post_content' => 'C2' ];
+        $wp_meta[1]  = [ 'nuclen_quiz_protected' => 1 ];
+
+        $api     = new DummyRemoteApiService();
+        $service = $this->makeService( $api );
+
+        $service->generate_single( 1, 'quiz' );
+        $service->generate_single( 2, 'quiz' );
+        $service->process_queue();
+
+        $this->assertCount( 1, $api->lastData['posts'] );
+        $this->assertSame( 2, $api->lastData['posts'][0]['id'] );
+        $this->assertCount( 1, $wp_events );
     }
 }
