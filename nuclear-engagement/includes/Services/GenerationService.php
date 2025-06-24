@@ -24,8 +24,8 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Service for handling content generation
  */
 class GenerationService {
-	/** Seconds to wait between polling events. */
-	public const POLL_DELAY = defined( 'NUCLEN_GENERATION_POLL_DELAY' ) ? NUCLEN_GENERATION_POLL_DELAY : 30;
+    /** Seconds to wait between polling events. */
+    public const POLL_DELAY = NUCLEN_GENERATION_POLL_DELAY;
 	/**
 	 * @var SettingsRepository
 	 */
