@@ -66,7 +66,7 @@ namespace {
             LoggingService::debug('debug message');
             $this->assertFileExists($info['path']);
             $contents = file_get_contents($info['path']);
-            $this->assertStringContainsString('debug message', $contents);
+            $this->assertStringContainsString('[DEBUG] debug message', $contents);
         }
     }
 }
