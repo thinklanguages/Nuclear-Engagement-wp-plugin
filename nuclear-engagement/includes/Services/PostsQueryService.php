@@ -21,6 +21,95 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Service for querying posts
  */
 class PostsQueryService {
+        /** Cache group for query results. */
+        private const CACHE_GROUP = 'nuclen_posts_query';
+
+        /** Cache lifetime in seconds. */
+        private const CACHE_TTL = 10 * MINUTE_IN_SECONDS; // 10 minutes.
+
+        /** Option name storing cache version. */
+        private const VERSION_OPTION = 'nuclen_posts_query_version';
+
+        /**
+         * Register hooks to invalidate caches when posts or terms change.
+         */
+        public static function register_hooks(): void {
+                $cb = array( self::class, 'clear_cache' );
+
+                foreach ( array(
+                        'save_post',
+                        'delete_post',
+                        'deleted_post',
+                        'trashed_post',
+                        'untrashed_post',
+                        'transition_post_status',
+                        'clean_post_cache',
+                ) as $hook ) {
+                        add_action( $hook, $cb );
+                }
+
+                foreach ( array( 'added_post_meta', 'updated_post_meta', 'deleted_post_meta' ) as $hook ) {
+                        add_action( $hook, $cb );
+                }
+
+                foreach ( array(
+                        'create_term',
+                        'created_term',
+                        'edit_term',
+                        'edited_term',
+                        'delete_term',
+                        'deleted_term',
+                        'set_object_terms',
+                        'added_term_relationship',
+                        'deleted_term_relationships',
+                        'edited_terms',
+                ) as $hook ) {
+                        add_action( $hook, $cb );
+                }
+
+                add_action( 'switch_blog', $cb );
+        }
+
+        /**
+         * Clear all cached query results.
+         */
+        public static function clear_cache(): void {
+                $version = (int) get_option( self::VERSION_OPTION, 1 );
+                update_option( self::VERSION_OPTION, $version + 1, false );
+
+                if ( function_exists( 'wp_cache_flush_group' ) ) {
+                        wp_cache_flush_group( self::CACHE_GROUP );
+                } else {
+                        wp_cache_flush();
+                }
+        }
+
+        /**
+         * Get current cache version.
+         */
+        private function get_cache_version(): int {
+                return (int) get_option( self::VERSION_OPTION, 1 );
+        }
+
+        /**
+         * Generate a cache key for the given request.
+         */
+        private function getCacheKey( PostsCountRequest $request ): string {
+                $data = array(
+                        $request->postType,
+                        $request->postStatus,
+                        $request->categoryId,
+                        $request->authorId,
+                        $request->allowRegenerate ? 1 : 0,
+                        $request->regenerateProtected ? 1 : 0,
+                        $request->workflow,
+                        $this->get_cache_version(),
+                        get_current_blog_id(),
+                );
+
+                return md5( wp_json_encode( $data ) );
+        }
+
 	/**
 	 * Build query args from request
 	 *
@@ -91,6 +180,18 @@ class PostsQueryService {
 	 * @return array
 	 */
        public function getPostsCount( PostsCountRequest $request ): array {
+               $cache_key      = $this->getCacheKey( $request );
+               $transient_key  = 'nuclen_pq_' . $cache_key;
+               $found          = false;
+               $cached         = wp_cache_get( $cache_key, self::CACHE_GROUP, false, $found );
+               if ( ! $found ) {
+                       $cached = get_transient( $transient_key );
+               }
+
+               if ( is_array( $cached ) ) {
+                       return $cached;
+               }
+
                global $wpdb;
 
                $joins  = array();
@@ -150,9 +251,14 @@ class PostsQueryService {
                        LoggingService::log( 'Posts query error: ' . $wpdb->last_error );
                }
 
-               return array(
+               $result = array(
                        'count'    => $count,
                        'post_ids' => $post_ids,
                );
+
+               wp_cache_set( $cache_key, $result, self::CACHE_GROUP, self::CACHE_TTL );
+               set_transient( $transient_key, $result, self::CACHE_TTL );
+
+               return $result;
        }
 }
