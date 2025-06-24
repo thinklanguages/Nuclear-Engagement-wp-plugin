@@ -37,7 +37,7 @@ if ( ! file_exists( $autoload ) ) {
 if ( file_exists( $autoload ) ) {
         require_once $autoload;
 } else {
-        error_log( 'Nuclear Engagement: vendor autoload not found.' );
+        \NuclearEngagement\Services\LoggingService::log( 'Nuclear Engagement: vendor autoload not found.' );
 }
 
 // Register plugin autoloader for internal classes.
@@ -105,7 +105,7 @@ spl_autoload_register(
 if ( file_exists( NUCLEN_PLUGIN_DIR . 'includes/constants.php' ) ) {
     require_once NUCLEN_PLUGIN_DIR . 'includes/constants.php';
 } else {
-    error_log( 'Nuclear Engagement: constants.php missing.' );
+    \NuclearEngagement\Services\LoggingService::log( 'Nuclear Engagement: constants.php missing.' );
 }
 
 AssetVersions::init();
@@ -220,7 +220,7 @@ function nuclear_engagement_init() {
     try {
         InventoryCache::register_hooks();
     } catch ( \Throwable $e ) {
-        error_log( 'Nuclear Engagement: Cache registration failed - ' . $e->getMessage() );
+        \NuclearEngagement\Services\LoggingService::log( 'Nuclear Engagement: Cache registration failed - ' . $e->getMessage() );
         add_action(
             'admin_notices',
             static function () {
