@@ -14,6 +14,9 @@ namespace NuclearEngagement\Services {
     function wp_remote_retrieve_response_code($res) {
         return is_array($res) ? ($res['code'] ?? 0) : 0;
     }
+    function wp_remote_retrieve_body($res) {
+        return is_array($res) ? ($res['body'] ?? '') : '';
+    }
     function wp_json_encode($data) { return json_encode($data); }
 }
 
@@ -58,6 +61,16 @@ namespace {
             $data = ['appApiKey' => 'key', 'user' => 'u'];
             $this->assertFalse($svc->send_app_password($data));
             $this->assertSame(['Error sending creds: error'], LoggingService::$logs);
+        }
+
+        public function test_send_app_password_http_error_logs_error(): void {
+            $GLOBALS['ss_response'] = ['code' => 400, 'body' => 'bad'];
+            $svc = new SetupService();
+            $data = ['appApiKey' => 'key', 'user' => 'u'];
+            $this->assertFalse($svc->send_app_password($data));
+            $this->assertSame([
+                'Unexpected creds response code: 400, body: bad'
+            ], LoggingService::$logs);
         }
     }
 }

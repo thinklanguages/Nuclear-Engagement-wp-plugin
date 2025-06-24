@@ -206,14 +206,23 @@ class OptinData {
 		header( 'Content-Type: text/csv; charset=utf-8' );
 		header( 'Content-Disposition: attachment; filename=nuclen_optins_' . gmdate( 'Y-m-d' ) . '.csv' );
 
-		$out = fopen( 'php://output', 'w' );
-		fputcsv( $out, array( 'datetime', 'url', 'name', 'email' ) );   // headings
+                $out = fopen( 'php://output', 'w' );
+                if ( false === $out ) {
+                        LoggingService::log( 'Failed to open output stream for CSV export' );
+                        wp_die( __( 'Unable to generate export.', 'nuclear-engagement' ), 500 );
+                }
+
+                if ( false === fputcsv( $out, array( 'datetime', 'url', 'name', 'email' ) ) ) { // headings
+                        LoggingService::log( 'Failed writing CSV header' );
+                }
 		foreach ( $rows as $r ) {
 				// Prevent formula injection when opened in spreadsheet apps.
 				$r['name']  = self::escape_csv_field( $r['name'] );
 				$r['email'] = self::escape_csv_field( $r['email'] );
 				$r['url']   = self::escape_csv_field( $r['url'] );
-				fputcsv( $out, $r );
+                                if ( false === fputcsv( $out, $r ) ) {
+                                        LoggingService::log( 'Failed writing CSV row' );
+                                }
 		}
 		fclose( $out );
 		exit;
