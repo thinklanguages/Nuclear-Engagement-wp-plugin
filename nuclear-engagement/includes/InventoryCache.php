@@ -21,8 +21,14 @@ final class InventoryCache {
 	/** Cache group used for inventory. */
 	public const CACHE_GROUP = 'nuclen_inventory';
 
-	/** Default cache lifetime. */
-	public const CACHE_EXPIRATION = HOUR_IN_SECONDS;
+        /** Default cache lifetime. */
+        public const CACHE_EXPIRATION = HOUR_IN_SECONDS;
+
+       /** Timestamp key for last clear operation. */
+       private const CLEAR_TS_KEY = 'nuclen_inventory_last_clear';
+
+       /** Seconds to debounce consecutive clears. */
+       public const CLEAR_DEBOUNCE = 2;
 
 	/**
 	 * Register hooks to automatically clear the cache when posts change.
@@ -86,10 +92,20 @@ final class InventoryCache {
 	/**
 	 * Clear the inventory cache.
 	 */
-	public static function clear(): void {
-		wp_cache_delete( self::get_cache_key(), self::CACHE_GROUP );
-		if ( function_exists( 'wp_cache_flush_group' ) ) {
-			wp_cache_flush_group( self::CACHE_GROUP );
-		}
-	}
+        public static function clear(): void {
+               $now  = time();
+               $last = (int) wp_cache_get( self::CLEAR_TS_KEY, self::CACHE_GROUP );
+
+               if ( $last && ( $now - $last ) < self::CLEAR_DEBOUNCE ) {
+                       return;
+               }
+
+               wp_cache_set( self::CLEAR_TS_KEY, $now, self::CACHE_GROUP, self::CLEAR_DEBOUNCE * 2 );
+
+               wp_cache_delete( self::get_cache_key(), self::CACHE_GROUP );
+
+               if ( function_exists( 'wp_cache_flush_group' ) ) {
+                       wp_cache_flush_group( self::CACHE_GROUP );
+               }
+        }
 }
