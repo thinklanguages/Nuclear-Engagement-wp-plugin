@@ -25,7 +25,9 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class GenerationService {
     /** Seconds to wait between polling events. */
-    private int $pollDelay;
+    private const DEFAULT_POLL_DELAY = 30;
+
+    private int $pollDelay = self::DEFAULT_POLL_DELAY;
 	/**
 	 * @var SettingsRepository
 	 */
@@ -62,7 +64,9 @@ class GenerationService {
                 $this->api      = $api;
                 $this->storage  = $storage;
                 $this->utils    = new Utils();
-                $this->pollDelay = defined( 'NUCLEN_GENERATION_POLL_DELAY' ) ? (int) constant( 'NUCLEN_GENERATION_POLL_DELAY' ) : 30;
+                if ( defined( 'NUCLEN_GENERATION_POLL_DELAY' ) ) {
+                        $this->pollDelay = (int) constant( 'NUCLEN_GENERATION_POLL_DELAY' );
+                }
         }
 
 	/**
