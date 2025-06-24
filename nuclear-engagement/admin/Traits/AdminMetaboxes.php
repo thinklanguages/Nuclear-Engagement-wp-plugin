@@ -1,14 +1,14 @@
 <?php
 declare(strict_types=1);
 /**
- * File: admin/trait-admin-metaboxes.php
+ * File: admin/Traits/AdminMetaboxes.php
  *
  * Aggregates the individual metabox traits for quizzes and summaries.
  * Keeps the public interface identical to the previous monolithic trait
  * while delegating logic to dedicated, easier-to-maintain files.
  */
 
-namespace NuclearEngagement\Admin;
+namespace NuclearEngagement\Admin\Traits;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -21,7 +21,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * Combines quiz and summary metabox functionality.
  */
-trait Admin_Metaboxes {
-	use Admin_Quiz_Metabox;
-	use Admin_Summary_Metabox;
+trait AdminMetaboxes {
+    use AdminQuizMetabox;
+    use AdminSummaryMetabox;
 }

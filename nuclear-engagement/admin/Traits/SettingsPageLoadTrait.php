@@ -1,14 +1,14 @@
 <?php
 declare(strict_types=1);
 /**
- * File: admin/trait-settings-page-load.php
+ * File: admin/Traits/SettingsPageLoadTrait.php
  *
  * Loads and merges saved settings with defaults.
  *
  * @package NuclearEngagement\Admin
  */
 
-namespace NuclearEngagement\Admin;
+namespace NuclearEngagement\Admin\Traits;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;

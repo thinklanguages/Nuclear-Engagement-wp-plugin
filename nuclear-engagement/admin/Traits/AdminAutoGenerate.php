@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 /**
- * File: admin/trait-admin-autogenerate.php
+ * File: admin/Traits/AdminAutoGenerate.php
  *
  * Auto-generation on publish - now uses services.
  *
@@ -9,13 +9,13 @@ declare(strict_types=1);
  * protected `get_container(): \NuclearEngagement\Container`.
  */
 
-namespace NuclearEngagement\Admin;
+namespace NuclearEngagement\Admin\Traits;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-trait Admin_AutoGenerate {
+trait AdminAutoGenerate {
 
 	/*
 	──────────────────────────────────────────────────────────

@@ -1,12 +1,12 @@
 <?php
 declare(strict_types=1);
 /**
- * File: admin/trait-admin-assets.php
+ * File: admin/Traits/AdminAssets.php
  *
  * Handles enqueueing of Admin CSS/JS for Nuclear Engagement
  */
 
-namespace NuclearEngagement\Admin;
+namespace NuclearEngagement\Admin\Traits;
 
 use NuclearEngagement\AssetVersions;
 
@@ -15,7 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 
-trait Admin_Assets {
+trait AdminAssets {
 
 	/**
 	 * Enqueue base admin CSS for all plugin admin screens.

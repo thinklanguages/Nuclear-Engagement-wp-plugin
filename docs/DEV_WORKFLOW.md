@@ -9,6 +9,10 @@ This guide shows how to run and debug the plugin locally using `wp-env` and Dock
    composer install
    npm install
    ```
+   After adding new PHP classes, regenerate the autoloader with:
+   ```bash
+   composer dump-autoload
+   ```
 
 2. Start WordPress with the plugin:
    ```bash

@@ -117,10 +117,10 @@ final class SettingsRepository {
 		* ===================================================================
 		*/
 
-use SettingsGettersTrait;
-use SettingsPersistenceTrait;
-use SettingsCacheTrait;
-use SettingsAccessTrait;
+use NuclearEngagement\Traits\SettingsGettersTrait;
+use NuclearEngagement\Traits\SettingsPersistenceTrait;
+use NuclearEngagement\Traits\SettingsCacheTrait;
+use NuclearEngagement\Traits\SettingsAccessTrait;
 use PendingSettingsTrait;
 
         /**

@@ -1,18 +1,18 @@
 <?php
 declare(strict_types=1);
 /**
- * File: admin/trait-admin-metabox-summary.php
+ * File: admin/Traits/AdminSummaryMetabox.php
  *
  * Handles Summary meta-box registration, rendering, and saving.
  */
 
-namespace NuclearEngagement\Admin;
+namespace NuclearEngagement\Admin\Traits;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-trait Admin_Summary_Metabox {
+trait AdminSummaryMetabox {
 
 	/*
 	-------------------------------------------------------------------------

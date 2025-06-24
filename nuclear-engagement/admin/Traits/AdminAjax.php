@@ -1,20 +1,20 @@
 <?php
 declare(strict_types=1);
 /**
- * File: admin/trait-admin-ajax.php
+ * File: admin/Traits/AdminAjax.php
  *
  * Handles AJAX callbacks - now delegates to controllers.
  *
  * Host class must provide protected get_container(): \NuclearEngagement\Container.
  */
 
-namespace NuclearEngagement\Admin;
+namespace NuclearEngagement\Admin\Traits;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-trait Admin_Ajax {
+trait AdminAjax {
 
 	/**
 	 * Fetch updates from the remote app - delegates to controller

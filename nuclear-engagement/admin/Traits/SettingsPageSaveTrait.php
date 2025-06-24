@@ -1,14 +1,14 @@
 <?php
 declare(strict_types=1);
 /**
- * File: admin/trait-settings-page-save.php
+ * File: admin/Traits/SettingsPageSaveTrait.php
  *
  * Handles saving of settings from the admin form.
  *
  * @package NuclearEngagement\Admin
  */
 
-namespace NuclearEngagement\Admin;
+namespace NuclearEngagement\Admin\Traits;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;

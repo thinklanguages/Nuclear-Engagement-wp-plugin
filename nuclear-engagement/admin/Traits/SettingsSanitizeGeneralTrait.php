@@ -1,14 +1,14 @@
 <?php
 declare(strict_types=1);
 /**
- * File: admin/trait-settings-sanitize-general.php
+ * File: admin/Traits/SettingsSanitizeGeneralTrait.php
  *
  * Sanitises all *non-style* settings (theme, counts, placement, etc.).
  *
  * @package NuclearEngagement\Admin
  */
 
-namespace NuclearEngagement\Admin;
+namespace NuclearEngagement\Admin\Traits;
 
 trait SettingsSanitizeGeneralTrait {
 

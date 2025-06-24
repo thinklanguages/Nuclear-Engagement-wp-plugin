@@ -1,14 +1,14 @@
 <?php
 declare(strict_types=1);
 /**
- * File: admin/trait-settings-sanitize-style.php
+ * File: admin/Traits/SettingsSanitizeStyleTrait.php
  *
  * Sanitises every visual-style field for **quiz, summary and TOC**.
  *
  * @package NuclearEngagement\Admin
  */
 
-namespace NuclearEngagement\Admin;
+namespace NuclearEngagement\Admin\Traits;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
