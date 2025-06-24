@@ -16,11 +16,15 @@ if ( ! defined( 'ABSPATH' ) ) {
 define( 'NUCLEN_PLUGIN_DIR', plugin_dir_path( NUCLEN_PLUGIN_FILE ) );
 
 if ( ! defined( 'NUCLEN_PLUGIN_VERSION' ) ) {
-	if ( ! function_exists( 'get_plugin_data' ) ) {
-		require_once ABSPATH . 'wp-admin/includes/plugin.php';
-	}
-	$data = get_plugin_data( NUCLEN_PLUGIN_FILE );
-	define( 'NUCLEN_PLUGIN_VERSION', $data['Version'] );
+        if ( ! function_exists( 'get_file_data' ) ) {
+                require_once ABSPATH . 'wp-includes/functions.php';
+        }
+        $data = get_file_data(
+                NUCLEN_PLUGIN_FILE,
+                array( 'Version' => 'Version' ),
+                'plugin'
+        );
+        define( 'NUCLEN_PLUGIN_VERSION', $data['Version'] );
 }
 
 define( 'NUCLEN_ASSET_VERSION', '250624-1' );
