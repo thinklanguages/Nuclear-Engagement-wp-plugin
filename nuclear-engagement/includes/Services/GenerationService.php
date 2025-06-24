@@ -25,7 +25,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class GenerationService {
     /** Seconds to wait between polling events. */
-    public const POLL_DELAY = NUCLEN_GENERATION_POLL_DELAY;
+    private int $pollDelay;
 	/**
 	 * @var SettingsRepository
 	 */
@@ -53,16 +53,17 @@ class GenerationService {
 	 * @param RemoteApiService      $api
 	 * @param ContentStorageService $storage
 	 */
-	public function __construct(
-		SettingsRepository $settings,
-		RemoteApiService $api,
-		ContentStorageService $storage
-	) {
-		$this->settings = $settings;
-		$this->api      = $api;
-		$this->storage  = $storage;
-		$this->utils    = new Utils();
-	}
+        public function __construct(
+                SettingsRepository $settings,
+                RemoteApiService $api,
+                ContentStorageService $storage
+        ) {
+                $this->settings = $settings;
+                $this->api      = $api;
+                $this->storage  = $storage;
+                $this->utils    = new Utils();
+                $this->pollDelay = defined( 'NUCLEN_GENERATION_POLL_DELAY' ) ? (int) constant( 'NUCLEN_GENERATION_POLL_DELAY' ) : 30;
+        }
 
 	/**
 	 * Generate content for multiple posts
@@ -160,11 +161,11 @@ class GenerationService {
 
 			// If no immediate results, schedule polling
 			if ( empty( $response->results ) ) {
-				wp_schedule_single_event(
-					time() + self::POLL_DELAY,
-					'nuclen_poll_generation',
-					array( $response->generationId, $workflowType, $postId, 1 )
-				);
+                                wp_schedule_single_event(
+                                        time() + $this->pollDelay,
+                                        'nuclen_poll_generation',
+                                        array( $response->generationId, $workflowType, $postId, 1 )
+                                );
 				\NuclearEngagement\Services\LoggingService::log( "Scheduled polling for post {$postId}, generation {$response->generationId}" );
 			}
 		} catch ( \Exception $e ) {

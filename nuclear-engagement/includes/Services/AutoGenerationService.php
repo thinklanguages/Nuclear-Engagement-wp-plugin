@@ -32,20 +32,20 @@ class AutoGenerationService {
         /** Option name storing the queued post IDs. */
         private const QUEUE_OPTION = 'nuclen_autogen_queue';
 
-	/** Number of seconds before the first poll runs. */
-	public const INITIAL_POLL_DELAY = NUCLEN_INITIAL_POLL_DELAY;
+        /** Number of seconds before the first poll runs. */
+        public const INITIAL_POLL_DELAY = 15;
 
-	/** Maximum number of API polling attempts. */
-	public const MAX_ATTEMPTS = NUCLEN_MAX_POLL_ATTEMPTS;
+        /** Maximum number of API polling attempts. */
+        public const MAX_ATTEMPTS = 10;
 
-	/** Delay in seconds between poll attempts. */
-	public const RETRY_DELAY = NUCLEN_POLL_RETRY_DELAY;
+        /** Delay in seconds between poll attempts. */
+        public const RETRY_DELAY = 60;
 
-	/** Default length used when summarizing posts. */
-	public const SUMMARY_LENGTH = NUCLEN_SUMMARY_LENGTH_DEFAULT;
+        /** Default length used when summarizing posts. */
+        public const SUMMARY_LENGTH = 30;
 
-	/** Default number of items in auto summaries. */
-	public const SUMMARY_ITEMS = NUCLEN_SUMMARY_ITEMS_DEFAULT;
+        /** Default number of items in auto summaries. */
+        public const SUMMARY_ITEMS = 3;
 	/**
 	 * @var SettingsRepository
 	 */
