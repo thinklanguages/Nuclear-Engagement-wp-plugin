@@ -23,7 +23,7 @@ if ( ! defined( 'NUCLEN_PLUGIN_VERSION' ) ) {
 	define( 'NUCLEN_PLUGIN_VERSION', $data['Version'] );
 }
 
-define( 'NUCLEN_ASSET_VERSION', '250613-30' );
+define( 'NUCLEN_ASSET_VERSION', '250624-1' );
 
 $autoload = __DIR__ . '/vendor/autoload.php';
 if ( ! file_exists( $autoload ) ) {
