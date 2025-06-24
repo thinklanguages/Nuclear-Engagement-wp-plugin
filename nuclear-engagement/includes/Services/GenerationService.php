@@ -181,28 +181,38 @@ class GenerationService {
 	 * @param string $postStatus
 	 * @return array
 	 */
-	private function getPostsData( array $postIds, string $postType, string $postStatus ): array {
-		$args = array(
-			'post__in'    => $postIds,
-			'numberposts' => -1,
-			'post_type'   => $postType,
-			'post_status' => $postStatus,
-			'orderby'     => 'post__in',
-		);
+    private function getPostsData( array $postIds, string $postType, string $postStatus ): array {
+        $data      = array();
+        $postsById = array();
 
-		$posts = get_posts( $args );
-		$data  = array();
+        foreach ( array_chunk( $postIds, 50 ) as $chunk ) {
+            $args = array(
+                'post__in'    => $chunk,
+                'numberposts' => -1,
+                'post_type'   => $postType,
+                'post_status' => $postStatus,
+                'orderby'     => 'post__in',
+            );
 
-		foreach ( $posts as $post ) {
-			$data[] = array(
-				'id'      => $post->ID,
-				'title'   => get_the_title( $post->ID ),
-				'content' => wp_strip_all_tags( $post->post_content ),
-			);
-		}
+            $posts = get_posts( $args );
 
-		return $data;
-	}
+            foreach ( $posts as $post ) {
+                $postsById[ (int) $post->ID ] = array(
+                    'id'      => $post->ID,
+                    'title'   => get_the_title( $post->ID ),
+                    'content' => wp_strip_all_tags( $post->post_content ),
+                );
+            }
+        }
+
+        foreach ( $postIds as $id ) {
+            if ( isset( $postsById[ $id ] ) ) {
+                $data[] = $postsById[ $id ];
+            }
+        }
+
+        return $data;
+    }
 
 	/**
 	 * Check if content is protected from regeneration
