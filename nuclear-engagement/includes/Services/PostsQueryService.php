@@ -129,8 +129,8 @@ class PostsQueryService {
                        $sql .= ' WHERE ' . implode( ' AND ', $wheres );
                }
 
-               $post_ids = $wpdb->get_col( "SELECT p.ID $sql" );
-               $count    = (int) $wpdb->get_var( "SELECT COUNT(*) $sql" );
+               $post_ids = $wpdb->get_col( "SELECT DISTINCT p.ID $sql" );
+               $count    = (int) $wpdb->get_var( "SELECT COUNT(DISTINCT p.ID) $sql" );
 
                if ( $wpdb->last_error ) {
                        LoggingService::log( 'Posts query error: ' . $wpdb->last_error );
