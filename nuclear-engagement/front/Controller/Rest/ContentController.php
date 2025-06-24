@@ -65,14 +65,23 @@ class ContentController {
 
                         $data = $request->get_json_params();
 
-			\NuclearEngagement\Services\LoggingService::log(
-				'Received content via REST: ' . json_encode(
-					array(
-						'workflow'      => $data['workflow'] ?? 'unknown',
-						'results_count' => is_array( $data['results'] ?? null ) ? count( $data['results'] ) : 0,
-					)
-				)
-			);
+                        if ( ! is_array( $data ) ) {
+                                \NuclearEngagement\Services\LoggingService::log( 'Invalid JSON received in REST request' );
+                                return new \WP_Error(
+                                        'ne_invalid_json',
+                                        __( 'Invalid JSON', 'nuclear-engagement' ),
+                                        array( 'status' => 400 )
+                                );
+                        }
+
+                        \NuclearEngagement\Services\LoggingService::log(
+                                'Received content via REST: ' . json_encode(
+                                        array(
+                                                'workflow'      => $data['workflow'] ?? 'unknown',
+                                                'results_count' => is_array( $data['results'] ?? null ) ? count( $data['results'] ) : 0,
+                                        )
+                                )
+                        );
 
 			$contentRequest = ContentRequest::fromJson( $data );
 
