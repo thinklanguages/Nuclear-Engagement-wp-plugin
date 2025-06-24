@@ -13,6 +13,38 @@ The plugin is organized by concern:
 
 Each folder stays under the 300 LOC guideline described in `nuclear-engagement/AGENTS.md`.
 
+## Folder Structure
+
+The `nuclear-engagement/AGENTS.md` file outlines the recommended layout for plugin code. Features live under a common `inc/Modules/` directory and each feature has its own folder:
+
+```text
+plugin-root/
+├── inc/
+│   ├── Modules/
+│   │   ├── Quiz/          # 1 feature = 1 folder
+│   │   │   ├── class-quiz-service.php
+│   │   │   ├── quiz-admin.php
+│   │   │   └── assets/
+│   │   └── Summary/
+│   ├── Core/              # shared kernel (loader, i18n, settings API)
+│   └── Utils/             # truly generic helpers
+├── templates/             # view partials only—no logic
+├── assets/                # compiled JS/CSS
+├── languages/
+└── tests/
+```
+
+Key maintainability rules from the same document include:
+
+- Keep the central bootloader under 50 lines; it only registers the autoloader and hooks into WordPress.
+- One class performs one responsibility. Separate classes handle data access, admin screens and AJAX endpoints for each feature.
+- Avoid mixing HTML with PHP. Use small view partials and pass data into them.
+- Refactor when a file exceeds 300 lines or a class contains more than 15 methods.
+- Access options through a repository wrapper rather than calling `get_option()` directly.
+- Register scripts and styles once and enqueue them by handle from modules.
+- Namespace everything and rely on Composer's PSR-4 autoloader.
+- Enforce quality gates with PHPUnit, WP-Mock, PHPStan and PHPCS on every PR.
+
 ## Settings Sanitization Refactor
 
 The settings sanitization logic originally lived inside `SettingsRepository`. To
