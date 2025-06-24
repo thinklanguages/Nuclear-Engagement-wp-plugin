@@ -129,8 +129,22 @@ class PostsQueryService {
                        $sql .= ' WHERE ' . implode( ' AND ', $wheres );
                }
 
-               $post_ids = $wpdb->get_col( "SELECT DISTINCT p.ID $sql" );
-               $count    = (int) $wpdb->get_var( "SELECT COUNT(DISTINCT p.ID) $sql" );
+               $count = (int) $wpdb->get_var( "SELECT COUNT(DISTINCT p.ID) $sql" );
+
+               $post_ids = array();
+               $limit    = 1000;
+               $offset   = 0;
+
+               do {
+                       $query = $wpdb->prepare(
+                               "SELECT DISTINCT p.ID $sql ORDER BY p.ID ASC LIMIT %d OFFSET %d",
+                               $limit,
+                               $offset
+                       );
+                       $batch      = $wpdb->get_col( $query );
+                       $post_ids   = array_merge( $post_ids, $batch );
+                       $offset    += $limit;
+               } while ( count( $batch ) === $limit );
 
                if ( $wpdb->last_error ) {
                        LoggingService::log( 'Posts query error: ' . $wpdb->last_error );
