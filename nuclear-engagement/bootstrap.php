@@ -1,4 +1,5 @@
 <?php
+// nuclear-engagement/bootstrap.php
 declare(strict_types=1);
 use NuclearEngagement\SettingsRepository;
 use NuclearEngagement\Defaults;
@@ -72,18 +73,18 @@ spl_autoload_register(
                                         $class_part = implode( '_', $parts );
 
                                         if ( strpos( $class_part, 'Admin_' ) === 0 ) {
-                                        $rest = substr( $class_part, strlen( 'Admin_' ) );
-                                        if ( substr( $rest, -8 ) === '_Metabox' ) {
-                                            $rest = 'metabox-' . substr( $rest, 0, -8 );
+                                            $rest = substr( $class_part, strlen( 'Admin_' ) );
+                                            if ( substr( $rest, -8 ) === '_Metabox' ) {
+                                                $rest = 'metabox-' . substr( $rest, 0, -8 );
+                                            } else {
+                                                $rest = str_replace( '_', '-', $rest );
+                                            }
+                                            $alt = 'trait-admin-' . strtolower( $rest ) . '.php';
                                         } else {
-                                            $rest = str_replace( '_', '-', $rest );
-                                        }
-                                        $alt = 'trait-admin-' . strtolower( $rest ) . '.php';
-                                        } else {
-                                        $slug = preg_replace( '/(?<!^)([A-Z])/', '-$1', $class_part );
-                                        $slug = strtolower( str_replace( '_', '-', $slug ) );
-                                        $slug = preg_replace( '/-trait$/', '', $slug );
-                                        $alt  = 'trait-' . $slug . '.php';
+                                            $slug = preg_replace( '/(?<!^)([A-Z])/', '-$1', $class_part );
+                                            $slug = strtolower( str_replace( '_', '-', $slug ) );
+                                            $slug = preg_replace( '/-trait$/', '', $slug );
+                                            $alt  = 'trait-' . $slug . '.php';
                                         }
 
                                         $alt_path = NUCLEN_PLUGIN_DIR . $dir . '/' . $alt;
@@ -92,7 +93,6 @@ spl_autoload_register(
                                         }
                                     }
                                 }
-                            }
                         }
                 }
 
@@ -101,6 +101,7 @@ spl_autoload_register(
                 }
         }
 );
+
 if ( file_exists( NUCLEN_PLUGIN_DIR . 'includes/constants.php' ) ) {
     require_once NUCLEN_PLUGIN_DIR . 'includes/constants.php';
 } else {
