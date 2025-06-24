@@ -153,17 +153,37 @@ if ( null === $inventory_cache ) {
 		$by_post_type_summary[ $label ]['without'] = (int) $r['summary_without'];
 	}
 
-	/* — By Author — */
-	$author_rows = nuclen_get_dual_counts( 'p.post_author', $allowed_post_types, $post_statuses );
+        /* — By Author — */
+        $author_rows = nuclen_get_dual_counts( 'p.post_author', $allowed_post_types, $post_statuses );
 
-	$by_author_quiz = $by_author_summary = array();
-	foreach ( $author_rows as $r ) {
-		$name                                  = get_the_author_meta( 'display_name', (int) $r['g'] ) ?: __( 'Unknown Author', 'nuclear-engagement' );
-		$by_author_quiz[ $name ]['with']       = (int) $r['quiz_with'];
-		$by_author_quiz[ $name ]['without']    = (int) $r['quiz_without'];
-		$by_author_summary[ $name ]['with']    = (int) $r['summary_with'];
-		$by_author_summary[ $name ]['without'] = (int) $r['summary_without'];
-	}
+        $author_ids = array_map(
+                static fn ( $row ) => (int) $row['g'],
+                $author_rows
+        );
+
+        $author_names = array();
+        if ( $author_ids ) {
+                $users = get_users(
+                        array(
+                                'include' => $author_ids,
+                                'fields'  => array( 'ID', 'display_name' ),
+                        )
+                );
+
+                foreach ( $users as $user ) {
+                        $author_names[ (int) $user->ID ] = $user->display_name;
+                }
+        }
+
+        $by_author_quiz = $by_author_summary = array();
+        foreach ( $author_rows as $r ) {
+                $id                                    = (int) $r['g'];
+                $name                                  = $author_names[ $id ] ?? __( 'Unknown Author', 'nuclear-engagement' );
+                $by_author_quiz[ $name ]['with']       = (int) $r['quiz_with'];
+                $by_author_quiz[ $name ]['without']    = (int) $r['quiz_without'];
+                $by_author_summary[ $name ]['with']    = (int) $r['summary_with'];
+                $by_author_summary[ $name ]['without'] = (int) $r['summary_without'];
+        }
 
 	/* — By Category — (only for post-types that use the “category” taxonomy) */
 	$with_cat_pt      = array_filter(
