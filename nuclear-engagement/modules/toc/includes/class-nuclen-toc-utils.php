@@ -24,7 +24,14 @@ use function nuclen_str_contains;
 final class Nuclen_TOC_Utils {
 
 	private const CACHE_GROUP = 'nuclen_toc';
-	private const CACHE_TTL   = 6 * HOUR_IN_SECONDS;          // 6 hours.
+        private const CACHE_TTL   = 6 * HOUR_IN_SECONDS;          // 6 hours.
+
+        /**
+         * Last parse duration in milliseconds.
+         *
+         * @var int
+         */
+        private static int $last_parse_ms = 0;
 
 		/**
 		 * Track generated IDs to ensure uniqueness within a post.
@@ -48,11 +55,13 @@ final class Nuclen_TOC_Utils {
 	 *     'id'    => 'slugified-id'
 	 * ]
 	 */
-	public static function extract( string $html, array $heading_levels ): array {
-		// If no specific levels provided, use defaults (2-6).
-		if ( empty( $heading_levels ) ) {
-			$heading_levels = range( 2, 6 );
-		}
+        public static function extract( string $html, array $heading_levels ): array {
+                $t0 = microtime( true );
+
+                // If no specific levels provided, use defaults (2-6).
+                if ( empty( $heading_levels ) ) {
+                        $heading_levels = range( 2, 6 );
+                }
 
 		// Sanitize and validate heading levels.
 		$heading_levels = array_filter(
@@ -75,51 +84,64 @@ final class Nuclen_TOC_Utils {
 		$key = md5( $html ) . '_' . implode( '', $heading_levels );
 		$hit = wp_cache_get( $key, self::CACHE_GROUP );
 
-		if ( false !== $hit ) {
-			self::$ids_in_post = wp_list_pluck( $hit, 'id' );
-			return $hit;
-		}
+                if ( false !== $hit ) {
+                        self::$ids_in_post = wp_list_pluck( $hit, 'id' );
+                        self::$last_parse_ms = (int) round( ( microtime( true ) - $t0 ) * 1000 );
+                        return $hit;
+                }
 
-				$out               = array();
-				self::$ids_in_post = $out;
+                $out               = array();
+                self::$ids_in_post = $out;
 
-		if ( preg_match_all( '/<(h[1-6])([^>]*)>(.*?)<\/\1>/is', $html, $m, PREG_SET_ORDER ) ) {
-			foreach ( $m as $row ) {
-				$tag = strtolower( $row[1] );
-				$lvl = (int) substr( $tag, 1 );
+                if ( nuclen_str_contains( $html, '<h' ) ) {
+                        libxml_use_internal_errors( true );
+                        $dom = new \DOMDocument();
+                        $dom->loadHTML( '<meta http-equiv="Content-Type" content="text/html; charset=utf-8">' . $html, \LIBXML_HTML_NOIMPLIED | \LIBXML_HTML_NODEFDTD );
+                        libxml_clear_errors();
 
-				// Skip if not in allowed levels or has skip classes/attributes.
-				if ( ! in_array( $lvl, $heading_levels, true ) ) {
-					continue; }
-				if ( preg_match( '/\bno-?toc\b/i', $row[2] ) ) {
-					continue; }
-				if ( preg_match( '/data-toc\s*=\s*["\']?false/i', $row[2] ) ) {
-					continue; }
+                        $xpath = new \DOMXPath( $dom );
+                        $nodes = $xpath->query( '//h1|//h2|//h3|//h4|//h5|//h6' );
 
-				// Process the heading.
-				$inner = $row[3];
-				$text  = wp_strip_all_tags( $inner );
-				if ( '' === $text ) {
-					continue; }
+                        foreach ( $nodes as $node ) {
+                                $tag = strtolower( $node->nodeName );
+                                $lvl = (int) substr( $tag, 1 );
 
-				// Get or generate ID.
-				$id = ( preg_match( '/\bid=["\']([^"\']+)["\']/', $row[2], $id_m ) )
-					? sanitize_html_class( $id_m[1] )
-					: self::unique_id_from_text( $text );
+                                // Skip if not in allowed levels or has skip classes/attributes.
+                                if ( ! in_array( $lvl, $heading_levels, true ) ) {
+                                        continue;
+                                }
+                                if ( preg_match( '/\bno-?toc\b/i', $node->getAttribute( 'class' ) ) ) {
+                                        continue;
+                                }
+                                $data_toc = $node->getAttribute( 'data-toc' );
+                                if ( '' !== $data_toc && strtolower( $data_toc ) === 'false' ) {
+                                        continue;
+                                }
 
-				$out[] = array(
-					'tag'   => $tag,
-					'level' => $lvl,
-					'text'  => $text,
-					'inner' => $inner,
-					'id'    => $id,
-				);
-			}
-		}
+                                $inner = self::inner_html( $node );
+                                $text  = trim( wp_strip_all_tags( $inner ) );
+                                if ( '' === $text ) {
+                                        continue;
+                                }
 
-		wp_cache_set( $key, $out, self::CACHE_GROUP, self::CACHE_TTL );
-		return $out;
-	}
+                                $id = $node->hasAttribute( 'id' )
+                                        ? sanitize_html_class( $node->getAttribute( 'id' ) )
+                                        : self::unique_id_from_text( $text );
+
+                                $out[] = array(
+                                        'tag'   => $tag,
+                                        'level' => $lvl,
+                                        'text'  => $text,
+                                        'inner' => $inner,
+                                        'id'    => $id,
+                                );
+                        }
+                }
+
+                wp_cache_set( $key, $out, self::CACHE_GROUP, self::CACHE_TTL );
+                self::$last_parse_ms = (int) round( ( microtime( true ) - $t0 ) * 1000 );
+                return $out;
+        }
 
 		/*
 		 * ----------------------------------------------------------
@@ -133,16 +155,37 @@ final class Nuclen_TOC_Utils {
 		 * @param string $txt Heading text.
 		 * @return string Unique slug.
 		 */
-	private static function unique_id_from_text( string $txt ): string {
-		$base = sanitize_title( $txt );
-		$id   = $base;
-		$n    = 2;
-		while ( in_array( $id, self::$ids_in_post, true ) ) {
-			$id = $base . '-' . ( $n++ );
-		}
-		self::$ids_in_post[] = $id;
-		return $id;
-	}
+        private static function unique_id_from_text( string $txt ): string {
+                $base = sanitize_title( $txt );
+                $id   = $base;
+                $n    = 2;
+                while ( in_array( $id, self::$ids_in_post, true ) ) {
+                        $id = $base . '-' . ( $n++ );
+                }
+                self::$ids_in_post[] = $id;
+                return $id;
+        }
+
+        /**
+         * Retrieve the inner HTML of a DOM element.
+         *
+         * @param \DOMElement $el Element to extract HTML from.
+         * @return string Inner HTML markup.
+         */
+        private static function inner_html( \DOMElement $el ): string {
+                $html = '';
+                foreach ( $el->childNodes as $child ) {
+                        $html .= $el->ownerDocument->saveHTML( $child );
+                }
+                return $html;
+        }
+
+        /**
+         * Get the duration of the last parse in milliseconds.
+         */
+        public static function get_last_parse_ms(): int {
+                return self::$last_parse_ms;
+        }
 
 		/**
 		 * Tiny wrapper so callers can import just one name.

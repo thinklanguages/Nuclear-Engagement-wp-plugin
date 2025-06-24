@@ -15,11 +15,12 @@ import type {
     NuclenSettings,
   } from './nuclen-quiz-types';
   import { shuffle, escapeHtml } from './nuclen-quiz-utils';
-  import {
-    buildOptinInlineHTML,
-    mountOptinBeforeResults,
-    attachInlineOptinHandlers,
-  } from './nuclen-quiz-optin';
+import {
+  QuizUIRefs,
+  QuizState,
+  renderFinal,
+  renderOptinBeforeResultsFlow,
+} from './nuclen-quiz-results';
 import * as logger from './logger';
 
   /* Globals injected by wp_localize_script */
@@ -88,9 +89,16 @@ import * as logger from './logger';
       .slice(0, maxQuestions)
       .map((q) => ({ ...q, answers: q.answers.slice(0, maxAnswers) }));
 
-    let currIdx = 0;
-    let score   = 0;
-    const userAnswers: number[] = [];
+    const ui: QuizUIRefs = {
+      qContainer: qContainer!,
+      aContainer: aContainer!,
+      explContainer: explContainer!,
+      nextBtn: nextBtn!,
+      finalContainer: finalContainer!,
+      progBar: progBar!,
+    };
+
+    const state: QuizState = { currIdx: 0, score: 0, userAnswers: [] };
 
     /* Start */
     nextBtn.addEventListener('click', showNext);
@@ -101,11 +109,11 @@ import * as logger from './logger';
     ─────────────────────────────────────────────────────────── */
 
     function renderQuestion(): void {
-      const q = questions[currIdx];
+      const q = questions[state.currIdx];
 
       qContainer!.innerHTML = `
         <div id="nuclen-quiz-question-number">
-          ${currIdx + 1}/${questions.length}
+          ${state.currIdx + 1}/${questions.length}
         </div>
         <div class="nuclen-quiz-title">${escapeHtml(q.question)}</div>`;
 
@@ -144,12 +152,12 @@ import * as logger from './logger';
     }
 
     function updateProgress(): void {
-      progBar!.style.width = `${((currIdx + 1) / questions.length) * 100}%`;
+      progBar!.style.width = `${((state.currIdx + 1) / questions.length) * 100}%`;
     }
 
     function checkAnswer(origIdx: number, shuffledIdx: number, correctIdx: number): void {
-      if (origIdx === 0) score++;
-      userAnswers.push(origIdx);
+      if (origIdx === 0) state.score++;
+      state.userAnswers.push(origIdx);
 
       const btns = aContainer!.getElementsByTagName('button');
       for (let i = 0; i < btns.length; i++) {
@@ -165,138 +173,31 @@ import * as logger from './logger';
       }
 
       explContainer!.innerHTML = `<p>${escapeHtml(
-        questions[currIdx].explanation,
+        questions[state.currIdx].explanation,
       )}</p>`;
       explContainer!.classList.remove('nuclen-quiz-hidden');
       nextBtn!.classList.remove('nuclen-quiz-hidden');
 
       if (typeof gtag === 'function') {
-        if (currIdx === 0) gtag('event', 'nuclen_quiz_start');
+        if (state.currIdx === 0) gtag('event', 'nuclen_quiz_start');
         gtag('event', 'nuclen_quiz_answer');
       }
     }
 
     function showNext(): void {
-      currIdx++;
-      if (currIdx < questions.length) {
+      state.currIdx++;
+      if (state.currIdx < questions.length) {
         renderQuestion();
         return quizContainer!.scrollIntoView();
       }
 
-      /* End of questions */
+      const finalCb = () =>
+        renderFinal(ui, optin, questions, state, renderQuestion);
+
       if (optin.enabled && optin.position === 'before_results') {
-        return renderOptinBeforeResultsFlow();
+        return renderOptinBeforeResultsFlow(ui, optin, finalCb);
       }
-      renderFinal();
+      finalCb();
     }
 
-    /* -------------------- before-results opt-in ------------------- */
-    function renderOptinBeforeResultsFlow(): void {
-      qContainer!.innerHTML = '';
-      aContainer!.innerHTML = '';
-      explContainer!.innerHTML = '';
-      nextBtn!.classList.add('nuclen-quiz-hidden');             // ← hide “Next”
-
-      mountOptinBeforeResults(
-        finalContainer!,
-        optin,
-        () => renderFinal(), // onComplete
-        () => renderFinal(), // onSkip
-      );
-    }
-
-    /* -------------------- final screen ---------------------------- */
-    function renderFinal(): void {
-      qContainer!.innerHTML = '';
-      aContainer!.innerHTML = '';
-      explContainer!.innerHTML = '';
-      nextBtn!.classList.add('nuclen-quiz-hidden');             // ← hide “Next”
-      finalContainer!.classList.remove('nuclen-quiz-hidden');
-
-      /* 1. inline opt-in if enabled + with_results */
-      let html = '';
-      if (optin.enabled && optin.position === 'with_results') {
-        html += buildOptinInlineHTML(optin);
-      }
-
-      /* 2. score block */
-      html += `
-        <div id="nuclen-quiz-results-title" class="nuclen-fg">${NuclenStrings.your_score}</div>
-        <div id="nuclen-quiz-results-score" class="nuclen-fg">
-          ${score} / ${questions.length}
-        </div>`;
-      const comment =
-        score === questions.length
-          ? NuclenStrings.perfect
-          : score > questions.length / 2
-          ? NuclenStrings.well_done
-          : NuclenStrings.retake_prompt;
-      html += `<div id="nuclen-quiz-score-comment">${comment}</div>`;
-
-      /* 3. tabs + detail container */
-      html += '<div id="nuclen-quiz-result-tabs-container">';
-      questions.forEach((_, i) => {
-        html += `
-          <button class="nuclen-quiz-result-tab"
-                  onclick="nuclearEngagementShowQuizQuestionDetails(${i})">${i + 1}</button>`;
-      });
-      html += '</div><div id="nuclen-quiz-result-details-container" class="nuclen-fg dashboard-box"></div>';
-
-      /* 4. custom after-HTML */
-      if (NuclenCustomQuizHtmlAfter?.trim()) {
-        html += `
-          <div id="nuclen-quiz-end-message" class="nuclen-fg">
-            ${NuclenCustomQuizHtmlAfter}
-          </div>`;
-      }
-
-      /* 5. retake button */
-      html += `
-        <button id="nuclen-quiz-retake-button"
-                onclick="nuclearEngagementRetakeQuiz()">${NuclenStrings.retake_test}</button>`;
-
-      finalContainer!.innerHTML = html;
-
-      /* attach inline opt-in handler */
-      if (optin.enabled && optin.position === 'with_results') {
-        attachInlineOptinHandlers(optin);
-      }
-
-      /* default: show first question details */
-      window.nuclearEngagementShowQuizQuestionDetails = (idx: number): void => {
-        const q = questions[idx];
-        const ua = userAnswers[idx];
-        (document.getElementById('nuclen-quiz-result-details-container') as HTMLElement).innerHTML = `
-          <p class="nuclen-quiz-detail-question">${escapeHtml(q.question)}</p>
-          <p class="nuclen-quiz-detail-correct"><strong>${NuclenStrings.correct}</strong> ${escapeHtml(q.answers[0])}</p>
-          ${
-            ua === 0
-              ? `<p class="nuclen-quiz-detail-chosen"><strong>${NuclenStrings.your_answer}</strong> ${escapeHtml(q.answers[0])} <span class="nuclen-quiz-checkmark">✔️</span></p>`
-              : `<p class="nuclen-quiz-detail-chosen"><strong>${NuclenStrings.your_answer}</strong> ${escapeHtml(q.answers[ua] ?? '[No data]')}</p>`
-          }
-          <p class="nuclen-quiz-detail-explanation">${escapeHtml(q.explanation)}</p>`;
-        Array.from(document.getElementsByClassName('nuclen-quiz-result-tab')).forEach((el) =>
-          el.classList.remove('nuclen-quiz-result-active-tab'),
-        );
-        document
-          .getElementsByClassName('nuclen-quiz-result-tab')
-          [idx]?.classList.add('nuclen-quiz-result-active-tab');
-      };
-      window.nuclearEngagementShowQuizQuestionDetails(0);
-
-      /* retake */
-      window.nuclearEngagementRetakeQuiz = (): void => {
-        currIdx = 0;
-        score = 0;
-        userAnswers.length = 0;
-        finalContainer!.innerHTML = '';
-        finalContainer!.classList.add('nuclen-quiz-hidden');
-        progBar!.style.width = `${(1 / questions.length) * 100}%`;
-        renderQuestion();
-      };
-
-      if (typeof gtag === 'function') {
-        gtag('event', 'nuclen_quiz_end');
-      }
-    }
   }

@@ -16,6 +16,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 /** Maximum log file size in bytes. */
 define( 'NUCLEN_LOG_FILE_MAX_SIZE', MB_IN_BYTES );
 
+/** Enable buffered logging. */
+define( 'NUCLEN_BUFFER_LOGS', true );
+
 /** Timeout for API requests in seconds. */
 define( 'NUCLEN_API_TIMEOUT', 30 );
 
