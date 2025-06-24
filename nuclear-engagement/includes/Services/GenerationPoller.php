@@ -119,6 +119,12 @@ class GenerationPoller {
                                 \NuclearEngagement\Services\LoggingService::log(
                                         'Failed to schedule event nuclen_poll_generation for generation ' . $generation_id
                                 );
+                                \NuclearEngagement\Services\LoggingService::notify_admin(
+                                        sprintf(
+                                                __( 'Failed to schedule event nuclen_poll_generation for generation %s', 'nuclear-engagement' ),
+                                                $generation_id
+                                        )
+                                );
                         }
                 } else {
 			\NuclearEngagement\Services\LoggingService::log(

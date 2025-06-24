@@ -144,6 +144,12 @@ class AutoGenerationService {
                 \NuclearEngagement\Services\LoggingService::log(
                     'Failed to schedule event ' . self::QUEUE_HOOK
                 );
+                \NuclearEngagement\Services\LoggingService::notify_admin(
+                    sprintf(
+                        __( 'Failed to schedule event %s', 'nuclear-engagement' ),
+                        self::QUEUE_HOOK
+                    )
+                );
             }
         }
     }
@@ -238,6 +244,12 @@ class AutoGenerationService {
                     \NuclearEngagement\Services\LoggingService::log(
                         'Failed to schedule event nuclen_poll_generation for generation ' . $generation_id
                     );
+                    \NuclearEngagement\Services\LoggingService::notify_admin(
+                        sprintf(
+                            __( 'Failed to schedule event nuclen_poll_generation for generation %s', 'nuclear-engagement' ),
+                            $generation_id
+                        )
+                    );
                 }
             }
 
@@ -258,6 +270,12 @@ class AutoGenerationService {
             if ( false === $scheduled ) {
                 \NuclearEngagement\Services\LoggingService::log(
                     'Failed to schedule event ' . self::QUEUE_HOOK
+                );
+                \NuclearEngagement\Services\LoggingService::notify_admin(
+                    sprintf(
+                        __( 'Failed to schedule event %s', 'nuclear-engagement' ),
+                        self::QUEUE_HOOK
+                    )
                 );
             }
         }
