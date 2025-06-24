@@ -28,3 +28,21 @@ into two groups: **actions** (events you can run code on) and
 | --- | --- | --- |
 | `nuclen_setting_*` | `mixed $value`, `string $key` | Called when retrieving a plugin setting from `SettingsRepository`. Replace `*` with the setting key. Return a new value to override the stored setting. |
 | `nuclen_toc_enable_heading_ids` | `bool $enabled` | Allows disabling the automatic ID injection used by the Table of Contents module. Return `false` to leave headings untouched. |
+
+## Usage Examples
+
+Register a callback when generation begins:
+
+```php
+add_action( 'nuclen_start_generation', function ( $post_id, $workflow_type ) {
+    error_log( "Starting $workflow_type for post $post_id" );
+} );
+```
+
+Override a saved setting when retrieved:
+
+```php
+add_filter( 'nuclen_setting_api_timeout', function ( $value ) {
+    return 30; // seconds
+} );
+```
