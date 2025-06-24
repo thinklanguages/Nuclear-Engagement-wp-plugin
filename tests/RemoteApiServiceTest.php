@@ -5,6 +5,13 @@ use NuclearEngagement\Services\ApiException;
 use NuclearEngagement\SettingsRepository;
 
 namespace NuclearEngagement\Services {
+    class LoggingService {
+        public static array $logs = [];
+        public static array $notices = [];
+        public static function log(string $msg): void { self::$logs[] = $msg; }
+        public static function debug(string $msg): void { self::$logs[] = $msg; }
+        public static function notify_admin(string $msg): void { self::$notices[] = $msg; }
+    }
     function wp_remote_post(string $url, array $args = []) {
         return $GLOBALS['test_api_response'];
     }
@@ -18,6 +25,9 @@ namespace NuclearEngagement\Services {
 }
 
 namespace {
+if (!function_exists('__')) {
+    function __($t, $d = null) { return $t; }
+}
 class RemoteApiServiceTest extends TestCase {
     protected function setUp(): void {
         $GLOBALS['test_api_response'] = null;
@@ -66,6 +76,32 @@ class RemoteApiServiceTest extends TestCase {
             return;
         }
         $this->fail('Exception not thrown');
+    }
+
+    public function test_send_posts_wp_error_notifies(): void {
+        $GLOBALS['test_api_response'] = new \WP_Error('nope', 'bad');
+        \NuclearEngagement\Services\LoggingService::$notices = [];
+        $svc = $this->makeService();
+        $this->expectException(ApiException::class);
+        try {
+            $svc->send_posts_to_generate(['posts'=>[], 'workflow'=>[]]);
+        } catch (ApiException $e) {
+            $this->assertSame(['Failed to contact the Nuclear Engagement API.'], \NuclearEngagement\Services\LoggingService::$notices);
+            throw $e;
+        }
+    }
+
+    public function test_fetch_updates_wp_error_notifies(): void {
+        $GLOBALS['test_api_response'] = new \WP_Error('fail', 'oops');
+        \NuclearEngagement\Services\LoggingService::$notices = [];
+        $svc = $this->makeService();
+        $this->expectException(ApiException::class);
+        try {
+            $svc->fetch_updates('id');
+        } catch (ApiException $e) {
+            $this->assertSame(['Failed to contact the Nuclear Engagement API.'], \NuclearEngagement\Services\LoggingService::$notices);
+            throw $e;
+        }
     }
 }
 }
