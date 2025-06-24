@@ -3,7 +3,10 @@
  * File: modules/toc/loader.php
  *
  * Loads the Nuclen TOC sub-module.
+ *
+ * @package NuclearEngagement
  */
+
 declare(strict_types=1);
 
 if ( ! defined( 'ABSPATH' ) ) {
