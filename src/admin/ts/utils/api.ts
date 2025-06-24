@@ -1,5 +1,5 @@
 export async function apiRequest(url: string, options: RequestInit): Promise<Response> {
-  const allowedOrigins = ['https://api.example.com'];
+  const allowedOrigins = ['https://app.nuclearengagement.com'];
   const urlObj = new URL(url, window.location.origin);
   if (!allowedOrigins.includes(urlObj.origin)) {
     throw new Error('Invalid URL origin');
