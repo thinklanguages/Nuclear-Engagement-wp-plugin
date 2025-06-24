@@ -50,7 +50,10 @@ class Utils {
         $custom_dir = $upload_dir['basedir'] . '/nuclear-engagement';
 
         if ( ! file_exists( $custom_dir ) ) {
-            wp_mkdir_p( $custom_dir );
+            if ( ! wp_mkdir_p( $custom_dir ) ) {
+                \NuclearEngagement\Services\LoggingService::log( 'Failed creating custom CSS directory: ' . $custom_dir );
+                return array();
+            }
         }
 
         $base_css_file_name = 'nuclen-theme-custom.css';

@@ -10,10 +10,20 @@ namespace NuclearEngagement {
         ];
     }
     function wp_mkdir_p($dir) {
+        if (!empty($GLOBALS['ut_fail_mkdir'])) {
+            return false;
+        }
         return mkdir($dir, 0777, true);
     }
     function get_option($name, $default = '') {
         return $GLOBALS['ut_options'][$name] ?? $default;
+    }
+}
+
+namespace NuclearEngagement\Services {
+    class LoggingService {
+        public static array $logs = [];
+        public static function log(string $msg): void { self::$logs[] = $msg; }
     }
 }
 
@@ -62,6 +72,14 @@ namespace {
             $GLOBALS['ut_options']['nuclen_custom_css_version'] = 'abc123';
             $info = Utils::nuclen_get_custom_css_info();
             $this->assertStringContainsString('?v=abc123', $info['url']);
+        }
+
+        public function test_returns_empty_array_on_directory_failure(): void {
+            $GLOBALS['ut_fail_mkdir'] = true;
+            $info = Utils::nuclen_get_custom_css_info();
+            $this->assertSame([], $info);
+            $this->assertNotEmpty(\NuclearEngagement\Services\LoggingService::$logs);
+            unset($GLOBALS['ut_fail_mkdir']);
         }
     }
 }
