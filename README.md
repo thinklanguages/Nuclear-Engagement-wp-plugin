@@ -58,6 +58,19 @@ During development you can rebuild on the fly with:
 npm run dev
 ```
 
+## Release
+
+Create a production archive with:
+
+```bash
+composer install --no-dev --optimize-autoloader
+npm ci
+npm run build
+./scripts/build-release.sh
+```
+
+This builds the plugin and packages it. See [CI Guidelines](docs/CI_GUIDELINES.md) for full details.
+
 ## Documentation
 
 - [Architecture](docs/ARCHITECTURE.md)
