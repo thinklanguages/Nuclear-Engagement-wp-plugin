@@ -42,12 +42,12 @@ class MetaRegistration {
 				$post_type,
 				'nuclen-quiz-data',
 				array(
-					'type'              => 'string',
-					'description'       => 'Nuclear Engagement quiz data',
-					'single'            => true,
-					'show_in_rest'      => false,
+					'type'			  => 'string',
+					'description'	   => 'Nuclear Engagement quiz data',
+					'single'			=> true,
+					'show_in_rest'	  => false,
 					'sanitize_callback' => array( self::class, 'sanitize_quiz_data' ),
-					'auth_callback'     => array( self::class, 'auth_callback' ),
+					'auth_callback'	 => array( self::class, 'auth_callback' ),
 				)
 			);
 
@@ -55,13 +55,13 @@ class MetaRegistration {
 				$post_type,
 				'nuclen_quiz_protected',
 				array(
-					'type'              => 'boolean',
-					'description'       => 'Nuclear Engagement quiz protection flag',
-					'single'            => true,
-					'show_in_rest'      => false,
-					'default'           => false,
+					'type'			  => 'boolean',
+					'description'	   => 'Nuclear Engagement quiz protection flag',
+					'single'			=> true,
+					'show_in_rest'	  => false,
+					'default'		   => false,
 					'sanitize_callback' => 'rest_sanitize_boolean',
-					'auth_callback'     => array( self::class, 'auth_callback' ),
+					'auth_callback'	 => array( self::class, 'auth_callback' ),
 				)
 			);
 
@@ -70,12 +70,12 @@ class MetaRegistration {
 				$post_type,
 				'nuclen-summary-data',
 				array(
-					'type'              => 'string',
-					'description'       => 'Nuclear Engagement summary data',
-					'single'            => true,
-					'show_in_rest'      => false,
+					'type'			  => 'string',
+					'description'	   => 'Nuclear Engagement summary data',
+					'single'			=> true,
+					'show_in_rest'	  => false,
 					'sanitize_callback' => array( self::class, 'sanitize_summary_data' ),
-					'auth_callback'     => array( self::class, 'auth_callback' ),
+					'auth_callback'	 => array( self::class, 'auth_callback' ),
 				)
 			);
 
@@ -83,13 +83,13 @@ class MetaRegistration {
 				$post_type,
 				'nuclen_summary_protected',
 				array(
-					'type'              => 'boolean',
-					'description'       => 'Nuclear Engagement summary protection flag',
-					'single'            => true,
-					'show_in_rest'      => false,
-					'default'           => false,
+					'type'			  => 'boolean',
+					'description'	   => 'Nuclear Engagement summary protection flag',
+					'single'			=> true,
+					'show_in_rest'	  => false,
+					'default'		   => false,
 					'sanitize_callback' => 'rest_sanitize_boolean',
-					'auth_callback'     => array( self::class, 'auth_callback' ),
+					'auth_callback'	 => array( self::class, 'auth_callback' ),
 				)
 			);
 		}
@@ -108,7 +108,7 @@ class MetaRegistration {
 
 		// Ensure required structure
 		$sanitized = array(
-			'date'      => '',
+			'date'	  => '',
 			'questions' => array(),
 		);
 
@@ -120,8 +120,8 @@ class MetaRegistration {
 			foreach ( $meta_value['questions'] as $question ) {
 				if ( is_array( $question ) ) {
 					$sanitized['questions'][] = array(
-						'question'    => wp_kses_post( $question['question'] ?? '' ),
-						'answers'     => array_map( 'wp_kses_post', (array) ( $question['answers'] ?? array() ) ),
+						'question'	=> wp_kses_post( $question['question'] ?? '' ),
+						'answers'	 => array_map( 'wp_kses_post', (array) ( $question['answers'] ?? array() ) ),
 						'explanation' => wp_kses_post( $question['explanation'] ?? '' ),
 					);
 				}
@@ -143,28 +143,28 @@ class MetaRegistration {
 		}
 
 		$allowed_html = array(
-			'a'      => array(
+			'a'	  => array(
 				'href'   => array(),
 				'title'  => array(),
 				'target' => array(),
 			),
-			'br'     => array(),
-			'em'     => array(),
+			'br'	 => array(),
+			'em'	 => array(),
 			'strong' => array(),
-			'p'      => array(),
-			'ul'     => array(),
-			'ol'     => array(),
-			'li'     => array(),
-			'h1'     => array(),
-			'h2'     => array(),
-			'h3'     => array(),
-			'h4'     => array(),
-			'div'    => array( 'class' => array() ),
+			'p'	  => array(),
+			'ul'	 => array(),
+			'ol'	 => array(),
+			'li'	 => array(),
+			'h1'	 => array(),
+			'h2'	 => array(),
+			'h3'	 => array(),
+			'h4'	 => array(),
+			'div'	=> array( 'class' => array() ),
 			'span'   => array( 'class' => array() ),
 		);
 
 		return array(
-			'date'    => sanitize_text_field( $meta_value['date'] ?? '' ),
+			'date'	=> sanitize_text_field( $meta_value['date'] ?? '' ),
 			'summary' => wp_kses( $meta_value['summary'] ?? '', $allowed_html ),
 		);
 	}
@@ -174,8 +174,8 @@ class MetaRegistration {
 	 *
 	 * @param bool   $allowed
 	 * @param string $meta_key
-	 * @param int    $object_id
-	 * @param int    $user_id
+	 * @param int	$object_id
+	 * @param int	$user_id
 	 * @param string $cap
 	 * @param array  $caps
 	 * @return bool

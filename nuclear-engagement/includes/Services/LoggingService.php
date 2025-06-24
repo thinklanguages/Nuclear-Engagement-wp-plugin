@@ -28,7 +28,7 @@ class LoggingService {
 
 		$log_folder = $upload_dir['basedir'] . '/nuclear-engagement';
 		$log_file   = $log_folder . '/log.txt';
-		$log_url    = $upload_dir['baseurl'] . '/nuclear-engagement/log.txt';
+		$log_url	= $upload_dir['baseurl'] . '/nuclear-engagement/log.txt';
 
 		return array(
 			'dir'  => $log_folder,
@@ -95,7 +95,7 @@ class LoggingService {
 			$message = substr( $message, 0, 1000 ) . '...';
 		}
 
-		$info       = self::get_log_file_info();
+		$info	   = self::get_log_file_info();
 		$log_folder = $info['dir'];
 		$log_file   = $info['path'];
 		$max_size   = defined( 'NUCLEN_LOG_FILE_MAX_SIZE' ) ? NUCLEN_LOG_FILE_MAX_SIZE : MB_IN_BYTES;

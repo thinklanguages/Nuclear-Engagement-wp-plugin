@@ -61,7 +61,7 @@ class OptinData {
 		}
 
 		global $wpdb;
-		$table                    = self::table_name();
+		$table					= self::table_name();
 		self::$table_exists_cache = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table ) ) === $table;
 		return self::$table_exists_cache;
 	}
@@ -81,15 +81,15 @@ class OptinData {
 		$table   = self::table_name();
 
 		$sql = "
-            CREATE TABLE {$table} (
-                id            BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
-                submitted_at  DATETIME            NOT NULL,
-                url           TEXT                NOT NULL,
-                name          TEXT                NOT NULL,
-                email         VARCHAR(255)        NOT NULL,
-                PRIMARY KEY  (id),
-                KEY email (email)
-            ) {$charset};";
+			CREATE TABLE {$table} (
+				id			BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+				submitted_at  DATETIME			NOT NULL,
+				url		   TEXT				NOT NULL,
+				name		  TEXT				NOT NULL,
+				email		 VARCHAR(255)		NOT NULL,
+				PRIMARY KEY  (id),
+				KEY email (email)
+			) {$charset};";
 
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 		$result = dbDelta( $sql );
@@ -123,9 +123,9 @@ class OptinData {
 			self::table_name(),
 			array(
 				'submitted_at' => current_time( 'mysql', true ),
-				'url'          => esc_url_raw( $url ),
-				'name'         => sanitize_text_field( $name ),
-				'email'        => sanitize_email( $email ),
+				'url'		  => esc_url_raw( $url ),
+				'name'		 => sanitize_text_field( $name ),
+				'email'		=> sanitize_email( $email ),
 			),
 			array( '%s', '%s', '%s', '%s' )
 		);
@@ -190,11 +190,11 @@ class OptinData {
 		global $wpdb;
 		$rows = $wpdb->get_results(
 			'SELECT submitted_at AS datetime,
-                    url,
-                    name,
-                    email
-               FROM ' . self::table_name() . '
-               ORDER BY submitted_at DESC',
+					url,
+					name,
+					email
+			   FROM ' . self::table_name() . '
+			   ORDER BY submitted_at DESC',
 			ARRAY_A
 		);
 

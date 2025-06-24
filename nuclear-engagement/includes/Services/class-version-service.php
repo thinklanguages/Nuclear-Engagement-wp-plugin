@@ -4,9 +4,9 @@
  *
  * Provides version management functionality for assets.
  *
- * @package    NuclearEngagement
+ * @package	NuclearEngagement
  * @subpackage Services
- * @since      1.0.0
+ * @since	  1.0.0
  */
 
 declare( strict_types = 1 );
@@ -51,7 +51,7 @@ final class VersionService {
 		 * @since 1.0.0
 		 *
 		 * @param string $version The version string for the asset.
-		 * @param string $key     The asset key being requested.
+		 * @param string $key	 The asset key being requested.
 		 */
 		return (string) apply_filters(
 			'nuclen_asset_version',

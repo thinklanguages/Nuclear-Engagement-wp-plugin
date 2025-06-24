@@ -22,7 +22,7 @@ class PointerService {
 	 * Dismiss a pointer for a user
 	 *
 	 * @param string $pointerId
-	 * @param int    $userId
+	 * @param int	$userId
 	 * @throws \InvalidArgumentException On empty pointer ID
 	 */
 	public function dismissPointer( string $pointerId, int $userId ): void {

@@ -15,7 +15,7 @@ namespace NuclearEngagement\Services;
 use NuclearEngagement\SettingsRepository;
 
 if ( ! defined( 'ABSPATH' ) ) {
-        exit;
+		exit;
 }
 
 /**
@@ -27,14 +27,14 @@ class PublishGenerationHandler {
 	 */
 	private SettingsRepository $settings_repository;
 
-       /**
-        * Constructor.
-        *
-        * @param SettingsRepository $settings_repository Repository of plugin settings.
-        */
-       public function __construct( SettingsRepository $settings_repository ) {
-               $this->settings_repository = $settings_repository;
-       }
+	   /**
+		* Constructor.
+		*
+		* @param SettingsRepository $settings_repository Repository of plugin settings.
+		*/
+	   public function __construct( SettingsRepository $settings_repository ) {
+			   $this->settings_repository = $settings_repository;
+	   }
 
 	/**
 	 * Register the publish transition hook.
@@ -43,29 +43,29 @@ class PublishGenerationHandler {
 		add_action( 'transition_post_status', array( $this, 'handle_post_publish' ), 10, 3 );
 	}
 
-       /**
-        * Handle post publish transition.
-        *
-        * @param string   $new_status New post status.
-        * @param string   $old_status Old post status.
-        * @param \WP_Post $post       Post object.
-        */
-       public function handle_post_publish( $new_status, $old_status, $post ): void {
-               if ( 'publish' === $old_status || 'publish' !== $new_status ) {
-                       return;
-               }
+	   /**
+		* Handle post publish transition.
+		*
+		* @param string   $new_status New post status.
+		* @param string   $old_status Old post status.
+		* @param \WP_Post $post	   Post object.
+		*/
+	   public function handle_post_publish( $new_status, $old_status, $post ): void {
+			   if ( 'publish' === $old_status || 'publish' !== $new_status ) {
+					   return;
+			   }
 
-               // Prevent unauthorized users from triggering generation.
-               if ( ! wp_doing_cron() && ! current_user_can( 'publish_post', $post->ID ) ) {
-                       return;
-               }
+			   // Prevent unauthorized users from triggering generation.
+			   if ( ! wp_doing_cron() && ! current_user_can( 'publish_post', $post->ID ) ) {
+					   return;
+			   }
 
 		$allowed_post_types = $this->settings_repository->get( 'generation_post_types', array( 'post' ) );
 		if ( ! in_array( $post->post_type, (array) $allowed_post_types, true ) ) {
 			return;
 		}
 
-		$gen_quiz    = (bool) $this->settings_repository->get( 'auto_generate_quiz_on_publish', false );
+		$gen_quiz	= (bool) $this->settings_repository->get( 'auto_generate_quiz_on_publish', false );
 		$gen_summary = (bool) $this->settings_repository->get( 'auto_generate_summary_on_publish', false );
 
 		if ( ! $gen_quiz && ! $gen_summary ) {

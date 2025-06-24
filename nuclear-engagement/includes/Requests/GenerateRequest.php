@@ -78,7 +78,7 @@ class GenerateRequest {
 		}
 
 		// Extract and validate post IDs
-		$postIdsJson      = $payload['nuclen_selected_post_ids'] ?? '';
+		$postIdsJson	  = $payload['nuclen_selected_post_ids'] ?? '';
 		$request->postIds = json_decode( $postIdsJson, true ) ?: array();
 
 		if ( empty( $request->postIds ) || ! is_array( $request->postIds ) ) {
@@ -100,7 +100,7 @@ class GenerateRequest {
 
 		// Map other fields
 		$request->postStatus   = sanitize_text_field( $payload['nuclen_selected_post_status'] ?? 'any' );
-		$request->postType     = sanitize_text_field( $payload['nuclen_selected_post_type'] ?? 'post' );
+		$request->postType	 = sanitize_text_field( $payload['nuclen_selected_post_type'] ?? 'post' );
 		$request->workflowType = sanitize_text_field( $payload['nuclen_selected_generate_workflow'] ?? '' );
 
 		// Validate workflow type

@@ -39,11 +39,11 @@ class Plugin {
 	private Container $container;
 
 	public function __construct() {
-		$this->version     = defined( 'NUCLEN_PLUGIN_VERSION' ) ? NUCLEN_PLUGIN_VERSION : '1.0.0';
+		$this->version	 = defined( 'NUCLEN_PLUGIN_VERSION' ) ? NUCLEN_PLUGIN_VERSION : '1.0.0';
 		$this->plugin_name = 'nuclear-engagement';
 
 		// Initialize settings repository with defaults
-		$defaults                  = Defaults::nuclen_get_default_settings();
+		$defaults				  = Defaults::nuclen_get_default_settings();
 		$this->settings_repository = SettingsRepository::get_instance( $defaults );
 
 		/* ───── Ensure DB table exists on activation ───── */
@@ -104,8 +104,8 @@ class Plugin {
 		$this->loader->nuclen_add_action( 'admin_menu', $plugin_admin, 'nuclen_add_admin_menu' );
 
 		// AJAX - now using controllers
-		$generate_controller    = $this->container->get( 'generate_controller' );
-		$updates_controller     = $this->container->get( 'updates_controller' );
+		$generate_controller	= $this->container->get( 'generate_controller' );
+		$updates_controller	 = $this->container->get( 'updates_controller' );
 		$posts_count_controller = $this->container->get( 'posts_count_controller' );
 
 		$this->loader->nuclen_add_action( 'wp_ajax_nuclen_trigger_generation', $generate_controller, 'handle' );
@@ -154,8 +154,8 @@ class Plugin {
 					'nuclear-engagement/v1',
 					'/receive-content',
 					array(
-						'methods'             => 'POST',
-						'callback'            => array( $contentController, 'handle' ),
+						'methods'			 => 'POST',
+						'callback'			=> array( $contentController, 'handle' ),
 						'permission_callback' => array( $contentController, 'permissions' ),
 					)
 				);

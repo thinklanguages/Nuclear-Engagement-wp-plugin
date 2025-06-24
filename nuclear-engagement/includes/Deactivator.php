@@ -12,10 +12,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Fired during plugin deactivation
  *
- * @link       https://www.nuclearengagement.com
- * @since      0.3.1
+ * @link	   https://www.nuclearengagement.com
+ * @since	  0.3.1
  *
- * @package    Nuclear_Engagement
+ * @package	Nuclear_Engagement
  * @subpackage Nuclear_Engagement/includes
  */
 
@@ -24,10 +24,10 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * This class defines all code necessary to run during the plugin's deactivation.
  *
- * @since      0.3.1
- * @package    Nuclear_Engagement
+ * @since	  0.3.1
+ * @package	Nuclear_Engagement
  * @subpackage Nuclear_Engagement/includes
- * @author     Stefano Lodola <stefano@nuclearengagement.com>
+ * @author	 Stefano Lodola <stefano@nuclearengagement.com>
  */
 class Deactivator {
 	/**

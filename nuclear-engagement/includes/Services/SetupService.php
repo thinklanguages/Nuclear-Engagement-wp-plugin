@@ -4,9 +4,9 @@
  *
  * Handles API validation and credential storage during plugin setup.
  *
- * @package    NuclearEngagement
+ * @package	NuclearEngagement
  * @subpackage Services
- * @since      1.0.0
+ * @since	  1.0.0
  */
 
 declare( strict_types = 1 );
@@ -82,12 +82,12 @@ class SetupService {
 		$response = wp_remote_post(
 			self::API_BASE . '/check-api-key',
 			array(
-				'method'             => 'POST',
-				'headers'            => array( 'Content-Type' => 'application/json' ),
-				'body'               => wp_json_encode( array( 'appApiKey' => $api_key ) ),
-				'timeout'            => $timeout,
+				'method'			 => 'POST',
+				'headers'			=> array( 'Content-Type' => 'application/json' ),
+				'body'			   => wp_json_encode( array( 'appApiKey' => $api_key ) ),
+				'timeout'			=> $timeout,
 				'reject_unsafe_urls' => true,
-				'user-agent'         => 'NuclearEngagement/' . ( defined( 'NUCLEN_PLUGIN_VERSION' ) ? NUCLEN_PLUGIN_VERSION : '1.0.0' ),
+				'user-agent'		 => 'NuclearEngagement/' . ( defined( 'NUCLEN_PLUGIN_VERSION' ) ? NUCLEN_PLUGIN_VERSION : '1.0.0' ),
 			)
 		);
 
@@ -118,12 +118,12 @@ class SetupService {
 		$response = wp_remote_post(
 			self::API_BASE . '/store-wp-creds',
 			array(
-				'method'             => 'POST',
-				'headers'            => array( 'Content-Type' => 'application/json' ),
-				'body'               => wp_json_encode( $data ),
-				'timeout'            => NUCLEN_API_TIMEOUT,
+				'method'			 => 'POST',
+				'headers'			=> array( 'Content-Type' => 'application/json' ),
+				'body'			   => wp_json_encode( $data ),
+				'timeout'			=> NUCLEN_API_TIMEOUT,
 				'reject_unsafe_urls' => true,
-				'user-agent'         => 'NuclearEngagement/' . NUCLEN_PLUGIN_VERSION,
+				'user-agent'		 => 'NuclearEngagement/' . NUCLEN_PLUGIN_VERSION,
 			)
 		);
 

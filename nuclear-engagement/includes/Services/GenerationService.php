@@ -49,8 +49,8 @@ class GenerationService {
 	/**
 	 * Constructor
 	 *
-	 * @param SettingsRepository    $settings
-	 * @param RemoteApiService      $api
+	 * @param SettingsRepository	$settings
+	 * @param RemoteApiService	  $api
 	 * @param ContentStorageService $storage
 	 */
 	public function __construct(
@@ -59,9 +59,9 @@ class GenerationService {
 		ContentStorageService $storage
 	) {
 		$this->settings = $settings;
-		$this->api      = $api;
+		$this->api	  = $api;
 		$this->storage  = $storage;
-		$this->utils    = new Utils();
+		$this->utils	= new Utils();
 	}
 
 	/**
@@ -80,27 +80,27 @@ class GenerationService {
 
 		// Build workflow data
 		$workflow = array(
-			'type'                    => $request->workflowType,
-			'summary_format'          => $request->summaryFormat,
-			'summary_length'          => $request->summaryLength,
+			'type'					=> $request->workflowType,
+			'summary_format'		  => $request->summaryFormat,
+			'summary_length'		  => $request->summaryLength,
 			'summary_number_of_items' => $request->summaryItems,
 		);
 
 		// Send to API
-                try {
-                        $result = $this->api->send_posts_to_generate(
+				try {
+						$result = $this->api->send_posts_to_generate(
 				array(
-					'posts'         => $posts,
-					'workflow'      => $workflow,
+					'posts'		 => $posts,
+					'workflow'	  => $workflow,
 					'generation_id' => $request->generationId,
 				)
 			);
 		} catch ( \Throwable $e ) {
-			$response               = new GenerationResponse();
+			$response			   = new GenerationResponse();
 			$response->generationId = $request->generationId;
-			$response->success      = false;
-			$response->error        = $e->getMessage();
-			$code                   = $e->getCode();
+			$response->success	  = false;
+			$response->error		= $e->getMessage();
+			$code				   = $e->getCode();
 			$response->statusCode   = is_numeric( $code ) ? (int) $code : 0;
 			if ( $e instanceof ApiException ) {
 				$response->errorCode = $e->getErrorCode();
@@ -109,7 +109,7 @@ class GenerationService {
 		}
 
 		// Create response
-		$response               = new GenerationResponse();
+		$response			   = new GenerationResponse();
 		$response->generationId = $request->generationId;
 
 		// Process immediate results if any
@@ -124,7 +124,7 @@ class GenerationService {
 	/**
 	 * Generate content for a single post
 	 *
-	 * @param int    $postId
+	 * @param int	$postId
 	 * @param string $workflowType
 	 * @throws \InvalidArgumentException If post not found
 	 */
@@ -140,11 +140,11 @@ class GenerationService {
 			return;
 		}
 
-		$request               = new GenerateRequest();
-		$request->postIds      = array( $postId );
+		$request			   = new GenerateRequest();
+		$request->postIds	  = array( $postId );
 		$request->workflowType = $workflowType;
 		$request->generationId = 'auto_' . $postId . '_' . time();
-		$request->postType     = $post->post_type;
+		$request->postType	 = $post->post_type;
 		$request->postStatus   = $post->post_status;
 
 		try {
@@ -183,11 +183,11 @@ class GenerationService {
 	 */
 	private function getPostsData( array $postIds, string $postType, string $postStatus ): array {
 		$args = array(
-			'post__in'    => $postIds,
+			'post__in'	=> $postIds,
 			'numberposts' => -1,
 			'post_type'   => $postType,
 			'post_status' => $postStatus,
-			'orderby'     => 'post__in',
+			'orderby'	 => 'post__in',
 		);
 
 		$posts = get_posts( $args );
@@ -195,7 +195,7 @@ class GenerationService {
 
 		foreach ( $posts as $post ) {
 			$data[] = array(
-				'id'      => $post->ID,
+				'id'	  => $post->ID,
 				'title'   => get_the_title( $post->ID ),
 				'content' => wp_strip_all_tags( $post->post_content ),
 			);
@@ -207,7 +207,7 @@ class GenerationService {
 	/**
 	 * Check if content is protected from regeneration
 	 *
-	 * @param int    $postId
+	 * @param int	$postId
 	 * @param string $workflowType
 	 * @return bool
 	 */
