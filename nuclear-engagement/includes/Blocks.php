@@ -13,15 +13,15 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 final class Blocks {
 	public static function register(): void {
-		if ( ! function_exists( 'register_block_type' ) ) {
-			error_log( 'Nuclear Engagement: block registration unavailable.' );
-			return;
-		}
+                if ( ! function_exists( 'register_block_type' ) ) {
+                        \NuclearEngagement\Services\LoggingService::log( 'Nuclear Engagement: block registration unavailable.' );
+                        return;
+                }
 
-		if ( ! wp_script_is( 'nuclen-admin', 'registered' ) ) {
-			error_log( 'Nuclear Engagement: nuclen-admin script missing.' );
-			return;
-		}
+                if ( ! wp_script_is( 'nuclen-admin', 'registered' ) ) {
+                        \NuclearEngagement\Services\LoggingService::log( 'Nuclear Engagement: nuclen-admin script missing.' );
+                        return;
+                }
 
 		register_block_type(
 			'nuclear-engagement/quiz',
