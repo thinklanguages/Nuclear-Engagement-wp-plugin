@@ -1,9 +1,4 @@
 <?php
-declare(strict_types=1);
-if ( ! defined( 'ABSPATH' ) ) {
-	exit;
-}
-
 /**
  * Fired when the plugin is uninstalled.
  *
@@ -28,13 +23,18 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @package    Nuclear_Engagement
  */
+declare(strict_types=1);
+
+if ( ! defined( 'ABSPATH' ) ) {
+        exit;
+}
 
 // If uninstall not called from WordPress, then exit.
 if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 		exit;
 }
 
-// Get plugin settings
+// Get plugin settings.
 $settings = get_option( 'nuclear_engagement_settings', array() );
 
 $delete_settings  = ! empty( $settings['delete_settings_on_uninstall'] );
@@ -43,35 +43,39 @@ $delete_optins    = ! empty( $settings['delete_optin_data_on_uninstall'] );
 $delete_log       = ! empty( $settings['delete_log_file_on_uninstall'] );
 $delete_css       = ! empty( $settings['delete_custom_css_on_uninstall'] );
 
-// Delete generated content from post meta if requested
+// Delete generated content from post meta if requested.
 if ( $delete_generated ) {
-		global $wpdb;
-		$meta_keys = array( 'nuclen-quiz-data', 'nuclen-summary-data', 'nuclen_quiz_protected', 'nuclen_summary_protected' );
-	foreach ( $meta_keys as $mk ) {
-			$wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->postmeta} WHERE meta_key = %s", $mk ) );
-	}
+                $meta_keys = array(
+                        'nuclen-quiz-data',
+                        'nuclen-summary-data',
+                        'nuclen_quiz_protected',
+                        'nuclen_summary_protected'
+                );
+                foreach ( $meta_keys as $mk ) {
+                        delete_post_meta_by_key( $mk );
+                }
 }
 
-// Delete plugin settings if requested
+// Delete plugin settings if requested.
 if ( $delete_settings ) {
 		delete_option( 'nuclear_engagement_settings' );
 		delete_option( 'nuclear_engagement_setup' );
 		delete_option( 'nuclen_custom_css_version' );
 }
 
-// Remove log file if requested
+// Remove log file if requested.
 if ( $delete_log ) {
 		$info = \NuclearEngagement\Services\LoggingService::get_log_file_info();
 	if ( file_exists( $info['path'] ) ) {
-			unlink( $info['path'] );
+			wp_delete_file( $info['path'] );
 	}
 }
 
-// Remove custom theme file if requested
+// Remove custom theme file if requested.
 if ( $delete_css ) {
 		$info = \NuclearEngagement\Utils::nuclen_get_custom_css_info();
 	if ( file_exists( $info['path'] ) ) {
-			unlink( $info['path'] );
+			wp_delete_file( $info['path'] );
 	}
 		delete_option( 'nuclen_custom_css_version' );
 }
@@ -80,7 +84,7 @@ if ( $delete_css ) {
 // content. This avoids data loss unless a full cleanup was requested.
 if ( $delete_settings || $delete_generated ) {
 		global $wpdb;
-		$table = $wpdb->prefix . 'nuclen_optins';
-		// Remove stored email opt-in submissions on uninstall
-		$wpdb->query( "DROP TABLE IF EXISTS {$table}" );
+                $table = $wpdb->prefix . "nuclen_optins";
+                // Remove stored email opt-in submissions on uninstall.
+                $wpdb->query( "DROP TABLE IF EXISTS " . esc_sql( $table ) );
 }

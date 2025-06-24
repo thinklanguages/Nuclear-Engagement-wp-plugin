@@ -1,5 +1,4 @@
 <?php
-declare(strict_types=1);
 /**
  * Plugin Name:       Nuclear Engagement
  * Plugin URI:        https://www.nuclearengagement.com
@@ -14,6 +13,7 @@ declare(strict_types=1);
  * Text Domain:       nuclear-engagement
  * Domain Path:       /
  */
+declare(strict_types=1);
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
