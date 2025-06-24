@@ -41,11 +41,6 @@ class AutoGenerationService {
         /** Delay in seconds between poll attempts. */
         public const RETRY_DELAY = 60;
 
-        /** Default length used when summarizing posts. */
-        public const SUMMARY_LENGTH = 30;
-
-        /** Default number of items in auto summaries. */
-        public const SUMMARY_ITEMS = 3;
 	/**
 	 * @var SettingsRepository
 	 */
@@ -196,8 +191,8 @@ class AutoGenerationService {
                 $workflow = array(
                     'type'                    => $workflow_type,
                     'summary_format'          => 'paragraph',
-                    'summary_length'          => self::SUMMARY_LENGTH,
-                    'summary_number_of_items' => self::SUMMARY_ITEMS,
+                    'summary_length'          => NUCLEN_SUMMARY_LENGTH_DEFAULT,
+                    'summary_number_of_items' => NUCLEN_SUMMARY_ITEMS_DEFAULT,
                 );
 
                 $generation_id = 'gen_' . uniqid( 'auto_', true );

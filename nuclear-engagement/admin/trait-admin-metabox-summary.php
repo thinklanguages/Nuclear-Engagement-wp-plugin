@@ -50,9 +50,9 @@ trait Admin_Summary_Metabox {
 				'summary'         => '',
 				'date'            => '',
 				'format'          => 'paragraph',
-				'length'          => \NuclearEngagement\Services\AutoGenerationService::SUMMARY_LENGTH,
-				'number_of_items' => \NuclearEngagement\Services\AutoGenerationService::SUMMARY_ITEMS,
-			);
+                                'length'          => NUCLEN_SUMMARY_LENGTH_DEFAULT,
+                                'number_of_items' => NUCLEN_SUMMARY_ITEMS_DEFAULT,
+                        );
 		}
 
 		$summary = $summary_data['summary'] ?? '';
