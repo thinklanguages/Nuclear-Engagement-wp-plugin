@@ -11,8 +11,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-use function nuclen_str_contains;
-
 /**
  * Adds unique IDs to headings within post content.
  */

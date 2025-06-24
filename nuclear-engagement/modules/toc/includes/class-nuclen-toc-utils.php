@@ -16,8 +16,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-use function nuclen_str_contains;
-
 /**
  * Utility helpers for TOC parsing and slug generation.
  */
