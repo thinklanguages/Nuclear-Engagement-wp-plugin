@@ -58,8 +58,13 @@ spl_autoload_register(
                                 $path  = NUCLEN_PLUGIN_DIR . 'includes/' . $snake;
                         }
                 } else {
-                        $dir  = strtolower( array_shift( $parts ) );
-                        $path = NUCLEN_PLUGIN_DIR . $dir . '/' . implode( '/', $parts ) . '.php';
+                        $dir = strtolower( array_shift( $parts ) );
+
+                        if ( in_array( $dir, array( 'services', 'requests', 'responses' ), true ) ) {
+                                $path = NUCLEN_PLUGIN_DIR . 'includes/' . ucfirst( $dir ) . '/' . implode( '/', $parts ) . '.php';
+                        } else {
+                                $path = NUCLEN_PLUGIN_DIR . $dir . '/' . implode( '/', $parts ) . '.php';
+                        }
                 }
 
                 if ( file_exists( $path ) ) {
