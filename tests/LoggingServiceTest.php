@@ -68,5 +68,16 @@ namespace {
             $contents = file_get_contents($info['path']);
             $this->assertStringContainsString('[DEBUG] debug message', $contents);
         }
+
+        public function test_logs_strip_html_and_truncate_long_message(): void {
+            $long = '<p>' . str_repeat('a', 1005) . '</p>';
+            LoggingService::log($long);
+            $info = LoggingService::get_log_file_info();
+            $this->assertFileExists($info['path']);
+            $contents = file_get_contents($info['path']);
+            $expected = str_repeat('a', 1000) . '...';
+            $this->assertStringContainsString($expected, $contents);
+            $this->assertStringNotContainsString('<p>', $contents);
+        }
     }
 }
