@@ -1,35 +1,50 @@
 <?php
-declare(strict_types=1);
 /**
- * File: modules/toc/includes/class-nuclen-toc-headings.php
- *
  * Injects unique IDs into post headings for jump links.
+ *
+ * @package NuclearEngagement
  */
+
+declare(strict_types=1);
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-use function nuclen_str_contains as _nc;
+use function nuclen_str_contains;
 
+/**
+ * Adds unique IDs to headings within post content.
+ */
 final class Nuclen_TOC_Headings {
-	public function __construct() {
-			add_filter( 'the_content', array( $this, 'nuclen_add_heading_ids' ), 99 );
-	}
+       /**
+        * Hook into content filters.
+        */
+       public function __construct() {
+               add_filter( 'the_content', array( $this, 'nuclen_add_heading_ids' ), 99 );
+       }
 
-		/** Back-compat wrapper for legacy callback name. */
-	public function nuclen_add_heading_ids( string $content ): string {
-			return $this->add_heading_ids( $content );
-	}
+       /**
+        * Back-compat wrapper for legacy callback name.
+        *
+        * @param string $content Post content to filter.
+        * @return string Filtered content.
+        */
+       public function nuclen_add_heading_ids( string $content ): string {
+               return $this->add_heading_ids( $content );
+       }
 
-		/**
-		 * Inject IDs into headings that lack them.
-		 */
-	public function add_heading_ids( string $content ): string {
+       /**
+        * Inject IDs into headings that lack them.
+        *
+        * @param string $content HTML content to modify.
+        * @return string Modified HTML content.
+        */
+       public function add_heading_ids( string $content ): string {
 		if ( ! apply_filters( 'nuclen_toc_enable_heading_ids', true ) ) {
 				return $content;
 		}
-		if ( ! _nc( $content, '<h' ) ) {
+               if ( ! nuclen_str_contains( $content, '<h' ) ) {
 			return $content; }
 
 		foreach ( Nuclen_TOC_Utils::extract( $content, range( 1, 6 ) ) as $h ) {
