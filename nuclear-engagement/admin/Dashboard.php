@@ -15,6 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 use NuclearEngagement\Utils;
+use NuclearEngagement\Services\DashboardDataService;
 
 global $wpdb;
 
@@ -22,8 +23,8 @@ global $wpdb;
 ──────────────────────────────────────────────────────────────
  * 1. Determine which post-types we need to examine
  * ──────────────────────────────────────────────────────────── */
-$settings_repo      = \NuclearEngagement\Container::getInstance()->get( 'settings' );
-$admin              = new \NuclearEngagement\Admin\Admin( 'nuclear-engagement', NUCLEN_PLUGIN_VERSION, $settings_repo );
+$settings_repo = \NuclearEngagement\Container::getInstance()->get( 'settings' );
+$data_service = \NuclearEngagement\Container::getInstance()->get( 'dashboard_data_service' );
 $allowed_post_types = $settings_repo->get( 'generation_post_types', array( 'post' ) );
 $allowed_post_types = is_array( $allowed_post_types ) ? $allowed_post_types : array( 'post' );
 
@@ -43,81 +44,8 @@ if (
 
 /*
 ──────────────────────────────────────────────────────────────
- * 2. Convenience helpers
+ * 2. Data service
  * ──────────────────────────────────────────────────────────── */
-
-/**
- * Run a grouped count query (status, post-type, author, etc.).
- *
- * @param  string $group_by    Column to group by (already prefixed, e.g. "p.post_status").
- * @param  string $meta_key    Meta key to test for existence (quiz / summary).
- * @param  array  $post_types  Allowed post-types.
- * @param  array  $statuses    Allowed post-statuses.
- * @return array               Rows: [ [ g => value, w => 'with|without', c => count ], … ]
- */
-function nuclen_get_group_counts( string $group_by, string $meta_key, array $post_types, array $statuses ): array {
-	global $wpdb;
-
-	// Sanitize post types and statuses
-	$post_types = array_map( 'sanitize_key', $post_types );
-	$statuses   = array_map( 'sanitize_key', $statuses );
-
-	// Create placeholders for the IN clauses
-	$placeholders_pt = implode( ',', array_fill( 0, count( $post_types ), '%s' ) );
-	$placeholders_st = implode( ',', array_fill( 0, count( $statuses ), '%s' ) );
-
-	// Prepare the query with placeholders
-	$sql = $wpdb->prepare(
-		"SELECT $group_by               AS g,
-               CASE WHEN pm.meta_id IS NULL THEN 'without' ELSE 'with' END AS w,
-               COUNT(*)                 AS c
-        FROM {$wpdb->posts} p
-        LEFT JOIN {$wpdb->postmeta} pm
-          ON  pm.post_id = p.ID
-          AND pm.meta_key = %s
-        WHERE p.post_type  IN ($placeholders_pt)
-          AND p.post_status IN ($placeholders_st)
-        GROUP BY $group_by, w",
-		array_merge( array( $meta_key ), $post_types, $statuses )
-	);
-
-	return $wpdb->get_results( $sql, ARRAY_A );
-}
-
-/**
- * Run a grouped count query for both quiz and summary meta in one go.
- *
- * @param string $group_by   Column to group by.
- * @param array  $post_types Allowed post types.
- * @param array  $statuses   Allowed post statuses.
- * @return array             Rows with counts for quiz and summary.
- */
-function nuclen_get_dual_counts( string $group_by, array $post_types, array $statuses ): array {
-		global $wpdb;
-
-		$post_types = array_map( 'sanitize_key', $post_types );
-		$statuses   = array_map( 'sanitize_key', $statuses );
-
-		$placeholders_pt = implode( ',', array_fill( 0, count( $post_types ), '%s' ) );
-		$placeholders_st = implode( ',', array_fill( 0, count( $statuses ), '%s' ) );
-
-		$sql = $wpdb->prepare(
-			"SELECT $group_by AS g,
-                       SUM(CASE WHEN pm_q.meta_id IS NULL THEN 0 ELSE 1 END) AS quiz_with,
-                       SUM(CASE WHEN pm_q.meta_id IS NULL THEN 1 ELSE 0 END) AS quiz_without,
-                       SUM(CASE WHEN pm_s.meta_id IS NULL THEN 0 ELSE 1 END) AS summary_with,
-                       SUM(CASE WHEN pm_s.meta_id IS NULL THEN 1 ELSE 0 END) AS summary_without
-                FROM {$wpdb->posts} p
-                LEFT JOIN {$wpdb->postmeta} pm_q ON pm_q.post_id = p.ID AND pm_q.meta_key = 'nuclen-quiz-data'
-                LEFT JOIN {$wpdb->postmeta} pm_s ON pm_s.post_id = p.ID AND pm_s.meta_key = 'nuclen-summary-data'
-                WHERE p.post_type  IN ($placeholders_pt)
-                  AND p.post_status IN ($placeholders_st)
-                GROUP BY $group_by",
-			array_merge( $post_types, $statuses )
-		);
-
-		return $wpdb->get_results( $sql, ARRAY_A );
-}
 
 /*
 ──────────────────────────────────────────────────────────────
@@ -128,7 +56,7 @@ $post_statuses = array( 'publish', 'pending', 'draft', 'future' );
 if ( null === $inventory_cache ) {
 
 	/* — By Post Status — */
-	$status_rows    = nuclen_get_dual_counts( 'p.post_status', $allowed_post_types, $post_statuses );
+        $status_rows    = $data_service->get_dual_counts( 'p.post_status', $allowed_post_types, $post_statuses );
 	$status_objects = get_post_stati( array(), 'objects' );
 	$by_status_quiz = $by_status_summary = array();
 
@@ -141,7 +69,7 @@ if ( null === $inventory_cache ) {
 	}
 
 	/* — By Post Type — */
-	$ptype_rows = nuclen_get_dual_counts( 'p.post_type', $allowed_post_types, $post_statuses );
+        $ptype_rows = $data_service->get_dual_counts( 'p.post_type', $allowed_post_types, $post_statuses );
 
 	$by_post_type_quiz = $by_post_type_summary = array();
 	foreach ( $ptype_rows as $r ) {
@@ -154,7 +82,7 @@ if ( null === $inventory_cache ) {
 	}
 
         /* — By Author — */
-        $author_rows = nuclen_get_dual_counts( 'p.post_author', $allowed_post_types, $post_statuses );
+        $author_rows = $data_service->get_dual_counts( 'p.post_author', $allowed_post_types, $post_statuses );
 
         $author_ids = array_map(
                 static fn ( $row ) => (int) $row['g'],
@@ -276,26 +204,7 @@ if ( null === $inventory_cache ) {
 ──────────────────────────────────────────────────────────────
  * 4b. Gather scheduled generation tasks
  * ──────────────────────────────────────────────────────────── */
-$active_generations = get_option( 'nuclen_active_generations', array() );
-$scheduled_tasks    = array();
-
-foreach ( $active_generations as $gen_id => $info ) {
-	$post_id   = (int) ( $info['post_ids'][0] ?? 0 );
-	$title     = $post_id ? get_the_title( $post_id ) : $gen_id;
-	$next_poll = isset( $info['next_poll'] )
-		? date_i18n(
-			get_option( 'date_format' ) . ' ' . get_option( 'time_format' ),
-			(int) $info['next_poll']
-		)
-		: '';
-
-	$scheduled_tasks[] = array(
-		'post_title'    => $title,
-		'workflow_type' => $info['workflow_type'] ?? '',
-		'attempt'       => (int) ( $info['attempt'] ?? 1 ),
-		'next_poll'     => $next_poll,
-	);
-}
+$scheduled_tasks = $data_service->get_scheduled_generations();
 
 /*
 ──────────────────────────────────────────────────────────────

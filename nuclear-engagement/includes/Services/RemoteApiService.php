@@ -123,11 +123,12 @@ class RemoteApiService {
 			)
 		);
 
-		if ( is_wp_error( $response ) ) {
-			$error = 'API request failed: ' . $response->get_error_message();
-			\NuclearEngagement\Services\LoggingService::log( $error ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-			throw new ApiException( $error );
-		}
+                if ( is_wp_error( $response ) ) {
+                        $error = 'API request failed: ' . $response->get_error_message();
+                        \NuclearEngagement\Services\LoggingService::log( $error ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+                        \NuclearEngagement\Services\LoggingService::notify_admin( __( 'Failed to contact the Nuclear Engagement API.', 'nuclear-engagement' ) );
+                        throw new ApiException( $error );
+                }
 
 		$code = wp_remote_retrieve_response_code( $response );
 		$body = wp_remote_retrieve_body( $response );
@@ -201,11 +202,12 @@ class RemoteApiService {
 			)
 		);
 
-		if ( is_wp_error( $response ) ) {
-			$error = 'API request failed: ' . $response->get_error_message();
-					\NuclearEngagement\Services\LoggingService::log( $error ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-			throw new ApiException( $error );
-		}
+                if ( is_wp_error( $response ) ) {
+                        $error = 'API request failed: ' . $response->get_error_message();
+                                        \NuclearEngagement\Services\LoggingService::log( $error ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+                        \NuclearEngagement\Services\LoggingService::notify_admin( __( 'Failed to contact the Nuclear Engagement API.', 'nuclear-engagement' ) );
+                        throw new ApiException( $error );
+                }
 
 		$code = wp_remote_retrieve_response_code( $response );
 		$body = wp_remote_retrieve_body( $response );

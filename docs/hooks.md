@@ -45,4 +45,19 @@ Override a saved setting when retrieved:
 add_filter( 'nuclen_setting_api_timeout', function ( $value ) {
     return 30; // seconds
 } );
+
+Register a callback for the `nuclen_start_generation` action:
+
+```php
+add_action( 'nuclen_start_generation', function ( $post_id, $workflow_type ) {
+    // Custom logic before generation starts.
+} );
+```
+
+Modify a setting via the `nuclen_setting_*` filter:
+
+```php
+add_filter( 'nuclen_setting_quiz_title', function ( $value, $key ) {
+    return 'My Custom Title';
+}, 10, 2 );
 ```
