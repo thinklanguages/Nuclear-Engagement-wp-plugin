@@ -152,8 +152,8 @@ class AutoGenerationService {
 				'generation_id' => $generation_id,
 			);
 
-			try {
-				$this->remote_api->sendPostsToGenerate( $data_to_send );
+                        try {
+                                $this->remote_api->send_posts_to_generate( $data_to_send );
 			} catch ( ApiException $e ) {
 				\NuclearEngagement\Services\LoggingService::log(
 					'Failed to start generation: ' . $e->getMessage()

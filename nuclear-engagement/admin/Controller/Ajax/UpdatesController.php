@@ -69,7 +69,7 @@ class UpdatesController extends BaseController {
 				$request->generationId = 'gen_' . uniqid( 'auto_', true );
 			}
 
-				$data = $this->api->fetchUpdates( $request->generationId );
+                                $data = $this->api->fetch_updates( $request->generationId );
 				\NuclearEngagement\Services\LoggingService::log( 'Updates response: ' . wp_json_encode( $data ) );
 
 				$response          = new UpdatesResponse();
