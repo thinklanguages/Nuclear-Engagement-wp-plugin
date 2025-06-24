@@ -165,11 +165,19 @@ class AutoGenerationService {
                 $batch       = array_splice( $ids, 0, self::BATCH_SIZE );
                 $post_data   = array();
 
-                foreach ( $batch as $pid ) {
-                    $post = get_post( $pid );
-                    if ( ! $post ) {
-                        continue;
-                    }
+                $posts = get_posts(
+                    array(
+                        'post__in'               => $batch,
+                        'posts_per_page'         => count( $batch ),
+                        'post_type'              => 'any',
+                        'orderby'                => 'post__in',
+                        'update_post_meta_cache' => false,
+                        'update_post_term_cache' => false,
+                    )
+                );
+
+                foreach ( $posts as $post ) {
+                    $pid      = (int) $post->ID;
                     $meta_key = $workflow_type === 'quiz' ? 'nuclen_quiz_protected' : 'nuclen_summary_protected';
                     if ( get_post_meta( $pid, $meta_key, true ) ) {
                         continue;
