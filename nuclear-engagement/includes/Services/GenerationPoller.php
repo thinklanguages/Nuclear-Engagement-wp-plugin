@@ -74,7 +74,7 @@ class GenerationPoller {
 				return;
 			}
 
-			$data = $this->remote_api->fetchUpdates( $generation_id );
+                        $data = $this->remote_api->fetch_updates( $generation_id );
 
 			if ( ! empty( $data['results'] ) && is_array( $data['results'] ) ) {
 				$this->content_storage->storeResults( $data['results'], $workflow_type );

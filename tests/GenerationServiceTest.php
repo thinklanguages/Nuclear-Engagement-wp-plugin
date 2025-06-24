@@ -19,10 +19,10 @@ if (!function_exists('get_posts')) {
 }
 
 class GSRemoteApi {
-    public function sendPostsToGenerate(array $data): array {
+    public function send_posts_to_generate(array $data): array {
         throw new ApiException('api fail', 401);
     }
-    public function fetchUpdates(string $id): array { return []; }
+    public function fetch_updates(string $id): array { return []; }
 }
 
 class GSStorage {

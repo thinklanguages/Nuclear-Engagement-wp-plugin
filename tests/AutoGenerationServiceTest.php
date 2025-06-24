@@ -7,13 +7,13 @@ use NuclearEngagement\Services\ApiException;
 class DummyRemoteApiService {
     public array $updates = [];
     public $generateResponse = [];
-    public function sendPostsToGenerate(array $data): array {
+    public function send_posts_to_generate(array $data): array {
         if ($this->generateResponse instanceof \Exception) {
             throw $this->generateResponse;
         }
         return $this->generateResponse;
     }
-    public function fetchUpdates(string $id): array { return $this->updates[$id] ?? []; }
+    public function fetch_updates(string $id): array { return $this->updates[$id] ?? []; }
 }
 
 class DummyContentStorageService {
