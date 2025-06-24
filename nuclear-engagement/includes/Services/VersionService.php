@@ -53,10 +53,10 @@ final class VersionService {
 		 * @param string $version The version string for the asset.
 		 * @param string $key     The asset key being requested.
 		 */
-		return (string) apply_filters( 
-			'nuclen_asset_version', 
-			AssetVersions::get( $key ), 
-			$key 
+		return (string) apply_filters(
+			'nuclen_asset_version',
+			AssetVersions::get( $key ),
+			$key
 		);
 	}
 }

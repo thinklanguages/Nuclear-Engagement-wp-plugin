@@ -9,5 +9,5 @@
 declare(strict_types=1);
 
 if ( ! defined( 'ABSPATH' ) ) {
-    exit;
+	exit;
 } // Silence is golden

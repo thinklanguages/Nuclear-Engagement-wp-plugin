@@ -20,12 +20,12 @@
 declare(strict_types=1);
 
 // If this file is called directly, abort.
-if (!defined('ABSPATH')) {
+if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
 // Define plugin constants.
-define('NUCLEN_PLUGIN_FILE', __FILE__);
+define( 'NUCLEN_PLUGIN_FILE', __FILE__ );
 
 // Include the main plugin class.
 require_once __DIR__ . '/bootstrap.php';

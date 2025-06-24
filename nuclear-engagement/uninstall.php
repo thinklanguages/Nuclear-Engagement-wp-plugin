@@ -26,7 +26,7 @@
 declare(strict_types=1);
 
 if ( ! defined( 'ABSPATH' ) ) {
-        exit;
+		exit;
 }
 
 // If uninstall not called from WordPress, then exit.
@@ -45,15 +45,15 @@ $delete_css       = ! empty( $settings['delete_custom_css_on_uninstall'] );
 
 // Delete generated content from post meta if requested.
 if ( $delete_generated ) {
-                $meta_keys = array(
-                        'nuclen-quiz-data',
-                        'nuclen-summary-data',
-                        'nuclen_quiz_protected',
-                        'nuclen_summary_protected'
-                );
-                foreach ( $meta_keys as $mk ) {
-                        delete_post_meta_by_key( $mk );
-                }
+				$meta_keys = array(
+					'nuclen-quiz-data',
+					'nuclen-summary-data',
+					'nuclen_quiz_protected',
+					'nuclen_summary_protected',
+				);
+				foreach ( $meta_keys as $mk ) {
+						delete_post_meta_by_key( $mk );
+				}
 }
 
 // Delete plugin settings if requested.
@@ -84,7 +84,7 @@ if ( $delete_css ) {
 // content. This avoids data loss unless a full cleanup was requested.
 if ( $delete_settings || $delete_generated ) {
 		global $wpdb;
-                $table = $wpdb->prefix . "nuclen_optins";
-                // Remove stored email opt-in submissions on uninstall.
-                $wpdb->query( "DROP TABLE IF EXISTS " . esc_sql( $table ) );
+				$table = $wpdb->prefix . 'nuclen_optins';
+				// Remove stored email opt-in submissions on uninstall.
+				$wpdb->query( 'DROP TABLE IF EXISTS ' . esc_sql( $table ) );
 }
