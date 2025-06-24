@@ -15,8 +15,23 @@ namespace NuclearEngagement\Services {
     function add_action(...$args) {
         $GLOBALS['ls_actions'][] = $args;
     }
+    function file_put_contents($file, $data, $flags = 0) {
+        $GLOBALS['ls_puts'][] = $file;
+        return \file_put_contents($file, $data, $flags);
+    }
+    function register_shutdown_function($cb) {
+        $GLOBALS['ls_shutdown'][] = $cb;
+    }
     function error_log($msg) {
         $GLOBALS['ls_errors'][] = $msg;
+    }
+    if (!function_exists('apply_filters')) {
+        function apply_filters($hook, $value) {
+            if ($hook === 'nuclen_enable_log_buffer' && isset($GLOBALS['ls_filter_buffer'])) {
+                return $GLOBALS['ls_filter_buffer'];
+            }
+            return $value;
+        }
     }
     if (!function_exists('esc_html')) {
         function esc_html($text) { return $text; }
@@ -28,11 +43,19 @@ namespace {
         protected function setUp(): void {
             $GLOBALS['ls_actions'] = [];
             $GLOBALS['ls_errors'] = [];
+            $GLOBALS['ls_puts'] = [];
+            $GLOBALS['ls_shutdown'] = [];
             $GLOBALS['ls_base'] = sys_get_temp_dir() . '/ls_' . uniqid();
             mkdir($GLOBALS['ls_base']);
+            $GLOBALS['ls_filter_buffer'] = false;
         }
 
         protected function tearDown(): void {
+            LoggingService::flush();
+            foreach ($GLOBALS['ls_shutdown'] as $cb) {
+                $cb();
+            }
+            unset($GLOBALS['ls_filter_buffer']);
             $base = $GLOBALS['ls_base'];
             foreach (glob("$base/*") as $file) {
                 @unlink($file);
@@ -78,6 +101,22 @@ namespace {
             $expected = str_repeat('a', 1000) . '...';
             $this->assertStringContainsString($expected, $contents);
             $this->assertStringNotContainsString('<p>', $contents);
+        }
+
+        public function test_buffered_logging_single_write(): void {
+            $GLOBALS['ls_filter_buffer'] = true;
+            for ($i = 0; $i < 5; $i++) {
+                LoggingService::log("msg $i");
+            }
+            $info = LoggingService::get_log_file_info();
+            $this->assertFileDoesNotExist($info['path']);
+
+            LoggingService::flush();
+
+            $this->assertFileExists($info['path']);
+            $this->assertCount(1, $GLOBALS['ls_puts']);
+            $contents = file_get_contents($info['path']);
+            $this->assertStringContainsString('msg 4', $contents);
         }
     }
 }

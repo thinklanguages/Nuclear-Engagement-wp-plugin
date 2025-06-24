@@ -18,7 +18,17 @@ class LoggingService {
 	/**
 	 * @var array<string>
 	 */
-	private static array $admin_notices = array();
+        private static array $admin_notices = array();
+
+        /**
+         * @var array<string> Buffered log messages.
+         */
+        private static array $buffer = array();
+
+        /**
+         * Whether the shutdown hook has been registered.
+         */
+        private static bool $shutdown_registered = false;
 
 	/**
 	 * Get directory, path and URL for the log file.
@@ -75,63 +85,118 @@ class LoggingService {
 	/**
 	 * Fallback when writing to the log fails.
 	 */
-	private static function fallback( string $original, string $error ): void {
-		$timestamp = gmdate( 'Y-m-d H:i:s' );
-		error_log( "[Nuclear Engagement] [$timestamp] {$original} - {$error}" );
-		self::add_admin_notice( $error );
-	}
+        private static function fallback( string $original, string $error ): void {
+                $timestamp = gmdate( 'Y-m-d H:i:s' );
+                error_log( "[Nuclear Engagement] [$timestamp] {$original} - {$error}" );
+                self::add_admin_notice( $error );
+        }
+
+        /**
+         * Determine if logging should be buffered.
+         */
+        private static function use_buffer(): bool {
+                $default = defined( 'NUCLEN_BUFFER_LOGS' ) ? (bool) NUCLEN_BUFFER_LOGS : true;
+
+                /**
+                 * Filters whether logging should buffer messages until shutdown.
+                 *
+                 * @param bool $use_buffer Current setting.
+                 */
+                return (bool) apply_filters( 'nuclen_enable_log_buffer', $default );
+        }
+
+        /**
+         * Flush buffered messages to the log file.
+         */
+        public static function flush(): void {
+                if ( empty( self::$buffer ) ) {
+                        return;
+                }
+
+                self::write_messages( self::$buffer );
+                self::$buffer = array();
+        }
+
+        /**
+         * Write one or more messages to the log.
+         *
+         * @param array<string> $messages Messages to write.
+         */
+        private static function write_messages( array $messages ): void {
+                $info       = self::get_log_file_info();
+                $log_folder = $info['dir'];
+                $log_file   = $info['path'];
+                $max_size   = defined( 'NUCLEN_LOG_FILE_MAX_SIZE' ) ? NUCLEN_LOG_FILE_MAX_SIZE : MB_IN_BYTES;
+
+                if ( ! file_exists( $log_folder ) ) {
+                        if ( ! wp_mkdir_p( $log_folder ) ) {
+                                foreach ( $messages as $msg ) {
+                                        self::fallback( $msg, 'Failed to create log directory: ' . $log_folder );
+                                }
+                                return;
+                        }
+                }
+
+                if ( ! is_writable( $log_folder ) ) {
+                        foreach ( $messages as $msg ) {
+                                self::fallback( $msg, 'Log directory not writable: ' . $log_folder );
+                        }
+                        return;
+                }
+
+                if ( file_exists( $log_file ) && ! is_writable( $log_file ) ) {
+                        foreach ( $messages as $msg ) {
+                                self::fallback( $msg, 'Log file not writable: ' . $log_file );
+                        }
+                        return;
+                }
+
+                if ( file_exists( $log_file ) && filesize( $log_file ) > $max_size ) {
+                        $timestamped = $log_folder . '/log-' . gmdate( 'Y-m-d-His' ) . '.txt';
+                        @rename( $log_file, $timestamped );
+                }
+
+                $data = '';
+                if ( ! file_exists( $log_file ) ) {
+                        $timestamp = gmdate( 'Y-m-d H:i:s' );
+                        $data     .= "[$timestamp] Log file created\n";
+                }
+
+                foreach ( $messages as $msg ) {
+                        $timestamp = gmdate( 'Y-m-d H:i:s' );
+                        $data     .= "[$timestamp] {$msg}\n";
+                }
+
+                if ( file_put_contents( $log_file, $data, FILE_APPEND | LOCK_EX ) === false ) {
+                        foreach ( $messages as $msg ) {
+                                self::fallback( $msg, 'Failed to write to log file: ' . $log_file );
+                        }
+                }
+        }
 
 	/**
 	 * Append a message to the plugin log file.
 	 */
-	public static function log( string $message ): void {
-		if ( $message === '' ) {
-			return;
-		}
+        public static function log( string $message ): void {
+                if ( $message === '' ) {
+                        return;
+                }
 
-		// Strip any HTML and limit length to avoid leaking sensitive data
-		$message = wp_strip_all_tags( $message );
-		if ( strlen( $message ) > 1000 ) {
-			$message = substr( $message, 0, 1000 ) . '...';
-		}
+                // Strip any HTML and limit length to avoid leaking sensitive data
+                $message = wp_strip_all_tags( $message );
+                if ( strlen( $message ) > 1000 ) {
+                        $message = substr( $message, 0, 1000 ) . '...';
+                }
 
-		$info       = self::get_log_file_info();
-		$log_folder = $info['dir'];
-		$log_file   = $info['path'];
-		$max_size   = defined( 'NUCLEN_LOG_FILE_MAX_SIZE' ) ? NUCLEN_LOG_FILE_MAX_SIZE : MB_IN_BYTES;
+                if ( self::use_buffer() ) {
+                        self::$buffer[] = $message;
+                        if ( ! self::$shutdown_registered ) {
+                                register_shutdown_function( array( self::class, 'flush' ) );
+                                self::$shutdown_registered = true;
+                        }
+                        return;
+                }
 
-		if ( ! file_exists( $log_folder ) ) {
-			if ( ! wp_mkdir_p( $log_folder ) ) {
-				self::fallback( $message, 'Failed to create log directory: ' . $log_folder );
-				return;
-			}
-		}
-
-		if ( ! is_writable( $log_folder ) ) {
-			self::fallback( $message, 'Log directory not writable: ' . $log_folder );
-			return;
-		}
-
-		if ( file_exists( $log_file ) && ! is_writable( $log_file ) ) {
-			self::fallback( $message, 'Log file not writable: ' . $log_file );
-			return;
-		}
-		if ( file_exists( $log_file ) && filesize( $log_file ) > $max_size ) {
-			$timestamped = $log_folder . '/log-' . gmdate( 'Y-m-d-His' ) . '.txt';
-			@rename( $log_file, $timestamped );
-		}
-
-		if ( ! file_exists( $log_file ) ) {
-			$timestamp = gmdate( 'Y-m-d H:i:s' );
-			if ( file_put_contents( $log_file, "[$timestamp] Log file created\n", FILE_APPEND | LOCK_EX ) === false ) {
-				self::fallback( $message, 'Failed to create log file: ' . $log_file );
-				return;
-			}
-		}
-
-		$timestamp = gmdate( 'Y-m-d H:i:s' );
-		if ( file_put_contents( $log_file, "[$timestamp] {$message}\n", FILE_APPEND | LOCK_EX ) === false ) {
-			self::fallback( $message, 'Failed to write to log file: ' . $log_file );
-		}
-	}
+                self::write_messages( array( $message ) );
+        }
 }
