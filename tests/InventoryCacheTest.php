@@ -8,6 +8,7 @@ use NuclearEngagement\InventoryCache;
 
 $GLOBALS['wp_cache'] = [];
 $GLOBALS['flush_count'] = 0;
+$GLOBALS['transients'] = [];
 
 if ( ! function_exists( 'wp_cache_get' ) ) {
     function wp_cache_get( $key, $group = '', $force = false, &$found = null ) {
@@ -32,11 +33,28 @@ if ( ! function_exists( 'wp_cache_flush_group' ) ) {
     }
 }
 
+if ( ! function_exists( 'get_transient' ) ) {
+    function get_transient( $key ) {
+        return $GLOBALS['transients'][ $key ] ?? false;
+    }
+}
+if ( ! function_exists( 'set_transient' ) ) {
+    function set_transient( $key, $value, $ttl = 0 ) {
+        $GLOBALS['transients'][ $key ] = $value;
+    }
+}
+if ( ! function_exists( 'delete_transient' ) ) {
+    function delete_transient( $key ) {
+        unset( $GLOBALS['transients'][ $key ] );
+    }
+}
+
 class InventoryCacheTest extends TestCase {
     protected function setUp(): void {
-        global $wp_cache, $flush_count;
-        $wp_cache = [];
+        global $wp_cache, $flush_count, $transients;
+        $wp_cache   = [];
         $flush_count = 0;
+        $transients = [];
     }
 
     public function test_clear_is_debounced() {

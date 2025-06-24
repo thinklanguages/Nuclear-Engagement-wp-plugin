@@ -78,9 +78,13 @@ final class Nuclen_TOC_Utils {
 		sort( $heading_levels );
 		$heading_levels = array_unique( $heading_levels );
 
-		// Generate cache key based on content and heading levels.
-		$key = md5( $html ) . '_' . implode( '', $heading_levels );
-		$hit = wp_cache_get( $key, self::CACHE_GROUP );
+                // Generate cache key based on content and heading levels.
+                $key          = md5( $html ) . '_' . implode( '', $heading_levels );
+                $transient    = 'nuclen_toc_' . $key;
+                $hit = wp_cache_get( $key, self::CACHE_GROUP );
+                if ( false === $hit ) {
+                        $hit = get_transient( $transient );
+                }
 
                if ( false !== $hit ) {
                        self::$ids_in_post = array_fill_keys( wp_list_pluck( $hit, 'id' ), true );
@@ -137,6 +141,7 @@ final class Nuclen_TOC_Utils {
                 }
 
                 wp_cache_set( $key, $out, self::CACHE_GROUP, self::CACHE_TTL );
+                set_transient( $transient, $out, self::CACHE_TTL );
                 self::$last_parse_ms = (int) round( ( microtime( true ) - $t0 ) * 1000 );
                 return $out;
         }
