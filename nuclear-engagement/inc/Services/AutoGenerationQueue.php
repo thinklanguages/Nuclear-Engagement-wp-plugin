@@ -8,6 +8,8 @@ declare(strict_types=1);
 
 namespace NuclearEngagement\Services;
 
+use NuclearEngagement\Services\PostDataFetcher;
+
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
@@ -22,10 +24,11 @@ class AutoGenerationQueue {
 
     private RemoteApiService $remote_api;
     private ContentStorageService $content_storage;
-
-    public function __construct( RemoteApiService $remote_api, ContentStorageService $content_storage ) {
+    private PostDataFetcher $data_fetcher;
+    public function __construct( RemoteApiService $remote_api, ContentStorageService $content_storage, ?PostDataFetcher $data_fetcher = null ) {
         $this->remote_api      = $remote_api;
         $this->content_storage = $content_storage;
+        $this->data_fetcher    = $data_fetcher ?: new PostDataFetcher();
     }
 
     /**
@@ -68,33 +71,13 @@ class AutoGenerationQueue {
                 $batch     = array_splice( $ids, 0, self::BATCH_SIZE );
                 $post_data = array();
 
-                $posts = get_posts(
-                    array(
-                        'post__in'               => $batch,
-                        'posts_per_page'         => count( $batch ),
-                        'post_type'              => 'any',
-                        'orderby'                => 'post__in',
-                        'update_post_meta_cache' => false,
-                        'update_post_term_cache' => false,
-                        'meta_query'             => array(
-                            'relation' => 'AND',
-                            array(
-                                'key'     => 'nuclen_quiz_protected',
-                                'compare' => 'NOT EXISTS',
-                            ),
-                            array(
-                                'key'     => 'nuclen_summary_protected',
-                                'compare' => 'NOT EXISTS',
-                            ),
-                        ),
-                    )
-                );
+                $posts = $this->data_fetcher->fetch_without_protection( $batch );
 
                 foreach ( $posts as $post ) {
                     $pid        = (int) $post->ID;
                     $post_data[] = array(
                         'id'      => $pid,
-                        'title'   => get_the_title( $pid ),
+                        'title'   => $post->post_title,
                         'content' => wp_strip_all_tags( $post->post_content ),
                     );
                 }
