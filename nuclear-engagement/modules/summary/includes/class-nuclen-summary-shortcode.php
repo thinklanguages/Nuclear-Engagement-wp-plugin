@@ -49,10 +49,12 @@ final class Nuclen_Summary_Shortcode {
 		return ! empty( $summary_data ) && ! empty( trim( $summary_data['summary'] ?? '' ) );
 	}
 
-	private function getSummarySettings(): array {
-		return array(
-			'summary_title'    => $this->settings->get_string( 'summary_title', __( 'Key Facts', 'nuclear-engagement' ) ),
-			'show_attribution' => $this->settings->get_bool( 'show_attribution', false ),
-		);
-	}
+        private function getSummarySettings(): array {
+                return array(
+                        'summary_title'    => $this->settings->get_string( 'summary_title', __( 'Key Facts', 'nuclear-engagement' ) ),
+                        'show_attribution' => $this->settings->get_bool( 'show_attribution', false ),
+                );
+        }
+}
+
 }

@@ -48,8 +48,10 @@ final class Nuclen_Summary_Metabox {
 				'normal',
 				'default'
 			);
-		}
-	}
+        }
+}
+
+}
 
 	/*
 	-------------------------------------------------------------------------
@@ -176,4 +178,6 @@ final class Nuclen_Summary_Metabox {
 			delete_post_meta( $post_id, 'nuclen_summary_protected' );
 		}
 	}
+}
+
 }

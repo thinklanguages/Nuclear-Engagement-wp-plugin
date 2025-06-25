@@ -20,14 +20,16 @@ final class Nuclen_Summary_View {
 		);
 	}
 
-	public function attribution( bool $show ): string {
-		if ( ! $show ) {
-			return '';
-		}
-		return sprintf(
-			'<div class="nuclen-attribution">%s <a rel="nofollow" href="https://www.nuclearengagement.com" target="_blank">%s</a></div>',
-			esc_html__( 'Summary by', 'nuclear-engagement' ),
-			esc_html__( 'Nuclear Engagement', 'nuclear-engagement' )
-		);
-	}
+        public function attribution( bool $show ): string {
+                if ( ! $show ) {
+                        return '';
+                }
+                return sprintf(
+                        '<div class="nuclen-attribution">%s <a rel="nofollow" href="https://www.nuclearengagement.com" target="_blank">%s</a></div>',
+                        esc_html__( 'Summary by', 'nuclear-engagement' ),
+                        esc_html__( 'Nuclear Engagement', 'nuclear-engagement' )
+                );
+        }
+}
+
 }
