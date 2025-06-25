@@ -2,7 +2,6 @@
 use PHPUnit\Framework\TestCase;
 
 namespace NuclearEngagement\Admin {
-    function wp_verify_nonce($nonce, $action) { return true; }
     function current_user_can($cap, $id) { return true; }
     function wp_unslash($val) { return $val; }
     function sanitize_text_field($val) { return $val; }
@@ -54,6 +53,11 @@ namespace {
             $GLOBALS['mb_result'] = new \WP_Error();
             \NuclearEngagement\Services\LoggingService::$logs = [];
             \NuclearEngagement\Services\LoggingService::$notices = [];
+            $GLOBALS['test_verify_nonce'] = true;
+        }
+
+        protected function tearDown(): void {
+            unset($GLOBALS['test_verify_nonce']);
         }
 
         public function test_quiz_update_error_logs_and_notifies(): void {

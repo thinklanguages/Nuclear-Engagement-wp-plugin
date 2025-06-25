@@ -3,18 +3,6 @@ use PHPUnit\Framework\TestCase;
 use NuclearEngagement\Utils;
 
 namespace NuclearEngagement {
-    function wp_upload_dir() {
-        return [
-            'basedir' => $GLOBALS['ut_base'],
-            'baseurl'  => 'http://example.com/uploads',
-        ];
-    }
-    function wp_mkdir_p($dir) {
-        if (!empty($GLOBALS['ut_fail_mkdir'])) {
-            return false;
-        }
-        return mkdir($dir, 0777, true);
-    }
     function get_option($name, $default = '') {
         return $GLOBALS['ut_options'][$name] ?? $default;
     }
@@ -30,16 +18,16 @@ namespace NuclearEngagement\Services {
 namespace {
     class UtilsTest extends TestCase {
         protected function setUp(): void {
-            $GLOBALS['ut_base'] = sys_get_temp_dir() . '/ut_' . uniqid();
+            $GLOBALS['test_upload_basedir'] = sys_get_temp_dir() . '/ut_' . uniqid();
             $GLOBALS['ut_options'] = [];
-            if (file_exists($GLOBALS['ut_base'])) {
+            if (file_exists($GLOBALS['test_upload_basedir'])) {
                 // clean leftover
-                @unlink($GLOBALS['ut_base']);
+                @unlink($GLOBALS['test_upload_basedir']);
             }
         }
 
         protected function tearDown(): void {
-            $base = $GLOBALS['ut_base'];
+            $base = $GLOBALS['test_upload_basedir'];
             if (is_dir($base)) {
                 array_map('unlink', glob("$base/*"));
                 rmdir($base);
@@ -53,7 +41,7 @@ namespace {
         }
 
         public function test_version_generated_when_option_empty(): void {
-            $dir = $GLOBALS['ut_base'] . '/nuclear-engagement';
+            $dir = $GLOBALS['test_upload_basedir'] . '/nuclear-engagement';
             mkdir($dir, 0777, true);
             $file = $dir . '/nuclen-theme-custom.css';
             file_put_contents($file, 'body{}');
@@ -65,7 +53,7 @@ namespace {
         }
 
         public function test_version_from_option_used_when_set(): void {
-            $dir = $GLOBALS['ut_base'] . '/nuclear-engagement';
+            $dir = $GLOBALS['test_upload_basedir'] . '/nuclear-engagement';
             mkdir($dir, 0777, true);
             $file = $dir . '/nuclen-theme-custom.css';
             file_put_contents($file, 'body{}');
@@ -75,11 +63,11 @@ namespace {
         }
 
         public function test_returns_empty_array_on_directory_failure(): void {
-            $GLOBALS['ut_fail_mkdir'] = true;
+            $GLOBALS['test_wp_mkdir_p_failure'] = true;
             $info = Utils::nuclen_get_custom_css_info();
             $this->assertSame([], $info);
             $this->assertNotEmpty(\NuclearEngagement\Services\LoggingService::$logs);
-            unset($GLOBALS['ut_fail_mkdir']);
+            unset($GLOBALS['test_wp_mkdir_p_failure']);
         }
     }
 }

@@ -20,9 +20,6 @@ namespace {
     if (!function_exists('sanitize_text_field')) {
         function sanitize_text_field($t) { return $t; }
     }
-    if (!function_exists('wp_verify_nonce')) {
-        function wp_verify_nonce($nonce, $action) { return $nonce === 'valid'; }
-    }
     if (!function_exists('current_user_can')) {
         function current_user_can($cap) { return true; }
     }

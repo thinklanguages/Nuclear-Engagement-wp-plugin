@@ -8,15 +8,6 @@ namespace NuclearEngagement\Services {
         public static array $logs = [];
         public static function log(string $msg): void { self::$logs[] = $msg; }
     }
-    function wp_remote_post(string $url, array $args = []) {
-        return $GLOBALS['ss_response'];
-    }
-    function wp_remote_retrieve_response_code($res) {
-        return is_array($res) ? ($res['code'] ?? 0) : 0;
-    }
-    function wp_remote_retrieve_body($res) {
-        return is_array($res) ? ($res['body'] ?? '') : '';
-    }
     function wp_json_encode($data) { return json_encode($data); }
 }
 
@@ -29,26 +20,26 @@ namespace {
 
     class SetupServiceTest extends TestCase {
         protected function setUp(): void {
-            $GLOBALS['ss_response'] = null;
+            $GLOBALS['test_http_response'] = null;
             LoggingService::$logs = [];
         }
 
         public function test_validate_api_key_success(): void {
-            $GLOBALS['ss_response'] = ['code' => 200];
+            $GLOBALS['test_http_response'] = ['code' => 200];
             $svc = new SetupService();
             $this->assertTrue($svc->validate_api_key('key'));
             $this->assertEmpty(LoggingService::$logs);
         }
 
         public function test_validate_api_key_failure_logs_error(): void {
-            $GLOBALS['ss_response'] = new \WP_Error();
+            $GLOBALS['test_http_response'] = new \WP_Error();
             $svc = new SetupService();
             $this->assertFalse($svc->validate_api_key('key'));
             $this->assertSame(['API-key validation error: error'], LoggingService::$logs);
         }
 
         public function test_send_app_password_success(): void {
-            $GLOBALS['ss_response'] = ['code' => 200];
+            $GLOBALS['test_http_response'] = ['code' => 200];
             $svc = new SetupService();
             $data = ['appApiKey' => 'key', 'user' => 'u'];
             $this->assertTrue($svc->send_app_password($data));
@@ -56,7 +47,7 @@ namespace {
         }
 
         public function test_send_app_password_failure_logs_error(): void {
-            $GLOBALS['ss_response'] = new \WP_Error();
+            $GLOBALS['test_http_response'] = new \WP_Error();
             $svc = new SetupService();
             $data = ['appApiKey' => 'key', 'user' => 'u'];
             $this->assertFalse($svc->send_app_password($data));
@@ -64,7 +55,7 @@ namespace {
         }
 
         public function test_send_app_password_http_error_logs_error(): void {
-            $GLOBALS['ss_response'] = ['code' => 400, 'body' => 'bad'];
+            $GLOBALS['test_http_response'] = ['code' => 400, 'body' => 'bad'];
             $svc = new SetupService();
             $data = ['appApiKey' => 'key', 'user' => 'u'];
             $this->assertFalse($svc->send_app_password($data));

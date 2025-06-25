@@ -12,15 +12,6 @@ namespace NuclearEngagement\Services {
         public static function debug(string $msg): void { self::$logs[] = $msg; }
         public static function notify_admin(string $msg): void { self::$notices[] = $msg; }
     }
-    function wp_remote_post(string $url, array $args = []) {
-        return $GLOBALS['test_api_response'];
-    }
-    function wp_remote_retrieve_response_code($res) {
-        return $res['code'];
-    }
-    function wp_remote_retrieve_body($res) {
-        return $res['body'];
-    }
     function get_site_url() { return 'http://example.com'; }
 }
 
@@ -30,7 +21,7 @@ if (!function_exists('__')) {
 }
 class RemoteApiServiceTest extends TestCase {
     protected function setUp(): void {
-        $GLOBALS['test_api_response'] = null;
+        $GLOBALS['test_http_response'] = null;
         SettingsRepository::reset_for_tests();
         $settings = SettingsRepository::get_instance();
         $settings->set_string('api_key', 'key')->save();
@@ -41,7 +32,7 @@ class RemoteApiServiceTest extends TestCase {
     }
 
     public function test_parses_json_message(): void {
-        $GLOBALS['test_api_response'] = ['code'=>400,'body'=>json_encode(['message'=>'bad'])];
+        $GLOBALS['test_http_response'] = ['code'=>400,'body'=>json_encode(['message'=>'bad'])];
         $svc = $this->makeService();
         $this->expectException(ApiException::class);
         $this->expectExceptionMessage('bad');
@@ -52,7 +43,7 @@ class RemoteApiServiceTest extends TestCase {
     }
 
     public function test_auth_error_sets_code(): void {
-        $GLOBALS['test_api_response'] = ['code'=>401,'body'=>json_encode(['error_code'=>'invalid_api_key'])];
+        $GLOBALS['test_http_response'] = ['code'=>401,'body'=>json_encode(['error_code'=>'invalid_api_key'])];
         $svc = $this->makeService();
         try {
             $svc->send_posts_to_generate(['posts'=>[], 'workflow'=>[]]);
@@ -66,7 +57,7 @@ class RemoteApiServiceTest extends TestCase {
     }
 
     public function test_server_error_parses_error_field(): void {
-        $GLOBALS['test_api_response'] = ['code'=>500,'body'=>json_encode(['error'=>'oops'])];
+        $GLOBALS['test_http_response'] = ['code'=>500,'body'=>json_encode(['error'=>'oops'])];
         $svc = $this->makeService();
         try {
             $svc->send_posts_to_generate(['posts'=>[], 'workflow'=>[]]);
@@ -79,7 +70,7 @@ class RemoteApiServiceTest extends TestCase {
     }
 
     public function test_send_posts_wp_error_notifies(): void {
-        $GLOBALS['test_api_response'] = new \WP_Error('nope', 'bad');
+        $GLOBALS['test_http_response'] = new \WP_Error('nope', 'bad');
         \NuclearEngagement\Services\LoggingService::$notices = [];
         $svc = $this->makeService();
         $this->expectException(ApiException::class);
@@ -92,7 +83,7 @@ class RemoteApiServiceTest extends TestCase {
     }
 
     public function test_fetch_updates_wp_error_notifies(): void {
-        $GLOBALS['test_api_response'] = new \WP_Error('fail', 'oops');
+        $GLOBALS['test_http_response'] = new \WP_Error('fail', 'oops');
         \NuclearEngagement\Services\LoggingService::$notices = [];
         $svc = $this->makeService();
         $this->expectException(ApiException::class);
