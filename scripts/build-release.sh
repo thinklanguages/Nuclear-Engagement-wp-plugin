@@ -9,7 +9,7 @@ rm -rf "$BUILD_DIR"
 mkdir -p "$BUILD_DIR"
 
 # Install PHP dependencies without dev packages
-composer install --no-dev --optimize-autoloader --no-interaction
+composer install --no-dev --optimize-autoloader --no-interaction --working-dir="$PLUGIN_DIR"
 
 # Build front-end assets
 npm ci

@@ -4,9 +4,9 @@ This guide shows how to run and debug the plugin locally using `wp-env` and Dock
 
 ## Quick start
 
-1. After cloning the repository, install PHP dependencies:
+1. After cloning the repository, install PHP dependencies from the plugin directory:
    ```bash
-   composer install
+   composer install --working-dir=nuclear-engagement
    ```
    Then install Node dependencies with:
    ```bash
@@ -14,7 +14,7 @@ This guide shows how to run and debug the plugin locally using `wp-env` and Dock
    ```
    After adding new PHP classes, regenerate the autoloader with:
    ```bash
-   composer dump-autoload
+   composer dump-autoload --working-dir=nuclear-engagement
    ```
 
 2. Start WordPress with the plugin:
@@ -55,13 +55,13 @@ Use these commands as needed while the environment is running:
 After starting the environment, run PHPUnit from the repository root:
 
 ```bash
-composer test
+composer test --working-dir=nuclear-engagement
 ```
 
 You can also run static analysis (optional):
 
 ```bash
-composer require --dev phpstan/phpstan-deprecation
+composer require --dev phpstan/phpstan-deprecation --working-dir=nuclear-engagement
 vendor/bin/phpstan analyse
 ```
 
