@@ -16,9 +16,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class LoggingService {
     /**
-     * @var array<string>
+     * Admin notice service instance.
      */
-        private static array $admin_notices = array();
+    private static ?AdminNoticeService $notices = null;
+
+    public function __construct( AdminNoticeService $notices ) {
+        self::$notices = $notices;
+    }
 
         /**
          * @var array<string> Buffered log messages.
@@ -62,10 +66,11 @@ class LoggingService {
      * Store an admin notice and ensure the hook is registered.
      */
     private static function add_admin_notice( string $message ): void {
-        self::$admin_notices[] = $message;
-        if ( count( self::$admin_notices ) === 1 ) {
-            add_action( 'admin_notices', array( self::class, 'render_admin_notices' ) );
+        if ( null === self::$notices ) {
+            return;
         }
+
+        self::$notices->add( $message );
     }
 
     /**
@@ -98,14 +103,7 @@ class LoggingService {
                self::log( $msg );
        }
 
-    /**
-     * Output stored admin notices.
-     */
-    public static function render_admin_notices(): void {
-        foreach ( self::$admin_notices as $notice ) {
-            echo '<div class="notice notice-error"><p>' . esc_html( $notice ) . '</p></div>';
-        }
-    }
+
 
     /**
      * Fallback when writing to the log fails.

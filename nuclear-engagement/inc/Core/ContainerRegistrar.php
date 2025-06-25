@@ -10,6 +10,7 @@ namespace NuclearEngagement;
 
 use NuclearEngagement\Container;
 use NuclearEngagement\Services\{GenerationService, RemoteApiService, ContentStorageService, PointerService, PostsQueryService, AutoGenerationService, AutoGenerationQueue, AutoGenerationScheduler, GenerationPoller, PublishGenerationHandler, VersionService, DashboardDataService};
+use NuclearEngagement\Services\{AdminNoticeService, LoggingService};
 use NuclearEngagement\Services\Remote\{RemoteRequest, ApiResponseHandler};
 use NuclearEngagement\Admin\Controller\Ajax\{GenerateController, UpdatesController, PointerController, PostsCountController};
 use NuclearEngagement\Admin\Controller\OptinExportController;
@@ -22,6 +23,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 final class ContainerRegistrar {
     public static function register( Container $container, SettingsRepository $settings ): void {
         $container->register( 'settings', static fn() => $settings );
+
+        $container->register( 'admin_notice_service', static fn() => new AdminNoticeService() );
+        $container->register( 'logging_service', static fn( Container $c ) => new LoggingService( $c->get( 'admin_notice_service' ) ) );
 
         $container->register( 'remote_request', static fn() => new Services\Remote\RemoteRequest() );
         $container->register( 'api_response_handler', static fn() => new Services\Remote\ApiResponseHandler() );
