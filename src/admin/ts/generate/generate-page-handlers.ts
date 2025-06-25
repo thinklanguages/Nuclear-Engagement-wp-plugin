@@ -11,10 +11,10 @@ export function initGeneratePage(): void {
   elements.step2 && elements.step2.classList.add('nuclen-hidden');
   elements.updatesSection && elements.updatesSection.classList.add('nuclen-hidden');
   elements.restartBtn && elements.restartBtn.classList.add('nuclen-hidden');
-  elements.stepBar1 && elements.stepBar1.classList.add('nuclen-step-current');
-  elements.stepBar2 && elements.stepBar2.classList.add('nuclen-step-todo');
-  elements.stepBar3 && elements.stepBar3.classList.add('nuclen-step-todo');
-  elements.stepBar4 && elements.stepBar4.classList.add('nuclen-step-todo');
+  elements.stepBar1 && elements.stepBar1.classList.add('ne-step-bar__step--current');
+  elements.stepBar2 && elements.stepBar2.classList.add('ne-step-bar__step--todo');
+  elements.stepBar3 && elements.stepBar3.classList.add('ne-step-bar__step--todo');
+  elements.stepBar4 && elements.stepBar4.classList.add('ne-step-bar__step--todo');
 
   initStep1(elements);
   initStep2(elements);

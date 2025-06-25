@@ -11,12 +11,12 @@ export function nuclenHideElement(el: HTMLElement | null): void {
 export function nuclenUpdateProgressBarStep(stepEl: HTMLElement | null, state: string): void {
   if (!stepEl) return;
   stepEl.classList.remove(
-    'nuclen-step-todo',
-    'nuclen-step-current',
-    'nuclen-step-done',
-    'nuclen-step-failed'
+    'ne-step-bar__step--todo',
+    'ne-step-bar__step--current',
+    'ne-step-bar__step--done',
+    'ne-step-bar__step--failed'
   );
-  stepEl.classList.add(`nuclen-step-${state}`);
+  stepEl.classList.add(`ne-step-bar__step--${state}`);
 }
 
 /**
