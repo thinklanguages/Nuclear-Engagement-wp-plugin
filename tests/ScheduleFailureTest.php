@@ -39,10 +39,30 @@ namespace {
         }
     }
 
+    class AQ_WPDB {
+        public $posts = 'wp_posts';
+        public $postmeta = 'wp_postmeta';
+        public array $args = [];
+        public function prepare($sql, ...$args) { $this->args = $args; return $sql; }
+        public function get_results($sql) {
+            $ids = array_slice($this->args, 2);
+            $rows = [];
+            foreach ($ids as $id) {
+                if (!isset($GLOBALS['wp_posts'][$id])) { continue; }
+                $p = $GLOBALS['wp_posts'][$id];
+                if ($p->post_status !== 'publish') { continue; }
+                if (!empty($GLOBALS['wp_meta'][$id]['nuclen_quiz_protected']) || !empty($GLOBALS['wp_meta'][$id]['nuclen_summary_protected'])) { continue; }
+                $rows[] = (object) [ 'ID' => $p->ID, 'post_title' => $p->post_title, 'post_content' => $p->post_content ];
+            }
+            return $rows;
+        }
+    }
+
     class ScheduleFailureTest extends TestCase {
         protected function setUp(): void {
-            global $wp_options, $wp_autoload, $wp_posts, $wp_meta, $wp_events;
+            global $wp_options, $wp_autoload, $wp_posts, $wp_meta, $wp_events, $wpdb;
             $wp_options = $wp_autoload = $wp_posts = $wp_meta = $wp_events = [];
+            $wpdb = new AQ_WPDB();
             \NuclearEngagement\Services\LoggingService::$logs = [];
             \NuclearEngagement\Services\LoggingService::$notices = [];
             SettingsRepository::reset_for_tests();
@@ -54,7 +74,7 @@ namespace {
             $storage  = new DummyContentStorageService();
             $poller    = new GenerationPoller($settings, $api, $storage);
             $scheduler = new \NuclearEngagement\Services\AutoGenerationScheduler($poller);
-            $queue     = new \NuclearEngagement\Services\AutoGenerationQueue($api, $storage);
+            $queue     = new \NuclearEngagement\Services\AutoGenerationQueue($api, $storage, new \NuclearEngagement\Services\PostDataFetcher());
             $handler   = new \NuclearEngagement\Services\PublishGenerationHandler($settings);
             return new AutoGenerationService($settings, $queue, $scheduler, $handler);
         }
