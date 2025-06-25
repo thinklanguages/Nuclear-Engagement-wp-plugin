@@ -81,10 +81,10 @@ trait AdminAutoGenerate {
 			$container = $this->get_container();
 			$service   = $container->get( 'generation_service' );
 			$service->generateSingle( $post_id, $workflow_type );
-		} catch ( \Exception $e ) {
-			\NuclearEngagement\Services\LoggingService::log( 'Auto-generation error: ' . $e->getMessage() );
-		}
-	}
+               } catch ( \Exception $e ) {
+                       \NuclearEngagement\Services\LoggingService::log_exception( $e );
+               }
+       }
 
 	/*
 	──────────────────────────────────────────────────────────
@@ -125,11 +125,9 @@ trait AdminAutoGenerate {
 					"Still processing post {$post_id} ({$workflow_type}), attempt {$attempt}/{$max_attempts}"
 				);
 			}
-		} catch ( \Exception $e ) {
-			\NuclearEngagement\Services\LoggingService::log(
-				"Polling error for post {$post_id} ({$workflow_type}): " . $e->getMessage()
-			);
-		}
+               } catch ( \Exception $e ) {
+                       \NuclearEngagement\Services\LoggingService::log_exception( $e );
+               }
 
 		// Schedule next poll if not at max attempts
                 if ( $attempt < $max_attempts ) {
