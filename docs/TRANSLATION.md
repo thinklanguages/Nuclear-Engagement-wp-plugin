@@ -17,7 +17,7 @@ WordPress will load translations from this folder when the site language matches
 
 ## Updating the POT File
 
-After adding new translatable strings in the plugin code, regenerate the template using WP‑CLI:
+After adding new translatable strings in the plugin code, regenerate the template using WP‑CLI. Run the command from the repository root so all plugin files are scanned:
 
 ```bash
 wp i18n make-pot nuclear-engagement nuclear-engagement/languages/nuclear-engagement.pot
