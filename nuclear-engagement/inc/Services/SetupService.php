@@ -14,6 +14,7 @@ declare( strict_types = 1 );
 namespace NuclearEngagement\Services;
 
 use NuclearEngagement\Utils;
+use NuclearEngagement\Services\Remote\RemoteRequest;
 
 // If this file is called directly, abort.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -29,14 +30,6 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @since 1.0.0
  */
 class SetupService {
-
-    /**
-     * Base URL for remote API.
-     *
-     * @since 1.0.0
-     * @var string
-     */
-    private const API_BASE = 'https://app.nuclearengagement.com/api';
 
     /**
      * Default timeout for API requests in seconds.
@@ -79,7 +72,7 @@ class SetupService {
         $timeout = defined( 'NUCLEN_API_TIMEOUT' ) ? NUCLEN_API_TIMEOUT : self::DEFAULT_TIMEOUT;
 
         $response = wp_remote_post(
-            self::API_BASE . '/check-api-key',
+            RemoteRequest::API_BASE . '/check-api-key',
             array(
                 'method'             => 'POST',
                 'headers'            => array( 'Content-Type' => 'application/json' ),
@@ -123,7 +116,7 @@ class SetupService {
         }
 
         $response = wp_remote_post(
-            self::API_BASE . '/store-wp-creds',
+            RemoteRequest::API_BASE . '/store-wp-creds',
             array(
                 'method'             => 'POST',
                 'headers'            => array( 'Content-Type' => 'application/json' ),

@@ -11,8 +11,8 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Helper for sending HTTP requests to the Nuclear Engagement API.
  */
 class RemoteRequest {
-    /** Base API URL. */
-    private const API_BASE = 'https://app.nuclearengagement.com/api';
+    /** Base API URL accessible to other services. */
+    public const API_BASE = 'https://app.nuclearengagement.com/api';
 
     /**
      * Send a POST request to the given API endpoint.
