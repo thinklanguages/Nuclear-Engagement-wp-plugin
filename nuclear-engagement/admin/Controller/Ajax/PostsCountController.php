@@ -12,6 +12,7 @@ namespace NuclearEngagement\Admin\Controller\Ajax;
 
 use NuclearEngagement\Requests\PostsCountRequest;
 use NuclearEngagement\Services\PostsQueryService;
+use NuclearEngagement\Services\LoggingService;
 
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
@@ -53,6 +54,7 @@ class PostsCountController extends BaseController {
             wp_send_json_success( $result );
 
         } catch ( \Exception $e ) {
+            LoggingService::log_exception( $e );
             $this->sendError( $e->getMessage() );
         }
     }
