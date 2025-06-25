@@ -47,6 +47,13 @@ class Utils {
      */
     public static function nuclen_get_custom_css_info(): array {
         $upload_dir = wp_upload_dir();
+
+        if ( ! empty( $upload_dir['error'] ) ) {
+            \NuclearEngagement\Services\LoggingService::log( 'Upload directory error: ' . $upload_dir['error'] );
+            \NuclearEngagement\Services\LoggingService::notify_admin( 'Uploads directory unavailable for custom CSS.' );
+            return array();
+        }
+
         $custom_dir = $upload_dir['basedir'] . '/nuclear-engagement';
 
         if ( ! file_exists( $custom_dir ) ) {

@@ -1,6 +1,9 @@
 <?php
 if (!function_exists('wp_upload_dir')) {
     function wp_upload_dir() {
+        if (isset($GLOBALS['test_upload_error'])) {
+            return ['error' => $GLOBALS['test_upload_error']];
+        }
         return [
             'basedir' => $GLOBALS['test_upload_basedir'] ?? sys_get_temp_dir(),
             'baseurl'  => $GLOBALS['test_upload_baseurl'] ?? 'http://example.com/uploads',

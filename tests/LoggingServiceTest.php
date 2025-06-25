@@ -134,5 +134,19 @@ namespace {
             $this->assertNotEmpty($GLOBALS['ls_errors']);
             $this->assertStringContainsString('Failed to rotate log file', $GLOBALS['ls_errors'][0]);
         }
+
+        public function test_wp_upload_dir_error_uses_plugin_path(): void {
+            $GLOBALS['test_upload_error'] = 'fail';
+            if (!defined('NUCLEN_PLUGIN_DIR')) {
+                define('NUCLEN_PLUGIN_DIR', sys_get_temp_dir() . '/plugin/');
+            }
+
+            $info = LoggingService::get_log_file_info();
+
+            $this->assertSame(rtrim(NUCLEN_PLUGIN_DIR, '/') . '/logs', $info['dir']);
+            $this->assertSame('admin_notices', $GLOBALS['ls_actions'][0][0]);
+
+            unset($GLOBALS['test_upload_error']);
+        }
     }
 }

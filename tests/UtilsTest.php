@@ -11,7 +11,9 @@ namespace NuclearEngagement {
 namespace NuclearEngagement\Services {
     class LoggingService {
         public static array $logs = [];
+        public static array $notices = [];
         public static function log(string $msg): void { self::$logs[] = $msg; }
+        public static function notify_admin(string $msg): void { self::$notices[] = $msg; }
     }
 }
 
@@ -68,6 +70,15 @@ namespace {
             $this->assertSame([], $info);
             $this->assertNotEmpty(\NuclearEngagement\Services\LoggingService::$logs);
             unset($GLOBALS['test_wp_mkdir_p_failure']);
+        }
+
+        public function test_wp_upload_dir_error_returns_empty(): void {
+            $GLOBALS['test_upload_error'] = 'fail';
+            $info = Utils::nuclen_get_custom_css_info();
+            $this->assertSame([], $info);
+            $this->assertNotEmpty(\NuclearEngagement\Services\LoggingService::$logs);
+            $this->assertNotEmpty(\NuclearEngagement\Services\LoggingService::$notices);
+            unset($GLOBALS['test_upload_error']);
         }
     }
 }
