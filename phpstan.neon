@@ -1,0 +1,9 @@
+includes:
+  - vendor/phpstan/phpstan-phpunit/extension.neon
+
+parameters:
+  level: 6
+  paths:
+    - nuclear-engagement
+    - src
+    - tests
