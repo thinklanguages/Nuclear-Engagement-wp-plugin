@@ -204,7 +204,4 @@ class Plugin {
         return $this->container;
     }
 
-       function load_nuclear_engagement_admin_display() {
-               include_once NUCLEN_PLUGIN_DIR . 'templates/admin/nuclen-admin-display.php';
-       }
 }
