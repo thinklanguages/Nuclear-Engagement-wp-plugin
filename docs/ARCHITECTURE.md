@@ -18,19 +18,19 @@ Each folder stays under the 300 LOC guideline described in `nuclear-engagement/
 The file `nuclear-engagement/AGENTS.md` defines the high‑level folder layout for the plugin:
 
 plugin-root/
+├── admin/               # wp-admin functionality
+├── assets/              # compiled JS/CSS
+├── front/               # public-facing assets
 ├── inc/
-│   ├── Modules/
-│   │   ├── Quiz/          # 1 feature = 1 folder
-│   │   │   ├── class-quiz-service.php
-│   │   │   ├── quiz-admin.php
-│   │   │   └── assets/
-│   │   └── Summary/
-│   ├── Core/              # shared kernel (loader, i18n, settings API)
-│   └── Utils/             # truly generic helpers
-├── templates/             # view partials only—no logic
-├── assets/                # compiled JS/CSS
+│   └── Modules/
+│       └── Quiz/        # 1 feature = 1 folder
+│           ├── class-quiz-service.php
+│           ├── quiz-admin.php
+│           └── assets/
+├── includes/            # shared kernel (loader, i18n, settings API)
 ├── languages/
-└── tests/
+├── modules/             # optional features such as Summary and TOC
+└── vendor/
 
 Key guidelines from that document include:
 

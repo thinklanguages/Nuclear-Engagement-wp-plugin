@@ -3,19 +3,19 @@ Slice by concern, not by type
 
 ```
 plugin-root/
-├── inc/
-│   ├── Modules/
-│   │   ├── Quiz/          # 1 feature = 1 folder
-│   │   │   ├── class-quiz-service.php
-│   │   │   ├── quiz-admin.php
-│   │   │   └── assets/
-│   │   └── Summary/
-│   ├── Core/              # shared kernel (loader, i18n, settings API)
-│   └── Utils/             # truly generic helpers
-├── templates/             # view partials only—no logic
+├── admin/
 ├── assets/                # compiled JS/CSS
+├── front/
+├── inc/
+│   └── Modules/
+│       └── Quiz/
+│           ├── class-quiz-service.php
+│           ├── quiz-admin.php
+│           └── assets/
+├── includes/
 ├── languages/
-└── tests/
+├── modules/               # optional features such as Summary and TOC
+└── vendor/
 ```
 Central bootloader (plugin.php) stays 50 LOC max
 Register autoloader → instantiate Core\\Plugin → add_action hooks—nothing else.
