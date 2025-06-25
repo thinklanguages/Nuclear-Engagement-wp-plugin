@@ -1,6 +1,7 @@
 <?php
 use PHPUnit\Framework\TestCase;
 use NuclearEngagement\Services\LoggingService;
+use NuclearEngagement\Services\AdminNoticeService;
 
 namespace NuclearEngagement\Services {
     function add_action(...$args) {
@@ -33,6 +34,15 @@ namespace NuclearEngagement\Services {
     if (!function_exists('esc_html')) {
         function esc_html($text) { return $text; }
     }
+
+    class AdminNoticeService {
+        public array $messages = [];
+        public function add(string $msg): void {
+            $this->messages[] = $msg;
+            add_action('admin_notices', [$this, 'render']);
+        }
+        public function render(): void {}
+    }
 }
 
 namespace {
@@ -57,6 +67,8 @@ namespace {
             if (!is_dir(self::$plugin_dir)) {
                 mkdir(self::$plugin_dir, 0777, true);
             }
+
+            new LoggingService(new AdminNoticeService());
         }
 
         protected function tearDown(): void {
