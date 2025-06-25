@@ -47,4 +47,22 @@ class AutoGenerationQueueTest extends TestCase {
         $q->process_queue();
         $this->assertNotEmpty($wp_events);
     }
+
+    public function test_process_queue_updates_option_once(): void {
+        global $wp_posts, $update_option_calls;
+
+        for ($i = 1; $i <= 6; $i++) {
+            $wp_posts[$i] = (object) [ 'ID' => $i, 'post_title' => 'T' . $i, 'post_content' => 'C' . $i ];
+        }
+
+        $q = $this->makeQueue();
+        for ($i = 1; $i <= 6; $i++) {
+            $q->queue_post($i, 'quiz');
+        }
+
+        $update_option_calls = [];
+        $q->process_queue();
+
+        $this->assertSame(1, $update_option_calls['nuclen_active_generations'] ?? 0);
+    }
 }

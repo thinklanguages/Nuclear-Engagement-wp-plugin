@@ -31,12 +31,15 @@ if (!function_exists('register_deactivation_hook')) {
 // Simple in-memory storage for options and related autoload flags
 $GLOBALS['wp_options'] = [];
 $GLOBALS['wp_autoload'] = [];
+$GLOBALS['update_option_calls'] = [];
 $GLOBALS['wp_posts'] = [];
 $GLOBALS['wp_meta'] = [];
 $GLOBALS['wp_events'] = [];
 
 if (!function_exists('update_option')) {
     function update_option($name, $value, $autoload = 'yes') {
+        global $update_option_calls;
+        $update_option_calls[$name] = ($update_option_calls[$name] ?? 0) + 1;
         $GLOBALS['wp_options'][$name] = $value;
         $GLOBALS['wp_autoload'][$name] = $autoload;
         return true;

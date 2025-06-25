@@ -135,7 +135,6 @@ class AutoGenerationQueue {
                     'workflow_type' => $workflow_type,
                 );
 
-                update_option( 'nuclen_active_generations', $generations, 'no' );
                 $scheduled = wp_schedule_single_event( $next_poll, 'nuclen_poll_generation', array( $generation_id, $workflow_type, $batch, 1 ) );
                 if ( false === $scheduled ) {
                     \NuclearEngagement\Services\LoggingService::log( 'Failed to schedule event nuclen_poll_generation for generation ' . $generation_id );
@@ -144,9 +143,10 @@ class AutoGenerationQueue {
                     );
                 }
             }
-
             $queue[ $workflow_type ] = $ids;
         }
+
+        update_option( 'nuclen_active_generations', $generations, 'no' );
 
         foreach ( $queue as $type => $ids ) {
             if ( empty( $ids ) ) {
