@@ -7,7 +7,7 @@ Contributors: stefanolodola
 Tags: AI writer, quiz, summary, table of contents, email optin
 Requires at least: 6.1
 Tested up to: 6.8
-Requires PHP: 7.3
+Requires PHP: 7.4
 Stable tag: 1.1
 License: GPL-2.0+
 License URI: http://www.gnu.org/licenses/gpl-2.0.txt
@@ -368,4 +368,4 @@ The tiny codebase and lazy loading assure fast loading, both in admin and on fro
 == Upgrade Notice ==
 
 = 0.5 =
-This update requires PHP 7.3 or higher. Ensure your hosting environment meets this requirement before updating.
+This update requires PHP 7.4 or higher. Ensure your hosting environment meets this requirement before updating.
