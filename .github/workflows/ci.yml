@@ -39,6 +39,9 @@ jobs:
       - name: Install Node dependencies
         run: npm ci
 
+      - name: Run Node lint
+        run: npm run lint
+
       - name: Build assets
         run: npm run build
 

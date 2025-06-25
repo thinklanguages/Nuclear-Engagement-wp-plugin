@@ -17,6 +17,13 @@ This guide shows how to run and debug the plugin locally using `wp-env` and Dock
    composer dump-autoload --working-dir=nuclear-engagement
    ```
 
+   Run quality checks before committing:
+   ```bash
+   composer lint --working-dir=nuclear-engagement
+   composer test --working-dir=nuclear-engagement
+   npm run lint
+   ```
+
 2. Start WordPress with the plugin:
    ```bash
    npx wp-env start --xdebug
@@ -57,6 +64,7 @@ After starting the environment, run PHPUnit and PHPStan from the repository root
 ```bash
 composer test --working-dir=nuclear-engagement
 composer phpstan --working-dir=nuclear-engagement
+npm run lint
 ```
 
 ## Typical workflow
