@@ -44,6 +44,12 @@ Run the PHPUnit test suite with:
 composer test --working-dir=nuclear-engagement
 ```
 
+Run static analysis using PHPStan:
+
+```bash
+composer phpstan --working-dir=nuclear-engagement
+```
+
 ### Building assets
 
 TypeScript source files live in `src/` and need to be compiled before the plugin can run. Install Node dependencies and build the JavaScript with:
