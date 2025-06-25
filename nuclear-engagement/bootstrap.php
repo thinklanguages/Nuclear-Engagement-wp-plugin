@@ -43,6 +43,24 @@ if ( file_exists( $autoload ) ) {
         return;
 }
 
+// Register a minimal PSR-4 autoloader for plugin classes when Composer
+// autoload rules are incomplete.
+spl_autoload_register(
+    static function ( $class ) {
+        $prefix = 'NuclearEngagement\\';
+        if ( 0 !== strpos( $class, $prefix ) ) {
+            return;
+        }
+
+        $relative = str_replace( '\\', '/', substr( $class, strlen( $prefix ) ) );
+        $file     = NUCLEN_PLUGIN_DIR . $relative . '.php';
+
+        if ( file_exists( $file ) ) {
+            require_once $file;
+        }
+    }
+);
+
 // Fallback for class maps missing from autoload.
 if ( ! class_exists( \NuclearEngagement\AssetVersions::class ) ) {
     $asset_versions_path = NUCLEN_PLUGIN_DIR . 'includes/AssetVersions.php';
