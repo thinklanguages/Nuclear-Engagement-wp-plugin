@@ -88,8 +88,8 @@ trait AdminMenu {
                        return;
                }
 
-		include plugin_dir_path( __FILE__ ) . 'partials/nuclen-admin-generate.php';
-	}
+               include NUCLEN_PLUGIN_DIR . 'templates/admin/nuclen-admin-generate.php';
+        }
 
 	/**
 	 * Helper: build a small “with / without” stats table.
