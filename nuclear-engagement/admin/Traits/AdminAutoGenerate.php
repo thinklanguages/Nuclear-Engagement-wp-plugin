@@ -92,7 +92,7 @@ trait AdminAutoGenerate {
 	──────────────────────────────────────────────────────────*/
 	public function nuclen_cron_poll_generation( $generation_id, $workflow_type, $post_id, $attempt ) {
                $max_attempts = NUCLEN_MAX_POLL_ATTEMPTS;
-               $retry_delay  = NUCLEN_POLL_RETRY_DELAY; // 1 minute between retries
+               $retry_delay  = NUCLEN_POLL_RETRY_DELAY * $attempt; // Increase delay per attempt
 
 		try {
 			// Check if auto-generation is enabled for this post type.

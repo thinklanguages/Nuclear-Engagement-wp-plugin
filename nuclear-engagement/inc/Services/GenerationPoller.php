@@ -65,7 +65,7 @@ class GenerationPoller {
          */
         public function poll_generation( string $generation_id, string $workflow_type, array $post_ids, int $attempt ): void {
                 $max_attempts = NUCLEN_MAX_POLL_ATTEMPTS;
-                $retry_delay  = NUCLEN_POLL_RETRY_DELAY;
+                $retry_delay  = NUCLEN_POLL_RETRY_DELAY * $attempt;
 
 		try {
 			$connected      = $this->settings_repository->get( 'connected', false );

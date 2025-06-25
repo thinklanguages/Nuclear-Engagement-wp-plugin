@@ -100,6 +100,21 @@ class AutoGenerationServiceTest extends TestCase {
         $this->assertArrayNotHasKey($id, $wp_options['nuclen_active_generations'] ?? []);
     }
 
+    public function test_poll_generation_schedules_with_increasing_delay(): void {
+        global $wp_events;
+        $api = new DummyRemoteApiService();
+        $api->updates['gid'] = ['success' => true];
+        $service = $this->makeService($api);
+        $start = time();
+        $service->poll_generation('gid', 'quiz', [1], 2);
+        $this->assertNotEmpty($wp_events);
+        $event = $wp_events[0];
+        $delay = $event['timestamp'] - $start;
+        $this->assertGreaterThanOrEqual(NUCLEN_POLL_RETRY_DELAY * 2, $delay);
+        $this->assertSame('gid', $event['args'][0]);
+        $this->assertSame(3, $event['args'][3]);
+    }
+
     public function test_handle_post_publish_queues_generation(): void {
         global $wp_posts, $wp_events, $wp_meta, $wp_options;
 
