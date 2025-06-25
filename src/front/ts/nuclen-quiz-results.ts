@@ -80,7 +80,7 @@ export function renderFinal(
 
   html += `
     <div id="nuclen-quiz-results-title" class="nuclen-fg">${NuclenStrings.your_score}</div>
-    <div id="nuclen-quiz-results-score" class="nuclen-fg">
+    <div id="nuclen-quiz-results-score" class="nuclen-fg" aria-live="polite" aria-atomic="true">
       ${state.score} / ${questions.length}
     </div>`;
   const comment =
@@ -89,7 +89,7 @@ export function renderFinal(
       : state.score > questions.length / 2
       ? NuclenStrings.well_done
       : NuclenStrings.retake_prompt;
-  html += `<div id="nuclen-quiz-score-comment">${comment}</div>`;
+  html += `<div id="nuclen-quiz-score-comment" aria-live="polite">${comment}</div>`;
 
   html += '<div id="nuclen-quiz-result-tabs-container">';
   questions.forEach((_, i) => {
@@ -111,6 +111,7 @@ export function renderFinal(
             onclick="nuclearEngagementRetakeQuiz()">${NuclenStrings.retake_test}</button>`;
 
   finalContainer.innerHTML = html;
+  finalContainer.setAttribute('aria-live', 'polite');
 
   if (optin.enabled && optin.position === 'with_results') {
     attachInlineOptinHandlers(optin);
