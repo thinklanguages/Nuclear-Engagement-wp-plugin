@@ -16,7 +16,6 @@
  * @package    Nuclear_Engagement
  * @since      1.0.0
  */
-
 declare(strict_types=1);
 
 // Bail if accessed directly.
