@@ -159,12 +159,14 @@ class DashboardDataService {
     public function get_scheduled_generations(): array {
         $active_generations = get_option( 'nuclen_active_generations', array() );
         $scheduled_tasks    = array();
+        $date_format        = get_option( 'date_format' );
+        $time_format        = get_option( 'time_format' );
 
         foreach ( $active_generations as $gen_id => $info ) {
             $post_id   = (int) ( $info['post_ids'][0] ?? 0 );
             $title     = $post_id ? get_the_title( $post_id ) : $gen_id;
             $next_poll = isset( $info['next_poll'] )
-                ? date_i18n( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), (int) $info['next_poll'] )
+                ? date_i18n( $date_format . ' ' . $time_format, (int) $info['next_poll'] )
                 : '';
 
             $scheduled_tasks[] = array(
