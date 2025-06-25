@@ -96,7 +96,7 @@ class AutoGenerationServiceTest extends TestCase {
         $wp_options['nuclen_active_generations'] = [ $id => ['foo'=>'bar'] ];
         $api = new DummyRemoteApiService();
         $service = $this->makeService($api);
-        $service->poll_generation($id, 'quiz', [1], AutoGenerationService::MAX_ATTEMPTS);
+        $service->poll_generation($id, 'quiz', [1], NUCLEN_MAX_POLL_ATTEMPTS);
         $this->assertArrayNotHasKey($id, $wp_options['nuclen_active_generations'] ?? []);
     }
 

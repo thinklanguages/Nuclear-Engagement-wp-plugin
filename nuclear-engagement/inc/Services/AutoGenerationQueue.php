@@ -19,8 +19,6 @@ class AutoGenerationQueue {
     /** Maximum number of posts to send in one batch. */
     private const BATCH_SIZE = 5;
 
-    /** Number of seconds before the first poll runs. */
-    private const INITIAL_POLL_DELAY = 15;
 
     private RemoteApiService $remote_api;
     private ContentStorageService $content_storage;
@@ -128,7 +126,7 @@ class AutoGenerationQueue {
                     continue;
                 }
 
-                $next_poll                    = time() + self::INITIAL_POLL_DELAY + mt_rand( 1, 5 );
+                $next_poll                    = time() + NUCLEN_INITIAL_POLL_DELAY + mt_rand( 1, 5 );
                 $generations[ $generation_id ] = array(
                     'started_at'    => current_time( 'mysql' ),
                     'post_ids'      => $batch,

@@ -91,8 +91,8 @@ trait AdminAutoGenerate {
 		Cron callback: poll SaaS /updates - now uses services
 	──────────────────────────────────────────────────────────*/
 	public function nuclen_cron_poll_generation( $generation_id, $workflow_type, $post_id, $attempt ) {
-		$max_attempts = \NuclearEngagement\Services\AutoGenerationService::MAX_ATTEMPTS;
-		$retry_delay  = \NuclearEngagement\Services\AutoGenerationService::RETRY_DELAY; // 1 minute between retries
+               $max_attempts = NUCLEN_MAX_POLL_ATTEMPTS;
+               $retry_delay  = NUCLEN_POLL_RETRY_DELAY; // 1 minute between retries
 
 		try {
 			// Check if auto-generation is enabled for this post type.

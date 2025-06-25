@@ -26,11 +26,6 @@ class AutoGenerationService {
         public const QUEUE_HOOK = 'nuclen_process_autogen_queue';
 
 
-        /** Maximum number of API polling attempts. */
-        public const MAX_ATTEMPTS = 10;
-
-        /** Delay in seconds between poll attempts. */
-        public const RETRY_DELAY = 60;
 
 	/**
 	 * @var SettingsRepository
