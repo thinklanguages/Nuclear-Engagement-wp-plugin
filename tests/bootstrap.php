@@ -56,7 +56,7 @@ if (!function_exists('delete_option')) {
 
 // Include files for tests
 require_once __DIR__ . '/../nuclear-engagement/inc/Core/Defaults.php';
-require_once __DIR__ . '/../nuclear-engagement/includes/OptinData.php';
+require_once __DIR__ . '/../nuclear-engagement/inc/OptinData.php';
 require_once __DIR__ . '/../nuclear-engagement/inc/Core/SettingsRepository.php';
 require_once __DIR__ . '/../nuclear-engagement/inc/Core/SettingsSanitizer.php';
 if (!function_exists('sanitize_key')) {
