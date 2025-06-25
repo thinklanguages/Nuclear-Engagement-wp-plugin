@@ -6,7 +6,8 @@
       "NuclearEngagement\\Services\\": "inc/Services/",
       "NuclearEngagement\\Requests\\": "inc/Requests/",
       "NuclearEngagement\\Responses\\": "inc/Responses/",
-      "NuclearEngagement\\Modules\\": "inc/Modules/"
+      "NuclearEngagement\\Modules\\": "inc/Modules/",
+      "NuclearEngagement\\Http\\": "inc/Http/"
     },
     "classmap": [
       "inc/"

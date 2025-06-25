@@ -16,7 +16,7 @@ namespace NuclearEngagement\Services;
 
 use NuclearEngagement\SettingsRepository;
 use NuclearEngagement\Utils;
-use NuclearEngagement\Services\ApiException;
+use NuclearEngagement\Http\RemoteRequest;
 
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
@@ -48,39 +48,19 @@ class RemoteApiService {
     private Utils $utils;
 
     /**
+     * @var RemoteRequest
+     */
+    private RemoteRequest $request;
+
+    /**
      * Constructor
      *
      * @param SettingsRepository $settings
      */
-    public function __construct( SettingsRepository $settings ) {
+    public function __construct( SettingsRepository $settings, RemoteRequest $request ) {
         $this->settings = $settings;
+        $this->request  = $request;
         $this->utils    = new Utils();
-    }
-
-    /**
-     * Parse an error response body.
-     *
-     * @param string $body HTTP response body.
-     * @return array{message:string|null,error_code:?string}
-     */
-    private function parse_error_response( string $body ): array {
-        $data = json_decode( $body, true );
-        $msg  = null;
-        $code = null;
-        if ( is_array( $data ) ) {
-            if ( isset( $data['error'] ) ) {
-                $msg = (string) $data['error'];
-            } elseif ( isset( $data['message'] ) ) {
-                $msg = (string) $data['message'];
-            }
-            if ( isset( $data['error_code'] ) ) {
-                $code = (string) $data['error_code'];
-            }
-        }
-        return array(
-            'message'    => $msg,
-            'error_code' => $code,
-        );
     }
 
     /**
@@ -95,28 +75,6 @@ class RemoteApiService {
 
         if ( empty( $api_key ) ) {
             throw new \RuntimeException( 'API key not configured' );
-        }
-
-        $cache_key = 'nuclen_update_' . $generation_id;
-        $found     = false;
-        $cached    = wp_cache_get( $cache_key, self::CACHE_GROUP, false, $found );
-        if ( ! $found ) {
-            $cached = get_transient( $cache_key );
-        }
-
-        if ( is_array( $cached ) ) {
-            return $cached;
-        }
-
-        $cache_key = 'nuclen_update_' . $generation_id;
-        $found     = false;
-        $cached    = wp_cache_get( $cache_key, self::CACHE_GROUP, false, $found );
-        if ( ! $found ) {
-            $cached = get_transient( $cache_key );
-        }
-
-        if ( is_array( $cached ) ) {
-            return $cached;
         }
 
         $payload = array(
@@ -136,56 +94,7 @@ class RemoteApiService {
 
         \NuclearEngagement\Services\LoggingService::log( 'Sending generation request: ' . $data['generation_id'] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 
-        $response = wp_remote_post(
-            self::API_BASE . '/process-posts',
-            array(
-                'method'             => 'POST',
-                'headers'            => array(
-                    'Content-Type' => 'application/json',
-                    'X-API-Key'    => $api_key,
-                ),
-                'body'               => wp_json_encode( $payload ),
-                'timeout'            => NUCLEN_API_TIMEOUT,
-                'reject_unsafe_urls' => true,
-                'user-agent'         => 'NuclearEngagement/' . NUCLEN_PLUGIN_VERSION,
-            )
-        );
-
-                if ( is_wp_error( $response ) ) {
-                        $error = 'API request failed: ' . $response->get_error_message();
-                        \NuclearEngagement\Services\LoggingService::log( $error ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-                        \NuclearEngagement\Services\LoggingService::notify_admin( __( 'Failed to contact the Nuclear Engagement API.', 'nuclear-engagement' ) );
-                        throw new ApiException( $error );
-                }
-
-        $code = wp_remote_retrieve_response_code( $response );
-        $body = wp_remote_retrieve_body( $response );
-        \NuclearEngagement\Services\LoggingService::debug( "API response body: {$body}" );
-
-        \NuclearEngagement\Services\LoggingService::log( "API response code: {$code}" ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-
-        // Check for auth errors
-        if ( 401 === $code || 403 === $code ) {
-            $auth_result = $this->handle_auth_error( $body, $code );
-            throw new ApiException( $auth_result['error'], $auth_result['status_code'], $auth_result['error_code'] ?? null );
-        }
-
-        if ( 200 !== $code ) {
-                        \NuclearEngagement\Services\LoggingService::log( "Unexpected response code: {$code}, body: {$body}" ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-                    $parsed = $this->parse_error_response( $body );
-            $msg            = $parsed['message'] ?? "Failed to fetch updates, code: {$code}";
-            throw new ApiException( $msg, $code, $parsed['error_code'] );
-        }
-
-        $data = json_decode( $body, true );
-        if ( ! is_array( $data ) ) {
-                        \NuclearEngagement\Services\LoggingService::log( "Invalid JSON response: {$body}" ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-            throw new ApiException( 'Invalid data received from API', $code );
-        }
-        if ( isset( $data['success'] ) && false === $data['success'] ) {
-            $msg = $data['error'] ?? 'API error';
-            throw new ApiException( $msg, $code, $data['error_code'] ?? null );
-        }
+        $data = $this->request->post( self::API_BASE . '/process-posts', $payload, $api_key );
 
         return $data;
     }
@@ -204,6 +113,17 @@ class RemoteApiService {
             throw new \RuntimeException( 'API key not configured' );
         }
 
+        $cache_key = 'nuclen_update_' . $generation_id;
+        $found     = false;
+        $cached    = wp_cache_get( $cache_key, self::CACHE_GROUP, false, $found );
+        if ( ! $found ) {
+            $cached = get_transient( $cache_key );
+        }
+
+        if ( is_array( $cached ) ) {
+            return $cached;
+        }
+
         $payload = array(
             'siteUrl'       => get_site_url(),
             'generation_id' => $generation_id,
@@ -215,53 +135,7 @@ class RemoteApiService {
             \NuclearEngagement\Services\LoggingService::log( "Fetching updates for generation: {$generation_id}" ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
         }
 
-        $response = wp_remote_post(
-            self::API_BASE . '/updates',
-            array(
-                'method'             => 'POST',
-                'headers'            => array(
-                    'Content-Type' => 'application/json',
-                    'X-API-Key'    => $api_key,
-                ),
-                'body'               => wp_json_encode( $payload ),
-                'timeout'            => NUCLEN_API_TIMEOUT,
-                'reject_unsafe_urls' => true,
-                'user-agent'         => 'NuclearEngagement/' . NUCLEN_PLUGIN_VERSION,
-            )
-        );
-
-                if ( is_wp_error( $response ) ) {
-                        $error = 'API request failed: ' . $response->get_error_message();
-                                        \NuclearEngagement\Services\LoggingService::log( $error ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-                        \NuclearEngagement\Services\LoggingService::notify_admin( __( 'Failed to contact the Nuclear Engagement API.', 'nuclear-engagement' ) );
-                        throw new ApiException( $error );
-                }
-
-        $code = wp_remote_retrieve_response_code( $response );
-        $body = wp_remote_retrieve_body( $response );
-
-        // Check for auth errors
-        if ( 401 === $code || 403 === $code ) {
-            $auth_result = $this->handle_auth_error( $body, $code );
-            throw new ApiException( $auth_result['error'], $auth_result['status_code'], $auth_result['error_code'] ?? null );
-        }
-
-        if ( 200 !== $code ) {
-                        \NuclearEngagement\Services\LoggingService::log( "Unexpected response code: {$code}, body: {$body}" ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-                    $parsed = $this->parse_error_response( $body );
-            $msg            = $parsed['message'] ?? "Failed to fetch updates, code: {$code}";
-            throw new ApiException( $msg, $code, $parsed['error_code'] );
-        }
-
-        $data = json_decode( $body, true );
-        if ( ! is_array( $data ) ) {
-                        \NuclearEngagement\Services\LoggingService::log( "Invalid JSON response: {$body}" ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-            throw new ApiException( 'Invalid data received from API', $code );
-        }
-        if ( isset( $data['success'] ) && false === $data['success'] ) {
-            $msg = $data['error'] ?? 'API error';
-            throw new ApiException( $msg, $code, $data['error_code'] ?? null );
-        }
+        $data = $this->request->post( self::API_BASE . '/updates', $payload, $api_key );
 
         wp_cache_set( $cache_key, $data, self::CACHE_GROUP, self::CACHE_TTL );
         set_transient( $cache_key, $data, self::CACHE_TTL );
@@ -269,54 +143,4 @@ class RemoteApiService {
         return $data;
     }
 
-    /**
-     * Handle authentication errors from API
-     *
-     * @param string $body Response body.
-     * @param int    $code HTTP status code.
-     * @return array Error data.
-     */
-    private function handle_auth_error( string $body, int $code ): array {
-        $data = json_decode( $body, true );
-
-        if ( is_array( $data ) && isset( $data['error_code'] ) ) {
-            $error_code = $data['error_code'];
-            if ( 'invalid_api_key' === $error_code ) {
-                return array(
-                    'error'       => 'Invalid API key. Please update it on the Setup page.',
-                    'error_code'  => 'invalid_api_key',
-                    'status_code' => $code,
-                );
-            }
-
-            if ( 'invalid_wp_app_pass' === $error_code ) {
-                               return array(
-                                       'error'       => 'Invalid plugin password. Please re-generate on the Setup page.',
-                                       'error_code'  => 'invalid_wp_app_pass',
-                                       'status_code' => $code,
-                               );
-            }
-        }
-
-        if ( false !== strpos( $body, 'invalid_api_key' ) ) {
-            return array(
-                'error'       => 'Invalid API key. Please update it on the Setup page.',
-                'error_code'  => 'invalid_api_key',
-                'status_code' => $code,
-            );
-        }
-
-                if ( false !== strpos( $body, 'invalid_wp_app_pass' ) ) {
-                        return array(
-                                'error'       => 'Invalid plugin password. Please re-generate on the Setup page.',
-                                'error_code'  => 'invalid_wp_app_pass',
-                                'status_code' => $code,
-                        );
-                }
-
-                return array(
-                        'error'       => 'Authentication error (API key or plugin password may be invalid).',
-                        'status_code' => $code,
-                );
-    }
 }

@@ -21,7 +21,8 @@ final class ContainerRegistrar {
     public static function register( Container $container, SettingsRepository $settings ): void {
         $container->register( 'settings', static fn() => $settings );
 
-        $container->register( 'remote_api', static fn( $c ) => new RemoteApiService( $c->get( 'settings' ) ) );
+        $container->register( 'remote_request', static fn() => new \NuclearEngagement\Http\RemoteRequest() );
+        $container->register( 'remote_api', static fn( $c ) => new RemoteApiService( $c->get( 'settings' ), $c->get( 'remote_request' ) ) );
         $container->register( 'content_storage', static fn( $c ) => new ContentStorageService( $c->get( 'settings' ) ) );
 
                 $container->register(
