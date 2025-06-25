@@ -3,6 +3,14 @@
 * Base styles applied regardless of the theme.
 */
 
+:root {
+    --nuclen-spacing-xs: 0.25rem;
+    --nuclen-spacing-sm: 0.5rem;
+    --nuclen-spacing-md: 1rem;
+    --nuclen-spacing-lg: 1.5rem;
+    --nuclen-spacing-xl: 2.5rem;
+}
+
 .nuclen-root .nuclen-quiz {
 		color: var(--nuclen-quiz-font-color, var(--nuclen-fg-color, #000));
 }
@@ -12,16 +20,16 @@
 }
 
 .nuclen-root .nuclen-quiz {
-	border-radius: 1em;
-	padding: 1em;
-	text-align: center;
-	width: 100%;
-	margin: 1em 0;
+        border-radius: 1em;
+        padding: var(--nuclen-spacing-md);
+        text-align: center;
+        width: 100%;
+        margin: var(--nuclen-spacing-md) 0;
 }
 
 .nuclen-root .nuclen-quiz-title {
-	font-size: 1.5em;
-	margin-bottom: 1em;
+        font-size: 1.5em;
+        margin-bottom: var(--nuclen-spacing-md);
 }
 
 .nuclen-root #nuclen-quiz-question-number {
@@ -38,10 +46,10 @@
 
 /* Progress bar container */
 .nuclen-root #nuclen-quiz-progress-bar-container {
-	background-color: var(--nuclen-quiz-progress-bg, #e0e0e0);
-	border-radius: 5px;
-	overflow: hidden;
-	margin-bottom: 20px;
+        background-color: var(--nuclen-quiz-progress-bg, #e0e0e0);
+        border-radius: 5px;
+        overflow: hidden;
+        margin-bottom: var(--nuclen-spacing-lg);
 }
 
 .nuclen-root #nuclen-quiz-progress-bar {
@@ -161,7 +169,7 @@
 }
 
 .nuclen-root #nuclen-quiz-final-result-container input[type="submit"] {
-	margin-top: 20px;
+        margin-top: var(--nuclen-spacing-lg);
 	background-color: #4B6542;
 	color: white;
 	border: none;
@@ -178,11 +186,11 @@
 
 .nuclen-root #nuclen-quiz-final-result-container input[type="text"],
 .nuclen-root #nuclen-quiz-final-result-container input[type="email"] {
-	width: calc(100% - 20px);
-	padding: 10px;
-	margin: 10px 0;
-	border: 1px solid #e0e0e0;
-	border-radius: 5px;
+        width: calc(100% - 20px);
+        padding: 10px;
+        margin: var(--nuclen-spacing-sm) 0;
+        border: 1px solid #e0e0e0;
+        border-radius: 5px;
 }
 
 /* Score area */
@@ -200,8 +208,8 @@
 }
 
 .nuclen-root #nuclen-quiz-explanation-container {
-	font-size: 1.2em;
-	margin: 1em 0;
+        font-size: 1.2em;
+        margin: var(--nuclen-spacing-md) 0;
 }
 
 .nuclen-root .nuclen-quiz-question-result.nuclen-quiz-correct-answer {
@@ -224,21 +232,21 @@
 .nuclen-root #nuclen-quiz-result-details-container,
 .nuclen-root #nuclen-quiz-end-message,
 .nuclen-root #nuclen-quiz-start-message {
-	padding: 20px;
-	text-align: left;
-	margin-bottom: 40px;
-	border: 2px solid #666;
-	border-radius: 10px;
+        padding: var(--nuclen-spacing-lg);
+        text-align: left;
+        margin-bottom: var(--nuclen-spacing-xl);
+        border: 2px solid #666;
+        border-radius: 10px;
 }
 
 /* email optin */
 .nuclen-root #nuclen-optin-container {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	justify-self: center;
-	margin: 0 0 2em 0;
-	width: 300px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-self: center;
+        margin: 0 0 var(--nuclen-spacing-lg) 0;
+        width: 300px;
 }
 .nuclen-root #nuclen-optin-submit {
 	width: 100%;
@@ -250,14 +258,14 @@
 }
 
 .nuclen-root .nuclen-optin-btn-row {
-		margin-top: 1em;
-		display: flex;
-		gap: 10px;
+                margin-top: var(--nuclen-spacing-md);
+                display: flex;
+                gap: 10px;
 }
 
 .nuclen-root .nuclen-optin-skip {
-		margin-top: 0.5em;
-		font-size: .85em;
+                margin-top: var(--nuclen-spacing-sm);
+                font-size: .85em;
 }
 
 .nuclen-root .nuclen-quiz-pulse {
@@ -290,8 +298,16 @@
 
 /* Summary container */
 .nuclen-root .nuclen-summary {
-	font-size: 1.1em;
-	border-radius: 1em;
-	padding: 1em;
-	margin: 1em 0;
+        font-size: 1.1em;
+        border-radius: 1em;
+        padding: var(--nuclen-spacing-md);
+        margin: var(--nuclen-spacing-md) 0;
 }
+
+/* Spacing utilities */
+.u-mt-sm { margin-top: var(--nuclen-spacing-sm); }
+.u-mt-md { margin-top: var(--nuclen-spacing-md); }
+.u-mt-lg { margin-top: var(--nuclen-spacing-lg); }
+.u-mb-sm { margin-bottom: var(--nuclen-spacing-sm); }
+.u-mb-md { margin-bottom: var(--nuclen-spacing-md); }
+.u-mb-lg { margin-bottom: var(--nuclen-spacing-lg); }
