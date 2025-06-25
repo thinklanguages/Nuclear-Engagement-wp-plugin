@@ -38,6 +38,12 @@ if ( ! file_exists( $autoload ) ) {
 if ( file_exists( $autoload ) ) {
         require_once $autoload;
 } else {
+        // Manually load the logging class so we can output an error.
+        $logging = __DIR__ . '/inc/Services/LoggingService.php';
+        if ( file_exists( $logging ) ) {
+                require_once $logging;
+        }
+
         \NuclearEngagement\Services\LoggingService::log( 'Nuclear Engagement: vendor autoload not found.' );
         \NuclearEngagement\Services\LoggingService::notify_admin( 'Nuclear Engagement dependencies missing. Please run composer install.' );
         return;
