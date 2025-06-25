@@ -19,6 +19,25 @@ namespace {
 if (!function_exists('__')) {
     function __($t, $d = null) { return $t; }
 }
+if ( ! isset( $GLOBALS['wp_cache'] ) ) { $GLOBALS['wp_cache'] = []; }
+if ( ! isset( $GLOBALS['transients'] ) ) { $GLOBALS['transients'] = []; }
+if ( ! function_exists( 'wp_cache_get' ) ) {
+    function wp_cache_get( $key, $group = '', $force = false, &$found = null ) {
+        $found = isset( $GLOBALS['wp_cache'][ $group ][ $key ] );
+        return $GLOBALS['wp_cache'][ $group ][ $key ] ?? false;
+    }
+}
+if ( ! function_exists( 'wp_cache_set' ) ) {
+    function wp_cache_set( $key, $value, $group = '', $ttl = 0 ) {
+        $GLOBALS['wp_cache'][ $group ][ $key ] = $value;
+    }
+}
+if ( ! function_exists( 'get_transient' ) ) {
+    function get_transient( $key ) { return $GLOBALS['transients'][ $key ] ?? false; }
+}
+if ( ! function_exists( 'set_transient' ) ) {
+    function set_transient( $key, $value, $ttl = 0 ) { $GLOBALS['transients'][ $key ] = $value; }
+}
 class RemoteApiServiceTest extends TestCase {
     protected function setUp(): void {
         $GLOBALS['test_http_response'] = null;
@@ -93,6 +112,27 @@ class RemoteApiServiceTest extends TestCase {
             $this->assertSame(['Failed to contact the Nuclear Engagement API.'], \NuclearEngagement\Services\LoggingService::$notices);
             throw $e;
         }
+    }
+
+    public function test_fetch_updates_returns_cached_value(): void {
+        global $wp_cache, $transients;
+        $wp_cache = ['nuclen_remote' => ['nuclen_update_gid' => ['x' => 1]]];
+        $transients = [];
+        $GLOBALS['test_http_response'] = new \WP_Error('fail', 'no call');
+        $svc = $this->makeService();
+        $res = $svc->fetch_updates('gid');
+        $this->assertSame(['x' => 1], $res);
+    }
+
+    public function test_fetch_updates_caches_successful_response(): void {
+        global $wp_cache, $transients;
+        $wp_cache = $transients = [];
+        $GLOBALS['test_http_response'] = ['code'=>200,'body'=>json_encode(['ok'=>1])];
+        $svc = $this->makeService();
+        $res = $svc->fetch_updates('gid');
+        $this->assertSame(['ok'=>1], $res);
+        $this->assertSame(['ok'=>1], $wp_cache['nuclen_remote']['nuclen_update_gid']);
+        $this->assertSame(['ok'=>1], $transients['nuclen_update_gid']);
     }
 }
 }
