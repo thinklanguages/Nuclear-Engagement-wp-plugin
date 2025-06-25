@@ -4,9 +4,12 @@ This guide shows how to run and debug the plugin locally using `wp-env` and Dock
 
 ## Quick start
 
-1. Install dependencies:
+1. After cloning the repository, install PHP dependencies:
    ```bash
    composer install
+   ```
+   Then install Node dependencies with:
+   ```bash
    npm install
    ```
    After adding new PHP classes, regenerate the autoloader with:
