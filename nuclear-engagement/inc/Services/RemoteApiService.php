@@ -91,7 +91,8 @@ class RemoteApiService {
      * @throws \RuntimeException On API errors
      */
     public function send_posts_to_generate( array $data ): array {
-        $api_key = $this->settings->get_string( 'api_key', '' );
+        $api_key       = $this->settings->get_string( 'api_key', '' );
+        $generation_id = $data['generation_id'] ?? '';
 
         if ( empty( $api_key ) ) {
             throw new \RuntimeException( 'API key not configured' );
@@ -108,19 +109,8 @@ class RemoteApiService {
             return $cached;
         }
 
-        $cache_key = 'nuclen_update_' . $generation_id;
-        $found     = false;
-        $cached    = wp_cache_get( $cache_key, self::CACHE_GROUP, false, $found );
-        if ( ! $found ) {
-            $cached = get_transient( $cache_key );
-        }
-
-        if ( is_array( $cached ) ) {
-            return $cached;
-        }
-
         $payload = array(
-            'generation_id' => $data['generation_id'] ?? '',
+            'generation_id' => $generation_id,
             'api_key'       => $api_key,
             'siteUrl'       => get_site_url(),
             'posts'         => array_values(
@@ -134,7 +124,7 @@ class RemoteApiService {
             'workflow'      => $data['workflow'] ?? array(),
         );
 
-        \NuclearEngagement\Services\LoggingService::log( 'Sending generation request: ' . $data['generation_id'] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+        \NuclearEngagement\Services\LoggingService::log( 'Sending generation request: ' . $generation_id ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 
         $response = wp_remote_post(
             self::API_BASE . '/process-posts',
@@ -263,6 +253,7 @@ class RemoteApiService {
             throw new ApiException( $msg, $code, $data['error_code'] ?? null );
         }
 
+        $cache_key = 'nuclen_update_' . $generation_id;
         wp_cache_set( $cache_key, $data, self::CACHE_GROUP, self::CACHE_TTL );
         set_transient( $cache_key, $data, self::CACHE_TTL );
 
