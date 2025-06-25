@@ -6,11 +6,10 @@
       "NuclearEngagement\\Services\\": "inc/Services/",
       "NuclearEngagement\\Requests\\": "inc/Requests/",
       "NuclearEngagement\\Responses\\": "inc/Responses/",
-      "NuclearEngagement\\Modules\\": "inc/Modules/"
-    },
-    "classmap": [
-      "inc/"
-    ]
+      "NuclearEngagement\\Modules\\": "inc/Modules/",
+      "NuclearEngagement\\Core\\": "inc/Core/",
+      "NuclearEngagement\\Utils\\": "inc/Utils/"
+    }
   },
   "config": {
         "allow-plugins": {
