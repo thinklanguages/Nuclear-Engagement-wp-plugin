@@ -78,10 +78,6 @@ spl_autoload_register(
 
         // Module classes under inc/.
         $paths[] = NUCLEN_PLUGIN_DIR . 'inc/' . $relative . '.php';
-        // Core classes under inc/Core/.
-        $paths[] = NUCLEN_PLUGIN_DIR . 'inc/Core/' . $relative . '.php';
-        // Generic helpers under inc/Utils/.
-        $paths[] = NUCLEN_PLUGIN_DIR . 'inc/Utils/' . $relative . '.php';
 
         foreach ( $paths as $file ) {
             if ( file_exists( $file ) ) {
