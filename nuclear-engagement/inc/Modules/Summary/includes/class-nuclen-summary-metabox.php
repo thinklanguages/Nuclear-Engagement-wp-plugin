@@ -75,42 +75,8 @@ final class Nuclen_Summary_Metabox {
 
 		$summary_protected = get_post_meta( $post->ID, 'nuclen_summary_protected', true );
 
-		wp_nonce_field( 'nuclen_summary_data_nonce', 'nuclen_summary_data_nonce' );
-
-		echo '<div><label>';
-		echo '<input type="checkbox" name="nuclen_summary_protected" value="1"';
-		checked( $summary_protected, 1 );
-		echo ' /> Protected? <span nuclen-tooltip="Tick this box and save post to prevent overwriting during bulk generation.">🛈</span>';
-		echo '</label></div>';
-
-		echo '<div>
-            <button type="button"
-                    id="nuclen-generate-summary-single"
-                    class="button nuclen-generate-single"
-                    data-post-id="' . esc_attr( $post->ID ) . '"
-                    data-workflow="summary">
-                Generate Summary with AI
-            </button>
-            <span nuclen-tooltip="(re)Generate. Data will be stored automatically (no need to save post).">🛈</span>
-        </div>';
-
-		echo '<p><strong>Date</strong><br>';
-				echo '<input type="text" name="nuclen_summary_data[date]" value="' . esc_attr( $date ) . '" readonly class="nuclen-meta-date-input" />';
-		echo '</p>';
-
-		echo '<p><strong>Summary</strong><br>';
-		wp_editor(
-			$summary,
-			'nuclen_summary_data_summary',
-			array(
-				'textarea_name' => 'nuclen_summary_data[summary]',
-				'textarea_rows' => 5,
-				'media_buttons' => false,
-				'teeny'         => true,
-			)
-		);
-		echo '</p>';
-	}
+                require NUCLEN_PLUGIN_DIR . 'templates/admin/summary-metabox.php';
+        }
 
 	/*
 	-------------------------------------------------------------------------

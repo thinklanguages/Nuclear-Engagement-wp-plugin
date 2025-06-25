@@ -68,55 +68,7 @@ final class Quiz_Admin {
 
         $quiz_protected = $this->service->is_protected( $post->ID );
 
-        wp_nonce_field( 'nuclen_quiz_data_nonce', 'nuclen_quiz_data_nonce' );
-
-        echo '<div><label>';
-        echo '<input type="checkbox" name="nuclen_quiz_protected" value="1"';
-        checked( $quiz_protected, 1 );
-        echo ' /> Protected? <span nuclen-tooltip="Tick this box and save post to prevent overwriting during bulk generation.">🛈</span>';
-        echo '</label></div>';
-
-        echo '<div>
-            <button type="button"
-                    id="nuclen-generate-quiz-single"
-                    class="button nuclen-generate-single"
-                    data-post-id="' . esc_attr( $post->ID ) . '"
-                    data-workflow="quiz">
-                Generate Quiz with AI
-            </button>
-            <span nuclen-tooltip="(re)Generate. Data will be stored automatically (no need to save post).">🛈</span>
-        </div>';
-
-        echo '<p><strong>Date</strong><br>';
-        echo '<input type="text" name="nuclen_quiz_data[date]" value="' . esc_attr( $date ) . '" readonly class="nuclen-meta-date-input" />';
-        echo '</p>';
-
-        for ( $q_index = 0; $q_index < 10; $q_index++ ) {
-            $q_data  = $questions[ $q_index ];
-            $q_text  = $q_data['question'] ?? '';
-            $answers = isset( $q_data['answers'] ) && is_array( $q_data['answers'] )
-                ? $q_data['answers']
-                : array( '', '', '', '' );
-            $explan  = $q_data['explanation'] ?? '';
-
-            $answers = array_pad( $answers, 4, '' );
-
-            echo '<div class="nuclen-quiz-metabox-question">';
-            echo '<h4>Question ' . ( $q_index + 1 ) . '</h4>';
-
-            echo '<input type="text" name="nuclen_quiz_data[questions][' . $q_index . '][question]" value="' . esc_attr( $q_text ) . '" class="nuclen-width-full" />';
-
-            echo '<p><strong>Answers</strong></p>';
-            foreach ( $answers as $a_index => $answer ) {
-                $class = $a_index === 0 ? 'nuclen-answer-correct' : '';
-                echo '<p class="nuclen-answer-label ' . esc_attr( $class ) . '">Answer ' . ( $a_index + 1 ) . '<br>';
-                echo '<input type="text" name="nuclen_quiz_data[questions][' . $q_index . '][answers][' . $a_index . ']" value="' . esc_attr( $answer ) . '" class="nuclen-width-full" /></p>';
-            }
-
-            echo '<p><strong>Explanation</strong><br>';
-            echo '<textarea name="nuclen_quiz_data[questions][' . $q_index . '][explanation]" rows="3" class="nuclen-width-full">' . esc_textarea( $explan ) . '</textarea></p>';
-            echo '</div>';
-        }
+        require NUCLEN_PLUGIN_DIR . 'templates/admin/quiz-metabox.php';
     }
 
     /** Save quiz meta on post save. */
