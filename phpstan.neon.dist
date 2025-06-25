@@ -1,0 +1,5 @@
+includes:
+    - vendor/php-stubs/wordpress-stubs/wordpress-stubs.php
+
+parameters:
+    level: 6
