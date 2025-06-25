@@ -81,10 +81,10 @@ class Plugin {
 		OptinData::init();
 
                 // TOC module
-                require_once plugin_dir_path( __FILE__ ) . '../inc/Modules/TOC/loader.php';
+                require_once plugin_dir_path( __FILE__ ) . '../Modules/TOC/loader.php';
 
                 // Summary module
-                require_once plugin_dir_path( __FILE__ ) . '../inc/Modules/Summary/loader.php';
+                require_once plugin_dir_path( __FILE__ ) . '../Modules/Summary/loader.php';
 
 		$this->loader = new Loader();
 	}
