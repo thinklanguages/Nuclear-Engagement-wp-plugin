@@ -23,12 +23,12 @@ jobs:
       - name: Cache Composer dependencies
         uses: actions/cache@v3
         with:
-          path: vendor
-          key: ${{ runner.os }}-composer-${{ hashFiles('composer.lock') }}
+          path: nuclear-engagement/vendor
+          key: ${{ runner.os }}-composer-${{ hashFiles('nuclear-engagement/composer.lock') }}
           restore-keys: ${{ runner.os }}-composer-
 
       - name: Install Composer dependencies
-        run: composer install --no-interaction --prefer-dist
+        run: composer install --no-interaction --prefer-dist --working-dir=nuclear-engagement
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -43,7 +43,7 @@ jobs:
         run: npm run build
 
       - name: Run lint
-        run: composer lint
+        run: composer lint --working-dir=nuclear-engagement
 
       - name: Run tests
-        run: composer test
+        run: composer test --working-dir=nuclear-engagement

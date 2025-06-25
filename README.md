@@ -31,16 +31,17 @@ https://www.nuclearengagement.com
 
 ## Development
 
-Install dependencies with `composer install` and run linting with:
+Install PHP dependencies from the plugin directory and run linting with:
 
 ```bash
-composer lint
+composer install --working-dir=nuclear-engagement
+composer lint --working-dir=nuclear-engagement
 ```
 
 Run the PHPUnit test suite with:
 
 ```bash
-composer test
+composer test --working-dir=nuclear-engagement
 ```
 
 ### Building assets
@@ -63,7 +64,7 @@ npm run dev
 Create a production archive with runtime dependencies only:
 
 ```bash
-composer install --no-dev --optimize-autoloader
+composer install --no-dev --optimize-autoloader --working-dir=nuclear-engagement
 npm ci
 npm run build
 ./scripts/build-release.sh

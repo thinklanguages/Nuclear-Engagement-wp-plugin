@@ -69,7 +69,7 @@ git config --global alias.cis '!git commit --cleanup=verbatim -m "$1" -m "[skip 
 The release archive should contain runtime dependencies only. When creating the production zip run:
 
 ```bash
-composer install --no-dev --optimize-autoloader
+composer install --no-dev --optimize-autoloader --working-dir=nuclear-engagement
 npm ci
 npm run build
 ./scripts/build-release.sh
