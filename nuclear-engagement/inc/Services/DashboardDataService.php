@@ -18,6 +18,35 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Service for fetching dashboard data.
  */
 class DashboardDataService {
+    /** Cache group for dashboard queries. */
+    private const CACHE_GROUP = 'nuclen_dashboard';
+
+    /** Cache lifetime in seconds. */
+    private const CACHE_TTL = 10 * MINUTE_IN_SECONDS; // 10 minutes.
+
+    /** Option name storing cache version. */
+    private const VERSION_OPTION = 'nuclen_dashboard_version';
+
+    /**
+     * Get current cache version.
+     */
+    private function get_cache_version(): int {
+        return (int) get_option( self::VERSION_OPTION, 1 );
+    }
+
+    /**
+     * Clear cached dashboard query results.
+     */
+    public static function clear_cache(): void {
+        $version = (int) get_option( self::VERSION_OPTION, 1 );
+        update_option( self::VERSION_OPTION, $version + 1, false );
+
+        if ( function_exists( 'wp_cache_flush_group' ) ) {
+            wp_cache_flush_group( self::CACHE_GROUP );
+        } else {
+            wp_cache_flush();
+        }
+    }
     /**
      * Run a grouped count query (status, post type, author, etc.).
      *
@@ -32,6 +61,18 @@ class DashboardDataService {
 
         $post_types = array_map( 'sanitize_key', $post_types );
         $statuses   = array_map( 'sanitize_key', $statuses );
+
+        $cache_key = md5( wp_json_encode( array( 'grp', $group_by, $meta_key, $post_types, $statuses, $this->get_cache_version(), get_current_blog_id() ) ) );
+        $transient = 'nuclen_dash_' . $cache_key;
+        $found     = false;
+        $cached    = wp_cache_get( $cache_key, self::CACHE_GROUP, false, $found );
+        if ( ! $found ) {
+            $cached = get_transient( $transient );
+        }
+
+        if ( is_array( $cached ) ) {
+            return $cached;
+        }
 
         $placeholders_pt = implode( ',', array_fill( 0, count( $post_types ), '%s' ) );
         $placeholders_st = implode( ',', array_fill( 0, count( $statuses ), '%s' ) );
@@ -50,7 +91,12 @@ class DashboardDataService {
             array_merge( array( $meta_key ), $post_types, $statuses )
         );
 
-        return $wpdb->get_results( $sql, ARRAY_A );
+        $rows = $wpdb->get_results( $sql, ARRAY_A );
+
+        wp_cache_set( $cache_key, $rows, self::CACHE_GROUP, self::CACHE_TTL );
+        set_transient( $transient, $rows, self::CACHE_TTL );
+
+        return $rows;
     }
 
     /**
@@ -66,6 +112,18 @@ class DashboardDataService {
 
         $post_types = array_map( 'sanitize_key', $post_types );
         $statuses   = array_map( 'sanitize_key', $statuses );
+
+        $cache_key = md5( wp_json_encode( array( 'dual', $group_by, $post_types, $statuses, $this->get_cache_version(), get_current_blog_id() ) ) );
+        $transient = 'nuclen_dash_' . $cache_key;
+        $found     = false;
+        $cached    = wp_cache_get( $cache_key, self::CACHE_GROUP, false, $found );
+        if ( ! $found ) {
+            $cached = get_transient( $transient );
+        }
+
+        if ( is_array( $cached ) ) {
+            return $cached;
+        }
 
         $placeholders_pt = implode( ',', array_fill( 0, count( $post_types ), '%s' ) );
         $placeholders_st = implode( ',', array_fill( 0, count( $statuses ), '%s' ) );
@@ -85,7 +143,12 @@ class DashboardDataService {
             array_merge( $post_types, $statuses )
         );
 
-        return $wpdb->get_results( $sql, ARRAY_A );
+        $rows = $wpdb->get_results( $sql, ARRAY_A );
+
+        wp_cache_set( $cache_key, $rows, self::CACHE_GROUP, self::CACHE_TTL );
+        set_transient( $transient, $rows, self::CACHE_TTL );
+
+        return $rows;
     }
 
     /**
