@@ -54,7 +54,7 @@ final class SettingsRepository {
      * @since 1.0.0
      * @var SettingsRepository|null
      */
-    private static $instance = null;
+    private static ?self $instance = null;
 
     /**
      * Default settings values.
@@ -62,7 +62,7 @@ final class SettingsRepository {
      * @since 1.0.0
      * @var array
      */
-    private $defaults = array();
+    private array $defaults = array();
 
     /**
      * Pending changes not yet saved.
@@ -70,7 +70,7 @@ final class SettingsRepository {
      * @since 1.0.0
      * @var array
      */
-    private $pending = array();
+    private array $pending = array();
 
     /**
      * Cache handler.
