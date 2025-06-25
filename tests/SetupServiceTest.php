@@ -6,7 +6,9 @@ use NuclearEngagement\Services\LoggingService;
 namespace NuclearEngagement\Services {
     class LoggingService {
         public static array $logs = [];
+        public static array $notices = [];
         public static function log(string $msg): void { self::$logs[] = $msg; }
+        public static function notify_admin(string $msg): void { self::$notices[] = $msg; }
     }
     function wp_json_encode($data) { return json_encode($data); }
 }
@@ -22,6 +24,7 @@ namespace {
         protected function setUp(): void {
             $GLOBALS['test_http_response'] = null;
             LoggingService::$logs = [];
+            LoggingService::$notices = [];
         }
 
         public function test_validate_api_key_success(): void {
@@ -29,6 +32,7 @@ namespace {
             $svc = new SetupService();
             $this->assertTrue($svc->validate_api_key('key'));
             $this->assertEmpty(LoggingService::$logs);
+            $this->assertEmpty(LoggingService::$notices);
         }
 
         public function test_validate_api_key_failure_logs_error(): void {
@@ -36,6 +40,7 @@ namespace {
             $svc = new SetupService();
             $this->assertFalse($svc->validate_api_key('key'));
             $this->assertSame(['API-key validation error: error'], LoggingService::$logs);
+            $this->assertSame(['Failed to validate API key.'], LoggingService::$notices);
         }
 
         public function test_send_app_password_success(): void {
@@ -44,6 +49,7 @@ namespace {
             $data = ['appApiKey' => 'key', 'user' => 'u'];
             $this->assertTrue($svc->send_app_password($data));
             $this->assertEmpty(LoggingService::$logs);
+            $this->assertEmpty(LoggingService::$notices);
         }
 
         public function test_send_app_password_failure_logs_error(): void {
@@ -52,6 +58,7 @@ namespace {
             $data = ['appApiKey' => 'key', 'user' => 'u'];
             $this->assertFalse($svc->send_app_password($data));
             $this->assertSame(['Error sending creds: error'], LoggingService::$logs);
+            $this->assertSame(['Failed to send WordPress credentials.'], LoggingService::$notices);
         }
 
         public function test_send_app_password_http_error_logs_error(): void {
@@ -62,6 +69,7 @@ namespace {
             $this->assertSame([
                 'Unexpected creds response code: 400, body: bad'
             ], LoggingService::$logs);
+            $this->assertSame(['Failed to send WordPress credentials.'], LoggingService::$notices);
         }
     }
 }

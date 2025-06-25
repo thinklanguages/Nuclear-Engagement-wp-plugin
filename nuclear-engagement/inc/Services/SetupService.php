@@ -92,11 +92,21 @@ class SetupService {
 
         if ( is_wp_error( $response ) ) {
             LoggingService::log( 'API-key validation error: ' . $response->get_error_message() );
+            LoggingService::notify_admin( 'Failed to validate API key.' );
             return false;
         }
 
-        LoggingService::debug( 'API key validation response: ' . wp_remote_retrieve_body( $response ) );
-        return 200 === wp_remote_retrieve_response_code( $response );
+        $code = wp_remote_retrieve_response_code( $response );
+        $body = wp_remote_retrieve_body( $response );
+        LoggingService::debug( 'API key validation response: ' . $body );
+
+        if ( 200 !== $code ) {
+            LoggingService::log( 'Unexpected API-key validation response code: ' . $code . ', body: ' . $body );
+            LoggingService::notify_admin( 'Failed to validate API key.' );
+            return false;
+        }
+
+        return true;
     }
 
     /**
@@ -126,6 +136,7 @@ class SetupService {
 
                 if ( is_wp_error( $response ) ) {
                         \NuclearEngagement\Services\LoggingService::log( 'Error sending creds: ' . $response->get_error_message() );
+                        \NuclearEngagement\Services\LoggingService::notify_admin( 'Failed to send WordPress credentials.' );
                         return false;
                 }
 
@@ -135,6 +146,7 @@ class SetupService {
 
                 if ( 200 !== $code ) {
                         \NuclearEngagement\Services\LoggingService::log( 'Unexpected creds response code: ' . $code . ', body: ' . $body );
+                        \NuclearEngagement\Services\LoggingService::notify_admin( 'Failed to send WordPress credentials.' );
                         return false;
                 }
 
