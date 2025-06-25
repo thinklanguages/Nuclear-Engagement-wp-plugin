@@ -52,17 +52,11 @@ Use these commands as needed while the environment is running:
 
 ## Running tests
 
-After starting the environment, run PHPUnit from the repository root:
+After starting the environment, run PHPUnit and PHPStan from the repository root:
 
 ```bash
 composer test --working-dir=nuclear-engagement
-```
-
-You can also run static analysis (optional):
-
-```bash
-composer require --dev phpstan/phpstan-deprecation --working-dir=nuclear-engagement
-vendor/bin/phpstan analyse
+composer phpstan --working-dir=nuclear-engagement
 ```
 
 ## Typical workflow

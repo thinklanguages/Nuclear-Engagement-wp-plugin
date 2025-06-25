@@ -19,10 +19,12 @@
     },
   "require-dev": {
     "wp-coding-standards/wpcs": "3.0",
-    "phpunit/phpunit": "^9.6"
+    "phpunit/phpunit": "^9.6",
+    "phpstan/phpstan-deprecation": "^1.0"
   },
   "scripts": {
     "lint": "phpcs",
+    "phpstan": "vendor/bin/phpstan analyse",
     "test": "phpunit"
   }
 }
