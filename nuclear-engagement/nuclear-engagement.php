@@ -17,6 +17,8 @@
  * @since      1.0.0
  */
 
+declare(strict_types=1);
+
 // Bail if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
@@ -43,7 +45,6 @@ if ( version_compare( PHP_VERSION, '7.4', '<' ) ) {
 }
 
 // PHP version is sufficient; continue loading typed code.
-declare(strict_types=1);
 
 define( 'NUCLEN_PLUGIN_FILE', __FILE__ );
 
