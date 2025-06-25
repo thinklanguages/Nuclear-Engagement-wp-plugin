@@ -52,9 +52,11 @@ namespace {
             $settings = SettingsRepository::get_instance();
             $api      = $api ?: new DummyRemoteApiService();
             $storage  = new DummyContentStorageService();
-            $poller   = new GenerationPoller($settings, $api, $storage);
-            $handler  = new \NuclearEngagement\Services\PublishGenerationHandler($settings);
-            return new AutoGenerationService($settings, $api, $storage, $poller, $handler);
+            $poller    = new GenerationPoller($settings, $api, $storage);
+            $scheduler = new \NuclearEngagement\Services\AutoGenerationScheduler($poller);
+            $queue     = new \NuclearEngagement\Services\AutoGenerationQueue($api, $storage);
+            $handler   = new \NuclearEngagement\Services\PublishGenerationHandler($settings);
+            return new AutoGenerationService($settings, $queue, $scheduler, $handler);
         }
 
         public function test_queue_post_failure_notifies_admin(): void {

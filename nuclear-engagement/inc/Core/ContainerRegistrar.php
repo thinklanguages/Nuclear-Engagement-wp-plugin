@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 namespace NuclearEngagement;
 
-use NuclearEngagement\Services\{GenerationService, RemoteApiService, ContentStorageService, PointerService, PostsQueryService, AutoGenerationService, GenerationPoller, PublishGenerationHandler, VersionService, DashboardDataService};
+use NuclearEngagement\Services\{GenerationService, RemoteApiService, ContentStorageService, PointerService, PostsQueryService, AutoGenerationService, AutoGenerationQueue, AutoGenerationScheduler, GenerationPoller, PublishGenerationHandler, VersionService, DashboardDataService};
 use NuclearEngagement\Admin\Controller\Ajax\{GenerateController, UpdatesController, PointerController, PostsCountController};
 use NuclearEngagement\Admin\Controller\OptinExportController;
 use NuclearEngagement\Front\Controller\Rest\ContentController;
@@ -24,14 +24,29 @@ final class ContainerRegistrar {
 		$container->register( 'remote_api', static fn( $c ) => new RemoteApiService( $c->get( 'settings' ) ) );
 		$container->register( 'content_storage', static fn( $c ) => new ContentStorageService( $c->get( 'settings' ) ) );
 
-		$container->register(
-			'generation_poller',
-			static fn( $c ) => new GenerationPoller(
-				$c->get( 'settings' ),
-				$c->get( 'remote_api' ),
-				$c->get( 'content_storage' )
-			)
-		);
+                $container->register(
+                        'generation_poller',
+                        static fn( $c ) => new GenerationPoller(
+                                $c->get( 'settings' ),
+                                $c->get( 'remote_api' ),
+                                $c->get( 'content_storage' )
+                        )
+                );
+
+                $container->register(
+                        'auto_generation_queue',
+                        static fn( $c ) => new AutoGenerationQueue(
+                                $c->get( 'remote_api' ),
+                                $c->get( 'content_storage' )
+                        )
+                );
+
+                $container->register(
+                        'auto_generation_scheduler',
+                        static fn( $c ) => new AutoGenerationScheduler(
+                                $c->get( 'generation_poller' )
+                        )
+                );
 
 		$container->register(
 			'publish_generation_handler',
@@ -40,16 +55,15 @@ final class ContainerRegistrar {
 			)
 		);
 
-		$container->register(
-			'auto_generation_service',
-			static fn( $c ) => new AutoGenerationService(
-				$c->get( 'settings' ),
-				$c->get( 'remote_api' ),
-				$c->get( 'content_storage' ),
-				$c->get( 'generation_poller' ),
-				$c->get( 'publish_generation_handler' )
-			)
-		);
+                $container->register(
+                        'auto_generation_service',
+                        static fn( $c ) => new AutoGenerationService(
+                                $c->get( 'settings' ),
+                                $c->get( 'auto_generation_queue' ),
+                                $c->get( 'auto_generation_scheduler' ),
+                                $c->get( 'publish_generation_handler' )
+                        )
+                );
 
 		$container->register(
 			'generation_service',
