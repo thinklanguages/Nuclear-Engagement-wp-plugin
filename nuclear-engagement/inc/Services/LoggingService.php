@@ -33,19 +33,30 @@ class LoggingService {
 	/**
 	 * Get directory, path and URL for the log file.
 	 */
-	public static function get_log_file_info(): array {
-		$upload_dir = wp_upload_dir();
+        public static function get_log_file_info(): array {
+                $upload_dir = wp_upload_dir();
 
-		$log_folder = $upload_dir['basedir'] . '/nuclear-engagement';
-		$log_file   = $log_folder . '/log.txt';
-		$log_url    = $upload_dir['baseurl'] . '/nuclear-engagement/log.txt';
+                if ( ! empty( $upload_dir['error'] ) ) {
+                        error_log( '[Nuclear Engagement] ' . $upload_dir['error'] );
+                        self::add_admin_notice( 'Uploads directory unavailable. Using plugin directory for logs.' );
+                        $fallback_dir = rtrim( NUCLEN_PLUGIN_DIR, '/' ) . '/logs';
+                        return array(
+                                'dir'  => $fallback_dir,
+                                'path' => $fallback_dir . '/log.txt',
+                                'url'  => '',
+                        );
+                }
 
-		return array(
-			'dir'  => $log_folder,
-			'path' => $log_file,
-			'url'  => $log_url,
-		);
-	}
+                $log_folder = $upload_dir['basedir'] . '/nuclear-engagement';
+                $log_file   = $log_folder . '/log.txt';
+                $log_url    = $upload_dir['baseurl'] . '/nuclear-engagement/log.txt';
+
+                return array(
+                        'dir'  => $log_folder,
+                        'path' => $log_file,
+                        'url'  => $log_url,
+                );
+        }
 
 	/**
 	 * Store an admin notice and ensure the hook is registered.
