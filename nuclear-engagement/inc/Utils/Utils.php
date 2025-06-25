@@ -58,6 +58,7 @@ class Utils {
         if ( ! file_exists( $custom_dir ) ) {
             if ( ! wp_mkdir_p( $custom_dir ) ) {
                 \NuclearEngagement\Services\LoggingService::log( 'Failed creating custom CSS directory: ' . $custom_dir );
+                \NuclearEngagement\Services\LoggingService::notify_admin( 'Failed creating custom CSS directory.' );
                 return array();
             }
         }
