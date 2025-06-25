@@ -43,6 +43,14 @@ if ( file_exists( $autoload ) ) {
         return;
 }
 
+// Fallback for class maps missing from autoload.
+if ( ! class_exists( \NuclearEngagement\AssetVersions::class ) ) {
+    $asset_versions_path = NUCLEN_PLUGIN_DIR . 'includes/AssetVersions.php';
+    if ( file_exists( $asset_versions_path ) ) {
+        require_once $asset_versions_path;
+    }
+}
+
 
 if ( file_exists( NUCLEN_PLUGIN_DIR . 'includes/constants.php' ) ) {
     require_once NUCLEN_PLUGIN_DIR . 'includes/constants.php';
