@@ -47,7 +47,9 @@ class RemoteApiServiceTest extends TestCase {
     }
 
     private function makeService(): RemoteApiService {
-        return new RemoteApiService(SettingsRepository::get_instance());
+        $req = new \NuclearEngagement\Services\Remote\RemoteRequest();
+        $handler = new \NuclearEngagement\Services\Remote\ApiResponseHandler();
+        return new RemoteApiService(SettingsRepository::get_instance(), $req, $handler);
     }
 
     public function test_parses_json_message(): void {
