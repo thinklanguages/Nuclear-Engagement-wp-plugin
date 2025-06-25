@@ -193,7 +193,8 @@ final class Nuclen_TOC_Render {
 		$show    = $wrapper['show_toggle'];
 		$hidden  = $wrapper['hidden'];
 
-		$out  = '<div class="nuclen-root">';
+                $theme = $settings->get_string( 'theme', 'bright' );
+                $out  = '<div class="nuclen-root" data-theme="' . esc_attr( $theme ) . '">';
 		$out .= sprintf(
 			'<section id="%s-wrapper" class="%s"%s>',
 			esc_attr( $nav_id ),
