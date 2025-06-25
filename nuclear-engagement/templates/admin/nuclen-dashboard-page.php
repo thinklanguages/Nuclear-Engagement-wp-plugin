@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 if ( ! defined( 'ABSPATH' ) ) {
-	exit;
+    exit;
 }
 /**
  * admin/partials/nuclen-dashboard-page.php
@@ -20,12 +20,12 @@ $utils = new \NuclearEngagement\Utils();
 $utils->display_nuclen_page_header();
 ?>
 <div class="wrap nuclen-container">
-	<h1 class="nuclen-heading"><?php esc_html_e( 'Dashboard', 'nuclear-engagement' ); ?></h1>
-	<?php
-		$dash_dir = plugin_dir_path( __FILE__ ) . 'dashboard/';
-		require $dash_dir . 'inventory.php';
-		require $dash_dir . 'analytics.php';
-		require $dash_dir . 'scheduled.php';
-		require $dash_dir . 'credits.php';
-	?>
+    <h1 class="nuclen-heading"><?php esc_html_e( 'Dashboard', 'nuclear-engagement' ); ?></h1>
+    <?php
+        $dash_dir = plugin_dir_path( __FILE__ ) . 'dashboard/';
+        require $dash_dir . 'inventory.php';
+        require $dash_dir . 'analytics.php';
+        require $dash_dir . 'scheduled.php';
+        require $dash_dir . 'credits.php';
+    ?>
 </div><!-- .wrap .nuclen-container -->

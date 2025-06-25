@@ -23,7 +23,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 final class Nuclen_TOC_Utils {
 
-	private const CACHE_GROUP = 'nuclen_toc';
+    private const CACHE_GROUP = 'nuclen_toc';
         private const CACHE_TTL   = 6 * HOUR_IN_SECONDS;          // 6 hours.
 
         /**
@@ -40,21 +40,21 @@ final class Nuclen_TOC_Utils {
         */
        private static array $ids_in_post = array();
 
-	/**
-	 * Parse H1–H6 headings from raw HTML, respecting heading levels array,
-	 * .no‑toc class, data‑toc="false", and cache the result.
-	 *
-	 * @param string $html The HTML content to parse for headings.
-	 * @param array  $heading_levels Array of specific heading levels to include (e.g., [2, 4] for H2 and H4 only).
-	 *
-	 * @return array[] [
-	 *     'tag'   => 'h2',
-	 *     'level' => 2,
-	 *     'text'  => 'Heading text',
-	 *     'inner' => 'Heading <em>HTML</em>',
-	 *     'id'    => 'slugified-id'
-	 * ]
-	 */
+    /**
+     * Parse H1–H6 headings from raw HTML, respecting heading levels array,
+     * .no‑toc class, data‑toc="false", and cache the result.
+     *
+     * @param string $html The HTML content to parse for headings.
+     * @param array  $heading_levels Array of specific heading levels to include (e.g., [2, 4] for H2 and H4 only).
+     *
+     * @return array[] [
+     *     'tag'   => 'h2',
+     *     'level' => 2,
+     *     'text'  => 'Heading text',
+     *     'inner' => 'Heading <em>HTML</em>',
+     *     'id'    => 'slugified-id'
+     * ]
+     */
         public static function extract( string $html, array $heading_levels ): array {
                 $t0 = microtime( true );
 
@@ -63,22 +63,22 @@ final class Nuclen_TOC_Utils {
                         $heading_levels = range( 2, 6 );
                 }
 
-		// Sanitize and validate heading levels.
-		$heading_levels = array_filter(
-			array_map( 'intval', $heading_levels ),
-			function ( $level ) {
-				return $level >= 1 && $level <= 6;
-			}
-		);
+        // Sanitize and validate heading levels.
+        $heading_levels = array_filter(
+            array_map( 'intval', $heading_levels ),
+            function ( $level ) {
+                return $level >= 1 && $level <= 6;
+            }
+        );
 
-		// If still no valid levels, use defaults (2-6).
-		if ( empty( $heading_levels ) ) {
-			$heading_levels = range( 2, 6 );
-		}
+        // If still no valid levels, use defaults (2-6).
+        if ( empty( $heading_levels ) ) {
+            $heading_levels = range( 2, 6 );
+        }
 
-		// Sort and make unique.
-		sort( $heading_levels );
-		$heading_levels = array_unique( $heading_levels );
+        // Sort and make unique.
+        sort( $heading_levels );
+        $heading_levels = array_unique( $heading_levels );
 
                 // Generate cache key based on content and heading levels.
                 $key          = md5( $html ) . '_' . implode( '', $heading_levels );
@@ -148,18 +148,18 @@ final class Nuclen_TOC_Utils {
                 return $out;
         }
 
-		/*
-		 * ----------------------------------------------------------
-		 * Helpers
-		 * ----------------------------------------------------------
-		 */
+        /*
+         * ----------------------------------------------------------
+         * Helpers
+         * ----------------------------------------------------------
+         */
 
-		/**
-		 * Generate a unique slug from heading text.
-		 *
-		 * @param string $txt Heading text.
-		 * @return string Unique slug.
-		 */
+        /**
+         * Generate a unique slug from heading text.
+         *
+         * @param string $txt Heading text.
+         * @return string Unique slug.
+         */
        private static function unique_id_from_text( string $txt ): string {
                $base = sanitize_title( $txt );
                $id   = $base;
@@ -225,14 +225,14 @@ final class Nuclen_TOC_Utils {
                delete_transient( $transient );
        }
 
-		/**
-		 * Tiny wrapper so callers can import just one name.
-		 *
-		 * @param string $haystack The string to search in.
-		 * @param string $needle   The substring to look for.
-		 * @return bool Whether the haystack contains the needle.
-		 */
-	public static function str_contains( string $haystack, string $needle ): bool {
-			return nuclen_str_contains( $haystack, $needle );
-	}
+        /**
+         * Tiny wrapper so callers can import just one name.
+         *
+         * @param string $haystack The string to search in.
+         * @param string $needle   The substring to look for.
+         * @return bool Whether the haystack contains the needle.
+         */
+    public static function str_contains( string $haystack, string $needle ): bool {
+            return nuclen_str_contains( $haystack, $needle );
+    }
 }

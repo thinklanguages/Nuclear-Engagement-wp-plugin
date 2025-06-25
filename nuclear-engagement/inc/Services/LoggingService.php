@@ -11,13 +11,13 @@ declare(strict_types=1);
 namespace NuclearEngagement\Services;
 
 if ( ! defined( 'ABSPATH' ) ) {
-	exit;
+    exit;
 }
 
 class LoggingService {
-	/**
-	 * @var array<string>
-	 */
+    /**
+     * @var array<string>
+     */
         private static array $admin_notices = array();
 
         /**
@@ -30,9 +30,9 @@ class LoggingService {
          */
         private static bool $shutdown_registered = false;
 
-	/**
-	 * Get directory, path and URL for the log file.
-	 */
+    /**
+     * Get directory, path and URL for the log file.
+     */
         public static function get_log_file_info(): array {
                 $upload_dir = wp_upload_dir();
 
@@ -58,26 +58,26 @@ class LoggingService {
                 );
         }
 
-	/**
-	 * Store an admin notice and ensure the hook is registered.
-	 */
-	private static function add_admin_notice( string $message ): void {
-		self::$admin_notices[] = $message;
-		if ( count( self::$admin_notices ) === 1 ) {
-			add_action( 'admin_notices', array( self::class, 'render_admin_notices' ) );
-		}
-	}
+    /**
+     * Store an admin notice and ensure the hook is registered.
+     */
+    private static function add_admin_notice( string $message ): void {
+        self::$admin_notices[] = $message;
+        if ( count( self::$admin_notices ) === 1 ) {
+            add_action( 'admin_notices', array( self::class, 'render_admin_notices' ) );
+        }
+    }
 
-	/**
-	 * Public helper to show an admin error notice.
-	 */
-	public static function notify_admin( string $message ): void {
-		self::add_admin_notice( $message );
-	}
+    /**
+     * Public helper to show an admin error notice.
+     */
+    public static function notify_admin( string $message ): void {
+        self::add_admin_notice( $message );
+    }
 
-	/**
-	 * Debug level logging, only when WP_DEBUG is true.
-	 */
+    /**
+     * Debug level logging, only when WP_DEBUG is true.
+     */
         public static function debug( string $message ): void {
                 if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
                         self::log( '[DEBUG] ' . $message );
@@ -98,18 +98,18 @@ class LoggingService {
                self::log( $msg );
        }
 
-	/**
-	 * Output stored admin notices.
-	 */
-	public static function render_admin_notices(): void {
-		foreach ( self::$admin_notices as $notice ) {
-			echo '<div class="notice notice-error"><p>' . esc_html( $notice ) . '</p></div>';
-		}
-	}
+    /**
+     * Output stored admin notices.
+     */
+    public static function render_admin_notices(): void {
+        foreach ( self::$admin_notices as $notice ) {
+            echo '<div class="notice notice-error"><p>' . esc_html( $notice ) . '</p></div>';
+        }
+    }
 
-	/**
-	 * Fallback when writing to the log fails.
-	 */
+    /**
+     * Fallback when writing to the log fails.
+     */
         private static function fallback( string $original, string $error ): void {
                 $timestamp = gmdate( 'Y-m-d H:i:s' );
                 error_log( "[Nuclear Engagement] [$timestamp] {$original} - {$error}" );
@@ -204,9 +204,9 @@ class LoggingService {
                 }
         }
 
-	/**
-	 * Append a message to the plugin log file.
-	 */
+    /**
+     * Append a message to the plugin log file.
+     */
         public static function log( string $message ): void {
                 if ( $message === '' ) {
                         return;

@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 if ( ! defined( 'ABSPATH' ) ) {
-	exit;
+    exit;
 }
 
 /**
@@ -33,11 +33,11 @@ $border_width = $settings->get_int( 'border_width', 1 );
 
 // For backward compatibility, create an options array
 $options = array(
-	'theme'        => $theme,
-	'font_size'    => $font_size,
-	'font_color'   => $font_color,
-	'bg_color'     => $bg_color,
-	'border_color' => $border_color,
-	'border_style' => $border_style,
-	'border_width' => $border_width,
+    'theme'        => $theme,
+    'font_size'    => $font_size,
+    'font_color'   => $font_color,
+    'bg_color'     => $bg_color,
+    'border_color' => $border_color,
+    'border_style' => $border_style,
+    'border_width' => $border_width,
 );

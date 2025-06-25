@@ -27,7 +27,7 @@
 declare(strict_types=1);
 
 if ( ! defined( 'ABSPATH' ) ) {
-		exit;
+        exit;
 }
 
 // If uninstall not called from WordPress, then exit.
@@ -64,30 +64,30 @@ $delete_css       = ! empty( $settings['delete_custom_css_on_uninstall'] );
 
 // Delete generated content from post meta if requested.
 if ( $delete_generated ) {
-				$meta_keys = array(
-					'nuclen-quiz-data',
-					'nuclen-summary-data',
-					'nuclen_quiz_protected',
-					'nuclen_summary_protected',
-				);
-				foreach ( $meta_keys as $mk ) {
-						delete_post_meta_by_key( $mk );
-				}
+                $meta_keys = array(
+                    'nuclen-quiz-data',
+                    'nuclen-summary-data',
+                    'nuclen_quiz_protected',
+                    'nuclen_summary_protected',
+                );
+                foreach ( $meta_keys as $mk ) {
+                        delete_post_meta_by_key( $mk );
+                }
 }
 
 // Delete plugin settings if requested.
 if ( $delete_settings ) {
-		delete_option( 'nuclear_engagement_settings' );
-		delete_option( 'nuclear_engagement_setup' );
-		delete_option( 'nuclen_custom_css_version' );
+        delete_option( 'nuclear_engagement_settings' );
+        delete_option( 'nuclear_engagement_setup' );
+        delete_option( 'nuclen_custom_css_version' );
 }
 
 // Remove log file if requested.
 if ( $delete_log ) {
-		$info = \NuclearEngagement\Services\LoggingService::get_log_file_info();
-	if ( file_exists( $info['path'] ) ) {
-			wp_delete_file( $info['path'] );
-	}
+        $info = \NuclearEngagement\Services\LoggingService::get_log_file_info();
+    if ( file_exists( $info['path'] ) ) {
+            wp_delete_file( $info['path'] );
+    }
 }
 
 // Remove custom theme file if requested.
@@ -102,8 +102,8 @@ if ( $delete_css ) {
 // Drop opt-in table only when the user opts to delete settings or generated
 // content. This avoids data loss unless a full cleanup was requested.
 if ( $delete_settings || $delete_generated ) {
-		global $wpdb;
-				$table = $wpdb->prefix . 'nuclen_optins';
-				// Remove stored email opt-in submissions on uninstall.
-				$wpdb->query( 'DROP TABLE IF EXISTS ' . esc_sql( $table ) );
+        global $wpdb;
+                $table = $wpdb->prefix . 'nuclen_optins';
+                // Remove stored email opt-in submissions on uninstall.
+                $wpdb->query( 'DROP TABLE IF EXISTS ' . esc_sql( $table ) );
 }

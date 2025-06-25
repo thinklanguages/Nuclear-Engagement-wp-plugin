@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 if ( ! defined( 'ABSPATH' ) ) {
-	exit;
+    exit;
 }
 /**
  * Setup - Main heading & intro paragraph
