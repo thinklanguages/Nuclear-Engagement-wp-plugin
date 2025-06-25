@@ -6,6 +6,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 // Track calls to dbDelta in unit tests
 global $dbDelta_called;
 $dbDelta_called = false;
+// Load shared WordPress function stubs
+require_once __DIR__ . '/wp-stubs.php';
 // Minimal stubs for WordPress functions used in included files
 if (!function_exists('add_action')) {
     function add_action(...$args) {}

@@ -3,15 +3,6 @@ use PHPUnit\Framework\TestCase;
 use NuclearEngagement\Services\LoggingService;
 
 namespace NuclearEngagement\Services {
-    function wp_upload_dir() {
-        return [
-            'basedir' => $GLOBALS['ls_base'],
-            'baseurl'  => 'http://example.com/uploads',
-        ];
-    }
-    function wp_mkdir_p($dir) {
-        return mkdir($dir, 0777, true);
-    }
     function add_action(...$args) {
         $GLOBALS['ls_actions'][] = $args;
     }
@@ -51,8 +42,8 @@ namespace {
             $GLOBALS['ls_errors'] = [];
             $GLOBALS['ls_puts'] = [];
             $GLOBALS['ls_shutdown'] = [];
-            $GLOBALS['ls_base'] = sys_get_temp_dir() . '/ls_' . uniqid();
-            mkdir($GLOBALS['ls_base']);
+            $GLOBALS['test_upload_basedir'] = sys_get_temp_dir() . '/ls_' . uniqid();
+            mkdir($GLOBALS['test_upload_basedir']);
             $GLOBALS['ls_filter_buffer'] = false;
             $GLOBALS['ls_rename_fail'] = false;
         }
@@ -64,7 +55,7 @@ namespace {
             }
             unset($GLOBALS['ls_filter_buffer']);
             unset($GLOBALS['ls_rename_fail']);
-            $base = $GLOBALS['ls_base'];
+            $base = $GLOBALS['test_upload_basedir'];
             foreach (glob("$base/*") as $file) {
                 @unlink($file);
             }
@@ -72,7 +63,7 @@ namespace {
         }
 
         public function test_unwritable_directory_triggers_fallback(): void {
-            chmod($GLOBALS['ls_base'], 0555);
+            chmod($GLOBALS['test_upload_basedir'], 0555);
             LoggingService::log('test message');
             $this->assertSame(['test message'], $GLOBALS['ls_errors']);
             $this->assertSame('admin_notices', $GLOBALS['ls_actions'][0][0]);

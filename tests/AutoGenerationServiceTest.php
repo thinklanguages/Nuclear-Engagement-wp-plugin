@@ -37,10 +37,12 @@ class AutoGenerationServiceTest extends TestCase {
         $api      = $api ?: new DummyRemoteApiService();
         $storage  = new DummyContentStorageService();
 
-        $poller  = new \NuclearEngagement\Services\GenerationPoller($settings, $api, $storage);
-        $handler = new \NuclearEngagement\Services\PublishGenerationHandler($settings);
+        $poller    = new \NuclearEngagement\Services\GenerationPoller($settings, $api, $storage);
+        $scheduler = new \NuclearEngagement\Services\AutoGenerationScheduler($poller);
+        $queue     = new \NuclearEngagement\Services\AutoGenerationQueue($api, $storage);
+        $handler   = new \NuclearEngagement\Services\PublishGenerationHandler($settings);
 
-        return new AutoGenerationService($settings, $api, $storage, $poller, $handler);
+        return new AutoGenerationService($settings, $queue, $scheduler, $handler);
     }
 
     public function test_generate_single_sets_autoload_no(): void {
