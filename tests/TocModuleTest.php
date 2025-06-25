@@ -164,6 +164,9 @@ if ( ! function_exists( 'wp_localize_script' ) ) {
 if ( ! function_exists( 'is_singular' ) ) {
     function is_singular() { return true; }
 }
+if ( ! function_exists( 'get_the_ID' ) ) {
+    function get_the_ID() { return $GLOBALS['current_post_id'] ?? 0; }
+}
 
 // ------------------------------------------------------
 // Load plugin classes
@@ -181,10 +184,11 @@ require_once dirname(__DIR__) . '/nuclear-engagement/inc/Core/Container.php';
 
 class TocModuleTest extends TestCase {
     protected function setUp(): void {
-        global $wp_posts, $wp_cache, $transients;
+        global $wp_posts, $wp_cache, $transients, $current_post_id;
         $wp_posts   = [];
         $wp_cache   = [];
         $transients = [];
+        $current_post_id = 0;
         SettingsRepository::reset_for_tests();
         Container::getInstance()->reset();
     }
@@ -214,8 +218,9 @@ class TocModuleTest extends TestCase {
     }
 
     public function test_shortcode_outputs_expected_markup() {
-        global $post;
-        $post = (object)[
+        global $wp_posts, $current_post_id;
+        $current_post_id = 1;
+        $wp_posts[1] = (object)[
             'ID' => 1,
             'post_content' => '<h2>One</h2><h3>Sub</h3>',
         ];
@@ -226,6 +231,12 @@ class TocModuleTest extends TestCase {
         $this->assertStringContainsString('<a href="#one">One</a>', $out);
         $this->assertStringContainsString('<a href="#sub">Sub</a>', $out);
         $this->assertStringContainsString('class="nuclen-toc', $out);
+    }
+
+    public function test_shortcode_returns_empty_when_no_post() {
+        $this->registerSettings();
+        $render = new \NuclearEngagement\Modules\TOC\Nuclen_TOC_Render();
+        $this->assertSame('', $render->nuclen_toc_shortcode([]));
     }
 
     public function test_cache_is_cleared_for_post() {

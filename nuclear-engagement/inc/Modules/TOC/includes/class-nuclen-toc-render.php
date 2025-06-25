@@ -164,11 +164,11 @@ final class Nuclen_TOC_Render {
 	 * @param array $atts Shortcode attributes.
 	 * @return string Generated HTML markup.
 	 */
-	public function nuclen_toc_shortcode( array $atts ): string {
-		global $post;
-		if ( empty( $post ) ) {
-			return '';
-		}
+        public function nuclen_toc_shortcode( array $atts ): string {
+                $post = get_post( get_the_ID() );
+                if ( null === $post ) {
+                        return '';
+                }
 
 		$settings = \NuclearEngagement\Container::getInstance()->get( 'settings' );
 		$atts     = $this->prepare_shortcode_attributes( $atts, $settings );
