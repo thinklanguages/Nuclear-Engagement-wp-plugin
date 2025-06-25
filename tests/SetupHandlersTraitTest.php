@@ -57,15 +57,16 @@ namespace {
     require_once dirname(__DIR__) . '/nuclear-engagement/inc/Core/Defaults.php';
     require_once dirname(__DIR__) . '/nuclear-engagement/admin/SetupHandlersTrait.php';
 
-    class DummySetup {
-        use \NuclearEngagement\Admin\SetupHandlersTrait;
-        public $redirect;
-        private $service;
-        public function __construct($service) { $this->service = $service; }
-        public function nuclen_get_setup_service(): \NuclearEngagement\Services\SetupService { return $this->service; }
-        private function nuclen_redirect_with_error($msg): void { $this->redirect = ['error',$msg]; throw new RedirectException(); }
-        private function nuclen_redirect_with_success($msg): void { $this->redirect = ['success',$msg]; throw new RedirectException(); }
-    }
+class DummySetup {
+    use \NuclearEngagement\Admin\SetupHandlersTrait;
+    public $redirect;
+    private $service;
+    public function __construct($service) { $this->service = $service; }
+    public function nuclen_get_setup_service(): \NuclearEngagement\Services\SetupService { return $this->service; }
+    public function nuclen_get_settings_repository() { return \NuclearEngagement\Container::getInstance()->get('settings'); }
+    private function nuclen_redirect_with_error($msg): void { $this->redirect = ['error',$msg]; throw new RedirectException(); }
+    private function nuclen_redirect_with_success($msg): void { $this->redirect = ['success',$msg]; throw new RedirectException(); }
+}
 
     class SetupHandlersTraitTest extends TestCase {
         private $setup;

@@ -10,6 +10,8 @@ declare(strict_types=1);
 
 namespace NuclearEngagement;
 
+use function NuclearEngagement\nuclen_settings_array;
+
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
@@ -33,8 +35,7 @@ class MetaRegistration {
      */
     public static function register_meta_keys(): void {
         // Get allowed post types from settings
-        $settings   = \NuclearEngagement\Container::getInstance()->get( 'settings' );
-        $post_types = $settings->get_array( 'generation_post_types', array( 'post' ) );
+        $post_types = nuclen_settings_array( 'generation_post_types', array( 'post' ) );
 
         // Register quiz data meta
         foreach ( $post_types as $post_type ) {

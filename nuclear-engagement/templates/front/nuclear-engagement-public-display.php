@@ -16,20 +16,17 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage Nuclear_Engagement/public/partials
  */
 
-use NuclearEngagement\Container;
-
-// Get settings repository instance
-$container = Container::getInstance();
-$settings  = $container->get( 'settings' );
+use function NuclearEngagement\nuclen_settings_string;
+use function NuclearEngagement\nuclen_settings_int;
 
 // Get theme settings with type-safe methods
-$theme        = $settings->get_string( 'theme', 'bright' );
-$font_size    = $settings->get_int( 'font_size', 16 );
-$font_color   = $settings->get_string( 'font_color', '#000000' );
-$bg_color     = $settings->get_string( 'bg_color', '#ffffff' );
-$border_color = $settings->get_string( 'border_color', '#000000' );
-$border_style = $settings->get_string( 'border_style', 'solid' );
-$border_width = $settings->get_int( 'border_width', 1 );
+$theme        = nuclen_settings_string( 'theme', 'bright' );
+$font_size    = nuclen_settings_int( 'font_size', 16 );
+$font_color   = nuclen_settings_string( 'font_color', '#000000' );
+$bg_color     = nuclen_settings_string( 'bg_color', '#ffffff' );
+$border_color = nuclen_settings_string( 'border_color', '#000000' );
+$border_style = nuclen_settings_string( 'border_style', 'solid' );
+$border_width = nuclen_settings_int( 'border_width', 1 );
 
 // For backward compatibility, create an options array
 $options = array(

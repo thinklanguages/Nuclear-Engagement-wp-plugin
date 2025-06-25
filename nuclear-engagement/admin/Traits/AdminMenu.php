@@ -51,7 +51,7 @@ trait AdminMenu {
             array( $this, 'nuclen_display_generate_page' )
         );
 
-        $settings = new Settings();
+        $settings = new Settings( $this->nuclen_get_settings_repository() );
         add_submenu_page(
             'nuclear-engagement',
             esc_html__( 'Nuclear Engagement – Settings', 'nuclear-engagement' ),
@@ -64,6 +64,8 @@ trait AdminMenu {
 
     /** Dashboard page callback */
     public function nuclen_display_dashboard() {
+        $settings_repo = $this->nuclen_get_settings_repository();
+        $data_service  = $this->get_container()->get( 'dashboard_data_service' );
         include plugin_dir_path( __FILE__ ) . 'Dashboard.php';
     }
 

@@ -6,7 +6,7 @@ declare(strict_types=1);
  * @package NuclearEngagement
  */
 
-use NuclearEngagement\Container;
+use NuclearEngagement\SettingsRepository;
 
 if ( ! function_exists( 'nuclen_settings' ) ) {
     /**
@@ -20,7 +20,7 @@ if ( ! function_exists( 'nuclen_settings' ) ) {
         static $repo = null;
 
         if ( $repo === null ) {
-            $repo = Container::getInstance()->get( 'settings' );
+            $repo = SettingsRepository::get_instance();
         }
 
         if ( $key === null ) {
@@ -43,7 +43,7 @@ if ( ! function_exists( 'nuclen_settings_bool' ) ) {
         static $repo = null;
 
         if ( $repo === null ) {
-            $repo = Container::getInstance()->get( 'settings' );
+            $repo = SettingsRepository::get_instance();
         }
 
         return $repo->get_bool( $key, $default );
@@ -62,7 +62,7 @@ if ( ! function_exists( 'nuclen_settings_int' ) ) {
         static $repo = null;
 
         if ( $repo === null ) {
-            $repo = Container::getInstance()->get( 'settings' );
+            $repo = SettingsRepository::get_instance();
         }
 
         return $repo->get_int( $key, $default );
@@ -81,7 +81,7 @@ if ( ! function_exists( 'nuclen_settings_string' ) ) {
         static $repo = null;
 
         if ( $repo === null ) {
-            $repo = Container::getInstance()->get( 'settings' );
+            $repo = SettingsRepository::get_instance();
         }
 
         return $repo->get_string( $key, $default );
@@ -100,7 +100,7 @@ if ( ! function_exists( 'nuclen_settings_array' ) ) {
         static $repo = null;
 
         if ( $repo === null ) {
-            $repo = Container::getInstance()->get( 'settings' );
+            $repo = SettingsRepository::get_instance();
         }
 
         return $repo->get_array( $key, $default );
