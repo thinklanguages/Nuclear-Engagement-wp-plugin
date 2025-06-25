@@ -8,7 +8,7 @@ package-lock.json
 scripts
 .git
 .gitignore
-.eslintrc
+eslint.config.js
 # dev dependencies removed from production build
 vendor/bin
 vendor/phpunit
