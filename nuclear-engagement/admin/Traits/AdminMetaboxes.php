@@ -23,5 +23,4 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 trait AdminMetaboxes {
     use AdminQuizMetabox;
-    use AdminSummaryMetabox;
 }

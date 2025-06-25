@@ -53,8 +53,6 @@ class Admin {
 		// Meta-boxes
 		add_action( 'add_meta_boxes', array( $this, 'nuclen_add_quiz_data_meta_box' ) );
 		add_action( 'save_post', array( $this, 'nuclen_save_quiz_data_meta' ) );
-		add_action( 'add_meta_boxes', array( $this, 'nuclen_add_summary_data_meta_box' ) );
-		add_action( 'save_post', array( $this, 'nuclen_save_summary_data_meta' ) );
 
 		// AJAX & assets
 		add_action( 'wp_ajax_nuclen_fetch_app_updates', array( $this, 'nuclen_fetch_app_updates' ) );

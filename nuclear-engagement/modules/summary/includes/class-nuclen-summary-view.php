@@ -1,12 +1,13 @@
 <?php
 declare(strict_types=1);
-namespace NuclearEngagement\Front;
+
+namespace {
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-class SummaryView {
+final class Nuclen_Summary_View {
 	public function container( array $summary_data, array $settings ): string {
 		$summary_content = wp_kses_post( $summary_data['summary'] );
 		return sprintf(
