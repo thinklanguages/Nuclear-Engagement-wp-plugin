@@ -17,6 +17,7 @@ namespace NuclearEngagement\Front;
 
 use NuclearEngagement\Front\QuizShortcode;
 use NuclearEngagement\Front\SummaryShortcode;
+use NuclearEngagement\Modules\Quiz\Quiz_Service;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -27,12 +28,13 @@ trait ShortcodesTrait {
 	private ?SummaryShortcode $summary_shortcode = null;
 
 	private function get_quiz_shortcode(): QuizShortcode {
-		if ( $this->quiz_shortcode === null ) {
-			$this->quiz_shortcode = new QuizShortcode(
-				$this->nuclen_get_settings_repository(),
-				$this
-			);
-		}
+                if ( $this->quiz_shortcode === null ) {
+                        $this->quiz_shortcode = new QuizShortcode(
+                                $this->nuclen_get_settings_repository(),
+                                $this,
+                                new Quiz_Service()
+                        );
+                }
 		return $this->quiz_shortcode;
 	}
 
