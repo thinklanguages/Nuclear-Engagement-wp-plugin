@@ -74,5 +74,26 @@ namespace {
             $this->expectException(\InvalidArgumentException::class);
             $service->storeQuizData(1, $data);
         }
+
+        public function test_store_quiz_data_sanitizes_and_adds_date(): void {
+            $settings = NuclearEngagement\SettingsRepository::get_instance();
+            $service  = new NuclearEngagement\Services\ContentStorageService($settings);
+            $data = [
+                'questions' => [
+                    [
+                        'question'    => '  Q1  ',
+                        'answers'     => [' A1 ', ''],
+                        'explanation' => '  E1 ',
+                    ],
+                ],
+            ];
+            $service->storeQuizData(5, $data);
+            $saved = $GLOBALS['wp_meta'][5]['nuclen-quiz-data'];
+            $this->assertSame('Q1', $saved['questions'][0]['question']);
+            $this->assertSame(['A1'], $saved['questions'][0]['answers']);
+            $this->assertSame('E1', $saved['questions'][0]['explanation']);
+            $this->assertArrayHasKey('date', $saved);
+            $this->assertNotEmpty($saved['date']);
+        }
     }
 }
