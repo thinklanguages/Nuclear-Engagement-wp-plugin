@@ -77,6 +77,15 @@ handling with asset management and content filtering. To stay within the
 The loader now requires these files and spins up each class. This keeps
 responsibilities narrow and makes future maintenance easier.
 
+## Summary Module Decomposition
+
+The summary shortcode and meta box live in their own module under
+`modules/summary/`. `Nuclen_Summary_Shortcode` renders the
+`[nuclear_engagement_summary]` shortcode using a lightweight view helper.
+`Nuclen_Summary_Metabox` registers the Summary meta box and saves its data.
+`loader.php` includes these classes and instantiates them on
+`plugins_loaded`, mirroring how the TOC module loads its handlers.
+
 
 ## Settings Cache Extraction
 

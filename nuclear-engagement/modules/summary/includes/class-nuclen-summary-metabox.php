@@ -1,18 +1,33 @@
 <?php
 declare(strict_types=1);
 /**
- * File: admin/Traits/AdminSummaryMetabox.php
+ * Summary meta box handler.
  *
- * Handles Summary meta-box registration, rendering, and saving.
+ * Formerly the AdminSummaryMetabox trait, converted into a dedicated class
+ * under the Summary module.
  */
 
-namespace NuclearEngagement\Admin\Traits;
+namespace {
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-trait AdminSummaryMetabox {
+use NuclearEngagement\SettingsRepository;
+
+final class Nuclen_Summary_Metabox {
+
+        private SettingsRepository $settings;
+
+        public function __construct( SettingsRepository $settings ) {
+                $this->settings = $settings;
+                add_action( 'add_meta_boxes', array( $this, 'nuclen_add_summary_data_meta_box' ) );
+                add_action( 'save_post', array( $this, 'nuclen_save_summary_data_meta' ) );
+        }
+
+        private function nuclen_get_settings_repository(): SettingsRepository {
+                return $this->settings;
+        }
 
 	/*
 	-------------------------------------------------------------------------
@@ -133,9 +148,8 @@ trait AdminSummaryMetabox {
 		/* ---- Update post_modified if enabled ----------------------------- */
 		$settings_repo = $this->nuclen_get_settings_repository();
 		$settings      = $settings_repo->get( 'update_last_modified', 0 );
-		if ( ! empty( $settings ) && (int) $settings === 1 ) {
-			remove_action( 'save_post', array( $this, 'nuclen_save_quiz_data_meta' ), 10 );
-			remove_action( 'save_post', array( $this, 'nuclen_save_summary_data_meta' ), 10 );
+                if ( ! empty( $settings ) && (int) $settings === 1 ) {
+                        remove_action( 'save_post', array( $this, 'nuclen_save_summary_data_meta' ), 10 );
 
                         $time   = current_time( 'mysql' );
                         $result = wp_update_post(
@@ -152,8 +166,7 @@ trait AdminSummaryMetabox {
                                 \NuclearEngagement\Services\LoggingService::notify_admin( 'Failed to update modified time for post ' . $post_id . ': ' . $result->get_error_message() );
                         }
 
-			add_action( 'save_post', array( $this, 'nuclen_save_quiz_data_meta' ), 10, 1 );
-			add_action( 'save_post', array( $this, 'nuclen_save_summary_data_meta' ), 10, 1 );
+                        add_action( 'save_post', array( $this, 'nuclen_save_summary_data_meta' ), 10, 1 );
 		}
 
 		/* ---- Protected flag ---------------------------------------------- */

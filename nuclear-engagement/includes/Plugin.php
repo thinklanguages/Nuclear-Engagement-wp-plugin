@@ -80,8 +80,11 @@ class Plugin {
 		/* ► Ensure OptinData hooks are registered */
 		OptinData::init();
 
-		// TOC module
-		require_once plugin_dir_path( __FILE__ ) . '../modules/toc/loader.php';
+                // TOC module
+                require_once plugin_dir_path( __FILE__ ) . '../modules/toc/loader.php';
+
+                // Summary module
+                require_once plugin_dir_path( __FILE__ ) . '../modules/summary/loader.php';
 
 		$this->loader = new Loader();
 	}

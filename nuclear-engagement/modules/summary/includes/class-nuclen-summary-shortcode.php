@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
-namespace NuclearEngagement\Front;
+
+namespace {
 
 use NuclearEngagement\SettingsRepository;
 use NuclearEngagement\Front\FrontClass;
@@ -9,15 +10,15 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-class SummaryShortcode {
+final class Nuclen_Summary_Shortcode {
 	private SettingsRepository $settings;
-	private SummaryView $view;
+        private Nuclen_Summary_View $view;
 	private FrontClass $front;
 
 	public function __construct( SettingsRepository $settings, FrontClass $front ) {
 		$this->settings = $settings;
 		$this->front    = $front;
-		$this->view     = new SummaryView();
+                $this->view     = new Nuclen_Summary_View();
 	}
 
 	public function register(): void {

@@ -1,12 +1,10 @@
 <?php
 use PHPUnit\Framework\TestCase;
-use NuclearEngagement\Front\SummaryShortcode;
-use NuclearEngagement\Front\SummaryView;
+use Nuclen_Summary_Shortcode as SummaryShortcode;
+use Nuclen_Summary_View as SummaryView;
 use NuclearEngagement\SettingsRepository;
 
-namespace NuclearEngagement\Front {
-    function get_the_ID() { return $GLOBALS['current_post_id'] ?? 0; }
-}
+function get_the_ID() { return $GLOBALS['current_post_id'] ?? 0; }
 
 namespace {
     if (!function_exists('esc_html')) {
