@@ -53,10 +53,27 @@ spl_autoload_register(
         }
 
         $relative = str_replace( '\\', '/', substr( $class, strlen( $prefix ) ) );
-        $file     = NUCLEN_PLUGIN_DIR . $relative . '.php';
 
-        if ( file_exists( $file ) ) {
-            require_once $file;
+        $paths = array();
+
+        // Direct mapping using the namespace structure.
+        $paths[] = NUCLEN_PLUGIN_DIR . $relative . '.php';
+
+        // Handle directories that are lowercase on disk (e.g. admin, front).
+        $segments = explode( '/', $relative );
+        if ( in_array( $segments[0], array( 'Admin', 'Front' ), true ) ) {
+            $segments[0] = strtolower( $segments[0] );
+            $paths[]     = NUCLEN_PLUGIN_DIR . implode( '/', $segments ) . '.php';
+        }
+
+        // Classes living under includes/.
+        $paths[] = NUCLEN_PLUGIN_DIR . 'includes/' . $relative . '.php';
+
+        foreach ( $paths as $file ) {
+            if ( file_exists( $file ) ) {
+                require_once $file;
+                return;
+            }
         }
     }
 );
