@@ -4,6 +4,7 @@ if (!function_exists('wp_upload_dir')) {
         return [
             'basedir' => $GLOBALS['test_upload_basedir'] ?? sys_get_temp_dir(),
             'baseurl'  => $GLOBALS['test_upload_baseurl'] ?? 'http://example.com/uploads',
+            'error'    => $GLOBALS['test_upload_error'] ?? '',
         ];
     }
 }

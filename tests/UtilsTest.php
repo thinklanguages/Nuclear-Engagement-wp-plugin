@@ -69,5 +69,13 @@ namespace {
             $this->assertNotEmpty(\NuclearEngagement\Services\LoggingService::$logs);
             unset($GLOBALS['test_wp_mkdir_p_failure']);
         }
+
+        public function test_returns_empty_array_on_upload_dir_error(): void {
+            $GLOBALS['test_upload_error'] = 'fail';
+            $info = Utils::nuclen_get_custom_css_info();
+            $this->assertSame([], $info);
+            $this->assertNotEmpty(\NuclearEngagement\Services\LoggingService::$logs);
+            unset($GLOBALS['test_upload_error']);
+        }
     }
 }

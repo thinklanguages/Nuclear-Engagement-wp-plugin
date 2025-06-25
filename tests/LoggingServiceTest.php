@@ -37,6 +37,14 @@ namespace NuclearEngagement\Services {
 
 namespace {
     class LoggingServiceTest extends TestCase {
+        private static string $plugin_dir;
+
+        public static function setUpBeforeClass(): void {
+            self::$plugin_dir = sys_get_temp_dir() . '/ls_plugin_' . uniqid();
+            if (!defined('NUCLEN_PLUGIN_DIR')) {
+                define('NUCLEN_PLUGIN_DIR', self::$plugin_dir . '/');
+            }
+        }
         protected function setUp(): void {
             $GLOBALS['ls_actions'] = [];
             $GLOBALS['ls_errors'] = [];
@@ -46,6 +54,9 @@ namespace {
             mkdir($GLOBALS['test_upload_basedir']);
             $GLOBALS['ls_filter_buffer'] = false;
             $GLOBALS['ls_rename_fail'] = false;
+            if (!is_dir(self::$plugin_dir)) {
+                mkdir(self::$plugin_dir, 0777, true);
+            }
         }
 
         protected function tearDown(): void {
@@ -60,6 +71,10 @@ namespace {
                 @unlink($file);
             }
             @rmdir($base);
+            if (is_dir(self::$plugin_dir)) {
+                array_map('unlink', glob(self::$plugin_dir . '/*'));
+                rmdir(self::$plugin_dir);
+            }
         }
 
         public function test_unwritable_directory_triggers_fallback(): void {
@@ -133,6 +148,18 @@ namespace {
 
             $this->assertNotEmpty($GLOBALS['ls_errors']);
             $this->assertStringContainsString('Failed to rotate log file', $GLOBALS['ls_errors'][0]);
+        }
+
+        public function test_upload_dir_error_returns_fallback_info(): void {
+            $GLOBALS['test_upload_error'] = 'fail';
+            $info = LoggingService::get_log_file_info();
+            $expected_dir = rtrim(NUCLEN_PLUGIN_DIR, '/') . '/logs';
+            $this->assertSame($expected_dir, $info['dir']);
+            $this->assertSame($expected_dir . '/log.txt', $info['path']);
+            $this->assertSame('', $info['url']);
+            $this->assertSame('admin_notices', $GLOBALS['ls_actions'][0][0]);
+            $this->assertNotEmpty($GLOBALS['ls_errors']);
+            unset($GLOBALS['test_upload_error']);
         }
 
         public function test_log_exception_without_debug(): void {
