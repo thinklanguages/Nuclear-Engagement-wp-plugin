@@ -108,14 +108,14 @@ class ContentController {
 				200
 			);
 
-		} catch ( \InvalidArgumentException $e ) {
-			\NuclearEngagement\Services\LoggingService::log( 'REST validation error: ' . $e->getMessage() );
-			return new \WP_Error( 'ne_invalid', $e->getMessage(), array( 'status' => 400 ) );
-		} catch ( \Exception $e ) {
-			\NuclearEngagement\Services\LoggingService::log( 'REST error: ' . $e->getMessage() );
-			return new \WP_Error( 'ne_error', __( 'An error occurred', 'nuclear-engagement' ), array( 'status' => 500 ) );
-		}
-	}
+               } catch ( \InvalidArgumentException $e ) {
+                       \NuclearEngagement\Services\LoggingService::log_exception( $e );
+                       return new \WP_Error( 'ne_invalid', $e->getMessage(), array( 'status' => 400 ) );
+               } catch ( \Exception $e ) {
+                       \NuclearEngagement\Services\LoggingService::log_exception( $e );
+                       return new \WP_Error( 'ne_error', __( 'An error occurred', 'nuclear-engagement' ), array( 'status' => 500 ) );
+               }
+       }
 
 	/**
 	 * Check permissions

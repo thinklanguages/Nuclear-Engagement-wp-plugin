@@ -39,20 +39,20 @@ trait RestTrait {
 						$storage   = $container->get( 'content_storage' );
 			$storage->storeQuizData( $post_id, $quiz_data );
 			return true;
-		} catch ( \Exception $e ) {
-			\NuclearEngagement\Services\LoggingService::log( "Failed storing quiz-data for {$post_id}: " . $e->getMessage() );
-			return false;
-		}
-	}
+               } catch ( \Exception $e ) {
+                       \NuclearEngagement\Services\LoggingService::log_exception( $e );
+                       return false;
+               }
+       }
 
 	public function nuclen_send_posts_to_app_backend( $data_to_send ) {
 		try {
 						$container = $this->get_container();
 						$api       = $container->get( 'remote_api' );
 						return $api->send_posts_to_generate( $data_to_send );
-		} catch ( \RuntimeException $e ) {
-			\NuclearEngagement\Services\LoggingService::log( 'Error sending data: ' . $e->getMessage() );
-			return false;
-		}
-	}
+               } catch ( \RuntimeException $e ) {
+                       \NuclearEngagement\Services\LoggingService::log_exception( $e );
+                       return false;
+               }
+       }
 }

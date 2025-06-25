@@ -67,11 +67,25 @@ class LoggingService {
 	/**
 	 * Debug level logging, only when WP_DEBUG is true.
 	 */
-	public static function debug( string $message ): void {
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			self::log( '[DEBUG] ' . $message );
-		}
-	}
+        public static function debug( string $message ): void {
+                if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+                        self::log( '[DEBUG] ' . $message );
+                }
+        }
+
+       /**
+        * Log an exception including file and line. When WP_DEBUG is true
+        * append a short stack trace.
+        */
+       public static function log_exception( \Throwable $e ): void {
+               $msg = $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine();
+               if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+                       $trace_lines = explode( "\n", $e->getTraceAsString() );
+                       $trace       = implode( ' | ', array_slice( $trace_lines, 0, 3 ) );
+                       $msg        .= ' Stack trace: ' . $trace;
+               }
+               self::log( $msg );
+       }
 
 	/**
 	 * Output stored admin notices.

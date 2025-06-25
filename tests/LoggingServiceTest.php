@@ -134,5 +134,28 @@ namespace {
             $this->assertNotEmpty($GLOBALS['ls_errors']);
             $this->assertStringContainsString('Failed to rotate log file', $GLOBALS['ls_errors'][0]);
         }
+
+        public function test_log_exception_without_debug(): void {
+            $e = new \Exception('oops');
+            LoggingService::log_exception($e);
+            $info = LoggingService::get_log_file_info();
+            $this->assertFileExists($info['path']);
+            $contents = file_get_contents($info['path']);
+            $this->assertStringContainsString('oops in', $contents);
+            $this->assertStringNotContainsString('Stack trace:', $contents);
+        }
+
+        public function test_log_exception_with_debug(): void {
+            if (!defined('WP_DEBUG')) {
+                define('WP_DEBUG', true);
+            }
+            $e = new \Exception('boom');
+            LoggingService::log_exception($e);
+            $info = LoggingService::get_log_file_info();
+            $this->assertFileExists($info['path']);
+            $contents = file_get_contents($info['path']);
+            $this->assertStringContainsString('boom in', $contents);
+            $this->assertStringContainsString('Stack trace:', $contents);
+        }
     }
 }
