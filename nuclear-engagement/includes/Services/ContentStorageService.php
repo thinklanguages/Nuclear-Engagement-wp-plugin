@@ -88,29 +88,51 @@ class ContentStorageService {
 	 * @param array $data
 	 * @throws \InvalidArgumentException On invalid data
 	 */
-	public function storeQuizData( int $postId, array $data ): void {
-		if ( empty( $data['questions'] ) || ! is_array( $data['questions'] ) ) {
-			throw new \InvalidArgumentException( "Invalid quiz data for post {$postId}" );
-		}
+        public function storeQuizData( int $postId, array $data ): void {
+                if ( empty( $data['questions'] ) || ! is_array( $data['questions'] ) ) {
+                        throw new \InvalidArgumentException( "Invalid quiz data for post {$postId}" );
+                }
 
-		$formatted = array(
-			'questions' => array_map(
-				function ( $q ) {
-					return array(
-						'question'    => $q['question'] ?? '',
-						'answers'     => $q['answers'] ?? array(),
-						'explanation' => $q['explanation'] ?? '',
-					);
-				},
-				$data['questions']
-			),
-			'date'      => $data['date'] ?? current_time( 'mysql' ),
-		);
+                $maxAnswers = $this->settings->get_int( 'answers_per_question', 4 );
+                $questions  = array();
 
-		if ( ! update_post_meta( $postId, 'nuclen-quiz-data', $formatted ) ) {
-			throw new \RuntimeException( "Failed to update quiz data for post {$postId}" );
-		}
-	}
+                foreach ( $data['questions'] as $question ) {
+                        if ( ! is_array( $question ) ) {
+                                continue;
+                        }
+
+                        $qText = trim( (string) ( $question['question'] ?? '' ) );
+                        $answers = isset( $question['answers'] ) && is_array( $question['answers'] )
+                                ? array_map( 'trim', $question['answers'] )
+                                : array();
+                        $answers = array_filter( $answers, static function ( $a ) {
+                                return $a !== '';
+                        } );
+
+                        if ( $qText === '' || empty( $answers ) ) {
+                                continue;
+                        }
+
+                        $questions[] = array(
+                                'question'    => sanitize_text_field( $qText ),
+                                'answers'     => array_map( 'sanitize_text_field', array_slice( $answers, 0, $maxAnswers ) ),
+                                'explanation' => sanitize_text_field( (string) ( $question['explanation'] ?? '' ) ),
+                        );
+                }
+
+                if ( empty( $questions ) ) {
+                        throw new \InvalidArgumentException( "Invalid quiz data for post {$postId}" );
+                }
+
+                $formatted = array(
+                        'questions' => $questions,
+                        'date'      => $data['date'] ?? current_time( 'mysql' ),
+                );
+
+                if ( ! update_post_meta( $postId, 'nuclen-quiz-data', $formatted ) ) {
+                        throw new \RuntimeException( "Failed to update quiz data for post {$postId}" );
+                }
+        }
 
 	/**
 	 * Store summary data
