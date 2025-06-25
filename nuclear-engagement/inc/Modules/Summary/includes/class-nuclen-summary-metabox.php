@@ -7,23 +7,23 @@ declare(strict_types=1);
  * under the Summary module.
  */
 
-namespace {
+namespace NuclearEngagement\Modules\Summary;
 
 if ( ! defined( 'ABSPATH' ) ) {
-	exit;
+    exit;
 }
 
 use NuclearEngagement\SettingsRepository;
 
 final class Nuclen_Summary_Metabox {
 
-        private SettingsRepository $settings;
+    private SettingsRepository $settings;
 
-        public function __construct( SettingsRepository $settings ) {
-                $this->settings = $settings;
-                add_action( 'add_meta_boxes', array( $this, 'nuclen_add_summary_data_meta_box' ) );
-                add_action( 'save_post', array( $this, 'nuclen_save_summary_data_meta' ) );
-        }
+    public function __construct( SettingsRepository $settings ) {
+        $this->settings = $settings;
+        add_action( 'add_meta_boxes', array( $this, 'nuclen_add_summary_data_meta_box' ) );
+        add_action( 'save_post', array( $this, 'nuclen_save_summary_data_meta' ) );
+    }
 
         private function nuclen_get_settings_repository(): SettingsRepository {
                 return $this->settings;

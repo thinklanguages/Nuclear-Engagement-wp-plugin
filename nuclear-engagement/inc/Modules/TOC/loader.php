@@ -9,9 +9,16 @@
 
 declare(strict_types=1);
 
+namespace NuclearEngagement\Modules\TOC;
+
 if ( ! defined( 'ABSPATH' ) ) {
-	exit;
+    exit;
 }
+
+use NuclearEngagement\Modules\TOC\Nuclen_TOC_Utils;
+use NuclearEngagement\Modules\TOC\Nuclen_TOC_Headings;
+use NuclearEngagement\Modules\TOC\Nuclen_TOC_Render;
+use NuclearEngagement\Modules\TOC\Nuclen_TOC_Admin;
 
 /*
  * ------------------------------------------------------------------

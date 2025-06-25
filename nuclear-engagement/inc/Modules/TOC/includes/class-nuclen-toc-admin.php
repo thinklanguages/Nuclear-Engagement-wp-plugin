@@ -8,11 +8,13 @@
 
 declare(strict_types=1);
 
-if ( ! defined( 'ABSPATH' ) ) {
-	exit;
-}
+namespace NuclearEngagement\Modules\TOC;
 
 use NuclearEngagement\AssetVersions;
+
+if ( ! defined( 'ABSPATH' ) ) {
+    exit;
+}
 
 /**
  * Admin page for generating TOC shortcodes.

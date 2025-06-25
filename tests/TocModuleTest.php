@@ -13,7 +13,7 @@ if ( ! defined( 'NUCLEN_TOC_SCROLL_OFFSET_DEFAULT' ) ) {
     define( 'NUCLEN_TOC_SCROLL_OFFSET_DEFAULT', 72 );
 }
 if ( ! defined( 'NUCLEN_TOC_DIR' ) ) {
-    define( 'NUCLEN_TOC_DIR', dirname( __DIR__ ) . '/nuclear-engagement/modules/toc/' );
+    define( 'NUCLEN_TOC_DIR', dirname( __DIR__ ) . '/nuclear-engagement/inc/Modules/TOC/' );
 }
 if ( ! defined( 'NUCLEN_TOC_URL' ) ) {
     define( 'NUCLEN_TOC_URL', 'http://example.com/' );
@@ -204,7 +204,7 @@ class TocModuleTest extends TestCase {
 
     public function test_heading_ids_are_injected() {
         $this->registerSettings();
-        $headings = new Nuclen_TOC_Headings();
+        $headings = new \NuclearEngagement\Modules\TOC\Nuclen_TOC_Headings();
         $html = '<h2>Intro</h2><h2>Intro</h2><h3 class="no-toc">Skip</h3><h2 id="existing">X</h2>';
         $result = $headings->add_heading_ids($html);
         $this->assertStringContainsString('<h2 id="intro">Intro</h2>', $result);
@@ -220,7 +220,7 @@ class TocModuleTest extends TestCase {
             'post_content' => '<h2>One</h2><h3>Sub</h3>',
         ];
         $this->registerSettings();
-        $render = new Nuclen_TOC_Render();
+        $render = new \NuclearEngagement\Modules\TOC\Nuclen_TOC_Render();
         $out = $render->nuclen_toc_shortcode([]);
         $this->assertStringContainsString('<nav id="', $out);
         $this->assertStringContainsString('<a href="#one">One</a>', $out);
@@ -238,13 +238,13 @@ class TocModuleTest extends TestCase {
 
         $this->registerSettings();
 
-        Nuclen_TOC_Utils::extract( $wp_posts[1]->post_content, [2, 3] );
+        \NuclearEngagement\Modules\TOC\Nuclen_TOC_Utils::extract( $wp_posts[1]->post_content, [2, 3] );
         $key = md5( $wp_posts[1]->post_content ) . '_23';
 
         $this->assertArrayHasKey( $key, $wp_cache['nuclen_toc'] );
         $this->assertArrayHasKey( 'nuclen_toc_' . $key, $transients );
 
-        Nuclen_TOC_Utils::clear_cache_for_post( 1 );
+        \NuclearEngagement\Modules\TOC\Nuclen_TOC_Utils::clear_cache_for_post( 1 );
 
         $this->assertArrayNotHasKey( $key, $wp_cache['nuclen_toc'] );
         $this->assertArrayNotHasKey( 'nuclen_toc_' . $key, $transients );
