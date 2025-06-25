@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace NuclearEngagement;
 
 use NuclearEngagement\Services\{GenerationService, RemoteApiService, ContentStorageService, PointerService, PostsQueryService, AutoGenerationService, AutoGenerationQueue, AutoGenerationScheduler, GenerationPoller, PublishGenerationHandler, VersionService, DashboardDataService};
+use NuclearEngagement\Services\Remote\{RemoteRequest, ApiResponseHandler};
 use NuclearEngagement\Admin\Controller\Ajax\{GenerateController, UpdatesController, PointerController, PostsCountController};
 use NuclearEngagement\Admin\Controller\OptinExportController;
 use NuclearEngagement\Front\Controller\Rest\ContentController;
@@ -21,7 +22,9 @@ final class ContainerRegistrar {
     public static function register( Container $container, SettingsRepository $settings ): void {
         $container->register( 'settings', static fn() => $settings );
 
-        $container->register( 'remote_api', static fn( $c ) => new RemoteApiService( $c->get( 'settings' ) ) );
+        $container->register( 'remote_request', static fn() => new Services\Remote\RemoteRequest() );
+        $container->register( 'api_response_handler', static fn() => new Services\Remote\ApiResponseHandler() );
+        $container->register( 'remote_api', static fn( $c ) => new RemoteApiService( $c->get( 'settings' ), $c->get( 'remote_request' ), $c->get( 'api_response_handler' ) ) );
         $container->register( 'content_storage', static fn( $c ) => new ContentStorageService( $c->get( 'settings' ) ) );
 
                 $container->register(
