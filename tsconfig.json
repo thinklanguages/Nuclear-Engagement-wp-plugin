@@ -32,6 +32,7 @@
   },
   "include": [
     "src/admin/ts/**/*",
-    "src/front/ts/**/*"
+    "src/front/ts/**/*",
+    "src/modules/toc/ts/**/*"
   ]
 }

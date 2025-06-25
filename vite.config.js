@@ -12,10 +12,18 @@ export default defineConfig({
     emptyOutDir: false,
 
     rollupOptions: {
-      // Two entry points: one for admin, one for front
+      // Entry points for admin, front and the TOC module
       input: {
         admin: path.resolve(__dirname, 'src/admin/ts/nuclen-admin.ts'),
-        front: path.resolve(__dirname, 'src/front/ts/nuclen-front.ts')
+        front: path.resolve(__dirname, 'src/front/ts/nuclen-front.ts'),
+        tocAdmin: path.resolve(
+          __dirname,
+          'src/modules/toc/ts/nuclen-toc-admin.ts',
+        ),
+        tocFront: path.resolve(
+          __dirname,
+          'src/modules/toc/ts/nuclen-toc-front.ts',
+        )
       },
       output: {
         // Place each entry in its own subfolder
@@ -25,6 +33,12 @@ export default defineConfig({
           }
           if (chunkInfo.name === 'front') {
             return 'front/js/nuclen-front.js';
+          }
+          if (chunkInfo.name === 'tocAdmin') {
+            return 'modules/toc/assets/js/nuclen-toc-admin.js';
+          }
+          if (chunkInfo.name === 'tocFront') {
+            return 'modules/toc/assets/js/nuclen-toc-front.js';
           }
           // fallback for any other entry (if you had more)
           return '[name].js';
