@@ -192,29 +192,28 @@ class GenerationService {
 	 * @return array
 	 */
     private function getPostsData( array $postIds, string $postType, string $postStatus ): array {
+        global $wpdb;
+
         $data      = array();
         $postsById = array();
 
         foreach ( array_chunk( $postIds, 50 ) as $chunk ) {
-            $args = array(
-                'post__in'               => $chunk,
-                'numberposts'            => -1,
-                'post_type'              => $postType,
-                'post_status'            => $postStatus,
-                'orderby'                => 'post__in',
-                // Disable caching for performance when bulk generating.
-                'update_post_meta_cache' => false,
-                'update_post_term_cache' => false,
-                'cache_results'          => false,
-                'no_found_rows'          => true,
+            $placeholders = implode( ',', array_fill( 0, count( $chunk ), '%d' ) );
+            $sql          = $wpdb->prepare(
+                "SELECT ID, post_title, post_content
+                 FROM {$wpdb->posts}
+                 WHERE ID IN ($placeholders)
+                   AND post_type = %s
+                   AND post_status = %s",
+                array_merge( $chunk, array( $postType, $postStatus ) )
             );
 
-            $posts = get_posts( $args );
+            $posts = $wpdb->get_results( $sql );
 
             foreach ( $posts as $post ) {
                 $postsById[ (int) $post->ID ] = array(
-                    'id'      => $post->ID,
-                    'title'   => get_the_title( $post->ID ),
+                    'id'      => (int) $post->ID,
+                    'title'   => $post->post_title,
                     'content' => wp_strip_all_tags( $post->post_content ),
                 );
             }
