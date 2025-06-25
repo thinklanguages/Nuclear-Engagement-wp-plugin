@@ -101,6 +101,7 @@ class GenerationService {
                     )
                 );
         } catch ( \Throwable $e ) {
+            \NuclearEngagement\Services\LoggingService::log_exception( $e );
             $response               = new GenerationResponse();
             $response->generationId = $request->generationId;
             $response->success      = false;
