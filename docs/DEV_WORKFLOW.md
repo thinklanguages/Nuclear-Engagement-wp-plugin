@@ -58,11 +58,10 @@ After starting the environment, run PHPUnit from the repository root:
 composer test
 ```
 
-You can also run static analysis (optional):
+Run PHPStan for static analysis (required):
 
 ```bash
-composer require --dev phpstan/phpstan-deprecation
-vendor/bin/phpstan analyse
+composer phpstan
 ```
 
 ## Typical workflow
