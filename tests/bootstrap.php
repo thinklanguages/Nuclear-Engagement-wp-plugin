@@ -55,10 +55,10 @@ if (!function_exists('delete_option')) {
 }
 
 // Include files for tests
-require_once __DIR__ . '/../nuclear-engagement/includes/Defaults.php';
+require_once __DIR__ . '/../nuclear-engagement/inc/Core/Defaults.php';
 require_once __DIR__ . '/../nuclear-engagement/includes/OptinData.php';
-require_once __DIR__ . '/../nuclear-engagement/includes/SettingsRepository.php';
-require_once __DIR__ . '/../nuclear-engagement/includes/SettingsSanitizer.php';
+require_once __DIR__ . '/../nuclear-engagement/inc/Core/SettingsRepository.php';
+require_once __DIR__ . '/../nuclear-engagement/inc/Core/SettingsSanitizer.php';
 if (!function_exists('sanitize_key')) {
     function sanitize_key($key) { return strtolower(preg_replace('/[^a-z0-9_]/', '', $key)); }
 }

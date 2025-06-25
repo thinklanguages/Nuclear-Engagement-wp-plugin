@@ -7,7 +7,11 @@
       "NuclearEngagement\\Requests\\": "includes/Requests/",
       "NuclearEngagement\\Responses\\": "includes/Responses/",
       "NuclearEngagement\\Modules\\": "nuclear-engagement/inc/Modules/",
-      "NuclearEngagement\\": "nuclear-engagement/"
+      "NuclearEngagement\\": [
+        "nuclear-engagement/",
+        "nuclear-engagement/inc/Core/",
+        "nuclear-engagement/inc/Utils/"
+      ]
     }
   },
   "config": {
