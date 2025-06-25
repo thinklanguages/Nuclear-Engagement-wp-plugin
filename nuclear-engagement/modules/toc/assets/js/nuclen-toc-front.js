@@ -13,8 +13,7 @@
 /* =============================================================
    Sticky TOC helper
    ============================================================= */
-const HEADER_OFFSET = 20; /* vertical gap from top */
-const SIDE_MARGIN = 20; /* keep away from viewport edge */
+// Offsets will be read from data attributes on each wrapper.
 
 function initStickyToc() {
   const wrappers = document.querySelectorAll('.nuclen-toc-sticky');
@@ -26,6 +25,13 @@ function initStickyToc() {
     const toc = wrapper.querySelector('.nuclen-toc');
     if (!toc) {
       return;
+    }
+
+    const headerOffset = parseInt(wrapper.dataset.offsetY || '20', 10);
+    const sideMargin = parseInt(wrapper.dataset.offsetX || '20', 10);
+    const showContent = wrapper.dataset.showContent;
+    if (showContent === 'false') {
+      toc.style.display = 'none';
     }
 
     let rect = wrapper.getBoundingClientRect();
@@ -53,11 +59,11 @@ function initStickyToc() {
       const contLeft = container
         ? container.getBoundingClientRect().left
         : originalLeft;
-      const min = SIDE_MARGIN;
-      const max = window.innerWidth - w - SIDE_MARGIN;
+      const min = sideMargin;
+      const max = window.innerWidth - w - sideMargin;
       return Math.max(min, Math.min(contLeft, max));
     };
-    const availHeight = () => window.innerHeight - HEADER_OFFSET * 2;
+    const availHeight = () => window.innerHeight - headerOffset * 2;
 
     toc.style.position = 'relative';
     toc.style.width = '100%';
@@ -74,7 +80,7 @@ function initStickyToc() {
 
         wrapper.classList.add('nuclen-toc-stuck');
         wrapper.style.position = 'fixed';
-        wrapper.style.top = `${HEADER_OFFSET}px`;
+        wrapper.style.top = `${headerOffset}px`;
         wrapper.style.left = `${calcLeft(w)}px`;
         wrapper.style.width = `${w}px`;
         wrapper.style.maxHeight = `${h}px`;
@@ -103,7 +109,7 @@ function initStickyToc() {
       }
       raf = requestAnimationFrame(() => {
         raf = null;
-        const shouldStick = window.pageYOffset + HEADER_OFFSET >= originalTop;
+        const shouldStick = window.pageYOffset + headerOffset >= originalTop;
         setStuck(shouldStick);
       });
     };
