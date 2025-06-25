@@ -64,6 +64,10 @@ spl_autoload_register(
         if ( in_array( $segments[0], array( 'Admin', 'Front' ), true ) ) {
             $segments[0] = strtolower( $segments[0] );
             $paths[]     = NUCLEN_PLUGIN_DIR . implode( '/', $segments ) . '.php';
+
+            if ( isset( $segments[1] ) ) {
+                $paths[] = NUCLEN_PLUGIN_DIR . $segments[0] . '/traits/' . $segments[1] . '.php';
+            }
         }
 
         // Classes living under includes/.
