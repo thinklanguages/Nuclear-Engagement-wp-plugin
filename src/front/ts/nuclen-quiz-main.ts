@@ -112,10 +112,10 @@ import * as logger from './logger';
       const q = questions[state.currIdx];
 
       qContainer!.innerHTML = `
-        <div id="nuclen-quiz-question-number">
+        <div id="nuclen-quiz-question-number" aria-live="polite" aria-atomic="true">
           ${state.currIdx + 1}/${questions.length}
         </div>
-        <div class="nuclen-quiz-title">${escapeHtml(q.question)}</div>`;
+        <div class="nuclen-quiz-title" role="heading" aria-level="2">${escapeHtml(q.question)}</div>`;
 
       const shuffled = shuffle(
         q.answers.map((ans, idx) => ({ ans, idx })).filter((a) => a.ans.trim()),
@@ -123,10 +123,12 @@ import * as logger from './logger';
 
       aContainer!.innerHTML = shuffled
         .map(
-          (a) => `
+          (a, i) => `
             <button
               class="nuclen-quiz-answer-button nuclen-quiz-possible-answer"
               data-orig-idx="${a.idx}"
+              tabindex="0"
+              aria-label="Answer ${i + 1}: ${escapeHtml(a.ans)}"
             >${escapeHtml(a.ans)}</button>`,
         )
         .join('');
@@ -140,15 +142,29 @@ import * as logger from './logger';
       updateProgress();
 
       /* one-shot answer handler */
-      const handler = (e: Event) => {
-        const el = e.target as HTMLElement;
-        if (!el.matches('button.nuclen-quiz-answer-button')) return;
-
+      const handler = (el: HTMLElement) => {
         const origIdx = parseInt(el.getAttribute('data-orig-idx') || '0', 10);
         checkAnswer(origIdx, shuffled.findIndex((a) => a.idx === origIdx), correctIdx);
-        aContainer!.removeEventListener('click', handler);
+        aContainer!.removeEventListener('click', clickListener);
+        aContainer!.removeEventListener('keydown', keyListener);
       };
-      aContainer!.addEventListener('click', handler);
+
+      const clickListener = (e: Event) => {
+        const el = e.target as HTMLElement;
+        if (!el.matches('button.nuclen-quiz-answer-button')) return;
+        handler(el);
+      };
+      const keyListener = (e: KeyboardEvent) => {
+        const el = e.target as HTMLElement;
+        if (!el.matches('button.nuclen-quiz-answer-button')) return;
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          handler(el);
+        }
+      };
+
+      aContainer!.addEventListener('click', clickListener);
+      aContainer!.addEventListener('keydown', keyListener);
     }
 
     function updateProgress(): void {
