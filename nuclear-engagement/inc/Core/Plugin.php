@@ -28,10 +28,10 @@ use NuclearEngagement\ContainerRegistrar;
 
 class Plugin {
 
-	protected $loader;
-	protected $plugin_name;
-	protected $version;
-	protected $settings_repository;
+        protected $loader;
+        protected string $plugin_name;
+        protected string $version;
+        protected SettingsRepository $settings_repository;
 
 	/**
 	 * @var Container
