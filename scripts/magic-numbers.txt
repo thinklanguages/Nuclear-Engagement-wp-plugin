@@ -1,9 +1,0 @@
-nuclear-engagement/admin/partials/settings/display/toc.php:32:                <?php printf( 'H%d', $i ); ?>
-nuclear-engagement/admin/trait-admin-metabox-quiz.php:147:            'date'      => sanitize_text_field( $raw_quiz_data['date'] ?? gmdate( 'Y-m-d H:i:s' ) ),
-nuclear-engagement/admin/trait-admin-metabox-summary.php:121:            'date'    => sanitize_text_field( $raw['date'] ?? gmdate( 'Y-m-d H:i:s' ) ),
-nuclear-engagement/admin/trait-settings-sanitize-style.php:60:            $rgb_re = '/^rgba?\\(\\s*(?:\\d{1,3}\\s*,\\s*){2}\\d{1,3}(?:\\s*,\\s*(?:0|1|0?\\.\\d+))?\\s*\\)$/i';
-nuclear-engagement/includes/OptinData.php:168:        header( 'Content-Disposition: attachment; filename=nuclen_optins_' . gmdate( 'Y-m-d' ) . '.csv' );
-nuclear-engagement/includes/Services/LoggingService.php:51:            $timestamped = $log_folder . '/log-' . gmdate('Y-m-d-His') . '.txt';
-nuclear-engagement/includes/Services/LoggingService.php:56:            $timestamp = gmdate('Y-m-d H:i:s');
-nuclear-engagement/includes/Services/LoggingService.php:62:        $timestamp = gmdate('Y-m-d H:i:s');
-nuclear-engagement/modules/toc/includes/class-nuclen-toc-view.php:63:                                ' data-offset-x="%d" data-offset-y="%d" data-max-width="%d" data-show-content="%s" data-heading-levels="%s"',
