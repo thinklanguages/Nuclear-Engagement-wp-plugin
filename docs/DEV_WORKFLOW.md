@@ -25,6 +25,13 @@ This guide shows how to run and debug the plugin locally using `wp-env` and Dock
 
 3. Access WordPress at `http://localhost:8888` and log in with the default credentials provided by `wp-env`.
 
+   If port `8888` is already in use, create a `.wp-env.override.json` file and specify a new port, for example:
+
+   ```json
+   { "port": 8889 }
+   ```
+   Restart the environment and visit `http://localhost:8889` instead.
+
 ## Fast-loop debugging
 
 Use these commands as needed while the environment is running:
