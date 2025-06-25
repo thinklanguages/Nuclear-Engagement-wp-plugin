@@ -20,17 +20,51 @@ class DummyContentStorageService {
     }
 }
 
+class AQ_WPDB {
+    public $posts = 'wp_posts';
+    public $postmeta = 'wp_postmeta';
+    public array $args = [];
+    public function prepare($sql, ...$args) {
+        $this->args = $args;
+        return $sql;
+    }
+    public function get_results($sql) {
+        $ids = array_slice($this->args, 2);
+        $rows = [];
+        foreach ($ids as $id) {
+            if (!isset($GLOBALS['wp_posts'][$id])) {
+                continue;
+            }
+            $p = $GLOBALS['wp_posts'][$id];
+            if ($p->post_status !== 'publish') {
+                continue;
+            }
+            if (!empty($GLOBALS['wp_meta'][$id]['nuclen_quiz_protected']) || !empty($GLOBALS['wp_meta'][$id]['nuclen_summary_protected'])) {
+                continue;
+            }
+            $rows[] = (object) [
+                'ID' => $p->ID,
+                'post_title' => $p->post_title,
+                'post_content' => $p->post_content,
+            ];
+        }
+        return $rows;
+    }
+}
+
 class AutoGenerationQueueTest extends TestCase {
+    private DummyRemoteApiService $api;
     protected function setUp(): void {
-        global $wp_options, $wp_autoload, $wp_posts, $wp_meta, $wp_events;
+        global $wp_options, $wp_autoload, $wp_posts, $wp_meta, $wp_events, $wpdb;
         $wp_options = $wp_autoload = $wp_posts = $wp_meta = $wp_events = [];
+        $wpdb = new AQ_WPDB();
         SettingsRepository::reset_for_tests();
     }
 
     private function makeQueue(): AutoGenerationQueue {
-        $api     = new DummyRemoteApiService();
-        $storage = new DummyContentStorageService();
-        return new AutoGenerationQueue($api, $storage);
+        $this->api = new DummyRemoteApiService();
+        $storage   = new DummyContentStorageService();
+        return new AutoGenerationQueue($this->api, $storage, new \NuclearEngagement\Services\PostDataFetcher());
     }
 
     public function test_queue_post_sets_autoload_no(): void {
@@ -64,5 +98,22 @@ class AutoGenerationQueueTest extends TestCase {
         $q->process_queue();
 
         $this->assertSame(1, $update_option_calls['nuclen_active_generations'] ?? 0);
+    }
+
+    public function test_process_queue_sends_unprotected_posts(): void {
+        global $wp_posts, $wp_meta;
+
+        $wp_posts[1] = (object) [ 'ID' => 1, 'post_title' => 'A', 'post_content' => '<b>C1</b>', 'post_status' => 'publish' ];
+        $wp_posts[2] = (object) [ 'ID' => 2, 'post_title' => 'B', 'post_content' => '<i>C2</i>', 'post_status' => 'publish' ];
+        $wp_meta[1]  = [ 'nuclen_quiz_protected' => 1 ];
+
+        $q = $this->makeQueue();
+        $q->queue_post(1, 'quiz');
+        $q->queue_post(2, 'quiz');
+        $q->process_queue();
+
+        $this->assertSame([
+            ['id' => 2, 'title' => 'B', 'content' => 'C2'],
+        ], $this->api->lastData['posts']);
     }
 }

@@ -37,7 +37,8 @@ final class ContainerRegistrar {
                         'auto_generation_queue',
                         static fn( $c ) => new AutoGenerationQueue(
                                 $c->get( 'remote_api' ),
-                                $c->get( 'content_storage' )
+                                $c->get( 'content_storage' ),
+                                new PostDataFetcher()
                         )
                 );
 
