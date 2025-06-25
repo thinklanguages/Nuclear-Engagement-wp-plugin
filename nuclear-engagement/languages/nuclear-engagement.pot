@@ -1,0 +1,267 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-06-25 17:49+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: nuclear-engagement/templates/admin/dashboard/credits.php:32
+#: nuclear-engagement/templates/admin/setup/credits.php:35
+msgid "You have"
+msgstr ""
+
+#: nuclear-engagement/templates/admin/dashboard/credits.php:34
+#: nuclear-engagement/templates/admin/setup/credits.php:37
+msgid "credits left."
+msgstr ""
+
+#: nuclear-engagement/templates/admin/dashboard/credits.php:36
+#: nuclear-engagement/templates/admin/setup/credits.php:39
+msgid "No credits info returned."
+msgstr ""
+
+#: nuclear-engagement/templates/admin/dashboard/analytics.php:15
+#, php-format
+msgid ""
+"Engagement analytics are available on the Nuclear Engagement web app (create "
+"a free account %s)."
+msgstr ""
+
+#: nuclear-engagement/templates/admin/setup/support.php:23
+#, php-format
+msgid ""
+"To report bugs, suggest features, or just any question or comment, please "
+"%1$s or drop Stefano an email at %2$s. I'm constantly developing this "
+"service and will respond within 24 hours."
+msgstr ""
+
+#: nuclear-engagement/templates/admin/setup/support.php:66
+#, php-format
+msgid ""
+"If you like what I'm doing, please leave me a review on %1$s, %2$s, %3$s, "
+"%4$s, or %5$s. It takes 1 minute to drop a 1-line review and it helps me "
+"immensely."
+msgstr ""
+
+#: nuclear-engagement/templates/admin/setup/step2.php:44
+msgid "Revoke access?"
+msgstr ""
+
+#: nuclear-engagement/templates/admin/setup/step1.php:28
+#, php-format
+msgid "Need a Gold Code? Create a free account %s."
+msgstr ""
+
+#: nuclear-engagement/templates/admin/setup/step1.php:68
+msgid "Reset Gold Code?"
+msgstr ""
+
+#: nuclear-engagement/templates/admin/settings/optin.php:75
+#, php-format
+msgid "Learn how to set up an automation: %1$s"
+msgstr ""
+
+#: nuclear-engagement/templates/admin/settings/placement/positions.php:13
+#: nuclear-engagement/templates/admin/settings/placement/positions.php:28
+#: nuclear-engagement/templates/admin/settings/placement/positions.php:43
+#, php-format
+msgid "Shortcode: <b>%s</b>."
+msgstr ""
+
+#: nuclear-engagement/inc/Core/Blocks.php:30
+msgid "Quiz"
+msgstr ""
+
+#: nuclear-engagement/inc/Core/Blocks.php:48
+msgid "Summary"
+msgstr ""
+
+#: nuclear-engagement/inc/OptinData.php:181
+msgid "Insufficient permissions."
+msgstr ""
+
+#: nuclear-engagement/inc/OptinData.php:187
+msgid "Invalid nonce."
+msgstr ""
+
+#: nuclear-engagement/inc/OptinData.php:202
+msgid "Unable to generate export."
+msgstr ""
+
+#: nuclear-engagement/inc/Services/RemoteApiService.php:147
+#: nuclear-engagement/inc/Services/RemoteApiService.php:226
+msgid "Failed to contact the Nuclear Engagement API."
+msgstr ""
+
+#: nuclear-engagement/inc/Services/GenerationPoller.php:125
+#: nuclear-engagement/inc/Services/AutoGenerationQueue.php:124
+#, php-format
+msgid "Failed to schedule event nuclen_poll_generation for generation %s"
+msgstr ""
+
+#: nuclear-engagement/inc/Services/AutoGenerationQueue.php:50
+#: nuclear-engagement/inc/Services/AutoGenerationQueue.php:147
+#, php-format
+msgid "Failed to schedule event %s"
+msgstr ""
+
+#: nuclear-engagement/inc/Modules/TOC/includes/class-nuclen-toc-assets.php:99
+msgid "Hide"
+msgstr ""
+
+#: nuclear-engagement/inc/Modules/TOC/includes/class-nuclen-toc-assets.php:100
+msgid "Show"
+msgstr ""
+
+#: nuclear-engagement/inc/Modules/TOC/includes/class-nuclen-toc-render.php:145
+msgid "Show table of contents"
+msgstr ""
+
+#: nuclear-engagement/inc/Modules/TOC/includes/class-nuclen-toc-render.php:146
+msgid "Hide table of contents"
+msgstr ""
+
+#: nuclear-engagement/inc/Modules/TOC/includes/class-nuclen-toc-admin.php:48
+#: nuclear-engagement/inc/Modules/TOC/includes/class-nuclen-toc-admin.php:49
+msgid "Nuclen TOC"
+msgstr ""
+
+#: nuclear-engagement/inc/Modules/TOC/includes/class-nuclen-toc-admin.php:92
+msgid "Copy"
+msgstr ""
+
+#: nuclear-engagement/inc/Modules/TOC/includes/class-nuclen-toc-admin.php:93
+msgid "Copied!"
+msgstr ""
+
+#: nuclear-engagement/inc/Modules/TOC/includes/class-nuclen-toc-admin.php:115
+msgid "Minimum heading level"
+msgstr ""
+
+#: nuclear-engagement/inc/Modules/TOC/includes/class-nuclen-toc-admin.php:116
+msgid "Maximum heading level"
+msgstr ""
+
+#: nuclear-engagement/inc/Modules/TOC/includes/class-nuclen-toc-admin.php:127
+msgid "Collapsible"
+msgstr ""
+
+#: nuclear-engagement/inc/Modules/TOC/includes/class-nuclen-toc-admin.php:128
+msgid "Start collapsed"
+msgstr ""
+
+#: nuclear-engagement/inc/Modules/TOC/includes/class-nuclen-toc-admin.php:129
+msgid "Smooth scroll"
+msgstr ""
+
+#: nuclear-engagement/inc/Modules/TOC/includes/class-nuclen-toc-admin.php:130
+msgid "Highlight current section"
+msgstr ""
+
+#: nuclear-engagement/inc/Modules/Quiz/class-quiz-shortcode.php:69
+#: nuclear-engagement/bootstrap.php:132
+msgid "Test your knowledge"
+msgstr ""
+
+#: nuclear-engagement/inc/Modules/Summary/includes/class-nuclen-summary-shortcode.php:55
+#: nuclear-engagement/bootstrap.php:133
+msgid "Key Facts"
+msgstr ""
+
+#: nuclear-engagement/front/Controller/Rest/ContentController.php:72
+msgid "Invalid JSON"
+msgstr ""
+
+#: nuclear-engagement/front/Controller/Rest/ContentController.php:99
+#, php-format
+msgid "%s data received and stored successfully"
+msgstr ""
+
+#: nuclear-engagement/front/Controller/Rest/ContentController.php:116
+#: nuclear-engagement/admin/Controller/Ajax/PointerController.php:56
+msgid "An error occurred"
+msgstr ""
+
+#: nuclear-engagement/front/traits/AssetsTrait.php:201
+msgid "Retake Test"
+msgstr ""
+
+#: nuclear-engagement/front/traits/AssetsTrait.php:202
+msgid "Your Score"
+msgstr ""
+
+#: nuclear-engagement/front/traits/AssetsTrait.php:203
+msgid "Perfect!"
+msgstr ""
+
+#: nuclear-engagement/front/traits/AssetsTrait.php:204
+msgid "Well done!"
+msgstr ""
+
+#: nuclear-engagement/front/traits/AssetsTrait.php:205
+msgid "Why not retake the test?"
+msgstr ""
+
+#: nuclear-engagement/front/traits/AssetsTrait.php:206
+msgid "Correct:"
+msgstr ""
+
+#: nuclear-engagement/front/traits/AssetsTrait.php:207
+msgid "Your answer:"
+msgstr ""
+
+#: nuclear-engagement/admin/Dashboard.php:109
+msgid "Unknown Author"
+msgstr ""
+
+#: nuclear-engagement/admin/Traits/SettingsPageCustomCSSTrait.php:128
+msgid "Could not create custom CSS directory."
+msgstr ""
+
+#: nuclear-engagement/admin/Controller/Ajax/PointerController.php:51
+msgid "Pointer dismissed."
+msgstr ""
+
+#: nuclear-engagement/admin/Controller/Ajax/BaseController.php:52
+msgid "Security check failed"
+msgstr ""
+
+#: nuclear-engagement/admin/Controller/Ajax/BaseController.php:59
+msgid "Not allowed"
+msgstr ""
+
+#: nuclear-engagement/admin/Controller/Ajax/GenerateController.php:50
+msgid "Missing payload in request"
+msgstr ""
+
+#: nuclear-engagement/admin/Controller/Ajax/GenerateController.php:76
+msgid "An unexpected error occurred. Please check your error logs."
+msgstr ""
+
+#: nuclear-engagement/admin/Controller/Ajax/UpdatesController.php:106
+msgid "Failed to fetch updates. Please try again later."
+msgstr ""
+
+#: nuclear-engagement/admin/Controller/Ajax/UpdatesController.php:110
+msgid "An unexpected error occurred."
+msgstr ""
+
+#: src/admin/ts/blocks/nuclen-editor-blocks.ts:13
+msgid "Quiz will render on the front-end."
+msgstr ""
+
+#: src/admin/ts/blocks/nuclen-editor-blocks.ts:21
+msgid "Summary will render on the front-end."
+msgstr ""
