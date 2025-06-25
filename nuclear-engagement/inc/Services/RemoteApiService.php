@@ -27,10 +27,6 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Service for communicating with Nuclear Engagement remote API
  */
 class RemoteApiService {
-    /**
-     * @var string Base API URL
-     */
-    private const API_BASE = 'https://app.nuclearengagement.com/api';
 
     /** Cache group for API responses. */
     private const CACHE_GROUP = 'nuclen_remote';
