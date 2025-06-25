@@ -5,6 +5,50 @@ use NuclearEngagement\Services\DashboardDataService;
 if ( ! function_exists( 'date_i18n' ) ) {
     function date_i18n( $format, $timestamp ) { return date( $format, $timestamp ); }
 }
+if ( ! defined( 'MINUTE_IN_SECONDS' ) ) {
+    define( 'MINUTE_IN_SECONDS', 60 );
+}
+
+// ------------------------------------------------------
+// Simple object cache stubs
+// ------------------------------------------------------
+if ( ! isset( $GLOBALS['wp_cache'] ) ) {
+    $GLOBALS['wp_cache'] = [];
+}
+if ( ! isset( $GLOBALS['transients'] ) ) {
+    $GLOBALS['transients'] = [];
+}
+if ( ! function_exists( 'wp_cache_get' ) ) {
+    function wp_cache_get( $key, $group = '', $force = false, &$found = null ) {
+        $found = isset( $GLOBALS['wp_cache'][ $group ][ $key ] );
+        return $GLOBALS['wp_cache'][ $group ][ $key ] ?? false;
+    }
+}
+if ( ! function_exists( 'wp_cache_set' ) ) {
+    function wp_cache_set( $key, $value, $group = '', $ttl = 0 ) {
+        $GLOBALS['wp_cache'][ $group ][ $key ] = $value;
+    }
+}
+if ( ! function_exists( 'wp_cache_flush_group' ) ) {
+    function wp_cache_flush_group( $group ) {
+        unset( $GLOBALS['wp_cache'][ $group ] );
+    }
+}
+if ( ! function_exists( 'get_transient' ) ) {
+    function get_transient( $key ) {
+        return $GLOBALS['transients'][ $key ] ?? false;
+    }
+}
+if ( ! function_exists( 'set_transient' ) ) {
+    function set_transient( $key, $value, $ttl = 0 ) {
+        $GLOBALS['transients'][ $key ] = $value;
+    }
+}
+if ( ! function_exists( 'delete_transient' ) ) {
+    function delete_transient( $key ) {
+        unset( $GLOBALS['transients'][ $key ] );
+    }
+}
 
 class DashboardDataServiceTest extends TestCase {
     protected function setUp(): void {
@@ -69,5 +113,53 @@ class DashboardDataServiceTest extends TestCase {
         $this->assertSame( 'quiz', $tasks[0]['workflow_type'] );
         $this->assertSame( 3, $tasks[0]['attempt'] );
         $this->assertSame( date( 'Y-m-d H:i', 1000 ), $tasks[0]['next_poll'] );
+    }
+
+    public function test_group_counts_are_cached(): void {
+        global $wpdb;
+        $wpdb = new class {
+            public $posts = 'wp_posts';
+            public $postmeta = 'wp_postmeta';
+            public array $args = [];
+            public int $calls = 0;
+            public function prepare( $query, ...$args ) { $this->args = $args; return 'SQL'; }
+            public function get_results( $sql, $output ) { $this->calls++; return [ [ 'g' => 'draft', 'w' => 'with', 'c' => 2 ] ]; }
+        };
+
+        $svc = new DashboardDataService();
+        $svc->get_group_counts( 'p.post_status', 'key', ['post'], ['draft'] );
+        $this->assertSame( 1, $wpdb->calls );
+
+        $svc->get_group_counts( 'p.post_status', 'key', ['post'], ['draft'] );
+        $this->assertSame( 1, $wpdb->calls );
+
+        \NuclearEngagement\InventoryCache::clear();
+
+        $svc->get_group_counts( 'p.post_status', 'key', ['post'], ['draft'] );
+        $this->assertSame( 2, $wpdb->calls );
+    }
+
+    public function test_dual_counts_are_cached(): void {
+        global $wpdb;
+        $wpdb = new class {
+            public $posts = 'wp_posts';
+            public $postmeta = 'wp_postmeta';
+            public array $args = [];
+            public int $calls = 0;
+            public function prepare( $query, ...$args ) { $this->args = $args; return 'SQL'; }
+            public function get_results( $sql, $output ) { $this->calls++; return [ [ 'g' => 1, 'quiz_with' => 1, 'quiz_without' => 0, 'summary_with' => 1, 'summary_without' => 0 ] ]; }
+        };
+
+        $svc = new DashboardDataService();
+        $svc->get_dual_counts( 'p.post_author', ['post'], ['publish'] );
+        $this->assertSame( 1, $wpdb->calls );
+
+        $svc->get_dual_counts( 'p.post_author', ['post'], ['publish'] );
+        $this->assertSame( 1, $wpdb->calls );
+
+        \NuclearEngagement\InventoryCache::clear();
+
+        $svc->get_dual_counts( 'p.post_author', ['post'], ['publish'] );
+        $this->assertSame( 2, $wpdb->calls );
     }
 }

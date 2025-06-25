@@ -118,5 +118,7 @@ final class InventoryCache {
                if ( function_exists( 'wp_cache_flush_group' ) ) {
                        wp_cache_flush_group( self::CACHE_GROUP );
                }
-        }
+
+               \NuclearEngagement\Services\DashboardDataService::clear_cache();
+       }
 }
