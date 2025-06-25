@@ -174,10 +174,10 @@ require_once NUCLEN_TOC_DIR . 'includes/class-nuclen-toc-view.php';
 require_once NUCLEN_TOC_DIR . 'includes/class-nuclen-toc-assets.php';
 require_once NUCLEN_TOC_DIR . 'includes/class-nuclen-toc-headings.php';
 require_once NUCLEN_TOC_DIR . 'includes/class-nuclen-toc-render.php';
-require_once dirname(__DIR__) . '/nuclear-engagement/includes/SettingsCache.php';
-require_once dirname(__DIR__) . '/nuclear-engagement/includes/SettingsRepository.php';
-require_once dirname(__DIR__) . '/nuclear-engagement/includes/Defaults.php';
-require_once dirname(__DIR__) . '/nuclear-engagement/includes/Container.php';
+require_once dirname(__DIR__) . '/nuclear-engagement/inc/Core/SettingsCache.php';
+require_once dirname(__DIR__) . '/nuclear-engagement/inc/Core/SettingsRepository.php';
+require_once dirname(__DIR__) . '/nuclear-engagement/inc/Core/Defaults.php';
+require_once dirname(__DIR__) . '/nuclear-engagement/inc/Core/Container.php';
 
 class TocModuleTest extends TestCase {
     protected function setUp(): void {

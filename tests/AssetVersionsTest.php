@@ -23,7 +23,7 @@ namespace {
             if (!defined('NUCLEN_ASSET_VERSION')) {
                 define('NUCLEN_ASSET_VERSION', 'default');
             }
-            require_once dirname(__DIR__) . '/nuclear-engagement/includes/AssetVersions.php';
+            require_once dirname(__DIR__) . '/nuclear-engagement/inc/Core/AssetVersions.php';
         }
 
         protected function setUp(): void {

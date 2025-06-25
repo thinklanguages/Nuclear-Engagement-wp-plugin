@@ -43,7 +43,7 @@ if ( ! file_exists( $autoload ) ) {
 if ( file_exists( $autoload ) ) {
     require_once $autoload;
 } else {
-    $utils    = __DIR__ . '/includes/Utils.php';
+    $utils    = __DIR__ . '/inc/Utils/Utils.php';
     $logging  = __DIR__ . '/includes/Services/LoggingService.php';
     if ( file_exists( $utils ) ) {
         require_once $utils;

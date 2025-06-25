@@ -8,7 +8,9 @@ The plugin is organized by concern:
 
 - `admin/` handles all wp-admin functionality and bundles TypeScript under `src/admin`.
 - `front/` contains public-facing assets and `src/front` for TypeScript sources.
-- `includes/` holds framework-agnostic services and core classes.
+- `inc/Core/` contains the core plugin classes like the loader and settings repository.
+- `inc/Utils/` stores generic helpers.
+- `includes/Services/` houses framework-agnostic services.
 - `modules/` groups optional features such as the Table of Contents.
 
 Each folder stays under the 300 LOC guideline described in `nuclear-engagement/AGENTS.md`.
@@ -48,7 +50,7 @@ Key guidelines from that document include:
 
 The settings sanitization logic originally lived inside `SettingsRepository`. To
 simplify the repository and isolate responsibilities, sanitization is now
-handled by a dedicated `SettingsSanitizer` class under `includes/`.
+handled by a dedicated `SettingsSanitizer` class under `inc/Core/`.
 
 - `SettingsRepository` now delegates sanitization to `SettingsSanitizer` when
   saving settings.

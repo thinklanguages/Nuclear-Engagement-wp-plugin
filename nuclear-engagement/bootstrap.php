@@ -74,6 +74,10 @@ spl_autoload_register(
         $paths[] = NUCLEN_PLUGIN_DIR . 'includes/' . $relative . '.php';
         // Module classes under inc/.
         $paths[] = NUCLEN_PLUGIN_DIR . 'inc/' . $relative . '.php';
+        // Core classes under inc/Core/.
+        $paths[] = NUCLEN_PLUGIN_DIR . 'inc/Core/' . $relative . '.php';
+        // Generic helpers under inc/Utils/.
+        $paths[] = NUCLEN_PLUGIN_DIR . 'inc/Utils/' . $relative . '.php';
 
         foreach ( $paths as $file ) {
             if ( file_exists( $file ) ) {
@@ -86,15 +90,15 @@ spl_autoload_register(
 
 // Fallback for class maps missing from autoload.
 if ( ! class_exists( \NuclearEngagement\AssetVersions::class ) ) {
-    $asset_versions_path = NUCLEN_PLUGIN_DIR . 'includes/AssetVersions.php';
+    $asset_versions_path = NUCLEN_PLUGIN_DIR . 'inc/Core/AssetVersions.php';
     if ( file_exists( $asset_versions_path ) ) {
         require_once $asset_versions_path;
     }
 }
 
 
-if ( file_exists( NUCLEN_PLUGIN_DIR . 'includes/constants.php' ) ) {
-    require_once NUCLEN_PLUGIN_DIR . 'includes/constants.php';
+if ( file_exists( NUCLEN_PLUGIN_DIR . 'inc/Core/constants.php' ) ) {
+    require_once NUCLEN_PLUGIN_DIR . 'inc/Core/constants.php';
 } else {
     \NuclearEngagement\Services\LoggingService::log( 'Nuclear Engagement: constants.php missing.' );
 }
