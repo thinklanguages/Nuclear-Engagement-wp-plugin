@@ -5,31 +5,39 @@ use NuclearEngagement\SettingsRepository;
 use NuclearEngagement\Requests\GenerateRequest;
 use NuclearEngagement\Services\ApiException;
 
-if (!function_exists('get_posts')) {
-    function get_posts($args) {
-        $ids = $args['post__in'] ?? [];
-        $posts = [];
+class GS_WPDB {
+    public $posts = 'wp_posts';
+    public array $prepared_sqls = [];
+    public array $prepared_args = [];
+    public array $results_sqls = [];
+
+    public function prepare($sql, ...$args) {
+        $this->prepared_sqls[] = $sql;
+        $this->prepared_args[] = $args;
+        return $sql;
+    }
+
+    public function get_results($sql) {
+        $this->results_sqls[] = $sql;
+        $args = array_shift($this->prepared_args);
+        $ids = array_slice($args, 0, -2);
+        $type = $args[count($args) - 2];
+        $status = $args[count($args) - 1];
+        $rows = [];
         foreach ($ids as $id) {
             if (!isset($GLOBALS['wp_posts'][$id])) {
                 continue;
             }
-            $include = true;
-            if (!empty($args['meta_query'])) {
-                foreach ($args['meta_query'] as $mq) {
-                    if (!is_array($mq) || !isset($mq['key'])) {
-                        continue;
-                    }
-                    if (($mq['compare'] ?? '') === 'NOT EXISTS' && isset($GLOBALS['wp_meta'][$id][$mq['key']])) {
-                        $include = false;
-                        break;
-                    }
-                }
-            }
-            if ($include) {
-                $posts[] = $GLOBALS['wp_posts'][$id];
+            $p = $GLOBALS['wp_posts'][$id];
+            if ($p->post_type === $type && $p->post_status === $status) {
+                $rows[] = (object) [
+                    'ID' => $p->ID,
+                    'post_title' => $p->post_title,
+                    'post_content' => $p->post_content,
+                ];
             }
         }
-        return $posts;
+        return $rows;
     }
 }
 
@@ -47,8 +55,9 @@ class GSStorage {
 
 class GenerationServiceTest extends TestCase {
     protected function setUp(): void {
-        global $wp_posts, $wp_options, $wp_autoload;
+        global $wp_posts, $wp_options, $wp_autoload, $wpdb;
         $wp_posts = $wp_options = $wp_autoload = [];
+        $wpdb = new GS_WPDB();
         SettingsRepository::reset_for_tests();
     }
 
@@ -80,5 +89,51 @@ class GenerationServiceTest extends TestCase {
         $this->assertFalse($res->success);
         $this->assertSame('api fail', $res->error);
         $this->assertSame(401, $res->statusCode);
+
+        global $wpdb;
+        $this->assertNotEmpty($wpdb->prepared_sqls);
+        $this->assertStringContainsString('SELECT ID, post_title, post_content', $wpdb->prepared_sqls[0]);
+    }
+
+    public function test_generate_content_sends_posts_from_wpdb(): void {
+        global $wp_posts, $wpdb;
+
+        $wp_posts[1] = (object) [
+            'ID' => 1,
+            'post_title' => 'A',
+            'post_content' => '<b>C1</b>',
+            'post_type' => 'post',
+            'post_status' => 'publish',
+        ];
+        $wp_posts[2] = (object) [
+            'ID' => 2,
+            'post_title' => 'B',
+            'post_content' => '<i>C2</i>',
+            'post_type' => 'post',
+            'post_status' => 'publish',
+        ];
+
+        $api = new class {
+            public array $data = [];
+            public function send_posts_to_generate(array $d): array { $this->data = $d['posts']; return []; }
+            public function fetch_updates(string $id): array { return []; }
+        };
+        $storage = new GSStorage();
+        $service = new GenerationService(SettingsRepository::get_instance(), $api, $storage);
+
+        $req = new GenerateRequest();
+        $req->postIds = [1, 2];
+        $req->workflowType = 'quiz';
+        $req->generationId = 'gid';
+        $req->postType = 'post';
+        $req->postStatus = 'publish';
+
+        $service->generateContent($req);
+
+        $this->assertCount(1, $wpdb->results_sqls);
+        $this->assertSame([
+            ['id' => 1, 'title' => 'A', 'content' => 'C1'],
+            ['id' => 2, 'title' => 'B', 'content' => 'C2'],
+        ], $api->data);
     }
 }
