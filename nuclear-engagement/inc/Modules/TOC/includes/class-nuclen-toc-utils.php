@@ -210,9 +210,10 @@ final class Nuclen_TOC_Utils {
                        try {
                                $settings = \NuclearEngagement\Container::getInstance()->get( 'settings' );
                                $levels   = $settings->get_array( 'toc_heading_levels', $levels );
-                       } catch ( \Throwable $e ) {
-                               // Use default levels if settings unavailable.
-                       }
+                        } catch ( \Throwable $e ) {
+                                \NuclearEngagement\Services\LoggingService::log_exception( $e );
+                                // Use default levels if settings unavailable.
+                        }
                }
 
                $levels = array_unique( array_map( 'intval', $levels ) );
