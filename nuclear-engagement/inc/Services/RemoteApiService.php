@@ -31,6 +31,12 @@ class RemoteApiService {
      */
     private const API_BASE = 'https://app.nuclearengagement.com/api';
 
+    /** Cache group for API responses. */
+    private const CACHE_GROUP = 'nuclen_remote';
+
+    /** Short cache lifetime for update polling. */
+    private const CACHE_TTL = 60; // 60 seconds
+
     /**
      * @var SettingsRepository
      */
@@ -89,6 +95,28 @@ class RemoteApiService {
 
         if ( empty( $api_key ) ) {
             throw new \RuntimeException( 'API key not configured' );
+        }
+
+        $cache_key = 'nuclen_update_' . $generation_id;
+        $found     = false;
+        $cached    = wp_cache_get( $cache_key, self::CACHE_GROUP, false, $found );
+        if ( ! $found ) {
+            $cached = get_transient( $cache_key );
+        }
+
+        if ( is_array( $cached ) ) {
+            return $cached;
+        }
+
+        $cache_key = 'nuclen_update_' . $generation_id;
+        $found     = false;
+        $cached    = wp_cache_get( $cache_key, self::CACHE_GROUP, false, $found );
+        if ( ! $found ) {
+            $cached = get_transient( $cache_key );
+        }
+
+        if ( is_array( $cached ) ) {
+            return $cached;
         }
 
         $payload = array(
@@ -234,6 +262,9 @@ class RemoteApiService {
             $msg = $data['error'] ?? 'API error';
             throw new ApiException( $msg, $code, $data['error_code'] ?? null );
         }
+
+        wp_cache_set( $cache_key, $data, self::CACHE_GROUP, self::CACHE_TTL );
+        set_transient( $cache_key, $data, self::CACHE_TTL );
 
         return $data;
     }
