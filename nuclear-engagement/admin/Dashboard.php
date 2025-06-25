@@ -210,4 +210,5 @@ $scheduled_tasks = $data_service->get_scheduled_generations();
 ──────────────────────────────────────────────────────────────
  * 5. Render dashboard (same partial as before)
  * ──────────────────────────────────────────────────────────── */
-require plugin_dir_path( __FILE__ ) . 'partials/nuclen-dashboard-page.php';
+require NUCLEN_PLUGIN_DIR . 'templates/admin/nuclen-dashboard-page.php';
+

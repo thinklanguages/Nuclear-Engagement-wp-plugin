@@ -87,8 +87,8 @@ class Setup {
 
 		$fully_setup = ( $app_setup['connected'] && $app_setup['wp_app_pass_created'] );
 
-		/* ───── View-partials directory ───── */
-		$views_dir = __DIR__ . '/partials/setup/';
+               /* ───── View-partials directory ───── */
+               $views_dir = NUCLEN_PLUGIN_DIR . 'templates/admin/setup/';
 
 		/* ───── Branding header ───── */
 		$this->utils->display_nuclen_page_header();

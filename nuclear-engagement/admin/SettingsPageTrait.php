@@ -47,7 +47,7 @@ trait SettingsPageTrait {
 			$this->nuclen_write_custom_css( $new_settings );
 		}
 
-		/* 4) RENDER THE ADMIN FORM -------------------------------- */
-		include plugin_dir_path( __FILE__ ) . 'partials/nuclen-admin-settings.php';
-	}
+               /* 4) RENDER THE ADMIN FORM -------------------------------- */
+               include NUCLEN_PLUGIN_DIR . 'templates/admin/nuclen-admin-settings.php';
+        }
 }
