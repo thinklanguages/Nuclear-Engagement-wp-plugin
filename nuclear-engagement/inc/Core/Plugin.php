@@ -81,10 +81,24 @@ class Plugin {
 		OptinData::init();
 
                 // TOC module
-                require_once NUCLEN_PLUGIN_DIR . 'inc/Modules/TOC/loader.php';
+                $toc_loader = NUCLEN_PLUGIN_DIR . 'inc/Modules/TOC/loader.php';
+                if ( file_exists( $toc_loader ) ) {
+                        require_once $toc_loader;
+                } else {
+                        Services\LoggingService::notify_admin(
+                                'Nuclear Engagement TOC module missing.'
+                        );
+                }
 
                 // Summary module
-                require_once NUCLEN_PLUGIN_DIR . 'inc/Modules/Summary/loader.php';
+                $summary_loader = NUCLEN_PLUGIN_DIR . 'inc/Modules/Summary/loader.php';
+                if ( file_exists( $summary_loader ) ) {
+                        require_once $summary_loader;
+                } else {
+                        Services\LoggingService::notify_admin(
+                                'Nuclear Engagement Summary module missing.'
+                        );
+                }
 
 		$this->loader = new Loader();
 	}
