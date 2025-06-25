@@ -60,7 +60,7 @@ npm run dev
 
 ## Release
 
-Create a production archive with:
+Create a production archive with runtime dependencies only:
 
 ```bash
 composer install --no-dev --optimize-autoloader
@@ -79,17 +79,4 @@ This builds the plugin and packages it. See [CI Guidelines](docs/CI_GUIDELINES.m
 - [Hooks Reference](docs/hooks.md)
 - [CI Guidelines](docs/CI_GUIDELINES.md)
 - [Development Workflow](docs/DEV_WORKFLOW.md)
-
-## Release
-
-Create a production archive with runtime dependencies only:
-
-```bash
-composer install --no-dev --optimize-autoloader
-npm ci
-npm run build
-./scripts/build-release.sh
-```
-
-See [CI Guidelines](docs/CI_GUIDELINES.md) for full details.
 
