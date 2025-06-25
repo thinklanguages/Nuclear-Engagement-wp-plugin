@@ -11,7 +11,7 @@ declare(strict_types=1);
 namespace NuclearEngagement\Admin\Traits;
 
 if ( ! defined( 'ABSPATH' ) ) {
-	exit;
+    exit;
 }
 
 

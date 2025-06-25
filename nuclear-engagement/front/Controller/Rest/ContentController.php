@@ -16,7 +16,7 @@ use NuclearEngagement\SettingsRepository;
 use NuclearEngagement\Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
-	exit;
+    exit;
 }
 
 /**
@@ -27,9 +27,9 @@ if ( ! defined( 'ABSPATH' ) ) {
  * admin nonce check when present.
  */
 class ContentController {
-	/**
-	 * @var ContentStorageService
-	 */
+    /**
+     * @var ContentStorageService
+     */
         private ContentStorageService $storage;
 
         /**
@@ -37,28 +37,28 @@ class ContentController {
          */
         private SettingsRepository $settings;
 
-	/**
-	 * @var Utils
-	 */
-	private Utils $utils;
+    /**
+     * @var Utils
+     */
+    private Utils $utils;
 
-	/**
-	 * Constructor
-	 *
-	 * @param ContentStorageService $storage
-	 */
+    /**
+     * Constructor
+     *
+     * @param ContentStorageService $storage
+     */
         public function __construct( ContentStorageService $storage, SettingsRepository $settings ) {
                 $this->storage  = $storage;
                 $this->settings = $settings;
                 $this->utils    = new Utils();
         }
 
-	/**
-	 * Handle content receive request
-	 *
-	 * @param \WP_REST_Request $request
-	 * @return \WP_REST_Response|\WP_Error
-	 */
+    /**
+     * Handle content receive request
+     *
+     * @param \WP_REST_Request $request
+     * @return \WP_REST_Response|\WP_Error
+     */
         public function handle( \WP_REST_Request $request ) {
                 try {
                         // Authentication handled in permissions()
@@ -83,30 +83,30 @@ class ContentController {
                                 )
                         );
 
-			$contentRequest = ContentRequest::fromJson( $data );
+            $contentRequest = ContentRequest::fromJson( $data );
 
-			// Store the results
-			$this->storage->storeResults( $contentRequest->results, $contentRequest->workflow );
+            // Store the results
+            $this->storage->storeResults( $contentRequest->results, $contentRequest->workflow );
 
-			// Get date from first stored item
-			reset( $contentRequest->results );
-			$firstPostId = key( $contentRequest->results );
-			$metaKey     = $contentRequest->workflow === 'quiz' ? 'nuclen-quiz-data' : 'nuclen-summary-data';
-			$stored      = get_post_meta( $firstPostId, $metaKey, true );
-			$date        = is_array( $stored ) && ! empty( $stored['date'] ) ? $stored['date'] : '';
+            // Get date from first stored item
+            reset( $contentRequest->results );
+            $firstPostId = key( $contentRequest->results );
+            $metaKey     = $contentRequest->workflow === 'quiz' ? 'nuclen-quiz-data' : 'nuclen-summary-data';
+            $stored      = get_post_meta( $firstPostId, $metaKey, true );
+            $date        = is_array( $stored ) && ! empty( $stored['date'] ) ? $stored['date'] : '';
 
-			$message = sprintf(
-				__( '%s data received and stored successfully', 'nuclear-engagement' ),
-				ucfirst( $contentRequest->workflow )
-			);
+            $message = sprintf(
+                __( '%s data received and stored successfully', 'nuclear-engagement' ),
+                ucfirst( $contentRequest->workflow )
+            );
 
-			return new \WP_REST_Response(
-				array(
-					'message'   => $message,
-					'finalDate' => $date,
-				),
-				200
-			);
+            return new \WP_REST_Response(
+                array(
+                    'message'   => $message,
+                    'finalDate' => $date,
+                ),
+                200
+            );
 
                } catch ( \InvalidArgumentException $e ) {
                        \NuclearEngagement\Services\LoggingService::log_exception( $e );
@@ -117,11 +117,11 @@ class ContentController {
                }
        }
 
-	/**
-	 * Check permissions
-	 *
-	 * @return bool
-	 */
+    /**
+     * Check permissions
+     *
+     * @return bool
+     */
         public function permissions( \WP_REST_Request $request ): bool {
                 $header_pass = sanitize_text_field( (string) $request->get_header( 'X-WP-App-Password' ) );
                 $stored_pass = $this->settings->get_string( 'plugin_password', '' );

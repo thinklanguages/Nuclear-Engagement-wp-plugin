@@ -14,7 +14,7 @@ use NuclearEngagement\Requests\PostsCountRequest;
 use NuclearEngagement\Services\LoggingService;
 
 if ( ! defined( 'ABSPATH' ) ) {
-	exit;
+    exit;
 }
 
 /**
@@ -110,75 +110,75 @@ class PostsQueryService {
                 return md5( wp_json_encode( $data ) );
         }
 
-	/**
-	 * Build query args from request
-	 *
-	 * @param PostsCountRequest $request
-	 * @return array
-	 */
-	public function buildQueryArgs( PostsCountRequest $request ): array {
-		$metaQuery = array( 'relation' => 'AND' );
+    /**
+     * Build query args from request
+     *
+     * @param PostsCountRequest $request
+     * @return array
+     */
+    public function buildQueryArgs( PostsCountRequest $request ): array {
+        $metaQuery = array( 'relation' => 'AND' );
 
-		$queryArgs = array(
-			'post_type'      => $request->postType,
-			'posts_per_page' => -1,
-			'post_status'    => $request->postStatus,
-			'fields'         => 'ids',
-		);
+        $queryArgs = array(
+            'post_type'      => $request->postType,
+            'posts_per_page' => -1,
+            'post_status'    => $request->postStatus,
+            'fields'         => 'ids',
+        );
 
-		if ( $request->categoryId ) {
-			$queryArgs['cat'] = $request->categoryId;
-		}
+        if ( $request->categoryId ) {
+            $queryArgs['cat'] = $request->categoryId;
+        }
 
-		if ( $request->authorId ) {
-			$queryArgs['author'] = $request->authorId;
-		}
+        if ( $request->authorId ) {
+            $queryArgs['author'] = $request->authorId;
+        }
 
-		// Skip existing data if not allowing regeneration
-		if ( ! $request->allowRegenerate ) {
-			$metaKey     = $request->workflow === 'quiz' ? 'nuclen-quiz-data' : 'nuclen-summary-data';
-			$metaQuery[] = array(
-				'key'     => $metaKey,
-				'compare' => 'NOT EXISTS',
-			);
-		}
+        // Skip existing data if not allowing regeneration
+        if ( ! $request->allowRegenerate ) {
+            $metaKey     = $request->workflow === 'quiz' ? 'nuclen-quiz-data' : 'nuclen-summary-data';
+            $metaQuery[] = array(
+                'key'     => $metaKey,
+                'compare' => 'NOT EXISTS',
+            );
+        }
 
-		// Skip protected data if not allowed
-		if ( ! $request->regenerateProtected ) {
-			$protectedKey = $request->workflow === 'quiz' ? 'nuclen_quiz_protected' : 'nuclen_summary_protected';
-			$metaQuery[]  = array(
-				'relation' => 'OR',
-				array(
-					'key'     => $protectedKey,
-					'compare' => 'NOT EXISTS',
-				),
-				array(
-					'key'     => $protectedKey,
-					'value'   => '1',
-					'compare' => '!=',
-				),
-			);
-		}
+        // Skip protected data if not allowed
+        if ( ! $request->regenerateProtected ) {
+            $protectedKey = $request->workflow === 'quiz' ? 'nuclen_quiz_protected' : 'nuclen_summary_protected';
+            $metaQuery[]  = array(
+                'relation' => 'OR',
+                array(
+                    'key'     => $protectedKey,
+                    'compare' => 'NOT EXISTS',
+                ),
+                array(
+                    'key'     => $protectedKey,
+                    'value'   => '1',
+                    'compare' => '!=',
+                ),
+            );
+        }
 
-		// Only add meta_query if we have conditions
-		if ( count( $metaQuery ) > 1 ) {
-			$queryArgs['meta_query'] = $metaQuery;
-		}
+        // Only add meta_query if we have conditions
+        if ( count( $metaQuery ) > 1 ) {
+            $queryArgs['meta_query'] = $metaQuery;
+        }
 
-		// Disable caching for performance during counts
-		$queryArgs['update_post_meta_cache'] = false;
-		$queryArgs['update_post_term_cache'] = false;
-		$queryArgs['cache_results']          = false;
+        // Disable caching for performance during counts
+        $queryArgs['update_post_meta_cache'] = false;
+        $queryArgs['update_post_term_cache'] = false;
+        $queryArgs['cache_results']          = false;
 
-		return $queryArgs;
-	}
+        return $queryArgs;
+    }
 
-	/**
-	 * Get posts count and IDs
-	 *
-	 * @param PostsCountRequest $request
-	 * @return array
-	 */
+    /**
+     * Get posts count and IDs
+     *
+     * @param PostsCountRequest $request
+     * @return array
+     */
        public function getPostsCount( PostsCountRequest $request ): array {
                $cache_key      = $this->getCacheKey( $request );
                $transient_key  = 'nuclen_pq_' . $cache_key;

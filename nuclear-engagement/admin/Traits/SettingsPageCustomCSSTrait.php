@@ -11,22 +11,22 @@ declare(strict_types=1);
 namespace NuclearEngagement\Admin\Traits;
 
 if ( ! defined( 'ABSPATH' ) ) {
-	exit;
+    exit;
 }
 
 trait SettingsPageCustomCSSTrait {
 
-	/**
-	 * Write (or overwrite) the custom-theme CSS file.
-	 *
-	 * @param array $s Sanitised settings array.
-	 */
-	protected function nuclen_write_custom_css( array $s ): void {
+    /**
+     * Write (or overwrite) the custom-theme CSS file.
+     *
+     * @param array $s Sanitised settings array.
+     */
+    protected function nuclen_write_custom_css( array $s ): void {
 
-		/* ── Fill any missing values so we never output empty CSS vars ── */
-		$s = wp_parse_args( $s, \NuclearEngagement\Defaults::nuclen_get_default_settings() );
+        /* ── Fill any missing values so we never output empty CSS vars ── */
+        $s = wp_parse_args( $s, \NuclearEngagement\Defaults::nuclen_get_default_settings() );
 
-		$css = <<<CSS
+        $css = <<<CSS
 :root{
     /* ───── Quiz container ───── */
     --nuclen-fg-color: {$s['font_color']};
@@ -131,14 +131,14 @@ CSS;
                 $custom_dir      = $css_info['dir'];
                 $custom_css_path = $css_info['path'];
 
-		if ( ! function_exists( 'WP_Filesystem' ) ) {
-			require_once ABSPATH . 'wp-admin/includes/file.php';
-		}
-		WP_Filesystem();
-		global $wp_filesystem;
+        if ( ! function_exists( 'WP_Filesystem' ) ) {
+            require_once ABSPATH . 'wp-admin/includes/file.php';
+        }
+        WP_Filesystem();
+        global $wp_filesystem;
 
-		/* create dir if needed, then write */
-		if ( is_object( $wp_filesystem ) ) {
+        /* create dir if needed, then write */
+        if ( is_object( $wp_filesystem ) ) {
                        if ( ! $wp_filesystem->exists( $custom_dir ) && ! wp_mkdir_p( $custom_dir ) ) {
                                echo '<div class="notice notice-error"><p>' .
                                        esc_html__( 'Could not create custom CSS directory.', 'nuclear-engagement' ) .
@@ -165,7 +165,7 @@ CSS;
                                        '</p></div>';
                                \NuclearEngagement\Services\LoggingService::log( 'Failed to write custom CSS file: ' . $custom_css_path );
                        }
-		} else {
+        } else {
                        /* fallback */
                        if ( ! file_exists( $custom_dir ) && ! wp_mkdir_p( $custom_dir ) ) {
                                echo '<div class="notice notice-error"><p>' .
@@ -187,6 +187,6 @@ CSS;
                                        '</p></div>';
                                \NuclearEngagement\Services\LoggingService::log( 'Failed to write custom CSS file: ' . $custom_css_path );
                        }
-		}
-	}
+        }
+    }
 }
