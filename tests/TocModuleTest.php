@@ -227,4 +227,26 @@ class TocModuleTest extends TestCase {
         $this->assertStringContainsString('<a href="#sub">Sub</a>', $out);
         $this->assertStringContainsString('class="nuclen-toc', $out);
     }
+
+    public function test_cache_is_cleared_for_post() {
+        global $wp_posts, $wp_cache, $transients;
+
+        $wp_posts[1] = (object) [
+            'ID'           => 1,
+            'post_content' => '<h2>One</h2>',
+        ];
+
+        $this->registerSettings();
+
+        Nuclen_TOC_Utils::extract( $wp_posts[1]->post_content, [2, 3] );
+        $key = md5( $wp_posts[1]->post_content ) . '_23';
+
+        $this->assertArrayHasKey( $key, $wp_cache['nuclen_toc'] );
+        $this->assertArrayHasKey( 'nuclen_toc_' . $key, $transients );
+
+        Nuclen_TOC_Utils::clear_cache_for_post( 1 );
+
+        $this->assertArrayNotHasKey( $key, $wp_cache['nuclen_toc'] );
+        $this->assertArrayNotHasKey( 'nuclen_toc_' . $key, $transients );
+    }
 }

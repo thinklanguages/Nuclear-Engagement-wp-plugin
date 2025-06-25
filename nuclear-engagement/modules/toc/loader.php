@@ -34,6 +34,10 @@ require_once NUCLEN_TOC_DIR . 'includes/class-nuclen-toc-headings.php';
 require_once NUCLEN_TOC_DIR . 'includes/class-nuclen-toc-render.php';
 require_once NUCLEN_TOC_DIR . 'includes/class-nuclen-toc-admin.php';
 
+// Clear caches when posts are saved or deleted.
+add_action( 'save_post', array( 'Nuclen_TOC_Utils', 'clear_cache_for_post' ) );
+add_action( 'delete_post', array( 'Nuclen_TOC_Utils', 'clear_cache_for_post' ) );
+
 /*
  * ------------------------------------------------------------------
  * Spin-up

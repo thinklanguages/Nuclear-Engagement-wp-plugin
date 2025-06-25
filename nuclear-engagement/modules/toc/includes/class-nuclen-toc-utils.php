@@ -192,6 +192,37 @@ final class Nuclen_TOC_Utils {
                 return self::$last_parse_ms;
         }
 
+       /**
+        * Clear cached headings for a post.
+        *
+        * @param int $post_id Post ID to clear cache for.
+        */
+       public static function clear_cache_for_post( int $post_id ): void {
+               $post = get_post( $post_id );
+               if ( ! $post ) {
+                       return;
+               }
+
+               $levels = range( 2, 6 );
+               if ( class_exists( '\\NuclearEngagement\\Container' ) ) {
+                       try {
+                               $settings = \NuclearEngagement\Container::getInstance()->get( 'settings' );
+                               $levels   = $settings->get_array( 'toc_heading_levels', $levels );
+                       } catch ( \Throwable $e ) {
+                               // Use default levels if settings unavailable.
+                       }
+               }
+
+               $levels = array_unique( array_map( 'intval', $levels ) );
+               sort( $levels );
+
+               $key       = md5( $post->post_content ) . '_' . implode( '', $levels );
+               $transient = 'nuclen_toc_' . $key;
+
+               wp_cache_delete( $key, self::CACHE_GROUP );
+               delete_transient( $transient );
+       }
+
 		/**
 		 * Tiny wrapper so callers can import just one name.
 		 *
