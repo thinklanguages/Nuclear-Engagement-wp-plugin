@@ -7,11 +7,13 @@
 
 declare(strict_types=1);
 
-if ( ! defined( 'ABSPATH' ) ) {
-	exit;
-}
+namespace NuclearEngagement\Modules\TOC;
 
 use NuclearEngagement\AssetVersions;
+
+if ( ! defined( 'ABSPATH' ) ) {
+    exit;
+}
 
 /**
  * Front-end assets helper for the TOC module.

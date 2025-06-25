@@ -9,11 +9,13 @@
 
 declare(strict_types=1);
 
-if ( ! defined( 'ABSPATH' ) ) {
-	exit;
-}
+namespace NuclearEngagement\Modules\TOC;
 
 use NuclearEngagement\SettingsRepository;
+
+if ( ! defined( 'ABSPATH' ) ) {
+    exit;
+}
 
 	/**
 	 * Handle the [nuclear_engagement_toc] shortcode output.

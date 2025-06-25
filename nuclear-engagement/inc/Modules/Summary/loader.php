@@ -9,9 +9,14 @@
 
 declare(strict_types=1);
 
+namespace NuclearEngagement\Modules\Summary;
+
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
+
+use NuclearEngagement\Modules\Summary\Nuclen_Summary_Shortcode;
+use NuclearEngagement\Modules\Summary\Nuclen_Summary_Metabox;
 
 /* ------------------------------------------------------------------
  * Local constants (prefixed, module-scoped)

@@ -35,8 +35,8 @@ namespace {
                 'admin/js',
                 'front/css',
                 'front/js',
-                'modules/toc/assets/css',
-                'modules/toc/assets/js',
+                'inc/Modules/TOC/assets/css',
+                'inc/Modules/TOC/assets/js',
             ];
             foreach ($dirs as $d) {
                 @mkdir(self::$dir . '/' . $d, 0777, true);

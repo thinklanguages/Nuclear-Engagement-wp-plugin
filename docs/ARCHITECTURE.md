@@ -24,7 +24,8 @@ plugin-root/
 │   │   │   ├── class-quiz-service.php
 │   │   │   ├── quiz-admin.php
 │   │   │   └── assets/
-│   │   └── Summary/
+│   │   ├── Summary/
+│   │   └── TOC/
 │   ├── Core/              # shared kernel (loader, i18n, settings API)
 │   └── Utils/             # truly generic helpers
 ├── templates/             # view partials only—no logic
@@ -80,7 +81,7 @@ responsibilities narrow and makes future maintenance easier.
 ## Summary Module Decomposition
 
 The summary shortcode and meta box live in their own module under
-`modules/summary/`. `Nuclen_Summary_Shortcode` renders the
+`inc/Modules/Summary/`. `Nuclen_Summary_Shortcode` renders the
 `[nuclear_engagement_summary]` shortcode using a lightweight view helper.
 `Nuclen_Summary_Metabox` registers the Summary meta box and saves its data.
 `loader.php` includes these classes and instantiates them on

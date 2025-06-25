@@ -1,7 +1,7 @@
 <?php
 use PHPUnit\Framework\TestCase;
-use Nuclen_Summary_Shortcode as SummaryShortcode;
-use Nuclen_Summary_View as SummaryView;
+use NuclearEngagement\Modules\Summary\Nuclen_Summary_Shortcode as SummaryShortcode;
+use NuclearEngagement\Modules\Summary\Nuclen_Summary_View as SummaryView;
 use NuclearEngagement\SettingsRepository;
 
 function get_the_ID() { return $GLOBALS['current_post_id'] ?? 0; }
