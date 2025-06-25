@@ -7,7 +7,8 @@ wp_nonce_field( 'nuclen_summary_data_nonce', 'nuclen_summary_data_nonce' );
 ?>
 <div><label>
     <input type="checkbox" name="nuclen_summary_protected" value="1" <?php checked( $summary_protected, 1 ); ?> />
-    Protected? <span nuclen-tooltip="Tick this box and save post to prevent overwriting during bulk generation.">🛈</span>
+    <?php esc_html_e( 'Protected?', 'nuclear-engagement' ); ?>
+    <span nuclen-tooltip="<?php esc_attr_e( 'Tick this box and save post to prevent overwriting during bulk generation.', 'nuclear-engagement' ); ?>">🛈</span>
 </label></div>
 <div>
     <button type="button"
@@ -15,14 +16,14 @@ wp_nonce_field( 'nuclen_summary_data_nonce', 'nuclen_summary_data_nonce' );
             class="button nuclen-generate-single"
             data-post-id="<?php echo esc_attr( $post->ID ); ?>"
             data-workflow="summary">
-        Generate Summary with AI
+        <?php esc_html_e( 'Generate Summary with AI', 'nuclear-engagement' ); ?>
     </button>
-    <span nuclen-tooltip="(re)Generate. Data will be stored automatically (no need to save post).">🛈</span>
+    <span nuclen-tooltip="<?php esc_attr_e( '(re)Generate. Data will be stored automatically (no need to save post).', 'nuclear-engagement' ); ?>">🛈</span>
 </div>
-<p><strong>Date</strong><br>
+<p><strong><?php esc_html_e( 'Date', 'nuclear-engagement' ); ?></strong><br>
     <input type="text" name="nuclen_summary_data[date]" value="<?php echo esc_attr( $date ); ?>" readonly class="nuclen-meta-date-input" />
 </p>
-<p><strong>Summary</strong><br>
+<p><strong><?php esc_html_e( 'Summary', 'nuclear-engagement' ); ?></strong><br>
 <?php
 wp_editor(
     $summary,
