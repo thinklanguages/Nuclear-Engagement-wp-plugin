@@ -16,6 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 use NuclearEngagement\Utils;
 use NuclearEngagement\Services\DashboardDataService;
+use NuclearEngagement\SettingsRepository;
 
 global $wpdb;
 
@@ -23,8 +24,8 @@ global $wpdb;
 ──────────────────────────────────────────────────────────────
  * 1. Determine which post-types we need to examine
  * ──────────────────────────────────────────────────────────── */
-$settings_repo = \NuclearEngagement\Container::getInstance()->get( 'settings' );
-$data_service = \NuclearEngagement\Container::getInstance()->get( 'dashboard_data_service' );
+$settings_repo = $settings_repo ?? \NuclearEngagement\SettingsRepository::get_instance();
+$data_service  = $data_service  ?? new DashboardDataService();
 $allowed_post_types = $settings_repo->get( 'generation_post_types', array( 'post' ) );
 $allowed_post_types = is_array( $allowed_post_types ) ? $allowed_post_types : array( 'post' );
 

@@ -29,11 +29,15 @@ class Setup {
         private $utils;
 
         /** @var SetupService */
-        private $setup_service;
+    private $setup_service;
 
-    public function __construct() {
-            $this->utils         = new \NuclearEngagement\Utils();
-            $this->setup_service = new SetupService();
+    /** @var SettingsRepository */
+    private $settings_repository;
+
+    public function __construct( SettingsRepository $settings_repository ) {
+            $this->utils               = new \NuclearEngagement\Utils();
+            $this->setup_service       = new SetupService();
+            $this->settings_repository = $settings_repository;
     }
 
     public function nuclen_get_utils() {
@@ -42,6 +46,10 @@ class Setup {
 
     public function nuclen_get_setup_service(): SetupService {
             return $this->setup_service;
+    }
+
+    public function nuclen_get_settings_repository() {
+            return $this->settings_repository;
     }
 
     /** Add the Setup submenu page. */
@@ -76,7 +84,7 @@ class Setup {
         }
 
                 /* ───── Retrieve settings ───── */
-                $settings = \NuclearEngagement\Container::getInstance()->get( 'settings' );
+                $settings = $this->nuclen_get_settings_repository();
         $app_setup        = array(
             'api_key'             => $settings->get_string( 'api_key', '' ),
             'connected'           => $settings->get_bool( 'connected', false ),

@@ -35,10 +35,18 @@ final class Nuclen_TOC_Render {
      */
     private Nuclen_TOC_View $view;
 
+    /**
+     * Settings repository instance.
+     *
+     * @var SettingsRepository
+     */
+    private SettingsRepository $settings;
+
     /** Class constructor. */
-    public function __construct() {
-        $this->assets = new Nuclen_TOC_Assets();
-        $this->view   = new Nuclen_TOC_View();
+    public function __construct( SettingsRepository $settings ) {
+        $this->assets   = new Nuclen_TOC_Assets();
+        $this->view     = new Nuclen_TOC_View();
+        $this->settings = $settings;
 
         add_shortcode( 'nuclear_engagement_toc', array( $this, 'nuclen_toc_shortcode' ) );
 
@@ -170,7 +178,7 @@ final class Nuclen_TOC_Render {
                         return '';
                 }
 
-        $settings = \NuclearEngagement\Container::getInstance()->get( 'settings' );
+        $settings = $this->settings;
         $atts     = $this->prepare_shortcode_attributes( $atts, $settings );
 
         $list  = ( strtolower( $atts['list'] ) === 'ol' ) ? 'ol' : 'ul';

@@ -14,6 +14,8 @@ declare(strict_types=1);
 
 namespace NuclearEngagement\Modules\TOC;
 
+use function NuclearEngagement\nuclen_settings_array;
+
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
@@ -205,16 +207,7 @@ final class Nuclen_TOC_Utils {
                        return;
                }
 
-               $levels = range( 2, 6 );
-               if ( class_exists( '\\NuclearEngagement\\Container' ) ) {
-                       try {
-                               $settings = \NuclearEngagement\Container::getInstance()->get( 'settings' );
-                               $levels   = $settings->get_array( 'toc_heading_levels', $levels );
-                        } catch ( \Throwable $e ) {
-                                \NuclearEngagement\Services\LoggingService::log_exception( $e );
-                                // Use default levels if settings unavailable.
-                        }
-               }
+               $levels = nuclen_settings_array( 'toc_heading_levels', range( 2, 6 ) );
 
                $levels = array_unique( array_map( 'intval', $levels ) );
                sort( $levels );

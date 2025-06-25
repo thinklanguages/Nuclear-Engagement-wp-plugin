@@ -225,7 +225,7 @@ class TocModuleTest extends TestCase {
             'post_content' => '<h2>One</h2><h3>Sub</h3>',
         ];
         $this->registerSettings();
-        $render = new \NuclearEngagement\Modules\TOC\Nuclen_TOC_Render();
+        $render = new \NuclearEngagement\Modules\TOC\Nuclen_TOC_Render( SettingsRepository::get_instance() );
         $out = $render->nuclen_toc_shortcode([]);
         $this->assertStringContainsString('<nav id="', $out);
         $this->assertStringContainsString('<a href="#one">One</a>', $out);
@@ -235,7 +235,7 @@ class TocModuleTest extends TestCase {
 
     public function test_shortcode_returns_empty_when_no_post() {
         $this->registerSettings();
-        $render = new \NuclearEngagement\Modules\TOC\Nuclen_TOC_Render();
+        $render = new \NuclearEngagement\Modules\TOC\Nuclen_TOC_Render( SettingsRepository::get_instance() );
         $this->assertSame('', $render->nuclen_toc_shortcode([]));
     }
 

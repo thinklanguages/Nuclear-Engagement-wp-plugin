@@ -19,6 +19,7 @@ use NuclearEngagement\Modules\TOC\Nuclen_TOC_Utils;
 use NuclearEngagement\Modules\TOC\Nuclen_TOC_Headings;
 use NuclearEngagement\Modules\TOC\Nuclen_TOC_Render;
 use NuclearEngagement\Modules\TOC\Nuclen_TOC_Admin;
+use NuclearEngagement\SettingsRepository;
 
 /*
  * ------------------------------------------------------------------
@@ -54,7 +55,7 @@ add_action(
     'plugins_loaded',
     static function () {
         new Nuclen_TOC_Headings();  // filter for heading IDs.
-        new Nuclen_TOC_Render();    // shortcode handler.
+        new Nuclen_TOC_Render( \NuclearEngagement\SettingsRepository::get_instance() ); // shortcode handler.
         if ( is_admin() ) {
             new Nuclen_TOC_Admin();    // settings page.
         }
