@@ -83,7 +83,7 @@ namespace {
             AssetVersions::update_versions();
             $this->assertSame('123', AssetVersions::get('admin_css'));
             $this->assertSame('456', AssetVersions::get('front_js'));
-            $this->assertSame('999', AssetVersions::get('theme_bright_css'));
+            $this->assertSame('999', AssetVersions::get('front_css'));
         }
 
         public function test_init_updates_versions_when_version_changes(): void {

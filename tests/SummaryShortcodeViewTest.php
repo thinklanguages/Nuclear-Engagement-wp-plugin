@@ -19,6 +19,7 @@ namespace {
     if (!function_exists('wp_kses_post')) {
         function wp_kses_post($html) { return $html; }
     }
+    if (!function_exists('esc_attr')) { function esc_attr($t){ return $t; } }
 
     class DummyFront {
         public int $calls = 0;

@@ -33,7 +33,8 @@ final class Nuclen_Summary_Shortcode {
         }
 
         $settings = $this->getSummarySettings();
-        $html     = '<div class="nuclen-root">';
+        $theme    = $this->settings->get_string( 'theme', 'bright' );
+        $html     = '<div class="nuclen-root" data-theme="' . esc_attr( $theme ) . '">';
         $html    .= $this->view->container( $summary_data, $settings );
         $html    .= $this->view->attribution( $settings['show_attribution'] );
         $html    .= '</div>';
