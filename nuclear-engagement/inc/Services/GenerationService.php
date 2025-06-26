@@ -198,7 +198,10 @@ class GenerationService {
         $data      = array();
         $postsById = array();
 
-        foreach ( array_chunk( $postIds, 50 ) as $chunk ) {
+        $chunkSize = defined( 'NUCLEN_POST_FETCH_CHUNK' ) ? (int) constant( 'NUCLEN_POST_FETCH_CHUNK' ) : 200;
+        $chunks    = count( $postIds ) <= $chunkSize ? array( $postIds ) : array_chunk( $postIds, $chunkSize );
+
+        foreach ( $chunks as $chunk ) {
             $placeholders = implode( ',', array_fill( 0, count( $chunk ), '%d' ) );
             $sql          = $wpdb->prepare(
                 "SELECT ID, post_title, post_content

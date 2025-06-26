@@ -136,4 +136,44 @@ class GenerationServiceTest extends TestCase {
             ['id' => 2, 'title' => 'B', 'content' => 'C2'],
         ], $api->data);
     }
+
+    public function test_generate_content_chunks_large_id_lists(): void {
+        if ( ! defined( 'NUCLEN_POST_FETCH_CHUNK' ) ) {
+            define( 'NUCLEN_POST_FETCH_CHUNK', 2 );
+        }
+
+        global $wp_posts, $wpdb;
+        for ( $i = 1; $i <= 5; $i++ ) {
+            $wp_posts[ $i ] = (object) [
+                'ID' => $i,
+                'post_title' => 'T' . $i,
+                'post_content' => 'C' . $i,
+                'post_type' => 'post',
+                'post_status' => 'publish',
+            ];
+        }
+
+        $api = new class {
+            public array $posts = [];
+            public function send_posts_to_generate( array $d ): array {
+                $this->posts = $d['posts'];
+                return [];
+            }
+            public function fetch_updates( string $id ): array { return []; }
+        };
+        $storage = new GSStorage();
+        $service = new GenerationService( SettingsRepository::get_instance(), $api, $storage );
+
+        $req = new GenerateRequest();
+        $req->postIds = [1, 2, 3, 4, 5];
+        $req->workflowType = 'quiz';
+        $req->generationId = 'gid';
+        $req->postType = 'post';
+        $req->postStatus = 'publish';
+
+        $service->generateContent( $req );
+
+        $this->assertCount( 3, $wpdb->results_sqls );
+        $this->assertCount( 5, $api->posts );
+    }
 }
