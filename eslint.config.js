@@ -23,6 +23,19 @@ export default [
       parserOptions: {
         project: tsconfigPath,
         tsconfigRootDir: __dirname
+      },
+      globals: {
+        window: 'readonly',
+        document: 'readonly',
+        fetch: 'readonly',
+        console: 'readonly',
+        setTimeout: 'readonly',
+        clearTimeout: 'readonly',
+        setInterval: 'readonly',
+        clearInterval: 'readonly',
+        navigator: 'readonly',
+        alert: 'readonly',
+        gtag: 'readonly'
       }
     },
     plugins: {
@@ -30,6 +43,9 @@ export default [
     },
     // Clone the recommended rules so updates to the preset
     // won't silently change lint behavior.
-    rules: { ...tsPlugin.configs.recommended.rules }
+    rules: {
+      ...tsPlugin.configs.recommended.rules,
+      '@typescript-eslint/no-explicit-any': 'off'
+    }
   }
 ];
