@@ -12,6 +12,7 @@ namespace NuclearEngagement\Services;
 
 use NuclearEngagement\Requests\PostsCountRequest;
 use NuclearEngagement\Services\LoggingService;
+use NuclearEngagement\Modules\Summary\Summary_Service;
 
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
@@ -136,7 +137,7 @@ class PostsQueryService {
 
         // Skip existing data if not allowing regeneration
         if ( ! $request->allowRegenerate ) {
-            $metaKey     = $request->workflow === 'quiz' ? 'nuclen-quiz-data' : 'nuclen-summary-data';
+            $metaKey     = $request->workflow === 'quiz' ? 'nuclen-quiz-data' : Summary_Service::META_KEY;
             $metaQuery[] = array(
                 'key'     => $metaKey,
                 'compare' => 'NOT EXISTS',
@@ -145,7 +146,7 @@ class PostsQueryService {
 
         // Skip protected data if not allowed
         if ( ! $request->regenerateProtected ) {
-            $protectedKey = $request->workflow === 'quiz' ? 'nuclen_quiz_protected' : 'nuclen_summary_protected';
+            $protectedKey = $request->workflow === 'quiz' ? 'nuclen_quiz_protected' : Summary_Service::PROTECTED_KEY;
             $metaQuery[]  = array(
                 'relation' => 'OR',
                 array(
@@ -214,13 +215,13 @@ class PostsQueryService {
         }
 
         if ( ! $request->allowRegenerate ) {
-                $meta_key = $request->workflow === 'quiz' ? 'nuclen-quiz-data' : 'nuclen-summary-data';
+                $meta_key = $request->workflow === 'quiz' ? 'nuclen-quiz-data' : Summary_Service::META_KEY;
                 $joins[]  = $wpdb->prepare( "LEFT JOIN {$wpdb->postmeta} pm_exist ON pm_exist.post_id = p.ID AND pm_exist.meta_key = %s", $meta_key );
                 $wheres[] = 'pm_exist.meta_id IS NULL';
         }
 
         if ( ! $request->regenerateProtected ) {
-                $prot_key = $request->workflow === 'quiz' ? 'nuclen_quiz_protected' : 'nuclen_summary_protected';
+                $prot_key = $request->workflow === 'quiz' ? 'nuclen_quiz_protected' : Summary_Service::PROTECTED_KEY;
                 $joins[]  = $wpdb->prepare( "LEFT JOIN {$wpdb->postmeta} pm_prot ON pm_prot.post_id = p.ID AND pm_prot.meta_key = %s", $prot_key );
                 $wheres[] = "(pm_prot.meta_id IS NULL OR pm_prot.meta_value != '1')";
         }

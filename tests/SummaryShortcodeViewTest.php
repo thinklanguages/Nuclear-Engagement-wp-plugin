@@ -3,6 +3,7 @@ namespace {
     use PHPUnit\Framework\TestCase;
     use NuclearEngagement\Modules\Summary\Nuclen_Summary_Shortcode as SummaryShortcode;
     use NuclearEngagement\Modules\Summary\Nuclen_Summary_View as SummaryView;
+    use NuclearEngagement\Modules\Summary\Summary_Service;
     use NuclearEngagement\Core\SettingsRepository;
 
     function get_the_ID() { return $GLOBALS['current_post_id'] ?? 0; }
@@ -40,7 +41,7 @@ namespace {
         public function test_render_outputs_markup_with_valid_data(): void {
             global $wp_meta, $current_post_id;
             $current_post_id = 1;
-            $wp_meta[1]['nuclen-summary-data'] = ['summary' => '<p>Hi</p>'];
+            $wp_meta[1][Summary_Service::META_KEY] = ['summary' => '<p>Hi</p>'];
 
             $settings = SettingsRepository::get_instance();
             $settings->set_string('summary_title', 'Facts')->set_bool('show_attribution', true)->save();
@@ -58,7 +59,7 @@ namespace {
         public function test_render_returns_empty_string_when_data_invalid(): void {
             global $wp_meta, $current_post_id;
             $current_post_id = 2;
-            $wp_meta[2]['nuclen-summary-data'] = ['summary' => ''];
+            $wp_meta[2][Summary_Service::META_KEY] = ['summary' => ''];
 
             $front = new DummyFront();
             $sc = $this->makeShortcode($front);

@@ -7,6 +7,7 @@ namespace NuclearEngagement\Core;
 use NuclearEngagement\Core\SettingsRepository;
 use NuclearEngagement\OptinData;
 use NuclearEngagement\Core\AssetVersions;
+use NuclearEngagement\Modules\Summary\Summary_Service;
 
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
@@ -52,9 +53,9 @@ class Activator {
             $table   = $wpdb->postmeta;
             $indexes = array(
                 'nuclen_quiz_data_idx'         => 'nuclen-quiz-data',
-                'nuclen_summary_data_idx'      => 'nuclen-summary-data',
+                'nuclen_summary_data_idx'      => Summary_Service::META_KEY,
                 'nuclen_quiz_protected_idx'    => 'nuclen_quiz_protected',
-                'nuclen_summary_protected_idx' => 'nuclen_summary_protected',
+                'nuclen_summary_protected_idx' => Summary_Service::PROTECTED_KEY,
             );
 
             foreach ( $indexes as $index => $meta_key ) {

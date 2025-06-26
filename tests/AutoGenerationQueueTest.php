@@ -2,6 +2,7 @@
 use PHPUnit\Framework\TestCase;
 use NuclearEngagement\Services\AutoGenerationQueue;
 use NuclearEngagement\Core\SettingsRepository;
+use NuclearEngagement\Modules\Summary\Summary_Service;
 
 class DummyRemoteApiService {
     public array $updates = [];
@@ -40,7 +41,7 @@ class AQ_WPDB {
             if ($p->post_status !== 'publish') {
                 continue;
             }
-            if (!empty($GLOBALS['wp_meta'][$id]['nuclen_quiz_protected']) || !empty($GLOBALS['wp_meta'][$id]['nuclen_summary_protected'])) {
+            if (!empty($GLOBALS['wp_meta'][$id]['nuclen_quiz_protected']) || !empty($GLOBALS['wp_meta'][$id][Summary_Service::PROTECTED_KEY])) {
                 continue;
             }
             $rows[] = (object) [

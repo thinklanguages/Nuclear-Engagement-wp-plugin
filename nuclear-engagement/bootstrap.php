@@ -187,7 +187,7 @@ function nuclen_update_migrate_post_meta() {
 	$wpdb->query(
 		$wpdb->prepare(
 			"UPDATE {$wpdb->postmeta} SET meta_key = %s WHERE meta_key = %s",
-			'nuclen-summary-data',
+                        \NuclearEngagement\Modules\Summary\Summary_Service::META_KEY,
 			'ne-summary-data'
 		)
 	);

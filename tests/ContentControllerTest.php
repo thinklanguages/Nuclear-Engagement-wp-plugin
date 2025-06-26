@@ -16,6 +16,7 @@ namespace {
     use NuclearEngagement\Front\Controller\Rest\ContentController;
     use NuclearEngagement\Core\SettingsRepository;
     use NuclearEngagement\Services\ContentStorageService;
+    use NuclearEngagement\Modules\Summary\Summary_Service;
     if (!function_exists('__')) {
         function __($t, $d = null) { return $t; }
     }
@@ -55,7 +56,7 @@ namespace {
         public array $stored = [];
         public function storeResults(array $results, string $workflowType): array {
             global $wp_meta;
-            $metaKey = $workflowType === 'quiz' ? 'nuclen-quiz-data' : 'nuclen-summary-data';
+            $metaKey = $workflowType === 'quiz' ? 'nuclen-quiz-data' : Summary_Service::META_KEY;
             foreach ($results as $id => $data) {
                 $wp_meta[$id][$metaKey] = $data;
             }

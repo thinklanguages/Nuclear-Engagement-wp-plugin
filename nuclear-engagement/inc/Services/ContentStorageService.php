@@ -12,6 +12,7 @@ namespace NuclearEngagement\Services;
 
 use NuclearEngagement\Core\SettingsRepository;
 use NuclearEngagement\Utils\Utils;
+use NuclearEngagement\Modules\Summary\Summary_Service;
 
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
@@ -189,7 +190,7 @@ class ContentStorageService {
             'date'    => $data['date'] ?? current_time( 'mysql' ),
         );
 
-        if ( ! update_post_meta( $postId, 'nuclen-summary-data', $formatted ) ) {
+        if ( ! update_post_meta( $postId, Summary_Service::META_KEY, $formatted ) ) {
             throw new \RuntimeException( "Failed to update summary data for post {$postId}" );
         }
     }

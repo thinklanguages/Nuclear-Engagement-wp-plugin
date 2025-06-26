@@ -15,6 +15,7 @@ declare(strict_types=1);
 namespace NuclearEngagement\Front;
 
 use NuclearEngagement\Core\AssetVersions;
+use NuclearEngagement\Modules\Summary\Summary_Service;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -93,8 +94,8 @@ trait AssetsTrait {
 			}
 		}
 
-		if ( $display_summary !== 'manual' && $display_summary !== 'none' ) {
-			$summary_meta = get_post_meta( $post_id, 'nuclen-summary-data', true );
+                if ( $display_summary !== 'manual' && $display_summary !== 'none' ) {
+                        $summary_meta = get_post_meta( $post_id, Summary_Service::META_KEY, true );
 			if ( is_array( $summary_meta ) && ! empty( trim( $summary_meta['summary'] ?? '' ) ) ) {
 				return true;
 			}

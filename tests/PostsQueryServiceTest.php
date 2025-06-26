@@ -11,6 +11,7 @@ namespace {
     use PHPUnit\Framework\TestCase;
     use NuclearEngagement\Services\PostsQueryService;
     use NuclearEngagement\Requests\PostsCountRequest;
+    use NuclearEngagement\Modules\Summary\Summary_Service;
     if (!defined('MINUTE_IN_SECONDS')) { define('MINUTE_IN_SECONDS', 60); }
 
     // ------------------------------------------------------
@@ -100,11 +101,11 @@ namespace {
 
             $expected_meta = [
                 'relation' => 'AND',
-                [ 'key' => 'nuclen-summary-data', 'compare' => 'NOT EXISTS' ],
+                [ 'key' => Summary_Service::META_KEY, 'compare' => 'NOT EXISTS' ],
                 [
                     'relation' => 'OR',
-                    [ 'key' => 'nuclen_summary_protected', 'compare' => 'NOT EXISTS' ],
-                    [ 'key' => 'nuclen_summary_protected', 'value' => '1', 'compare' => '!=' ],
+                    [ 'key' => Summary_Service::PROTECTED_KEY, 'compare' => 'NOT EXISTS' ],
+                    [ 'key' => Summary_Service::PROTECTED_KEY, 'value' => '1', 'compare' => '!=' ],
                 ],
             ];
 

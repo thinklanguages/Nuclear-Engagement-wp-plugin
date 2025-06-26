@@ -10,6 +10,8 @@ declare(strict_types=1);
 
 namespace NuclearEngagement\Services;
 
+use NuclearEngagement\Modules\Summary\Summary_Service;
+
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
@@ -85,7 +87,7 @@ class PostDataFetcher {
                AND pmq.meta_id IS NULL
                AND pms.meta_id IS NULL
              ORDER BY FIELD(p.ID, $order_ids)",
-            array_merge( array( 'nuclen_quiz_protected', 'nuclen_summary_protected' ), $ids )
+            array_merge( array( 'nuclen_quiz_protected', Summary_Service::PROTECTED_KEY ), $ids )
         );
 
                $rows = $wpdb->get_results( $sql );

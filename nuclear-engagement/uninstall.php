@@ -64,15 +64,15 @@ $delete_css       = ! empty( $settings['delete_custom_css_on_uninstall'] );
 
 // Delete generated content from post meta if requested.
 if ( $delete_generated ) {
-				$meta_keys = array(
-					'nuclen-quiz-data',
-					'nuclen-summary-data',
-					'nuclen_quiz_protected',
-					'nuclen_summary_protected',
-				);
-				foreach ( $meta_keys as $mk ) {
-						delete_post_meta_by_key( $mk );
-				}
+                                $meta_keys = array(
+                                        'nuclen-quiz-data',
+                                        \NuclearEngagement\Modules\Summary\Summary_Service::META_KEY,
+                                        'nuclen_quiz_protected',
+                                        \NuclearEngagement\Modules\Summary\Summary_Service::PROTECTED_KEY,
+                                );
+                                foreach ( $meta_keys as $mk ) {
+                                                delete_post_meta_by_key( $mk );
+                                }
 }
 
 // Delete plugin settings if requested.

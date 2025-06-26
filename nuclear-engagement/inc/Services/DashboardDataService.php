@@ -10,6 +10,8 @@ declare(strict_types=1);
 
 namespace NuclearEngagement\Services;
 
+use NuclearEngagement\Modules\Summary\Summary_Service;
+
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
@@ -141,7 +143,7 @@ class DashboardDataService {
                    SUM(CASE WHEN pm_s.meta_id IS NULL THEN 1 ELSE 0 END) AS summary_without
             FROM {$wpdb->posts} p
             LEFT JOIN {$wpdb->postmeta} pm_q ON pm_q.post_id = p.ID AND pm_q.meta_key = 'nuclen-quiz-data'
-            LEFT JOIN {$wpdb->postmeta} pm_s ON pm_s.post_id = p.ID AND pm_s.meta_key = 'nuclen-summary-data'
+            LEFT JOIN {$wpdb->postmeta} pm_s ON pm_s.post_id = p.ID AND pm_s.meta_key = '" . Summary_Service::META_KEY . "'
             WHERE p.post_type IN ($placeholders_pt)
               AND p.post_status IN ($placeholders_st)
             GROUP BY $group_by",
