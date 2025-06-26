@@ -80,6 +80,12 @@ final class SettingsRepository {
      */
     private SettingsCache $cache;
 
+    use \NuclearEngagement\Traits\SettingsGettersTrait;
+    use \NuclearEngagement\Traits\SettingsPersistenceTrait;
+    use \NuclearEngagement\Traits\SettingsCacheTrait;
+    use \NuclearEngagement\Traits\SettingsAccessTrait;
+    use \NuclearEngagement\PendingSettingsTrait;
+
 
     /**
      * Get the singleton instance.
@@ -110,20 +116,7 @@ final class SettingsRepository {
         $this->cache->register_hooks();
     }
 
-
-        /*
-        ===================================================================
-        * GETTERS
-        * ===================================================================
-        */
-
-use \NuclearEngagement\Traits\SettingsGettersTrait;
-use \NuclearEngagement\Traits\SettingsPersistenceTrait;
-use \NuclearEngagement\Traits\SettingsCacheTrait;
-use \NuclearEngagement\Traits\SettingsAccessTrait;
-use PendingSettingsTrait;
-
-        /**
+    /**
          * Get the default values.
          *
          * @since 1.0.0
