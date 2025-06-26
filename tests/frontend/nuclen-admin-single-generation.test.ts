@@ -1,13 +1,19 @@
 import { describe, it, beforeAll, beforeEach, afterEach, expect, vi } from 'vitest';
 
-vi.mock('../../src/admin/ts/nuclen-admin-generate', async () => {
-  const actual: any = await vi.importActual('../../src/admin/ts/nuclen-admin-generate');
-  return { ...actual, NuclenPollAndPullUpdates: vi.fn() };
-});
-
 vi.mock('../../src/admin/ts/generation/api', async () => {
   const actual: any = await vi.importActual('../../src/admin/ts/generation/api');
   return { ...actual, nuclenFetchWithRetry: vi.fn() };
+});
+
+// Re-export mocked generation helpers so NuclenStartGeneration uses the stubbed
+// nuclenFetchWithRetry above.
+vi.mock('../../src/admin/ts/nuclen-admin-generate', async () => {
+  const api = await import('../../src/admin/ts/generation/api');
+  const { NuclenPollAndPullUpdates } = await vi.importActual('../../src/admin/ts/generation/polling');
+  return {
+    ...api,
+    NuclenPollAndPullUpdates: vi.fn(),
+  };
 });
 
 vi.mock('../../src/admin/ts/single/single-generation-utils', () => ({
