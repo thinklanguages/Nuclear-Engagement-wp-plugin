@@ -8,7 +8,9 @@
       "NuclearEngagement\\Responses\\": "inc/Responses/",
       "NuclearEngagement\\Modules\\": "inc/Modules/",
       "NuclearEngagement\\Core\\": "inc/Core/",
-      "NuclearEngagement\\Utils\\": "inc/Utils/"
+      "NuclearEngagement\\Utils\\": "inc/Utils/",
+      "NuclearEngagement\\Traits\\": "inc/Traits/",
+      "NuclearEngagement\\": "inc/"
     }
   },
   "config": {
@@ -19,10 +21,11 @@
   "require-dev": {
     "wp-coding-standards/wpcs": "3.0",
     "phpunit/phpunit": "^9.6",
-    "phpstan/phpstan-deprecation-rules": "^1.0"
+    "phpstan/phpstan-deprecation-rules": "^1.0",
+    "php-stubs/wordpress-stubs": "^6.0"
   },
   "scripts": {
-    "lint": "phpcs",
+    "lint": "phpcs -q --standard=../phpcs.xml .",
     "phpstan": "phpstan analyse -c ../phpstan.neon.dist",
     "test": "phpunit --configuration ../phpunit.xml"
   }
