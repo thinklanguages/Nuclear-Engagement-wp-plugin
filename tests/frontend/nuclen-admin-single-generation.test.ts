@@ -5,6 +5,11 @@ vi.mock('../../src/admin/ts/nuclen-admin-generate', async () => {
   return { ...actual, NuclenPollAndPullUpdates: vi.fn() };
 });
 
+vi.mock('../../src/admin/ts/generation/api', async () => {
+  const actual: any = await vi.importActual('../../src/admin/ts/generation/api');
+  return { ...actual, nuclenFetchWithRetry: vi.fn() };
+});
+
 vi.mock('../../src/admin/ts/single/single-generation-utils', () => ({
   alertApiError: vi.fn(),
   populateQuizMetaBox: vi.fn(),
@@ -42,9 +47,7 @@ describe('nuclen-admin-single-generation', () => {
       pollOpts = opts;
     });
 
-    vi
-      .spyOn(api, 'nuclenFetchWithRetry')
-      .mockResolvedValueOnce({
+    (api.nuclenFetchWithRetry as vi.Mock).mockResolvedValueOnce({
         ok: true,
         status: 200,
         data: { success: true, generation_id: 'gid' },
@@ -69,9 +72,7 @@ describe('nuclen-admin-single-generation', () => {
   });
 
   it('displays error when generation fails', async () => {
-    vi
-      .spyOn(api, 'nuclenFetchWithRetry')
-      .mockResolvedValueOnce({
+    (api.nuclenFetchWithRetry as vi.Mock).mockResolvedValueOnce({
         ok: false,
         status: 500,
         data: null,
