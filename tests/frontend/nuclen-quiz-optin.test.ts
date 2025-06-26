@@ -82,6 +82,8 @@ describe('mountOptinBeforeResults', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (global as any).alert = alertMock;
     vi.spyOn(utils, 'isValidEmail').mockReturnValue(false);
+    vi.spyOn(utils, 'storeOptinLocally');
+    vi.spyOn(utils, 'submitToWebhook');
     mountOptinBeforeResults(container, baseCtx, vi.fn(), vi.fn());
     (document.getElementById('nuclen-optin-submit') as HTMLElement).click();
     expect(alertMock).toHaveBeenCalled();
