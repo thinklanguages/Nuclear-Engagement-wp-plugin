@@ -35,6 +35,7 @@ $GLOBALS['update_option_calls'] = [];
 $GLOBALS['wp_posts'] = [];
 $GLOBALS['wp_meta'] = [];
 $GLOBALS['wp_events'] = [];
+$GLOBALS['wp_user_meta'] = [];
 
 if (!function_exists('update_option')) {
     function update_option($name, $value, $autoload = 'yes') {
@@ -56,6 +57,19 @@ if (!function_exists('delete_option')) {
     function delete_option($name) {
         unset($GLOBALS['wp_options'][$name], $GLOBALS['wp_autoload'][$name]);
         return true;
+    }
+}
+
+if (!function_exists('update_user_meta')) {
+    function update_user_meta($user_id, $meta_key, $meta_value) {
+        $GLOBALS['wp_user_meta'][$user_id][$meta_key] = $meta_value;
+        return true;
+    }
+}
+
+if (!function_exists('get_user_meta')) {
+    function get_user_meta($user_id, $meta_key, $single = false) {
+        return $GLOBALS['wp_user_meta'][$user_id][$meta_key] ?? '';
     }
 }
 
