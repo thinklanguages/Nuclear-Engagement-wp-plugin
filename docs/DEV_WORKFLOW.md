@@ -67,6 +67,10 @@ composer phpstan --working-dir=nuclear-engagement
 # PHPStan analyzes both plugin source and test code
 npm run lint
 ```
+- **Run JavaScript unit tests**
+  ```bash
+  npm run test
+  ```
 
 ## Typical workflow
 
