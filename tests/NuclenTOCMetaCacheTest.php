@@ -1,8 +1,4 @@
 <?php
-use PHPUnit\Framework\TestCase;
-use NuclearEngagement\Modules\TOC\Nuclen_TOC_Utils;
-use NuclearEngagement\Modules\TOC\Nuclen_TOC_Headings;
-
 namespace NuclearEngagement\Modules\TOC {
     function update_post_meta($postId, $key, $value){
         $GLOBALS['wp_meta'][$postId][$key] = $value; return true;
@@ -11,6 +7,9 @@ namespace NuclearEngagement\Modules\TOC {
 }
 
 namespace {
+    use PHPUnit\Framework\TestCase;
+    use NuclearEngagement\Modules\TOC\Nuclen_TOC_Utils;
+    use NuclearEngagement\Modules\TOC\Nuclen_TOC_Headings;
     if (!defined('HOUR_IN_SECONDS')) { define('HOUR_IN_SECONDS', 3600); }
     if (!defined('NUCLEN_TOC_DIR')) { define('NUCLEN_TOC_DIR', dirname(__DIR__).'/nuclear-engagement/inc/Modules/TOC/'); }
     if (!defined('NUCLEN_TOC_URL')) { define('NUCLEN_TOC_URL', 'http://example.com/'); }

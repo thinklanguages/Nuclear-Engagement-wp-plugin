@@ -1,9 +1,4 @@
 <?php
-use PHPUnit\Framework\TestCase;
-use NuclearEngagement\Services\RemoteApiService;
-use NuclearEngagement\Services\ApiException;
-use NuclearEngagement\Core\SettingsRepository;
-
 namespace NuclearEngagement\Services {
     class LoggingService {
         public static array $logs = [];
@@ -16,6 +11,10 @@ namespace NuclearEngagement\Services {
 }
 
 namespace {
+    use PHPUnit\Framework\TestCase;
+    use NuclearEngagement\Services\RemoteApiService;
+    use NuclearEngagement\Services\ApiException;
+    use NuclearEngagement\Core\SettingsRepository;
 if (!function_exists('__')) {
     function __($t, $d = null) { return $t; }
 }

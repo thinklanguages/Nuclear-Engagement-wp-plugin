@@ -1,10 +1,4 @@
 <?php
-use PHPUnit\Framework\TestCase;
-use NuclearEngagement\Core\Plugin;
-use NuclearEngagement\Core\Container;
-use NuclearEngagement\Core\SettingsRepository;
-use NuclearEngagement\Core\Defaults;
-
 namespace NuclearEngagement\Core {
     function register_activation_hook($file, $callback) {
         $GLOBALS['ph_activation'][] = [$file, $callback];
@@ -77,6 +71,11 @@ namespace NuclearEngagement {
 }
 
 namespace {
+    use PHPUnit\Framework\TestCase;
+    use NuclearEngagement\Core\Plugin;
+    use NuclearEngagement\Core\Container;
+    use NuclearEngagement\Core\SettingsRepository;
+    use NuclearEngagement\Core\Defaults;
     if (!defined('NUCLEN_PLUGIN_DIR')) {
         define('NUCLEN_PLUGIN_DIR', dirname(__DIR__) . '/nuclear-engagement/');
     }

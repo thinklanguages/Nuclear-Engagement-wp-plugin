@@ -1,8 +1,7 @@
 <?php
-use PHPUnit\Framework\TestCase;
-use NuclearEngagement\Admin\Onboarding;
-
 namespace {
+    use PHPUnit\Framework\TestCase;
+    use NuclearEngagement\Admin\Onboarding;
     if (!function_exists('wp_enqueue_style')) {
         function wp_enqueue_style($handle) { $GLOBALS['enqueued_styles'][] = $handle; }
     }

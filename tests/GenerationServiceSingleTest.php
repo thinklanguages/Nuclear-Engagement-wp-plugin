@@ -1,6 +1,6 @@
 <?php
-// Stub LoggingService to avoid filesystem calls
 namespace NuclearEngagement\Services {
+    // Stub LoggingService to avoid filesystem calls
     class LoggingService {
         public static array $logs = [];
         public static function log(string $msg): void {

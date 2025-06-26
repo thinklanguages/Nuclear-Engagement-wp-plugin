@@ -1,7 +1,4 @@
 <?php
-use PHPUnit\Framework\TestCase;
-use NuclearEngagement\Services\VersionService;
-
 namespace NuclearEngagement {
     class AssetVersions {
         public static function get(string $key): string {
@@ -11,6 +8,8 @@ namespace NuclearEngagement {
 }
 
 namespace {
+    use PHPUnit\Framework\TestCase;
+    use NuclearEngagement\Services\VersionService;
     if (!function_exists('apply_filters')) {
         function apply_filters($hook, $value, ...$args) {
             if ($hook === 'nuclen_asset_version' && isset($GLOBALS['vs_filter'])) {

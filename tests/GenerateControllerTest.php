@@ -1,8 +1,4 @@
 <?php
-use PHPUnit\Framework\TestCase;
-use NuclearEngagement\Admin\Controller\Ajax\GenerateController;
-use NuclearEngagement\Requests\GenerateRequest;
-
 namespace NuclearEngagement\Services {
     class GenerationService {
         public array $received = [];
@@ -22,6 +18,9 @@ namespace NuclearEngagement\Responses {
 }
 
 namespace {
+    use PHPUnit\Framework\TestCase;
+    use NuclearEngagement\Admin\Controller\Ajax\GenerateController;
+    use NuclearEngagement\Requests\GenerateRequest;
     if (!function_exists('check_ajax_referer')) { function check_ajax_referer($a,$f,$d=false){ return true; } }
     if (!function_exists('current_user_can')) { function current_user_can($c){ return true; } }
     if (!function_exists('wp_send_json_success')) { function wp_send_json_success($d){ $GLOBALS['json_response']=['success',$d]; } }

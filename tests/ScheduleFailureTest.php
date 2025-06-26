@@ -1,9 +1,4 @@
 <?php
-use PHPUnit\Framework\TestCase;
-use NuclearEngagement\Services\AutoGenerationService;
-use NuclearEngagement\Services\GenerationPoller;
-use NuclearEngagement\Core\SettingsRepository;
-
 namespace NuclearEngagement\Services {
     if (!class_exists('NuclearEngagement\\Services\\LoggingService')) {
         class LoggingService {
@@ -19,6 +14,10 @@ namespace NuclearEngagement\Services {
 }
 
 namespace {
+    use PHPUnit\Framework\TestCase;
+    use NuclearEngagement\Services\AutoGenerationService;
+    use NuclearEngagement\Services\GenerationPoller;
+    use NuclearEngagement\Core\SettingsRepository;
     class DummyRemoteApiService {
         public array $updates = [];
         public $generateResponse = [];

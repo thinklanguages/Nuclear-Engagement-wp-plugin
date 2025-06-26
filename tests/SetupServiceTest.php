@@ -1,8 +1,4 @@
 <?php
-use PHPUnit\Framework\TestCase;
-use NuclearEngagement\Services\SetupService;
-use NuclearEngagement\Services\LoggingService;
-
 namespace NuclearEngagement\Services {
     class LoggingService {
         public static array $logs = [];
@@ -14,6 +10,9 @@ namespace NuclearEngagement\Services {
 }
 
 namespace {
+    use PHPUnit\Framework\TestCase;
+    use NuclearEngagement\Services\SetupService;
+    use NuclearEngagement\Services\LoggingService;
     use NuclearEngagement\Services\SetupService;
     use NuclearEngagement\Services\LoggingService;
 

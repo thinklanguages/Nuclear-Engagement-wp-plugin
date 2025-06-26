@@ -1,7 +1,4 @@
 <?php
-use PHPUnit\Framework\TestCase;
-use NuclearEngagement\Modules\Quiz\Quiz_Service;
-
 namespace NuclearEngagement\Modules\Quiz {
     function update_post_meta($postId, $key, $value) { return false; }
     function delete_post_meta($postId, $key) {}
@@ -20,6 +17,8 @@ namespace NuclearEngagement\Services {
 }
 
 namespace {
+    use PHPUnit\Framework\TestCase;
+    use NuclearEngagement\Modules\Quiz\Quiz_Service;
     class QuizServiceFailureTest extends TestCase {
         protected function setUp(): void {
             \NuclearEngagement\Services\LoggingService::$logs = [];

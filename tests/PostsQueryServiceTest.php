@@ -1,8 +1,4 @@
 <?php
-use PHPUnit\Framework\TestCase;
-use NuclearEngagement\Services\PostsQueryService;
-use NuclearEngagement\Requests\PostsCountRequest;
-
 namespace NuclearEngagement\Services {
     // Simplified LoggingService stub
     class LoggingService {
@@ -12,6 +8,9 @@ namespace NuclearEngagement\Services {
 }
 
 namespace {
+    use PHPUnit\Framework\TestCase;
+    use NuclearEngagement\Services\PostsQueryService;
+    use NuclearEngagement\Requests\PostsCountRequest;
     if (!defined('MINUTE_IN_SECONDS')) { define('MINUTE_IN_SECONDS', 60); }
 
     // ------------------------------------------------------

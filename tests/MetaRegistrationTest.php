@@ -1,7 +1,4 @@
 <?php
-use PHPUnit\Framework\TestCase;
-use NuclearEngagement\Core\MetaRegistration;
-
 namespace NuclearEngagement {
     if (!function_exists('sanitize_text_field')) {
         function sanitize_text_field($text) { return trim($text); }
@@ -18,6 +15,8 @@ namespace NuclearEngagement {
 }
 
 namespace {
+    use PHPUnit\Framework\TestCase;
+    use NuclearEngagement\Core\MetaRegistration;
     require_once dirname(__DIR__) . '/nuclear-engagement/inc/Core/MetaRegistration.php';
 
     class MetaRegistrationTest extends TestCase {

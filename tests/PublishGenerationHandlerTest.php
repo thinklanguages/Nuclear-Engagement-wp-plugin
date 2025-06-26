@@ -1,8 +1,4 @@
 <?php
-use PHPUnit\Framework\TestCase;
-use NuclearEngagement\Services\PublishGenerationHandler;
-use NuclearEngagement\Core\SettingsRepository;
-
 namespace NuclearEngagement\Services {
     class LoggingService {
         public static array $logs = [];
@@ -11,6 +7,9 @@ namespace NuclearEngagement\Services {
 }
 
 namespace {
+    use PHPUnit\Framework\TestCase;
+    use NuclearEngagement\Services\PublishGenerationHandler;
+    use NuclearEngagement\Core\SettingsRepository;
     if (!function_exists('current_user_can')) {
         function current_user_can($cap, $id = 0) { return $GLOBALS['can_publish'] ?? true; }
     }
