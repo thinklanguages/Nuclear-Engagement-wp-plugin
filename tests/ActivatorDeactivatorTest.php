@@ -89,6 +89,8 @@ require_once dirname(__DIR__) . '/nuclear-engagement/inc/Core/Deactivator.php';
 }
 
 namespace {
+use PHPUnit\Framework\TestCase;
+
 class ActivatorDeactivatorTest extends TestCase {
     protected function setUp(): void {
         global $wpdb, $wp_options, $wp_autoload, $transients, $update_option_calls, $cleared_hooks;
