@@ -52,7 +52,8 @@ class PointerController extends BaseController {
 
         } catch ( \InvalidArgumentException $e ) {
             $this->sendError( $e->getMessage() );
-        } catch ( \Exception $e ) {
+        } catch ( \Throwable $e ) {
+            \NuclearEngagement\Services\LoggingService::log_exception( $e );
             $this->sendError( __( 'An error occurred', 'nuclear-engagement' ) );
         }
     }

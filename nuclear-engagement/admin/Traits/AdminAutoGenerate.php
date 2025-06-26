@@ -81,7 +81,7 @@ trait AdminAutoGenerate {
             $container = $this->get_container();
             $service   = $container->get( 'generation_service' );
             $service->generateSingle( $post_id, $workflow_type );
-               } catch ( \Exception $e ) {
+               } catch ( \Throwable $e ) {
                        \NuclearEngagement\Services\LoggingService::log_exception( $e );
                }
        }
@@ -125,7 +125,7 @@ trait AdminAutoGenerate {
                     "Still processing post {$post_id} ({$workflow_type}), attempt {$attempt}/{$max_attempts}"
                 );
             }
-               } catch ( \Exception $e ) {
+               } catch ( \Throwable $e ) {
                        \NuclearEngagement\Services\LoggingService::log_exception( $e );
                }
 

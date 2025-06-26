@@ -75,8 +75,8 @@ class ContentStorageService {
 
                 \NuclearEngagement\Services\LoggingService::log( "Stored {$workflowType} data for post {$postId}" );
 
-            } catch ( \Exception $e ) {
-                \NuclearEngagement\Services\LoggingService::log( "Error storing {$workflowType} for post {$postId}: " . $e->getMessage() );
+            } catch ( \Throwable $e ) {
+                \NuclearEngagement\Services\LoggingService::log_exception( $e );
             }
         }
     }

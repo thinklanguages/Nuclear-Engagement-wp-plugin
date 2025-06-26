@@ -111,7 +111,7 @@ class ContentController {
                } catch ( \InvalidArgumentException $e ) {
                        \NuclearEngagement\Services\LoggingService::log_exception( $e );
                        return new \WP_Error( 'ne_invalid', $e->getMessage(), array( 'status' => 400 ) );
-               } catch ( \Exception $e ) {
+               } catch ( \Throwable $e ) {
                        \NuclearEngagement\Services\LoggingService::log_exception( $e );
                        return new \WP_Error( 'ne_error', __( 'An error occurred', 'nuclear-engagement' ), array( 'status' => 500 ) );
                }
