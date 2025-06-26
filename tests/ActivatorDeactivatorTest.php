@@ -1,10 +1,9 @@
 <?php
-use PHPUnit\Framework\TestCase;
-use NuclearEngagement\Core\Activator;
-use NuclearEngagement\Core\Deactivator;
-use NuclearEngagement\Services\AutoGenerationService;
-
 namespace {
+    use PHPUnit\Framework\TestCase;
+    use NuclearEngagement\Core\Activator;
+    use NuclearEngagement\Core\Deactivator;
+    use NuclearEngagement\Services\AutoGenerationService;
     if (!defined('NUCLEN_PLUGIN_DIR')) {
         define('NUCLEN_PLUGIN_DIR', dirname(__DIR__) . '/nuclear-engagement/');
     }
