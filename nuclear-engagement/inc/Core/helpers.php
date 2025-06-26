@@ -6,7 +6,7 @@ declare(strict_types=1);
  * @package NuclearEngagement
  */
 
-namespace NuclearEngagement;
+namespace NuclearEngagement {
 
 use NuclearEngagement\SettingsRepository;
 
@@ -107,6 +107,8 @@ if ( ! function_exists( 'nuclen_settings_array' ) ) {
 
         return $repo->get_array( $key, $default );
     }
+}
+
 }
 
 namespace {
