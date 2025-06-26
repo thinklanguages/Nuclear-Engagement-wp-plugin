@@ -53,7 +53,7 @@ class PostsCountController extends BaseController {
 
             wp_send_json_success( $result );
 
-        } catch ( \Exception $e ) {
+        } catch ( \Throwable $e ) {
             LoggingService::log_exception( $e );
             $this->sendError( $e->getMessage() );
         }

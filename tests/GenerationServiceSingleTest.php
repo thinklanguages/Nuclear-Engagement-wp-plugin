@@ -11,6 +11,9 @@ namespace NuclearEngagement\Services {
         public static function log(string $msg): void {
             self::$logs[] = $msg;
         }
+        public static function log_exception(\Throwable $e): void {
+            self::$logs[] = $e->getMessage();
+        }
     }
 }
 

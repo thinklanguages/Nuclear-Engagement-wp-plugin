@@ -39,7 +39,7 @@ trait RestTrait {
                         $storage   = $container->get( 'content_storage' );
             $storage->storeQuizData( $post_id, $quiz_data );
             return true;
-               } catch ( \Exception $e ) {
+               } catch ( \Throwable $e ) {
                        \NuclearEngagement\Services\LoggingService::log_exception( $e );
                        return false;
                }

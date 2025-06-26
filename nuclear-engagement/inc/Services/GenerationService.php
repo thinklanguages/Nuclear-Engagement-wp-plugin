@@ -178,8 +178,8 @@ class GenerationService {
                                 }
                                 \NuclearEngagement\Services\LoggingService::log( "Scheduled polling for post {$postId}, generation {$response->generationId}" );
                         }
-        } catch ( \Exception $e ) {
-            \NuclearEngagement\Services\LoggingService::log( "Error generating {$workflowType} for post {$postId}: " . $e->getMessage() );
+        } catch ( \Throwable $e ) {
+            \NuclearEngagement\Services\LoggingService::log_exception( $e );
             throw $e;
         }
     }

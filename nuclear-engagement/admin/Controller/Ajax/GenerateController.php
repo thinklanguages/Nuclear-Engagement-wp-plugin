@@ -67,11 +67,8 @@ class GenerateController extends BaseController {
                 'Nuclear Engagement validation error: ' . $e->getMessage()
             );
             $this->sendError( $e->getMessage(), 400 );
-        } catch ( \Exception $e ) {
-            \NuclearEngagement\Services\LoggingService::log(
-                'Nuclear Engagement generation error: ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine()
-            );
-            \NuclearEngagement\Services\LoggingService::log( 'Stack trace: ' . $e->getTraceAsString() );
+        } catch ( \Throwable $e ) {
+            \NuclearEngagement\Services\LoggingService::log_exception( $e );
             $this->sendError(
                 __( 'An unexpected error occurred. Please check your error logs.', 'nuclear-engagement' ),
                 500
