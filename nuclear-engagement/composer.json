@@ -23,7 +23,7 @@
   },
   "scripts": {
     "lint": "phpcs",
-    "phpstan": "vendor/bin/phpstan analyse",
-    "test": "phpunit"
+    "phpstan": "phpstan analyse -c ../phpstan.neon.dist",
+    "test": "phpunit --configuration ../phpunit.xml"
   }
 }

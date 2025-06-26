@@ -3,7 +3,6 @@
     <rule ref="WordPress">
         <exclude name="WordPress.Files.FileName" />
     </rule>
-    <rule ref="Generic.Metrics.MagicNumbers" />
 
     <exclude-pattern>vendor/*</exclude-pattern>
     <exclude-pattern>node_modules/*</exclude-pattern>
