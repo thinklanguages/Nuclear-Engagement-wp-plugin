@@ -39,7 +39,7 @@ describe('nuclen-admin-single-generation', () => {
   });
 
   afterEach(() => {
-    vi.restoreAllMocks();
+    vi.clearAllMocks();
     document.body.innerHTML = '';
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     delete (window as any).nuclenAdminVars;
