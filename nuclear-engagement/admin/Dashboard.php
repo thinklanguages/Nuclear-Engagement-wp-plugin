@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-use NuclearEngagement\Utils;
+use NuclearEngagement\Utils\Utils;
 use NuclearEngagement\Services\DashboardDataService;
 use NuclearEngagement\Core\SettingsRepository;
 

@@ -92,7 +92,7 @@ if ( $delete_log ) {
 
 // Remove custom theme file if requested.
 if ( $delete_css ) {
-				$info = \NuclearEngagement\Utils::nuclen_get_custom_css_info();
+                                $info = \NuclearEngagement\Utils\Utils::nuclen_get_custom_css_info();
 	if ( ! empty( $info ) && file_exists( $info['path'] ) ) {
 					wp_delete_file( $info['path'] );
 	}

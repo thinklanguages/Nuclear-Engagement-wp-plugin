@@ -36,7 +36,7 @@ trait AssetsTrait {
 				);
 		}
 
-			$css_info = \NuclearEngagement\Utils::nuclen_get_custom_css_info();
+                        $css_info = \NuclearEngagement\Utils\Utils::nuclen_get_custom_css_info();
 		if ( empty( $css_info ) || empty( $css_info['url'] ) ) {
 				\NuclearEngagement\Services\LoggingService::log( 'Invalid custom CSS info - skipping' );
 				return array(

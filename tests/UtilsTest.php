@@ -14,7 +14,7 @@ namespace NuclearEngagement\Services {
 
 namespace {
     use PHPUnit\Framework\TestCase;
-    use NuclearEngagement\Utils;
+    use NuclearEngagement\Utils\Utils;
     class UtilsTest extends TestCase {
         protected function setUp(): void {
             $GLOBALS['test_upload_basedir'] = sys_get_temp_dir() . '/ut_' . uniqid();
