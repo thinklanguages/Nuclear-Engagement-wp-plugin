@@ -15,7 +15,7 @@ use NuclearEngagement\Services\RemoteApiService;
 use NuclearEngagement\Services\ContentStorageService;
 use NuclearEngagement\Responses\UpdatesResponse;
 use NuclearEngagement\Services\ApiException;
-use NuclearEngagement\Utils;
+use NuclearEngagement\Utils\Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;

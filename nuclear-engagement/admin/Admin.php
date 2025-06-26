@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-use NuclearEngagement\Utils;
+use NuclearEngagement\Utils\Utils;
 use NuclearEngagement\Core\SettingsRepository;
 use NuclearEngagement\Core\Container;
 use NuclearEngagement\Admin\Traits\AdminMetaboxes;

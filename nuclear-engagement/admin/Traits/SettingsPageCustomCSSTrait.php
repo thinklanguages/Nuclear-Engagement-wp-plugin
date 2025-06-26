@@ -123,7 +123,7 @@ trait SettingsPageCustomCSSTrait {
 }
 CSS;
 
-				$css_info = \NuclearEngagement\Utils::nuclen_get_custom_css_info();
+                                $css_info = \NuclearEngagement\Utils\Utils::nuclen_get_custom_css_info();
 		if ( empty( $css_info ) ) {
 				\NuclearEngagement\Services\LoggingService::notify_admin( __( 'Could not create custom CSS directory.', 'nuclear-engagement' ) );
 				return;

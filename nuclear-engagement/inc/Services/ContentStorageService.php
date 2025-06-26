@@ -11,7 +11,7 @@ declare(strict_types=1);
 namespace NuclearEngagement\Services;
 
 use NuclearEngagement\Core\SettingsRepository;
-use NuclearEngagement\Utils;
+use NuclearEngagement\Utils\Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;

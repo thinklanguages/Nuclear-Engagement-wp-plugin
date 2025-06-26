@@ -13,7 +13,7 @@ declare( strict_types = 1 );
 
 namespace NuclearEngagement\Services;
 
-use NuclearEngagement\Utils;
+use NuclearEngagement\Utils\Utils;
 use NuclearEngagement\Services\Remote\RemoteRequest;
 
 // If this file is called directly, abort.

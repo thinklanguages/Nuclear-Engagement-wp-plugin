@@ -22,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 
-use NuclearEngagement\Utils;
+use NuclearEngagement\Utils\Utils;
 use NuclearEngagement\Core\SettingsRepository;
 use NuclearEngagement\Core\Container;
 
