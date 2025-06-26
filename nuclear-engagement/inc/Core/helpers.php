@@ -109,12 +109,13 @@ if ( ! function_exists( 'nuclen_settings_array' ) ) {
     }
 }
 
-namespace {
-    use function NuclearEngagement\nuclen_settings as ns_settings;
-    use function NuclearEngagement\nuclen_settings_bool as ns_settings_bool;
-    use function NuclearEngagement\nuclen_settings_int as ns_settings_int;
-    use function NuclearEngagement\nuclen_settings_string as ns_settings_string;
-    use function NuclearEngagement\nuclen_settings_array as ns_settings_array;
+namespace;
+
+use function NuclearEngagement\nuclen_settings as ns_settings;
+use function NuclearEngagement\nuclen_settings_bool as ns_settings_bool;
+use function NuclearEngagement\nuclen_settings_int as ns_settings_int;
+use function NuclearEngagement\nuclen_settings_string as ns_settings_string;
+use function NuclearEngagement\nuclen_settings_array as ns_settings_array;
 
     if ( ! function_exists( 'nuclen_settings' ) ) {
         function nuclen_settings( ?string $key = null, $default = null ) {
@@ -145,4 +146,3 @@ namespace {
             return ns_settings_array( $key, $default );
         }
     }
-}
