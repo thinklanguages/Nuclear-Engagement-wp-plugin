@@ -8,6 +8,7 @@
       "NuclearEngagement\\Responses\\": "inc/Responses/",
       "NuclearEngagement\\Modules\\": "inc/Modules/",
       "NuclearEngagement\\Core\\": "inc/Core/",
+      "NuclearEngagement\\Helpers\\": "inc/Helpers/",
       "NuclearEngagement\\Utils\\": "inc/Utils/",
       "NuclearEngagement\\Traits\\": "inc/Traits/",
       "NuclearEngagement\\": "inc/"
