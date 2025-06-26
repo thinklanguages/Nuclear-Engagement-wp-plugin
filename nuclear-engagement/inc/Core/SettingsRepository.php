@@ -84,7 +84,7 @@ final class SettingsRepository {
     use \NuclearEngagement\Traits\SettingsPersistenceTrait;
     use \NuclearEngagement\Traits\SettingsCacheTrait;
     use \NuclearEngagement\Traits\SettingsAccessTrait;
-    use PendingSettingsTrait;
+    use \NuclearEngagement\PendingSettingsTrait;
 
 
     /**
