@@ -55,6 +55,13 @@ class PostDataFetcher {
             array_merge( array( 'nuclen_quiz_protected', 'nuclen_summary_protected' ), $ids )
         );
 
-        return $wpdb->get_results( $sql );
+        $rows = $wpdb->get_results( $sql );
+
+        if ( ! empty( $wpdb->last_error ) ) {
+            LoggingService::log( 'Post fetch error: ' . $wpdb->last_error );
+            return array();
+        }
+
+        return $rows;
     }
 }

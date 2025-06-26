@@ -148,7 +148,12 @@ if ( null === $inventory_cache ) {
                 GROUP BY t.term_id",
             array_merge( $sanitized_pt, $sanitized_st )
         );
-            $cat_rows = $wpdb->get_results( $sql_cat, ARRAY_A );
+        $cat_rows = $wpdb->get_results( $sql_cat, ARRAY_A );
+
+        if ( ! empty( $wpdb->last_error ) ) {
+            \NuclearEngagement\Services\LoggingService::log( 'Category stats query error: ' . $wpdb->last_error );
+            $cat_rows = array();
+        }
 
         foreach ( $cat_rows as $r ) {
             $by_category_quiz[ $r['cat_name'] ]['with']       = (int) $r['quiz_with'];

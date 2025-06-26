@@ -2,6 +2,15 @@
 use PHPUnit\Framework\TestCase;
 use NuclearEngagement\Services\DashboardDataService;
 
+namespace NuclearEngagement\Services {
+    class LoggingService {
+        public static array $logs = [];
+        public static function log(string $msg): void { self::$logs[] = $msg; }
+    }
+}
+
+namespace {
+
 if ( ! function_exists( 'date_i18n' ) ) {
     function date_i18n( $format, $timestamp ) { return date( $format, $timestamp ); }
 }
@@ -162,4 +171,47 @@ class DashboardDataServiceTest extends TestCase {
         $svc->get_dual_counts( 'p.post_author', ['post'], ['publish'] );
         $this->assertSame( 2, $wpdb->calls );
     }
+
+    public function test_group_counts_returns_empty_on_error(): void {
+        global $wpdb, $wp_cache, $transients;
+        $wp_cache = $transients = [];
+        $wpdb = new class {
+            public $posts = 'wp_posts';
+            public $postmeta = 'wp_postmeta';
+            public string $last_error = '';
+            public function prepare( $q, ...$a ) { return 'SQL'; }
+            public function get_results( $sql, $output ) { $this->last_error = 'fail'; return []; }
+        };
+
+        \NuclearEngagement\Services\LoggingService::$logs = [];
+
+        $svc = new DashboardDataService();
+        $res = $svc->get_group_counts( 'p.post_status', 'key', ['post'], ['draft'] );
+        $this->assertSame( [], $res );
+        $this->assertSame( ['Dashboard query error: fail'], \NuclearEngagement\Services\LoggingService::$logs );
+        $this->assertEmpty( $wp_cache );
+        $this->assertEmpty( $transients );
+    }
+
+    public function test_dual_counts_returns_empty_on_error(): void {
+        global $wpdb, $wp_cache, $transients;
+        $wp_cache = $transients = [];
+        $wpdb = new class {
+            public $posts = 'wp_posts';
+            public $postmeta = 'wp_postmeta';
+            public string $last_error = '';
+            public function prepare( $q, ...$a ) { return 'SQL'; }
+            public function get_results( $sql, $output ) { $this->last_error = 'fail'; return []; }
+        };
+
+        \NuclearEngagement\Services\LoggingService::$logs = [];
+
+        $svc = new DashboardDataService();
+        $res = $svc->get_dual_counts( 'p.post_author', ['post'], ['publish'] );
+        $this->assertSame( [], $res );
+        $this->assertSame( ['Dashboard query error: fail'], \NuclearEngagement\Services\LoggingService::$logs );
+        $this->assertEmpty( $wp_cache );
+        $this->assertEmpty( $transients );
+    }
+}
 }
