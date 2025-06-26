@@ -3,14 +3,14 @@ import { nuclenFetchUpdates } from './api';
 export function NuclenPollAndPullUpdates({
   intervalMs = 5000,
   generationId,
-  onProgress = (_processed: number, _total: number) => {},
-  onComplete = (_finalData: any) => {},
+  onProgress = (() => {}) as (processed: number, total: number) => void,
+  onComplete = (_finalData: unknown) => {},
   onError = (_errMsg: string) => {},
 }: {
   intervalMs?: number;
   generationId: string;
   onProgress?: (processed: number, total: number) => void;
-  onComplete?: (finalData: any) => void;
+  onComplete?: (finalData: unknown) => void;
   onError?: (errMsg: string) => void;
 }) {
   const pollInterval = setInterval(async () => {
@@ -46,9 +46,10 @@ export function NuclenPollAndPullUpdates({
           workflow,
         });
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       clearInterval(pollInterval);
-      onError(err.message);
+      const message = err instanceof Error ? err.message : 'Unknown error';
+      onError(message);
     }
   }, intervalMs);
 }

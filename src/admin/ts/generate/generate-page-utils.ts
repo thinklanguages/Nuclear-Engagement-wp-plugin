@@ -34,7 +34,7 @@ export async function nuclenCheckCreditsAjax(): Promise<number> {
   if (window.nuclenAjax.nonce) {
     formData.append('security', window.nuclenAjax.nonce);
   }
-  const result = await nuclenFetchWithRetry<any>(window.nuclenAjax.ajax_url, {
+  const result = await nuclenFetchWithRetry(window.nuclenAjax.ajax_url, {
     method: 'POST',
     body: formData,
     credentials: 'same-origin',

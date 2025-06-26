@@ -85,9 +85,10 @@ export function initStep2(elements: GeneratePageElements): void {
           nuclenShowElement(elements.restartBtn);
         },
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       nuclenUpdateProgressBarStep(elements.stepBar3, 'failed');
-      nuclenAlertApiError(error.message);
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      nuclenAlertApiError(message);
       if (elements.submitBtn) {
         elements.submitBtn.disabled = false;
       }
