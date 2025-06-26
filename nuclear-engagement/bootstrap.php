@@ -50,7 +50,7 @@ if ( file_exists( $autoload ) ) {
 }
 
 // Load helper functions used across the plugin.
-require_once NUCLEN_PLUGIN_DIR . 'inc/Core/helpers.php';
+require_once NUCLEN_PLUGIN_DIR . 'inc/Helpers/settings-functions.php';
 
 // Register a minimal PSR-4 autoloader for plugin classes when Composer
 // autoload rules are incomplete.
