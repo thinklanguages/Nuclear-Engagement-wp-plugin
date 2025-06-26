@@ -33,7 +33,7 @@ export function initStep1(elements: GeneratePageElements): void {
     const filters: NuclenFilterValues = nuclenCollectFilters();
     nuclenAppendFilters(formData, filters);
 
-    const result = await nuclenFetchWithRetry<any>(window.nuclenAjax.ajax_url || '', {
+    const result = await nuclenFetchWithRetry(window.nuclenAjax.ajax_url || '', {
       method: 'POST',
       body: formData,
       credentials: 'same-origin',
@@ -100,10 +100,11 @@ export function initStep1(elements: GeneratePageElements): void {
         nuclenShowElement(elements.submitBtn);
         elements.submitBtn.disabled = false;
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       logger.error('Error fetching remaining credits:', err);
+      const message = err instanceof Error ? err.message : 'Unknown error';
       if (elements.creditsInfoEl) {
-        elements.creditsInfoEl.textContent = `Unable to retrieve your credits: ${err.message}`;
+        elements.creditsInfoEl.textContent = `Unable to retrieve your credits: ${message}`;
       }
       if (elements.submitBtn) {
         elements.submitBtn.disabled = false;

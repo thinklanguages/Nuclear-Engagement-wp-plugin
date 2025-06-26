@@ -11,7 +11,10 @@ export async function apiRequest(url: string, options: RequestInit): Promise<Res
       throw new Error(`HTTP ${response.status}`);
     }
     return response;
-  } catch (err: any) {
-    throw new Error(err.message || 'Network error');
+  } catch (err: unknown) {
+    if (err instanceof Error) {
+      throw new Error(err.message || 'Network error');
+    }
+    throw new Error('Network error');
   }
 }

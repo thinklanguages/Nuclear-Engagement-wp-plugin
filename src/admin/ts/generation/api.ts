@@ -7,7 +7,7 @@ export interface NuclenFetchResult<T> {
   error?: string;
 }
 
-export async function nuclenFetchWithRetry<T = any>(
+export async function nuclenFetchWithRetry<T = unknown>(
   url: string,
   options: RequestInit,
   retries = 3,
@@ -36,7 +36,7 @@ export async function nuclenFetchWithRetry<T = any>(
       }
 
       return { ok: false, status, data, error: bodyText };
-    } catch (error: any) {
+    } catch (error: unknown) {
       lastError = error as Error;
       if (attempt === retries) {
         break;
@@ -78,7 +78,7 @@ export async function nuclenFetchUpdates(generationId?: string) {
     formData.append('generation_id', generationId);
   }
 
-  const result = await nuclenFetchWithRetry<any>(window.nuclenAjax.ajax_url, {
+  const result = await nuclenFetchWithRetry(window.nuclenAjax.ajax_url, {
     method: 'POST',
     body: formData,
     credentials: 'same-origin',
@@ -91,7 +91,7 @@ export async function nuclenFetchUpdates(generationId?: string) {
   return result.data;
 }
 
-export async function NuclenStartGeneration(dataToSend: Record<string, any>) {
+export async function NuclenStartGeneration(dataToSend: Record<string, unknown>) {
   if (!window.nuclenAdminVars || !window.nuclenAdminVars.ajax_url) {
     throw new Error('Missing WP Ajax config (nuclenAdminVars.ajax_url).');
   }
@@ -104,7 +104,7 @@ export async function NuclenStartGeneration(dataToSend: Record<string, any>) {
   }
   formData.append('security', window.nuclenAjax.nonce);
 
-  const result = await nuclenFetchWithRetry<any>(window.nuclenAdminVars.ajax_url, {
+  const result = await nuclenFetchWithRetry(window.nuclenAdminVars.ajax_url, {
     method: 'POST',
     body: formData,
     credentials: 'same-origin',

@@ -3,7 +3,10 @@ export {
   nuclenStoreGenerationResults as storeGenerationResults,
 } from '../generation/results';
 
-export function populateQuizMetaBox(postResult: any, finalDate?: string): void {
+export function populateQuizMetaBox(
+  postResult: Record<string, unknown>,
+  finalDate?: string
+): void {
   const { date, questions } = postResult;
   const newDate = finalDate || date;
   const dateField = document.querySelector<HTMLInputElement>('input[name="nuclen_quiz_data[date]"]');
@@ -40,7 +43,10 @@ export function populateQuizMetaBox(postResult: any, finalDate?: string): void {
   }
 }
 
-export function populateSummaryMetaBox(postResult: any, finalDate?: string): void {
+export function populateSummaryMetaBox(
+  postResult: Record<string, unknown>,
+  finalDate?: string
+): void {
   const { date, summary } = postResult;
   const newDate = finalDate || date;
   const dateField = document.querySelector<HTMLInputElement>('input[name="nuclen_summary_data[date]"]');

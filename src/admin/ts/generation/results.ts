@@ -19,7 +19,7 @@ export function nuclenAlertApiError(errMsg: string): void {
   }
 }
 
-export async function nuclenStoreGenerationResults(workflow: string, results: any) {
+export async function nuclenStoreGenerationResults(workflow: string, results: unknown) {
   const payload = { workflow, results };
   let resp: Response;
   try {
@@ -37,7 +37,7 @@ export async function nuclenStoreGenerationResults(workflow: string, results: an
     displayError('Network error');
     return { ok: false, data: { message: 'Network error' } };
   }
-  let data: any = null;
+  let data: unknown = null;
   if (resp.ok) {
     try {
       data = await resp.json();

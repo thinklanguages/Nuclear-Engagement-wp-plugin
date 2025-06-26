@@ -78,8 +78,9 @@ export function initSingleGenerationButtons(): void {
           btn.disabled = false;
         },
       });
-    } catch (err: any) {
-      alertApiError(err.message);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Unknown error';
+      alertApiError(message);
       btn.textContent = 'Generate';
       btn.disabled = false;
     }
