@@ -7,35 +7,31 @@ use NuclearEngagement\Services\ApiException;
 
 class GS_WPDB {
     public $posts = 'wp_posts';
+    public $postmeta = 'wp_postmeta';
     public array $prepared_sqls = [];
-    public array $prepared_args = [];
+    public array $args = [];
     public array $results_sqls = [];
 
     public function prepare($sql, ...$args) {
         $this->prepared_sqls[] = $sql;
-        $this->prepared_args[] = $args;
+        $this->args = $args;
         return $sql;
     }
 
     public function get_results($sql) {
         $this->results_sqls[] = $sql;
-        $args = array_shift($this->prepared_args);
-        $ids = array_slice($args, 0, -2);
-        $type = $args[count($args) - 2];
-        $status = $args[count($args) - 1];
+        $ids = array_slice($this->args, 2);
         $rows = [];
         foreach ($ids as $id) {
-            if (!isset($GLOBALS['wp_posts'][$id])) {
-                continue;
-            }
+            if (!isset($GLOBALS['wp_posts'][$id])) { continue; }
             $p = $GLOBALS['wp_posts'][$id];
-            if ($p->post_type === $type && $p->post_status === $status) {
-                $rows[] = (object) [
-                    'ID' => $p->ID,
-                    'post_title' => $p->post_title,
-                    'post_content' => $p->post_content,
-                ];
-            }
+            if ($p->post_status !== 'publish') { continue; }
+            if (!empty($GLOBALS['wp_meta'][$id]['nuclen_quiz_protected']) || !empty($GLOBALS['wp_meta'][$id]['nuclen_summary_protected'])) { continue; }
+            $rows[] = (object) [
+                'ID' => $p->ID,
+                'post_title' => $p->post_title,
+                'post_content' => $p->post_content,
+            ];
         }
         return $rows;
     }
@@ -55,8 +51,8 @@ class GSStorage {
 
 class GenerationServiceTest extends TestCase {
     protected function setUp(): void {
-        global $wp_posts, $wp_options, $wp_autoload, $wpdb;
-        $wp_posts = $wp_options = $wp_autoload = [];
+        global $wp_posts, $wp_options, $wp_autoload, $wp_meta, $wpdb;
+        $wp_posts = $wp_options = $wp_autoload = $wp_meta = [];
         $wpdb = new GS_WPDB();
         SettingsRepository::reset_for_tests();
     }
