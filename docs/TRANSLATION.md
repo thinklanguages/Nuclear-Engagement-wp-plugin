@@ -23,4 +23,10 @@ After adding new translatable strings in the plugin code, regenerate the templat
 wp i18n make-pot nuclear-engagement nuclear-engagement/languages/nuclear-engagement.pot
 ```
 
+You can also use the helper script defined in `package.json`:
+
+```bash
+npm run i18n
+```
+
 Then refresh your `.po` files in Poedit ("Update from POT") and recompile the `.mo` files.
