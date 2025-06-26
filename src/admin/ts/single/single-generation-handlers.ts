@@ -3,11 +3,13 @@ import {
   populateQuizMetaBox,
   populateSummaryMetaBox,
   storeGenerationResults,
+  type PostResult,
 } from './single-generation-utils';
 import {
   NuclenStartGeneration,
   NuclenPollAndPullUpdates,
 } from '../nuclen-admin-generate';
+import type { StartGenerationResponse, PollingUpdateData } from '../generation/api';
 import { displayError } from '../utils/displayError';
 import * as logger from '../utils/logger';
 
@@ -29,7 +31,7 @@ export function initSingleGenerationButtons(): void {
     btn.textContent = 'Generating...';
 
     try {
-      const startResp = await NuclenStartGeneration({
+      const startResp: StartGenerationResponse = await NuclenStartGeneration({
         nuclen_selected_post_ids: JSON.stringify([postId]),
         nuclen_selected_generate_workflow: workflow,
       });
@@ -44,23 +46,24 @@ export function initSingleGenerationButtons(): void {
         onProgress() {
           btn.textContent = 'Generating...';
         },
-        async onComplete({ results, workflow: wf }) {
+        async onComplete({ results, workflow: wf }: PollingUpdateData) {
           if (results && typeof results === 'object') {
             try {
               const { ok, data } = await storeGenerationResults(wf, results);
-              if (ok && !data.code) {
-                const postResult = results[postId];
-                const finalDate = data.finalDate && typeof data.finalDate === 'string' ? data.finalDate : undefined;
+              const respData = data as Record<string, unknown>;
+              if (ok && !('code' in respData)) {
+                  const postResult = results[postId] as PostResult;
+                const finalDate = respData.finalDate && typeof respData.finalDate === 'string' ? (respData.finalDate as string) : undefined;
                 if (postResult) {
                   if (wf === 'quiz') {
-                    populateQuizMetaBox(postResult, finalDate);
+                      populateQuizMetaBox(postResult, finalDate);
                   } else if (wf === 'summary') {
-                    populateSummaryMetaBox(postResult, finalDate);
+                      populateSummaryMetaBox(postResult, finalDate);
                   }
                 }
                 btn.textContent = 'Stored!';
               } else {
-                logger.error('Error storing single-generation results in WP:', data);
+                logger.error('Error storing single-generation results in WP:', respData);
                 btn.textContent = 'Generation failed!';
               }
             } catch (err) {

@@ -2,7 +2,7 @@
 export {};
 
 declare global {
-  const wp: any;
+  const wp: Record<string, unknown>;
   interface Window {
     nuclenAjax?: {
       ajax_url?: string;
@@ -15,7 +15,7 @@ declare global {
       rest_receive_content?: string;
       rest_nonce?: string;
     };
-    tinymce?: any;
-    wp?: any;
+    tinymce?: Record<string, unknown>;
+    wp?: Record<string, unknown>;
   }
 }

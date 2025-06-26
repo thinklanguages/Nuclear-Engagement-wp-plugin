@@ -59,7 +59,35 @@ export async function nuclenFetchWithRetry<T = unknown>(
   throw lastError;
 }
 
-export async function nuclenFetchUpdates(generationId?: string) {
+export interface PollingUpdateData {
+  processed: number;
+  total: number;
+  successCount?: number;
+  failCount?: number;
+  finalReport?: { message?: string };
+  results?: Record<string, unknown>;
+  workflow: string;
+}
+
+export interface PollingUpdateResponse {
+  success: boolean;
+  message?: string;
+  data: PollingUpdateData;
+}
+
+export interface StartGenerationResponse {
+  success: boolean;
+  message?: string;
+  generation_id?: string;
+  data?: {
+    generation_id?: string;
+    [key: string]: unknown;
+  };
+}
+
+export async function nuclenFetchUpdates(
+  generationId?: string
+): Promise<PollingUpdateResponse> {
   if (!window.nuclenAjax || !window.nuclenAjax.ajax_url) {
     throw new Error('Missing nuclenAjax configuration (ajax_url).');
   }
@@ -78,20 +106,25 @@ export async function nuclenFetchUpdates(generationId?: string) {
     formData.append('generation_id', generationId);
   }
 
-  const result = await nuclenFetchWithRetry(window.nuclenAjax.ajax_url, {
-    method: 'POST',
-    body: formData,
-    credentials: 'same-origin',
-  });
+  const result = await nuclenFetchWithRetry<PollingUpdateResponse>(
+    window.nuclenAjax.ajax_url,
+    {
+      method: 'POST',
+      body: formData,
+      credentials: 'same-origin',
+    }
+  );
 
   if (!result.ok) {
     throw new Error(result.error || `HTTP ${result.status}`);
   }
 
-  return result.data;
+  return result.data as PollingUpdateResponse;
 }
 
-export async function NuclenStartGeneration(dataToSend: Record<string, unknown>) {
+export async function NuclenStartGeneration(
+  dataToSend: Record<string, unknown>
+): Promise<StartGenerationResponse> {
   if (!window.nuclenAdminVars || !window.nuclenAdminVars.ajax_url) {
     throw new Error('Missing WP Ajax config (nuclenAdminVars.ajax_url).');
   }
@@ -104,19 +137,25 @@ export async function NuclenStartGeneration(dataToSend: Record<string, unknown>)
   }
   formData.append('security', window.nuclenAjax.nonce);
 
-  const result = await nuclenFetchWithRetry(window.nuclenAdminVars.ajax_url, {
-    method: 'POST',
-    body: formData,
-    credentials: 'same-origin',
-  });
+  const result = await nuclenFetchWithRetry<StartGenerationResponse>(
+    window.nuclenAdminVars.ajax_url,
+    {
+      method: 'POST',
+      body: formData,
+      credentials: 'same-origin',
+    }
+  );
 
   if (!result.ok) {
     throw new Error(result.error || `HTTP ${result.status}`);
   }
 
-  const data = result.data;
+  const data = result.data as StartGenerationResponse;
   if (!data?.success) {
-    const errMsg = data?.message || data?.data?.message || 'Generation start failed (unknown error).';
+    const errMsg =
+      (data?.message as string) ||
+      (data?.data?.message as string) ||
+      'Generation start failed (unknown error).';
     throw new Error(errMsg);
   }
 
