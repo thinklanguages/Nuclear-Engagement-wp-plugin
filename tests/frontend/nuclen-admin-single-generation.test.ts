@@ -2,7 +2,12 @@ import { describe, it, beforeAll, beforeEach, afterEach, expect, vi } from 'vite
 
 vi.mock('../../src/admin/ts/generation/api', async () => {
   const actual: any = await vi.importActual('../../src/admin/ts/generation/api');
-  return { ...actual, nuclenFetchWithRetry: vi.fn() };
+  const nuclenFetchWithRetry = vi.fn();
+  return {
+    ...actual,
+    nuclenFetchWithRetry,
+    NuclenStartGeneration: vi.fn(async () => nuclenFetchWithRetry()),
+  };
 });
 
 // Re-export mocked generation helpers so NuclenStartGeneration uses the stubbed
@@ -39,7 +44,7 @@ describe('nuclen-admin-single-generation', () => {
   });
 
   afterEach(() => {
-    vi.restoreAllMocks();
+    vi.clearAllMocks();
     document.body.innerHTML = '';
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     delete (window as any).nuclenAdminVars;
