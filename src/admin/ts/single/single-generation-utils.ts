@@ -50,8 +50,8 @@ export function populateSummaryMetaBox(postResult: any, finalDate?: string): voi
     dateField.readOnly = true;
   }
 
-  if (typeof (window as any).tinymce !== 'undefined') {
-    const editor = (window as any).tinymce.get('nuclen_summary_data_summary');
+  if (typeof window.tinymce !== 'undefined') {
+    const editor = window.tinymce.get('nuclen_summary_data_summary');
     if (editor && typeof editor.setContent === 'function') {
       editor.setContent(summary || '');
       editor.save();

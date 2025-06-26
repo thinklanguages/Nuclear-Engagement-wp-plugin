@@ -12,7 +12,10 @@ declare global {
     nuclenAdminVars?: {
       ajax_url?: string;
       security?: string;
+      rest_receive_content?: string;
+      rest_nonce?: string;
     };
+    tinymce?: any;
     wp?: any;
   }
 }

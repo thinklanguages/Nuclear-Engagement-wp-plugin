@@ -15,7 +15,7 @@ import * as logger from '../utils/logger';
 export function initStep2(elements: GeneratePageElements): void {
   elements.generateForm?.addEventListener('submit', async (event) => {
     event.preventDefault();
-    if (!(window as any).nuclenAdminVars || !(window as any).nuclenAdminVars.ajax_url) {
+    if (!window.nuclenAdminVars || !window.nuclenAdminVars.ajax_url) {
       displayError('Error: WP Ajax config not found. Please check the plugin settings.');
       return;
     }
