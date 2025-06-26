@@ -1,8 +1,7 @@
-includes:
-    - nuclear-engagement/vendor/php-stubs/wordpress-stubs/wordpress-stubs.php
-
 parameters:
     level: 6
     paths:
         - nuclear-engagement
         - tests
+    bootstrapFiles:
+        - nuclear-engagement/vendor/php-stubs/wordpress-stubs/wordpress-stubs.php
