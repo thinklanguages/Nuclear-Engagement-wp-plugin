@@ -2,11 +2,45 @@
 use PHPUnit\Framework\TestCase;
 use NuclearEngagement\SettingsRepository;
 use NuclearEngagement\SettingsSanitizer;
+use NuclearEngagement\SettingsCache;
+
+if (!isset($GLOBALS['wp_cache'])) { $GLOBALS['wp_cache'] = []; }
+if (!function_exists('wp_cache_get')) {
+    function wp_cache_get($key, $group = '', $force = false, &$found = null) {
+        $found = isset($GLOBALS['wp_cache'][$group][$key]);
+        return $GLOBALS['wp_cache'][$group][$key] ?? false;
+    }
+}
+if (!function_exists('wp_cache_set')) {
+    function wp_cache_set($key, $value, $group = '', $ttl = 0) {
+        $GLOBALS['wp_cache'][$group][$key] = $value;
+    }
+}
+if (!function_exists('wp_cache_delete')) {
+    function wp_cache_delete($key, $group = '') {
+        unset($GLOBALS['wp_cache'][$group][$key]);
+    }
+}
+if (!function_exists('wp_cache_flush_group')) {
+    function wp_cache_flush_group($group) { unset($GLOBALS['wp_cache'][$group]); }
+}
+if (!function_exists('wp_cache_flush')) {
+    function wp_cache_flush() { $GLOBALS['wp_cache'] = []; }
+}
+if (!function_exists('get_current_blog_id')) {
+    function get_current_blog_id() { return 1; }
+}
+if (!function_exists('sanitize_text_field')) {
+    function sanitize_text_field($text) { return trim($text); }
+}
 
 class SettingsRepositoryTest extends TestCase {
     private \ReflectionMethod $sanitizeMethod;
 
     protected function setUp(): void {
+        global $wp_options, $wp_autoload, $wp_cache;
+        $wp_options = $wp_autoload = $wp_cache = [];
+        SettingsRepository::reset_for_tests();
         $this->sanitizeMethod = new \ReflectionMethod(SettingsSanitizer::class, 'sanitize_heading_levels');
         $this->sanitizeMethod->setAccessible(true);
     }
@@ -50,5 +84,39 @@ class SettingsRepositoryTest extends TestCase {
         $this->assertSame('bar', $defaults['foo']);
         $this->assertSame('dark', $defaults['theme']);
         $this->assertArrayHasKey('quiz_title', $defaults);
+    }
+
+    public function test_cache_returns_cached_settings_until_invalidated() {
+        global $wp_options, $wp_cache;
+
+        $wp_options[SettingsRepository::OPTION] = ['theme' => 'dark'];
+
+        $repo = SettingsRepository::get_instance();
+
+        $this->assertSame('dark', $repo->get_string('theme'));
+
+        $cache_key = 'settings_' . get_current_blog_id();
+        $this->assertArrayHasKey($cache_key, $wp_cache[SettingsCache::CACHE_GROUP]);
+
+        $wp_options[SettingsRepository::OPTION] = ['theme' => 'light'];
+
+        $this->assertSame('dark', $repo->get_string('theme'));
+
+        $repo->invalidate_cache();
+        $this->assertArrayNotHasKey($cache_key, $wp_cache[SettingsCache::CACHE_GROUP] ?? []);
+
+        $this->assertSame('light', $repo->get_string('theme'));
+    }
+
+    public function test_save_sanitizes_values_and_clears_cache() {
+        global $wp_cache;
+
+        $repo = SettingsRepository::get_instance(['toc_heading_levels' => [2,3]]);
+        $repo->get_all();
+
+        $repo->set_array('toc_heading_levels', ['1','7','2'])->save();
+
+        $this->assertEmpty($wp_cache[SettingsCache::CACHE_GROUP] ?? []);
+        $this->assertSame([1,2], $repo->get_array('toc_heading_levels'));
     }
 }
