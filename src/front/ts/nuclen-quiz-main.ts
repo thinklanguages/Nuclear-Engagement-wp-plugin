@@ -10,10 +10,10 @@
 // -----------------------------------------------------------------------------
 
 import type {
-    QuizQuestion,
-    OptinContext,
-    NuclenSettings,
-  } from './nuclen-quiz-types';
+  QuizQuestion,
+  OptinContext,
+  NuclenSettings as NuclenSettingsType,
+} from './nuclen-quiz-types';
   import { shuffle, escapeHtml } from './nuclen-quiz-utils';
 import {
   QuizUIRefs,
@@ -25,9 +25,7 @@ import * as logger from './logger';
 
   /* Globals injected by wp_localize_script */
   declare const postQuizData: QuizQuestion[];
-  declare const NuclenSettings: NuclenSettings;
-
-  declare const NuclenCustomQuizHtmlAfter: string;
+  declare const NuclenSettings: NuclenSettingsType;
 
   declare const NuclenOptinPosition: string;
   declare const NuclenOptinMandatory: boolean;
@@ -35,16 +33,6 @@ import * as logger from './logger';
   declare const NuclenOptinButtonText: string;
 
   declare const NuclenOptinAjax: { url: string; nonce: string };
-
-  declare const NuclenStrings: {
-    retake_test: string;
-    your_score: string;
-    perfect: string;
-    well_done: string;
-    retake_prompt: string;
-    correct: string;
-    your_answer: string;
-  };
 
   declare function gtag(...args: any[]): void;
 
