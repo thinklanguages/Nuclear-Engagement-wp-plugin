@@ -44,6 +44,12 @@ Run the PHPUnit test suite with:
 composer test --working-dir=nuclear-engagement
 ```
 
+Run the JavaScript tests with:
+
+```bash
+npm run test
+```
+
 Run static analysis using PHPStan:
 
 ```bash
