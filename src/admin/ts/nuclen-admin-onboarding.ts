@@ -1,4 +1,7 @@
 // nuclen-admin-onboarding.ts
+import { nuclenFetchWithRetry } from './nuclen-admin-generate';
+import { displayError } from './utils/displayError';
+import * as logger from './utils/logger';
 
 // 1) Declare the global shape of window.nePointerData.
 declare global {
@@ -105,7 +108,7 @@ export interface NuclenPointer {
       wrapper.style.left = `${Math.max(left, 0)}px`;
 
       const close = wrapper.querySelector<HTMLAnchorElement>('.close');
-      close?.addEventListener('click', (e) => {
+      close?.addEventListener('click', async (e) => {
         e.preventDefault();
 
         const form = new URLSearchParams();
@@ -115,12 +118,21 @@ export interface NuclenPointer {
           form.append('nonce', nonce);
         }
 
-        fetch(ajaxurl, {
-          method: 'POST',
-          credentials: 'same-origin',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          body: form.toString(),
-        });
+        try {
+          const result = await nuclenFetchWithRetry<any>(ajaxurl, {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: form.toString(),
+          });
+          if (!result.ok) {
+            logger.error('Failed to dismiss pointer:', result.error);
+            displayError('Failed to dismiss pointer.');
+          }
+        } catch (err: any) {
+          logger.error('Error dismissing pointer:', err);
+          displayError('Network error while dismissing pointer.');
+        }
 
         wrapper.remove();
         currentIndex++;

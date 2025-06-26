@@ -4,6 +4,7 @@
  * Nuclear Engagement – onboarding pointers
  * Handles per-screen WP Pointer display & dismissal.
  */
+function nuclenLog(){console.log.apply(console,arguments);}function nuclenWarn(){console.warn.apply(console,arguments);}function nuclenError(){console.error.apply(console,arguments);}async function nuclenFetchWithRetry(e,t,n=3,r=500){let o=0,a=r,s;for(;o<=n;){try{const l=await fetch(e,t),{status:c,ok:i}=l,d=await l.text().catch(()=>""),u=d?(()=>{try{return JSON.parse(d)}catch{}})():null;if(i)return{ok:!0,status:c,data:u};return{ok:!1,status:c,data:u,error:d}}catch(l){if(s=l,o===n)break;nuclenWarn(`Retrying request to ${e} with method ${t.method||"GET"} (${n-o} attempts left). Error: ${s.message}`,s),await new Promise(m=>setTimeout(m,a)),a*=2}o+=1}nuclenError(`Max retries reached for ${e} with method ${t.method||"GET"}:`,s);throw s}function displayError(m){const t=document.createElement('div');t.className='nuclen-error-toast';t.textContent=m;document.body.appendChild(t);setTimeout(()=>t.remove(),5000);console.error(m);}
 ( function () {
 	if ( typeof window.nePointerData === 'undefined' ) {
 			return;
@@ -90,19 +91,27 @@
 						if ( nonce ) {
 								params.append( 'nonce', nonce );
 						}
-						fetch(
-							ajaxurl,
-							{
-								method      : 'POST',
-								credentials : 'same-origin',
-								headers     : { 'Content-Type': 'application/x-www-form-urlencoded' },
-								body        : params.toString(),
-							}
-						);
+                                ( async () => {
+                                        try {
+                                                const r = await nuclenFetchWithRetry( ajaxurl, {
+                                                        method      : 'POST',
+                                                        credentials : 'same-origin',
+                                                        headers     : { 'Content-Type': 'application/x-www-form-urlencoded' },
+                                                        body        : params.toString(),
+                                                } );
+                                                if ( ! r.ok ) {
+                                                        nuclenError( 'Failed to dismiss pointer:', r.error );
+                                                        displayError( 'Failed to dismiss pointer.' );
+                                                }
+                                        } catch ( err ) {
+                                                nuclenError( 'Error dismissing pointer:', err );
+                                                displayError( 'Network error while dismissing pointer.' );
+                                        }
 
-						wrapper.remove();
-						index++;
-						showNext();
+                                        wrapper.remove();
+                                        index++;
+                                        showNext();
+                                } )();
 					}
 				);
 	}
