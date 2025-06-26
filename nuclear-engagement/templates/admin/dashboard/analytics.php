@@ -2,28 +2,28 @@
 declare(strict_types=1);
 // File: admin/partials/dashboard/analytics.php
 if ( ! defined( 'ABSPATH' ) ) {
-    exit;
+	exit;
 }
 ?>
 <!-- Analytics -->
 <h2><?php esc_html_e( 'Analytics', 'nuclear-engagement' ); ?></h2>
 <p>
-    <?php
-    printf(
-        wp_kses(
-            /* translators: %s is a link */
-            __( 'Engagement analytics are available on the Nuclear Engagement web app (create a free account %s).', 'nuclear-engagement' ),
-            array(
-                'a' => array(
-                    'href'   => array(),
-                    'target' => array(),
-                ),
-            )
-        ),
-        '<a href="https://app.nuclearengagement.com/signup" target="_blank">' . esc_html__( 'here', 'nuclear-engagement' ) . '</a>'
-    );
-    ?>
+	<?php
+	printf(
+		wp_kses(
+			/* translators: %s is a link */
+			__( 'Engagement analytics are available on the Nuclear Engagement web app (create a free account %s).', 'nuclear-engagement' ),
+			array(
+				'a' => array(
+					'href'   => array(),
+					'target' => array(),
+				),
+			)
+		),
+		'<a href="https://app.nuclearengagement.com/signup" target="_blank">' . esc_html__( 'here', 'nuclear-engagement' ) . '</a>'
+	);
+	?>
 </p>
 <button class="button button-secondary" onclick="window.open('https://app.nuclearengagement.com/sites', '_blank');">
-    <?php esc_html_e( 'View Analytics', 'nuclear-engagement' ); ?>
+	<?php esc_html_e( 'View Analytics', 'nuclear-engagement' ); ?>
 </button>

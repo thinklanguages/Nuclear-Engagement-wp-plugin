@@ -16,7 +16,7 @@ use NuclearEngagement\Core\SettingsRepository;
 use NuclearEngagement\Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
-    exit;
+	exit;
 }
 
 /**
@@ -27,114 +27,114 @@ if ( ! defined( 'ABSPATH' ) ) {
  * admin nonce check when present.
  */
 class ContentController {
-    /**
-     * @var ContentStorageService
-     */
-        private ContentStorageService $storage;
+	/**
+	 * @var ContentStorageService
+	 */
+	private ContentStorageService $storage;
 
-        /**
-         * @var SettingsRepository
-         */
-        private SettingsRepository $settings;
+		/**
+		 * @var SettingsRepository
+		 */
+	private SettingsRepository $settings;
 
-    /**
-     * @var Utils
-     */
-    private Utils $utils;
+	/**
+	 * @var Utils
+	 */
+	private Utils $utils;
 
-    /**
-     * Constructor
-     *
-     * @param ContentStorageService $storage
-     */
-        public function __construct( ContentStorageService $storage, SettingsRepository $settings ) {
-                $this->storage  = $storage;
-                $this->settings = $settings;
-                $this->utils    = new Utils();
-        }
+	/**
+	 * Constructor
+	 *
+	 * @param ContentStorageService $storage
+	 */
+	public function __construct( ContentStorageService $storage, SettingsRepository $settings ) {
+			$this->storage  = $storage;
+			$this->settings = $settings;
+			$this->utils    = new Utils();
+	}
 
-    /**
-     * Handle content receive request
-     *
-     * @param \WP_REST_Request $request
-     * @return \WP_REST_Response|\WP_Error
-     */
-        public function handle( \WP_REST_Request $request ) {
-                try {
-                        // Authentication handled in permissions()
+	/**
+	 * Handle content receive request
+	 *
+	 * @param \WP_REST_Request $request
+	 * @return \WP_REST_Response|\WP_Error
+	 */
+	public function handle( \WP_REST_Request $request ) {
+		try {
+				// Authentication handled in permissions()
 
-                        $data = $request->get_json_params();
+				$data = $request->get_json_params();
 
-                        if ( ! is_array( $data ) ) {
-                                \NuclearEngagement\Services\LoggingService::log( 'Invalid JSON received in REST request' );
-                                return new \WP_Error(
-                                        'ne_invalid_json',
-                                        __( 'Invalid JSON', 'nuclear-engagement' ),
-                                        array( 'status' => 400 )
-                                );
-                        }
+			if ( ! is_array( $data ) ) {
+				\NuclearEngagement\Services\LoggingService::log( 'Invalid JSON received in REST request' );
+				return new \WP_Error(
+					'ne_invalid_json',
+					__( 'Invalid JSON', 'nuclear-engagement' ),
+					array( 'status' => 400 )
+				);
+			}
 
-                        \NuclearEngagement\Services\LoggingService::log(
-                                'Received content via REST: ' . json_encode(
-                                        array(
-                                                'workflow'      => $data['workflow'] ?? 'unknown',
-                                                'results_count' => is_array( $data['results'] ?? null ) ? count( $data['results'] ) : 0,
-                                        )
-                                )
-                        );
+				\NuclearEngagement\Services\LoggingService::log(
+					'Received content via REST: ' . json_encode(
+						array(
+							'workflow'      => $data['workflow'] ?? 'unknown',
+							'results_count' => is_array( $data['results'] ?? null ) ? count( $data['results'] ) : 0,
+						)
+					)
+				);
 
-            $contentRequest = ContentRequest::fromJson( $data );
+			$contentRequest = ContentRequest::fromJson( $data );
 
-            // Store the results
-            $this->storage->storeResults( $contentRequest->results, $contentRequest->workflow );
+			// Store the results
+			$this->storage->storeResults( $contentRequest->results, $contentRequest->workflow );
 
-            // Get date from first stored item
-            reset( $contentRequest->results );
-            $firstPostId = key( $contentRequest->results );
-            $metaKey     = $contentRequest->workflow === 'quiz' ? 'nuclen-quiz-data' : 'nuclen-summary-data';
-            $stored      = get_post_meta( $firstPostId, $metaKey, true );
-            $date        = is_array( $stored ) && ! empty( $stored['date'] ) ? $stored['date'] : '';
+			// Get date from first stored item
+			reset( $contentRequest->results );
+			$firstPostId = key( $contentRequest->results );
+			$metaKey     = $contentRequest->workflow === 'quiz' ? 'nuclen-quiz-data' : 'nuclen-summary-data';
+			$stored      = get_post_meta( $firstPostId, $metaKey, true );
+			$date        = is_array( $stored ) && ! empty( $stored['date'] ) ? $stored['date'] : '';
 
-            $message = sprintf(
-                __( '%s data received and stored successfully', 'nuclear-engagement' ),
-                ucfirst( $contentRequest->workflow )
-            );
+			$message = sprintf(
+				__( '%s data received and stored successfully', 'nuclear-engagement' ),
+				ucfirst( $contentRequest->workflow )
+			);
 
-            return new \WP_REST_Response(
-                array(
-                    'message'   => $message,
-                    'finalDate' => $date,
-                ),
-                200
-            );
+			return new \WP_REST_Response(
+				array(
+					'message'   => $message,
+					'finalDate' => $date,
+				),
+				200
+			);
 
-               } catch ( \InvalidArgumentException $e ) {
-                       \NuclearEngagement\Services\LoggingService::log_exception( $e );
-                       return new \WP_Error( 'ne_invalid', $e->getMessage(), array( 'status' => 400 ) );
-               } catch ( \Throwable $e ) {
-                       \NuclearEngagement\Services\LoggingService::log_exception( $e );
-                       return new \WP_Error( 'ne_error', __( 'An error occurred', 'nuclear-engagement' ), array( 'status' => 500 ) );
-               }
-       }
+		} catch ( \InvalidArgumentException $e ) {
+					\NuclearEngagement\Services\LoggingService::log_exception( $e );
+					return new \WP_Error( 'ne_invalid', $e->getMessage(), array( 'status' => 400 ) );
+		} catch ( \Throwable $e ) {
+				\NuclearEngagement\Services\LoggingService::log_exception( $e );
+				return new \WP_Error( 'ne_error', __( 'An error occurred', 'nuclear-engagement' ), array( 'status' => 500 ) );
+		}
+	}
 
-    /**
-     * Check permissions
-     *
-     * @return bool
-     */
-        public function permissions( \WP_REST_Request $request ): bool {
-                $header_pass = sanitize_text_field( (string) $request->get_header( 'X-WP-App-Password' ) );
-                $stored_pass = $this->settings->get_string( 'plugin_password', '' );
+	/**
+	 * Check permissions
+	 *
+	 * @return bool
+	 */
+	public function permissions( \WP_REST_Request $request ): bool {
+			$header_pass = sanitize_text_field( (string) $request->get_header( 'X-WP-App-Password' ) );
+			$stored_pass = $this->settings->get_string( 'plugin_password', '' );
 
-                if ( ! empty( $stored_pass ) && hash_equals( $stored_pass, $header_pass ) ) {
-                        return true;
-                }
+		if ( ! empty( $stored_pass ) && hash_equals( $stored_pass, $header_pass ) ) {
+				return true;
+		}
 
-                $nonce = $request->get_header( 'X-WP-Nonce' );
-                if ( wp_verify_nonce( $nonce, 'wp_rest' ) && current_user_can( 'manage_options' ) ) {
-                        return true;
-                }
+			$nonce = $request->get_header( 'X-WP-Nonce' );
+		if ( wp_verify_nonce( $nonce, 'wp_rest' ) && current_user_can( 'manage_options' ) ) {
+				return true;
+		}
 
-                return false;
-        }
+			return false;
+	}
 }

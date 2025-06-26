@@ -36,11 +36,11 @@ body {
 */
 
 :root {
-    --nuclen-spacing-xs: 0.25rem;
-    --nuclen-spacing-sm: 0.5rem;
-    --nuclen-spacing-md: 1rem;
-    --nuclen-spacing-lg: 1.5rem;
-    --nuclen-spacing-xl: 2.5rem;
+	--nuclen-spacing-xs: 0.25rem;
+	--nuclen-spacing-sm: 0.5rem;
+	--nuclen-spacing-md: 1rem;
+	--nuclen-spacing-lg: 1.5rem;
+	--nuclen-spacing-xl: 2.5rem;
 }
 
 /*--------------------------------------------------------------
@@ -49,7 +49,7 @@ Use these to structure your UI into containers, sections, rows, and columns.
 --------------------------------------------------------------*/
 
 .nuclen-quiz-metabox-question {
-        margin: var(--nuclen-spacing-md) 0 0 0;
+		margin: var(--nuclen-spacing-md) 0 0 0;
 	border: 1px solid #eee;
 	border-left: none;
 	border-bottom: none;
@@ -57,51 +57,51 @@ Use these to structure your UI into containers, sections, rows, and columns.
 }
 
 #nuclen-quiz-data-meta-box .inside, #nuclen-summary-data-meta-box .inside {
-        max-height: 50vh;
-        display: flex;
-        overflow-y: scroll;
-        overflow-x: hidden;
-        padding: var(--nuclen-spacing-md);
-        gap: var(--nuclen-spacing-md);
-        flex-direction: column;
+		max-height: 50vh;
+		display: flex;
+		overflow-y: scroll;
+		overflow-x: hidden;
+		padding: var(--nuclen-spacing-md);
+		gap: var(--nuclen-spacing-md);
+		flex-direction: column;
 }
 
 #nuclen-page-header {
-        margin: var(--nuclen-spacing-lg) 0 var(--nuclen-spacing-xl) 0;
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        gap: 10px;
+		margin: var(--nuclen-spacing-lg) 0 var(--nuclen-spacing-xl) 0;
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		gap: 10px;
 }
 
 .nuclen-container {
-        padding: var(--nuclen-spacing-lg);
+		padding: var(--nuclen-spacing-lg);
 }
 
 .nuclen-section {
-        width: fit-content;
-        border: 1px solid #ddd;
-        padding: var(--nuclen-spacing-xl);
-        background: #fff;
+		width: fit-content;
+		border: 1px solid #ddd;
+		padding: var(--nuclen-spacing-xl);
+		background: #fff;
 }
 
 .nuclen-row {
-        display: flex;
-        gap: var(--nuclen-spacing-lg);
-        flex-wrap: wrap;
-        margin-bottom: var(--nuclen-spacing-md);
+		display: flex;
+		gap: var(--nuclen-spacing-lg);
+		flex-wrap: wrap;
+		margin-bottom: var(--nuclen-spacing-md);
 }
 
 .nuclen-column {
-        flex: 1;
-        min-width: 200px;
-        padding: var(--nuclen-spacing-sm);
+		flex: 1;
+		min-width: 200px;
+		padding: var(--nuclen-spacing-sm);
 }
 
 .nuclen-label-col {
-        min-width: 150px;
-        margin-right: var(--nuclen-spacing-sm);
-        text-align: right;
+		min-width: 150px;
+		margin-right: var(--nuclen-spacing-sm);
+		text-align: right;
 }
 .nuclen-input-col {
 	flex: 1;
@@ -118,15 +118,15 @@ Use these to structure your UI into containers, sections, rows, and columns.
 Headings, subheadings, muted text, and emphasis classes.
 --------------------------------------------------------------*/
 .nuclen-heading {
-        font-size: 1.5rem;
-        margin-bottom: var(--nuclen-spacing-sm);
-        font-weight: 600;
+		font-size: 1.5rem;
+		margin-bottom: var(--nuclen-spacing-sm);
+		font-weight: 600;
 }
 
 .nuclen-subheading {
-        border-bottom: solid 0.1em #ddd;
-        padding: var(--nuclen-spacing-lg) 0 var(--nuclen-spacing-sm) 0;
-        margin-bottom: var(--nuclen-spacing-md);
+		border-bottom: solid 0.1em #ddd;
+		padding: var(--nuclen-spacing-lg) 0 var(--nuclen-spacing-sm) 0;
+		margin-bottom: var(--nuclen-spacing-md);
 }
 
 .nuclen-text-muted {
@@ -148,17 +148,17 @@ Classes for form groups, labels, inputs, and buttons.
 }
 
 .nuclen-form-row {
-        margin: var(--nuclen-spacing-md) 0;
+		margin: var(--nuclen-spacing-md) 0;
 }
 
 .nuclen-form-group {
-        margin-bottom: var(--nuclen-spacing-md);
+		margin-bottom: var(--nuclen-spacing-md);
 }
 
 .nuclen-label {
-        display: block;
-        margin-bottom: var(--nuclen-spacing-sm);
-        font-weight: 500;
+		display: block;
+		margin-bottom: var(--nuclen-spacing-sm);
+		font-weight: 500;
 }
 
 .nuclen-input {
@@ -192,7 +192,7 @@ Classes for form groups, labels, inputs, and buttons.
 }
 
 .nuclen-answer-label {
-                margin-bottom: var(--nuclen-spacing-sm);
+				margin-bottom: var(--nuclen-spacing-sm);
 }
 
 /* Buttons */
@@ -224,7 +224,7 @@ Classes for form groups, labels, inputs, and buttons.
 
 /* checkboxes */
 .nuclen-checkbox {
-        margin-right: var(--nuclen-spacing-sm);
+		margin-right: var(--nuclen-spacing-sm);
 	width: auto;
 	height: auto;
 	cursor: pointer;
@@ -319,7 +319,7 @@ Alerts, progress indicators, etc.
 }
 
 .nuclen-progress {
-        margin-bottom: var(--nuclen-spacing-sm);
+		margin-bottom: var(--nuclen-spacing-sm);
 	font-size: 14px;
 }
 
@@ -329,44 +329,44 @@ Alerts, progress indicators, etc.
 
 /* --- Progress Bar Container --- */
 .ne-step-bar {
-        display: flex;
-        gap: 2px;
-        margin-bottom: var(--nuclen-spacing-lg);
-        width: 100%;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        overflow: hidden;
-        }
+		display: flex;
+		gap: 2px;
+		margin-bottom: var(--nuclen-spacing-lg);
+		width: 100%;
+		border: 1px solid #ccc;
+		border-radius: 4px;
+		overflow: hidden;
+		}
 
-        /* --- Individual Step (shared base styles) --- */
-        .ne-step-bar__step {
-        flex: 1;
-        text-align: center;
-        color: #fff;
-        padding: var(--nuclen-spacing-sm) 0;
-        font-weight: bold;
-        transition: background-color 0.3s ease;
-        }
+		/* --- Individual Step (shared base styles) --- */
+		.ne-step-bar__step {
+		flex: 1;
+		text-align: center;
+		color: #fff;
+		padding: var(--nuclen-spacing-sm) 0;
+		font-weight: bold;
+		transition: background-color 0.3s ease;
+		}
 
-        /* The default "todo" might be gray-ish */
-        .ne-step-bar__step--todo {
-        background-color: #9ea1a6;
-        }
+		/* The default "todo" might be gray-ish */
+		.ne-step-bar__step--todo {
+		background-color: #9ea1a6;
+		}
 
 	/* "current" stands out with a different color */
-        .ne-step-bar__step--current {
-        background-color: #888800; /* WP admin blue or your brand color */
-        }
+		.ne-step-bar__step--current {
+		background-color: #888800; /* WP admin blue or your brand color */
+		}
 
 	/* "done" could be green */
-        .ne-step-bar__step--done {
-        background-color: #46b450;
-        }
+		.ne-step-bar__step--done {
+		background-color: #46b450;
+		}
 
 	/* "failed" could be red */
-        .ne-step-bar__step--failed {
-        background-color: #dc3232;
-        }
+		.ne-step-bar__step--failed {
+		background-color: #dc3232;
+		}
 
 
 
@@ -391,14 +391,14 @@ Quick helper classes for display, text alignment, etc.
 }
 
 .nuclen-error-toast {
-                position: fixed;
-                bottom: 20px;
-                right: 20px;
-                background: #d63638;
-                color: #fff;
-                padding: 12px 16px;
-                border-radius: 3px;
-                z-index: 100000;
+				position: fixed;
+				bottom: 20px;
+				right: 20px;
+				background: #d63638;
+				color: #fff;
+				padding: 12px 16px;
+				border-radius: 3px;
+				z-index: 100000;
 }
 
 /* Spacing utilities */

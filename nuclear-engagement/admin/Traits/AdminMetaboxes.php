@@ -11,7 +11,7 @@ declare(strict_types=1);
 namespace NuclearEngagement\Admin\Traits;
 
 if ( ! defined( 'ABSPATH' ) ) {
-    exit;
+	exit;
 }
 
 
@@ -22,5 +22,5 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Combines quiz and summary metabox functionality.
  */
 trait AdminMetaboxes {
-    use AdminQuizMetabox;
+	use AdminQuizMetabox;
 }

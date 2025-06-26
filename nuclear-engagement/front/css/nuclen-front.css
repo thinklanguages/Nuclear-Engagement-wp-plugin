@@ -7,89 +7,89 @@
 
 /* Default (bright) theme variables */
 .nuclen-root {
-    --nuclen-fg-color: #333333;
-    --nuclen-bg-color: #ffffff;
+	--nuclen-fg-color: #333333;
+	--nuclen-bg-color: #ffffff;
 
-    --nuclen-quiz-font-color: var(--nuclen-fg-color);
-    --nuclen-summary-font-color: var(--nuclen-fg-color);
+	--nuclen-quiz-font-color: var(--nuclen-fg-color);
+	--nuclen-summary-font-color: var(--nuclen-fg-color);
 
-    --nuclen-quiz-border-color: #000000;
-    --nuclen-quiz-border-style: solid;
-    --nuclen-quiz-border-width: 1px;
-    --nuclen-quiz-border-radius: 6px;
-    --nuclen-quiz-shadow-color: rgba(0,0,0,0.05);
-    --nuclen-quiz-shadow-blur: 8px;
+	--nuclen-quiz-border-color: #000000;
+	--nuclen-quiz-border-style: solid;
+	--nuclen-quiz-border-width: 1px;
+	--nuclen-quiz-border-radius: 6px;
+	--nuclen-quiz-shadow-color: rgba(0,0,0,0.05);
+	--nuclen-quiz-shadow-blur: 8px;
 
-    --nuclen-quiz-button-bg: #94544A;
-    --nuclen-quiz-button-border-color: #94544A;
-    --nuclen-quiz-button-border-width: 2px;
-    --nuclen-quiz-button-border-radius: 4px;
+	--nuclen-quiz-button-bg: #94544A;
+	--nuclen-quiz-button-border-color: #94544A;
+	--nuclen-quiz-button-border-width: 2px;
+	--nuclen-quiz-button-border-radius: 4px;
 
-    --nuclen-quiz-progress-fg: #1B977D;
-    --nuclen-quiz-progress-bg: #e0e0e0;
-    --nuclen-quiz-progress-height: 10px;
+	--nuclen-quiz-progress-fg: #1B977D;
+	--nuclen-quiz-progress-bg: #e0e0e0;
+	--nuclen-quiz-progress-height: 10px;
 
-    --nuclen-summary-border-color: #000000;
-    --nuclen-summary-border-style: solid;
-    --nuclen-summary-border-width: 1px;
-    --nuclen-summary-border-radius: 6px;
-    --nuclen-summary-shadow-color: rgba(0,0,0,0.05);
-    --nuclen-summary-shadow-blur: 8px;
+	--nuclen-summary-border-color: #000000;
+	--nuclen-summary-border-style: solid;
+	--nuclen-summary-border-width: 1px;
+	--nuclen-summary-border-radius: 6px;
+	--nuclen-summary-shadow-color: rgba(0,0,0,0.05);
+	--nuclen-summary-shadow-blur: 8px;
 
-    --nuclen-toc-font-color: #333333;
-    --nuclen-toc-bg-color: #ffffff;
-    --nuclen-toc-font-size: 0.9em;
-    --nuclen-toc-border-color: #000000;
-    --nuclen-toc-border-style: solid;
-    --nuclen-toc-border-width: 1px;
-    --nuclen-toc-border-radius: 6px;
-    --nuclen-toc-shadow-color: rgba(0,0,0,0.05);
-    --nuclen-toc-shadow-blur: 8px;
+	--nuclen-toc-font-color: #333333;
+	--nuclen-toc-bg-color: #ffffff;
+	--nuclen-toc-font-size: 0.9em;
+	--nuclen-toc-border-color: #000000;
+	--nuclen-toc-border-style: solid;
+	--nuclen-toc-border-width: 1px;
+	--nuclen-toc-border-radius: 6px;
+	--nuclen-toc-shadow-color: rgba(0,0,0,0.05);
+	--nuclen-toc-shadow-blur: 8px;
 }
 
 /* Dark theme overrides */
 .nuclen-root[data-theme="dark"] {
-    --nuclen-fg-color: #ffffff;
-    --nuclen-bg-color: #333333;
+	--nuclen-fg-color: #ffffff;
+	--nuclen-bg-color: #333333;
 
-    --nuclen-quiz-border-color: #ffffff;
-    --nuclen-quiz-shadow-color: rgba(255,255,255,0.1);
-    --nuclen-quiz-progress-bg: #4a4a4a;
+	--nuclen-quiz-border-color: #ffffff;
+	--nuclen-quiz-shadow-color: rgba(255,255,255,0.1);
+	--nuclen-quiz-progress-bg: #4a4a4a;
 
-    --nuclen-summary-border-color: #ffffff;
-    --nuclen-summary-shadow-color: rgba(255,255,255,0.1);
+	--nuclen-summary-border-color: #ffffff;
+	--nuclen-summary-shadow-color: rgba(255,255,255,0.1);
 
-    --nuclen-toc-font-color: #ffffff;
-    --nuclen-toc-bg-color: #333333;
-    --nuclen-toc-border-color: #ffffff;
-    --nuclen-toc-shadow-color: rgba(255,255,255,0.1);
+	--nuclen-toc-font-color: #ffffff;
+	--nuclen-toc-bg-color: #333333;
+	--nuclen-toc-border-color: #ffffff;
+	--nuclen-toc-shadow-color: rgba(255,255,255,0.1);
 }
 
 /* Apply variable-based styles */
 .nuclen-root .nuclen-quiz {
-    background-color: var(--nuclen-bg-color);
-    border: var(--nuclen-quiz-border-width) var(--nuclen-quiz-border-style) var(--nuclen-quiz-border-color);
-    border-radius: var(--nuclen-quiz-border-radius);
-    box-shadow: 0 0 var(--nuclen-quiz-shadow-blur) var(--nuclen-quiz-shadow-color);
+	background-color: var(--nuclen-bg-color);
+	border: var(--nuclen-quiz-border-width) var(--nuclen-quiz-border-style) var(--nuclen-quiz-border-color);
+	border-radius: var(--nuclen-quiz-border-radius);
+	box-shadow: 0 0 var(--nuclen-quiz-shadow-blur) var(--nuclen-quiz-shadow-color);
 }
 
 .nuclen-root .nuclen-summary {
-    background-color: var(--nuclen-bg-color);
-    border: var(--nuclen-summary-border-width) var(--nuclen-summary-border-style) var(--nuclen-summary-border-color);
-    border-radius: var(--nuclen-summary-border-radius);
-    box-shadow: 0 0 var(--nuclen-summary-shadow-blur) var(--nuclen-summary-shadow-color);
+	background-color: var(--nuclen-bg-color);
+	border: var(--nuclen-summary-border-width) var(--nuclen-summary-border-style) var(--nuclen-summary-border-color);
+	border-radius: var(--nuclen-summary-border-radius);
+	box-shadow: 0 0 var(--nuclen-summary-shadow-blur) var(--nuclen-summary-shadow-color);
 }
 
 section .nuclen-fg {
-    color: var(--nuclen-fg-color);
+	color: var(--nuclen-fg-color);
 }
 
 :root {
-    --nuclen-spacing-xs: 0.25rem;
-    --nuclen-spacing-sm: 0.5rem;
-    --nuclen-spacing-md: 1rem;
-    --nuclen-spacing-lg: 1.5rem;
-    --nuclen-spacing-xl: 2.5rem;
+	--nuclen-spacing-xs: 0.25rem;
+	--nuclen-spacing-sm: 0.5rem;
+	--nuclen-spacing-md: 1rem;
+	--nuclen-spacing-lg: 1.5rem;
+	--nuclen-spacing-xl: 2.5rem;
 }
 
 .nuclen-root .nuclen-quiz {
@@ -101,16 +101,16 @@ section .nuclen-fg {
 }
 
 .nuclen-root .nuclen-quiz {
-        border-radius: 1em;
-        padding: var(--nuclen-spacing-md);
-        text-align: center;
-        width: 100%;
-        margin: var(--nuclen-spacing-md) 0;
+		border-radius: 1em;
+		padding: var(--nuclen-spacing-md);
+		text-align: center;
+		width: 100%;
+		margin: var(--nuclen-spacing-md) 0;
 }
 
 .nuclen-root .nuclen-quiz-title {
-        font-size: 1.5em;
-        margin-bottom: var(--nuclen-spacing-md);
+		font-size: 1.5em;
+		margin-bottom: var(--nuclen-spacing-md);
 }
 
 .nuclen-root #nuclen-quiz-question-number {
@@ -127,10 +127,10 @@ section .nuclen-fg {
 
 /* Progress bar container */
 .nuclen-root #nuclen-quiz-progress-bar-container {
-        background-color: var(--nuclen-quiz-progress-bg, #e0e0e0);
-        border-radius: 5px;
-        overflow: hidden;
-        margin-bottom: var(--nuclen-spacing-lg);
+		background-color: var(--nuclen-quiz-progress-bg, #e0e0e0);
+		border-radius: 5px;
+		overflow: hidden;
+		margin-bottom: var(--nuclen-spacing-lg);
 }
 
 .nuclen-root #nuclen-quiz-progress-bar {
@@ -250,7 +250,7 @@ section .nuclen-fg {
 }
 
 .nuclen-root #nuclen-quiz-final-result-container input[type="submit"] {
-        margin-top: var(--nuclen-spacing-lg);
+		margin-top: var(--nuclen-spacing-lg);
 	background-color: #4B6542;
 	color: white;
 	border: none;
@@ -267,11 +267,11 @@ section .nuclen-fg {
 
 .nuclen-root #nuclen-quiz-final-result-container input[type="text"],
 .nuclen-root #nuclen-quiz-final-result-container input[type="email"] {
-        width: calc(100% - 20px);
-        padding: 10px;
-        margin: var(--nuclen-spacing-sm) 0;
-        border: 1px solid #e0e0e0;
-        border-radius: 5px;
+		width: calc(100% - 20px);
+		padding: 10px;
+		margin: var(--nuclen-spacing-sm) 0;
+		border: 1px solid #e0e0e0;
+		border-radius: 5px;
 }
 
 /* Score area */
@@ -289,8 +289,8 @@ section .nuclen-fg {
 }
 
 .nuclen-root #nuclen-quiz-explanation-container {
-        font-size: 1.2em;
-        margin: var(--nuclen-spacing-md) 0;
+		font-size: 1.2em;
+		margin: var(--nuclen-spacing-md) 0;
 }
 
 .nuclen-root .nuclen-quiz-question-result.nuclen-quiz-correct-answer {
@@ -313,21 +313,21 @@ section .nuclen-fg {
 .nuclen-root #nuclen-quiz-result-details-container,
 .nuclen-root #nuclen-quiz-end-message,
 .nuclen-root #nuclen-quiz-start-message {
-        padding: var(--nuclen-spacing-lg);
-        text-align: left;
-        margin-bottom: var(--nuclen-spacing-xl);
-        border: 2px solid #666;
-        border-radius: 10px;
+		padding: var(--nuclen-spacing-lg);
+		text-align: left;
+		margin-bottom: var(--nuclen-spacing-xl);
+		border: 2px solid #666;
+		border-radius: 10px;
 }
 
 /* email optin */
 .nuclen-root #nuclen-optin-container {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-self: center;
-        margin: 0 0 var(--nuclen-spacing-lg) 0;
-        width: 300px;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-self: center;
+		margin: 0 0 var(--nuclen-spacing-lg) 0;
+		width: 300px;
 }
 .nuclen-root #nuclen-optin-submit {
 	width: 100%;
@@ -339,14 +339,14 @@ section .nuclen-fg {
 }
 
 .nuclen-root .nuclen-optin-btn-row {
-                margin-top: var(--nuclen-spacing-md);
-                display: flex;
-                gap: 10px;
+				margin-top: var(--nuclen-spacing-md);
+				display: flex;
+				gap: 10px;
 }
 
 .nuclen-root .nuclen-optin-skip {
-                margin-top: var(--nuclen-spacing-sm);
-                font-size: .85em;
+				margin-top: var(--nuclen-spacing-sm);
+				font-size: .85em;
 }
 
 .nuclen-root .nuclen-quiz-pulse {
@@ -379,10 +379,10 @@ section .nuclen-fg {
 
 /* Summary container */
 .nuclen-root .nuclen-summary {
-        font-size: 1.1em;
-        border-radius: 1em;
-        padding: var(--nuclen-spacing-md);
-        margin: var(--nuclen-spacing-md) 0;
+		font-size: 1.1em;
+		border-radius: 1em;
+		padding: var(--nuclen-spacing-md);
+		margin: var(--nuclen-spacing-md) 0;
 }
 
 /* Spacing utilities */

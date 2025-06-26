@@ -12,7 +12,7 @@ declare(strict_types=1);
 namespace NuclearEngagement\Modules\TOC;
 
 if ( ! defined( 'ABSPATH' ) ) {
-    exit;
+	exit;
 }
 
 use NuclearEngagement\Modules\TOC\Nuclen_TOC_Utils;
@@ -52,12 +52,12 @@ add_action( 'delete_post', array( 'Nuclen_TOC_Utils', 'clear_cache_for_post' ) )
  * ------------------------------------------------------------------
  */
 add_action(
-    'plugins_loaded',
-    static function () {
-        new Nuclen_TOC_Headings();  // filter for heading IDs.
-        new Nuclen_TOC_Render( \NuclearEngagement\Core\SettingsRepository::get_instance() ); // shortcode handler.
-        if ( is_admin() ) {
-            new Nuclen_TOC_Admin();    // settings page.
-        }
-    }
+	'plugins_loaded',
+	static function () {
+		new Nuclen_TOC_Headings();  // filter for heading IDs.
+		new Nuclen_TOC_Render( \NuclearEngagement\Core\SettingsRepository::get_instance() ); // shortcode handler.
+		if ( is_admin() ) {
+			new Nuclen_TOC_Admin();    // settings page.
+		}
+	}
 );

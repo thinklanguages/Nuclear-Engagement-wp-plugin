@@ -13,17 +13,17 @@ namespace NuclearEngagement\Admin\Controller;
 use NuclearEngagement\OptinData;
 
 if ( ! defined( 'ABSPATH' ) ) {
-    exit;
+	exit;
 }
 
 /**
  * Controller to stream the opt-in CSV file.
  */
 class OptinExportController {
-    /**
-     * Execute export.
-     */
-    public function handle(): void {
-        OptinData::handle_export();
-    }
+	/**
+	 * Execute export.
+	 */
+	public function handle(): void {
+		OptinData::handle_export();
+	}
 }

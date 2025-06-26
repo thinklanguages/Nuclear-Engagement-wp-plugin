@@ -17,99 +17,99 @@ use NuclearEngagement\Core\SettingsRepository;
 use NuclearEngagement\Services\SetupService;
 
 if ( ! defined( 'ABSPATH' ) ) {
-    exit;
+	exit;
 }
 
 
 class Setup {
 
-        use SetupHandlersTrait;
+		use SetupHandlersTrait;
 
-        /** @var \NuclearEngagement\Utils */
-        private $utils;
+		/** @var \NuclearEngagement\Utils */
+		private $utils;
 
-        /** @var SetupService */
-    private $setup_service;
+		/** @var SetupService */
+	private $setup_service;
 
-    /** @var SettingsRepository */
-    private $settings_repository;
+	/** @var SettingsRepository */
+	private $settings_repository;
 
-    public function __construct( SettingsRepository $settings_repository ) {
-            $this->utils               = new \NuclearEngagement\Utils();
-            $this->setup_service       = new SetupService();
-            $this->settings_repository = $settings_repository;
-    }
+	public function __construct( SettingsRepository $settings_repository ) {
+			$this->utils               = new \NuclearEngagement\Utils();
+			$this->setup_service       = new SetupService();
+			$this->settings_repository = $settings_repository;
+	}
 
-    public function nuclen_get_utils() {
-            return $this->utils;
-    }
+	public function nuclen_get_utils() {
+			return $this->utils;
+	}
 
-    public function nuclen_get_setup_service(): SetupService {
-            return $this->setup_service;
-    }
+	public function nuclen_get_setup_service(): SetupService {
+			return $this->setup_service;
+	}
 
-    public function nuclen_get_settings_repository() {
-            return $this->settings_repository;
-    }
+	public function nuclen_get_settings_repository() {
+			return $this->settings_repository;
+	}
 
-    /** Add the Setup submenu page. */
-    public function nuclen_add_setup_page() {
-        add_submenu_page(
-            'nuclear-engagement',
-            esc_html__( 'Nuclear Engagement – Setup', 'nuclear-engagement' ),
-            esc_html__( 'Setup', 'nuclear-engagement' ),
-            'manage_options',
-            'nuclear-engagement-setup',
-            array( $this, 'nuclen_render_setup_page' )
-        );
-    }
+	/** Add the Setup submenu page. */
+	public function nuclen_add_setup_page() {
+		add_submenu_page(
+			'nuclear-engagement',
+			esc_html__( 'Nuclear Engagement – Setup', 'nuclear-engagement' ),
+			esc_html__( 'Setup', 'nuclear-engagement' ),
+			'manage_options',
+			'nuclear-engagement-setup',
+			array( $this, 'nuclen_render_setup_page' )
+		);
+	}
 
-    /** Render the Setup screen. */
-    public function nuclen_render_setup_page() {
+	/** Render the Setup screen. */
+	public function nuclen_render_setup_page() {
 
-        /* ───── Notices ───── */
-        $nuclen_error   = isset( $_GET['nuclen_error'] )
-            ? sanitize_text_field( wp_unslash( $_GET['nuclen_error'] ) )
-            : '';
-        $nuclen_success = isset( $_GET['nuclen_success'] )
-            ? sanitize_text_field( wp_unslash( $_GET['nuclen_success'] ) )
-            : '';
-        $nonce          = isset( $_GET['_wpnonce'] ) ? sanitize_key( $_GET['_wpnonce'] ) : '';
+		/* ───── Notices ───── */
+		$nuclen_error   = isset( $_GET['nuclen_error'] )
+			? sanitize_text_field( wp_unslash( $_GET['nuclen_error'] ) )
+			: '';
+		$nuclen_success = isset( $_GET['nuclen_success'] )
+			? sanitize_text_field( wp_unslash( $_GET['nuclen_success'] ) )
+			: '';
+		$nonce          = isset( $_GET['_wpnonce'] ) ? sanitize_key( $_GET['_wpnonce'] ) : '';
 
-        if ( $nuclen_error && wp_verify_nonce( $nonce, 'nuclear-engagement-setup' ) ) {
-            echo '<div class="notice notice-error is-dismissible"><p>' . esc_html( $nuclen_error ) . '</p></div>';
-        }
-        if ( $nuclen_success && wp_verify_nonce( $nonce, 'nuclear-engagement-setup' ) ) {
-            echo '<div class="notice notice-success is-dismissible"><p>' . esc_html( $nuclen_success ) . '</p></div>';
-        }
+		if ( $nuclen_error && wp_verify_nonce( $nonce, 'nuclear-engagement-setup' ) ) {
+			echo '<div class="notice notice-error is-dismissible"><p>' . esc_html( $nuclen_error ) . '</p></div>';
+		}
+		if ( $nuclen_success && wp_verify_nonce( $nonce, 'nuclear-engagement-setup' ) ) {
+			echo '<div class="notice notice-success is-dismissible"><p>' . esc_html( $nuclen_success ) . '</p></div>';
+		}
 
-                /* ───── Retrieve settings ───── */
-                $settings = $this->nuclen_get_settings_repository();
-        $app_setup        = array(
-            'api_key'             => $settings->get_string( 'api_key', '' ),
-            'connected'           => $settings->get_bool( 'connected', false ),
-            'wp_app_pass_created' => $settings->get_bool( 'wp_app_pass_created', false ),
-            'wp_app_pass_uuid'    => $settings->get_string( 'wp_app_pass_uuid', '' ),
-            'plugin_password'     => $settings->get_string( 'plugin_password', '' ),
-        );
+				/* ───── Retrieve settings ───── */
+				$settings = $this->nuclen_get_settings_repository();
+		$app_setup        = array(
+			'api_key'             => $settings->get_string( 'api_key', '' ),
+			'connected'           => $settings->get_bool( 'connected', false ),
+			'wp_app_pass_created' => $settings->get_bool( 'wp_app_pass_created', false ),
+			'wp_app_pass_uuid'    => $settings->get_string( 'wp_app_pass_uuid', '' ),
+			'plugin_password'     => $settings->get_string( 'plugin_password', '' ),
+		);
 
-        $fully_setup = ( $app_setup['connected'] && $app_setup['wp_app_pass_created'] );
+		$fully_setup = ( $app_setup['connected'] && $app_setup['wp_app_pass_created'] );
 
-               /* ───── View-partials directory ───── */
-               $views_dir = NUCLEN_PLUGIN_DIR . 'templates/admin/setup/';
+				/* ───── View-partials directory ───── */
+				$views_dir = NUCLEN_PLUGIN_DIR . 'templates/admin/setup/';
 
-        /* ───── Branding header ───── */
-        $this->utils->display_nuclen_page_header();
+		/* ───── Branding header ───── */
+		$this->utils->display_nuclen_page_header();
 
-        /* ───── Main container & partials ───── */
-        echo '<div class="wrap nuclen-container">';
+		/* ───── Main container & partials ───── */
+		echo '<div class="wrap nuclen-container">';
 
-        require $views_dir . 'header.php';
-        require $views_dir . 'step1.php';
-        require $views_dir . 'step2.php';
-        require $views_dir . 'credits.php';
-        require $views_dir . 'support.php';
+		require $views_dir . 'header.php';
+		require $views_dir . 'step1.php';
+		require $views_dir . 'step2.php';
+		require $views_dir . 'credits.php';
+		require $views_dir . 'support.php';
 
-        echo '</div><!-- /.wrap -->';
-    }
+		echo '</div><!-- /.wrap -->';
+	}
 }

@@ -13,48 +13,48 @@ namespace NuclearEngagement\Admin\Controller\Ajax;
 use NuclearEngagement\Services\PointerService;
 
 if ( ! defined( 'ABSPATH' ) ) {
-    exit;
+	exit;
 }
 
 /**
  * Controller for admin pointers
  */
 class PointerController extends BaseController {
-    /**
-     * @var PointerService
-     */
-    private PointerService $service;
+	/**
+	 * @var PointerService
+	 */
+	private PointerService $service;
 
-    /**
-     * Constructor
-     *
-     * @param PointerService $service
-     */
-    public function __construct( PointerService $service ) {
-        $this->service = $service;
-    }
+	/**
+	 * Constructor
+	 *
+	 * @param PointerService $service
+	 */
+	public function __construct( PointerService $service ) {
+		$this->service = $service;
+	}
 
-    /**
-     * Dismiss a pointer
-     */
-    public function dismiss(): void {
-        try {
-            if ( ! $this->verifyRequest( 'nuclen_dismiss_pointer_nonce', 'nonce' ) ) {
-                return;
-            }
+	/**
+	 * Dismiss a pointer
+	 */
+	public function dismiss(): void {
+		try {
+			if ( ! $this->verifyRequest( 'nuclen_dismiss_pointer_nonce', 'nonce' ) ) {
+				return;
+			}
 
-            $pointerId = isset( $_POST['pointer'] ) ? sanitize_text_field( wp_unslash( $_POST['pointer'] ) ) : '';
-            $userId    = get_current_user_id();
+			$pointerId = isset( $_POST['pointer'] ) ? sanitize_text_field( wp_unslash( $_POST['pointer'] ) ) : '';
+			$userId    = get_current_user_id();
 
-            $this->service->dismissPointer( $pointerId, $userId );
+			$this->service->dismissPointer( $pointerId, $userId );
 
-            wp_send_json_success( array( 'message' => __( 'Pointer dismissed.', 'nuclear-engagement' ) ) );
+			wp_send_json_success( array( 'message' => __( 'Pointer dismissed.', 'nuclear-engagement' ) ) );
 
-        } catch ( \InvalidArgumentException $e ) {
-            $this->sendError( $e->getMessage() );
-        } catch ( \Throwable $e ) {
-            \NuclearEngagement\Services\LoggingService::log_exception( $e );
-            $this->sendError( __( 'An error occurred', 'nuclear-engagement' ) );
-        }
-    }
+		} catch ( \InvalidArgumentException $e ) {
+			$this->sendError( $e->getMessage() );
+		} catch ( \Throwable $e ) {
+			\NuclearEngagement\Services\LoggingService::log_exception( $e );
+			$this->sendError( __( 'An error occurred', 'nuclear-engagement' ) );
+		}
+	}
 }

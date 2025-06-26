@@ -12,7 +12,7 @@ declare(strict_types=1);
 namespace NuclearEngagement\Admin;
 
 if ( ! defined( 'ABSPATH' ) ) {
-    exit;
+	exit;
 }
 
 use NuclearEngagement\Admin\Traits\SettingsPageLoadTrait;
@@ -26,28 +26,28 @@ use NuclearEngagement\Admin\Traits\SettingsPageCustomCSSTrait;
  */
 trait SettingsPageTrait {
 
-    use SettingsPageLoadTrait;
-    use SettingsPageSaveTrait;
-    use SettingsPageCustomCSSTrait;
+	use SettingsPageLoadTrait;
+	use SettingsPageSaveTrait;
+	use SettingsPageCustomCSSTrait;
 
-    /**
-     * Render the plugin Settings page and handle form submission.
-     */
-    public function nuclen_display_settings_page(): void {
+	/**
+	 * Render the plugin Settings page and handle form submission.
+	 */
+	public function nuclen_display_settings_page(): void {
 
-        /* 1) LOAD CURRENT SETTINGS --------------------------------- */
-        list( $settings, $defaults ) = $this->nuclen_get_current_settings();
+		/* 1) LOAD CURRENT SETTINGS --------------------------------- */
+		list( $settings, $defaults ) = $this->nuclen_get_current_settings();
 
-        /* 2) HANDLE SAVE (if submitted) ---------------------------- */
-        $new_settings = array();
-        $saved        = $this->nuclen_handle_save_settings( $settings, $defaults, $new_settings );
+		/* 2) HANDLE SAVE (if submitted) ---------------------------- */
+		$new_settings = array();
+		$saved        = $this->nuclen_handle_save_settings( $settings, $defaults, $new_settings );
 
-        /* 3) WRITE CUSTOM CSS (only right after a save) ------------ */
-        if ( $saved && isset( $new_settings['theme'] ) && $new_settings['theme'] === 'custom' ) {
-            $this->nuclen_write_custom_css( $new_settings );
-        }
+		/* 3) WRITE CUSTOM CSS (only right after a save) ------------ */
+		if ( $saved && isset( $new_settings['theme'] ) && $new_settings['theme'] === 'custom' ) {
+			$this->nuclen_write_custom_css( $new_settings );
+		}
 
-               /* 4) RENDER THE ADMIN FORM -------------------------------- */
-               include NUCLEN_PLUGIN_DIR . 'templates/admin/nuclen-admin-settings.php';
-        }
+				/* 4) RENDER THE ADMIN FORM -------------------------------- */
+				include NUCLEN_PLUGIN_DIR . 'templates/admin/nuclen-admin-settings.php';
+	}
 }
