@@ -93,6 +93,11 @@ class DashboardDataService {
 
         $rows = $wpdb->get_results( $sql, ARRAY_A );
 
+        if ( ! empty( $wpdb->last_error ) ) {
+            LoggingService::log( 'Dashboard query error: ' . $wpdb->last_error );
+            return array();
+        }
+
         wp_cache_set( $cache_key, $rows, self::CACHE_GROUP, self::CACHE_TTL );
         set_transient( $transient, $rows, self::CACHE_TTL );
 
@@ -144,6 +149,11 @@ class DashboardDataService {
         );
 
         $rows = $wpdb->get_results( $sql, ARRAY_A );
+
+        if ( ! empty( $wpdb->last_error ) ) {
+            LoggingService::log( 'Dashboard query error: ' . $wpdb->last_error );
+            return array();
+        }
 
         wp_cache_set( $cache_key, $rows, self::CACHE_GROUP, self::CACHE_TTL );
         set_transient( $transient, $rows, self::CACHE_TTL );
