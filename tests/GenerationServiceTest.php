@@ -50,7 +50,7 @@ class GSRemoteApi {
 
 class GSStorage {
     public array $stored = [];
-    public function storeResults(array $r, string $t): void { $this->stored[] = [$r,$t]; }
+    public function storeResults(array $r, string $t): array { $this->stored[] = [$r,$t]; return array_fill_keys(array_keys($r), true); }
 }
 
 class GenerationServiceTest extends TestCase {

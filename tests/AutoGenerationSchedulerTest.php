@@ -13,7 +13,7 @@ class DummyRemoteApiService {
 
 class DummyContentStorageService {
     public array $stored = [];
-    public function storeResults(array $results, string $workflowType): void { $this->stored[] = [$results, $workflowType]; }
+    public function storeResults(array $results, string $workflowType): array { $this->stored[] = [$results, $workflowType]; return array_fill_keys(array_keys($results), true); }
 }
 
 class AutoGenerationSchedulerTest extends TestCase {

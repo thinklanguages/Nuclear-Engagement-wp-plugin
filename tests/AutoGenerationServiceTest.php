@@ -20,8 +20,9 @@ class DummyRemoteApiService {
 
 class DummyContentStorageService {
     public array $stored = [];
-    public function storeResults(array $results, string $workflowType): void {
+    public function storeResults(array $results, string $workflowType): array {
         $this->stored[] = [$results, $workflowType];
+        return array_fill_keys(array_keys($results), true);
     }
 }
 

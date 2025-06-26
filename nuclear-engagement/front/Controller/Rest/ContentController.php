@@ -85,8 +85,11 @@ class ContentController {
 
 			$contentRequest = ContentRequest::fromJson( $data );
 
-			// Store the results
-			$this->storage->storeResults( $contentRequest->results, $contentRequest->workflow );
+                        // Store the results
+                        $statuses = $this->storage->storeResults( $contentRequest->results, $contentRequest->workflow );
+                        if ( array_filter( $statuses, static fn( $s ) => $s !== true ) ) {
+                                return new \WP_Error( 'ne_store_failed', __( 'Failed to store content', 'nuclear-engagement' ), array( 'status' => 500 ) );
+                        }
 
 			// Get date from first stored item
 			reset( $contentRequest->results );

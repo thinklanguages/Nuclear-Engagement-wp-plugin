@@ -89,15 +89,20 @@ class UpdatesController extends BaseController {
 			}
 
 				/* ── Persist & return results ───────────────────────────── */
-			if ( ! empty( $data['results'] ) && is_array( $data['results'] ) ) {
-				$first        = reset( $data['results'] );
-				$workflowType = isset( $first['questions'] ) ? 'quiz' : 'summary';
+                        if ( ! empty( $data['results'] ) && is_array( $data['results'] ) ) {
+                                $first        = reset( $data['results'] );
+                                $workflowType = isset( $first['questions'] ) ? 'quiz' : 'summary';
 
-				$this->storage->storeResults( $data['results'], $workflowType );
+                                $statuses = $this->storage->storeResults( $data['results'], $workflowType );
 
-				$response->results  = $data['results'];
-				$response->workflow = $workflowType; // NEW → lets JS forward it to /receive-content
-			}
+                                if ( array_filter( $statuses, static fn( $s ) => $s !== true ) ) {
+                                        $this->sendError( __( 'Failed to store content.', 'nuclear-engagement' ) );
+                                        return;
+                                }
+
+                                $response->results  = $data['results'];
+                                $response->workflow = $workflowType; // NEW → lets JS forward it to /receive-content
+                        }
 
 				wp_send_json_success( $response->toArray() );
 

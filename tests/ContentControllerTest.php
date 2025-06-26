@@ -53,13 +53,21 @@ namespace {
 
     class DummyStorage {
         public array $stored = [];
-        public function storeResults(array $results, string $workflowType): void {
+        public function storeResults(array $results, string $workflowType): array {
             global $wp_meta;
             $metaKey = $workflowType === 'quiz' ? 'nuclen-quiz-data' : 'nuclen-summary-data';
             foreach ($results as $id => $data) {
                 $wp_meta[$id][$metaKey] = $data;
             }
             $this->stored[] = [$results, $workflowType];
+            return array_fill_keys(array_keys($results), true);
+        }
+    }
+
+    class FailingStorage extends DummyStorage {
+        public function storeResults(array $results, string $workflowType): array {
+            parent::storeResults($results, $workflowType);
+            return array_fill_keys(array_keys($results), 'fail');
         }
     }
 
@@ -146,6 +154,26 @@ namespace {
         $this->assertFalse($allowed);
         $this->assertInstanceOf(WP_Error::class, $res);
         $this->assertSame(401, $res->data['status']);
+    }
+
+    public function test_storage_failure_returns_error(): void {
+        global $wp_posts;
+        $wp_posts[4] = (object)['ID' => 4];
+
+        $settings = SettingsRepository::get_instance();
+        $storage  = new FailingStorage();
+        $controller = new ContentController($storage, $settings);
+
+        $data = [
+            'workflow' => 'summary',
+            'results'  => [4 => ['summary' => 'bad']],
+        ];
+        $req = new DummyRequest($data, ['X-WP-Nonce' => 'valid']);
+
+        $this->assertTrue($controller->permissions($req));
+        $res = $controller->handle($req);
+
+        $this->assertInstanceOf(\WP_Error::class, $res);
     }
     }
 }

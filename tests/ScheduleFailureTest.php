@@ -33,8 +33,9 @@ namespace {
 
     class DummyContentStorageService {
         public array $stored = [];
-        public function storeResults(array $results, string $type): void {
+        public function storeResults(array $results, string $type): array {
             $this->stored[] = [$results, $type];
+            return array_fill_keys(array_keys($results), true);
         }
     }
 
