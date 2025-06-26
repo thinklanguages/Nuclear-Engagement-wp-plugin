@@ -65,7 +65,8 @@ describe('nuclen-admin-single-generation', () => {
       });
 
     const btn = document.querySelector<HTMLButtonElement>('.nuclen-generate-single')!;
-    btn.click();
+    btn.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    await Promise.resolve();
     await Promise.resolve();
 
     expect(api.nuclenFetchWithRetry).toHaveBeenCalled();
@@ -91,7 +92,8 @@ describe('nuclen-admin-single-generation', () => {
       });
 
     const btn = document.querySelector<HTMLButtonElement>('.nuclen-generate-single')!;
-    btn.click();
+    btn.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    await Promise.resolve();
     await Promise.resolve();
 
     expect(utils.alertApiError).toHaveBeenCalledWith('fail');
