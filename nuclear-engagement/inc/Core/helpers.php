@@ -6,7 +6,7 @@ declare(strict_types=1);
  * @package NuclearEngagement
  */
 
-namespace NuclearEngagement;
+namespace NuclearEngagement {
 
 use NuclearEngagement\SettingsRepository;
 
@@ -109,7 +109,10 @@ if ( ! function_exists( 'nuclen_settings_array' ) ) {
     }
 }
 
-namespace;
+}
+
+namespace {
+
 
 use function NuclearEngagement\nuclen_settings as ns_settings;
 use function NuclearEngagement\nuclen_settings_bool as ns_settings_bool;
