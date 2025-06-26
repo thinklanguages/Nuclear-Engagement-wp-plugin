@@ -14,7 +14,7 @@ declare(strict_types=1);
 
 namespace NuclearEngagement\Services;
 
-use NuclearEngagement\SettingsRepository;
+use NuclearEngagement\Core\SettingsRepository;
 use NuclearEngagement\Services\ApiException;
 use NuclearEngagement\Services\Remote\RemoteRequest;
 use NuclearEngagement\Services\Remote\ApiResponseHandler;

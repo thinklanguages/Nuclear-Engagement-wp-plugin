@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace NuclearEngagement\Admin;
 
-use NuclearEngagement\SettingsRepository;
+use NuclearEngagement\Core\SettingsRepository;
 use NuclearEngagement\Services\SetupService;
 
 if ( ! defined( 'ABSPATH' ) ) {

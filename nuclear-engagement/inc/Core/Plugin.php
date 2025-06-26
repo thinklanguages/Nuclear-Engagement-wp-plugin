@@ -8,7 +8,7 @@ declare(strict_types=1);
  * @package NuclearEngagement
  */
 
-namespace NuclearEngagement;
+namespace NuclearEngagement\Core;
 
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
@@ -17,14 +17,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 use NuclearEngagement\Admin\Admin;
 use NuclearEngagement\Front\FrontClass;
 use NuclearEngagement\Admin\Onboarding;
-use NuclearEngagement\Defaults;
-use NuclearEngagement\SettingsRepository;
-use NuclearEngagement\Container;
+use NuclearEngagement\Core\Defaults;
+use NuclearEngagement\Core\SettingsRepository;
+use NuclearEngagement\Core\Container;
 use NuclearEngagement\OptinData;
 use NuclearEngagement\Services\{GenerationService, RemoteApiService, ContentStorageService, PointerService, PostsQueryService, AutoGenerationService};
 use NuclearEngagement\Admin\Controller\Ajax\{GenerateController, UpdatesController, PointerController, PostsCountController};
 use NuclearEngagement\Front\Controller\Rest\ContentController;
-use NuclearEngagement\ContainerRegistrar;
+use NuclearEngagement\Core\ContainerRegistrar;
 
 class Plugin {
 

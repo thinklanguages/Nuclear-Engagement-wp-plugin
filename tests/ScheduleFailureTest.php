@@ -2,7 +2,7 @@
 use PHPUnit\Framework\TestCase;
 use NuclearEngagement\Services\AutoGenerationService;
 use NuclearEngagement\Services\GenerationPoller;
-use NuclearEngagement\SettingsRepository;
+use NuclearEngagement\Core\SettingsRepository;
 
 namespace NuclearEngagement\Services {
     if (!class_exists('NuclearEngagement\\Services\\LoggingService')) {

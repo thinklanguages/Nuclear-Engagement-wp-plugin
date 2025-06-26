@@ -2,11 +2,11 @@
 declare(strict_types=1);
 // Activator.php
 
-namespace NuclearEngagement;
+namespace NuclearEngagement\Core;
 
-use NuclearEngagement\SettingsRepository;
+use NuclearEngagement\Core\SettingsRepository;
 use NuclearEngagement\OptinData;
-use NuclearEngagement\AssetVersions;
+use NuclearEngagement\Core\AssetVersions;
 
 if ( ! defined( 'ABSPATH' ) ) {
     exit;

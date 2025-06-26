@@ -1,6 +1,6 @@
 <?php
 use PHPUnit\Framework\TestCase;
-use NuclearEngagement\ThemeRegistry;
+use NuclearEngagement\Core\ThemeRegistry;
 
 class ThemeRegistryTest extends TestCase {
     public static function setUpBeforeClass(): void {

@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace NuclearEngagement\Modules\Summary;
 
-use NuclearEngagement\SettingsRepository;
+use NuclearEngagement\Core\SettingsRepository;
 use NuclearEngagement\Front\FrontClass;
 
 if ( ! defined( 'ABSPATH' ) ) {

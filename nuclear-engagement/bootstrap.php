@@ -1,14 +1,14 @@
 <?php
 // nuclear-engagement/bootstrap.php
 declare(strict_types=1);
-use NuclearEngagement\SettingsRepository;
-use NuclearEngagement\Defaults;
-use NuclearEngagement\Activator;
-use NuclearEngagement\Deactivator;
-use NuclearEngagement\MetaRegistration;
-use NuclearEngagement\AssetVersions;
-use NuclearEngagement\Plugin;
-use NuclearEngagement\InventoryCache;
+use NuclearEngagement\Core\SettingsRepository;
+use NuclearEngagement\Core\Defaults;
+use NuclearEngagement\Core\Activator;
+use NuclearEngagement\Core\Deactivator;
+use NuclearEngagement\Core\MetaRegistration;
+use NuclearEngagement\Core\AssetVersions;
+use NuclearEngagement\Core\Plugin;
+use NuclearEngagement\Core\InventoryCache;
 use NuclearEngagement\Services\PostsQueryService;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -95,7 +95,7 @@ spl_autoload_register(
 );
 
 // Fallback for class maps missing from autoload.
-if ( ! class_exists( \NuclearEngagement\AssetVersions::class ) ) {
+if ( ! class_exists( \NuclearEngagement\Core\AssetVersions::class ) ) {
     $asset_versions_path = NUCLEN_PLUGIN_DIR . 'inc/Core/AssetVersions.php';
     if ( file_exists( $asset_versions_path ) ) {
         require_once $asset_versions_path;

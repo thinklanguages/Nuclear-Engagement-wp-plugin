@@ -1,7 +1,7 @@
 <?php
 use PHPUnit\Framework\TestCase;
-use NuclearEngagement\SettingsRepository;
-use NuclearEngagement\Container;
+use NuclearEngagement\Core\SettingsRepository;
+use NuclearEngagement\Core\Container;
 
 // ------------------------------------------------------
 // WordPress function stubs

@@ -1,6 +1,6 @@
 <?php
 use PHPUnit\Framework\TestCase;
-use NuclearEngagement\SettingsSanitizer;
+use NuclearEngagement\Core\SettingsSanitizer;
 
 if (!function_exists('sanitize_text_field')) {
     function sanitize_text_field($text) {

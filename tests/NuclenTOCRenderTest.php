@@ -1,8 +1,8 @@
 <?php
 use PHPUnit\Framework\TestCase;
 use NuclearEngagement\Modules\TOC\Nuclen_TOC_Render;
-use NuclearEngagement\SettingsRepository;
-use NuclearEngagement\Container;
+use NuclearEngagement\Core\SettingsRepository;
+use NuclearEngagement\Core\Container;
 
 // ------------------------------------------------------
 // Constants and WordPress function stubs

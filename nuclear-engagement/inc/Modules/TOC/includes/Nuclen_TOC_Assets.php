@@ -9,7 +9,7 @@ declare(strict_types=1);
 
 namespace NuclearEngagement\Modules\TOC;
 
-use NuclearEngagement\AssetVersions;
+use NuclearEngagement\Core\AssetVersions;
 
 if ( ! defined( 'ABSPATH' ) ) {
     exit;

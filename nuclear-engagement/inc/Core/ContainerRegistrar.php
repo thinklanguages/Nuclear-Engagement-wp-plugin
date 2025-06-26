@@ -6,9 +6,9 @@ declare(strict_types=1);
  * Registers services and controllers in the DI container.
  */
 
-namespace NuclearEngagement;
+namespace NuclearEngagement\Core;
 
-use NuclearEngagement\Container;
+use NuclearEngagement\Core\Container;
 use NuclearEngagement\Services\{GenerationService, RemoteApiService, ContentStorageService, PointerService, PostsQueryService, AutoGenerationService, AutoGenerationQueue, AutoGenerationScheduler, GenerationPoller, PublishGenerationHandler, VersionService, DashboardDataService};
 use NuclearEngagement\Services\{AdminNoticeService, LoggingService};
 use NuclearEngagement\Services\PostDataFetcher;

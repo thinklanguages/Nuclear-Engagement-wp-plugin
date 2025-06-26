@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace NuclearEngagement\Admin;
 
 use NuclearEngagement\Admin\OnboardingPointers;
-use NuclearEngagement\AssetVersions;
+use NuclearEngagement\Core\AssetVersions;
 
 if ( ! defined( 'ABSPATH' ) ) {
     exit;

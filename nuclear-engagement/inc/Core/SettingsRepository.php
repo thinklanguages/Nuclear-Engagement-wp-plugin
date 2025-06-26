@@ -11,10 +11,10 @@
 
 declare( strict_types = 1 );
 
-namespace NuclearEngagement;
+namespace NuclearEngagement\Core;
 
-use NuclearEngagement\SettingsSanitizer;
-use NuclearEngagement\SettingsCache;
+use NuclearEngagement\Core\SettingsSanitizer;
+use NuclearEngagement\Core\SettingsCache;
 
 // If this file is called directly, abort.
 if ( ! defined( 'ABSPATH' ) ) {

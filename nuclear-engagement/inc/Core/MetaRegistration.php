@@ -8,7 +8,7 @@ declare(strict_types=1);
  * @package NuclearEngagement
  */
 
-namespace NuclearEngagement;
+namespace NuclearEngagement\Core;
 
 use function NuclearEngagement\nuclen_settings_array;
 

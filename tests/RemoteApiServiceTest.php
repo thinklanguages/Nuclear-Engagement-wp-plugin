@@ -2,7 +2,7 @@
 use PHPUnit\Framework\TestCase;
 use NuclearEngagement\Services\RemoteApiService;
 use NuclearEngagement\Services\ApiException;
-use NuclearEngagement\SettingsRepository;
+use NuclearEngagement\Core\SettingsRepository;
 
 namespace NuclearEngagement\Services {
     class LoggingService {

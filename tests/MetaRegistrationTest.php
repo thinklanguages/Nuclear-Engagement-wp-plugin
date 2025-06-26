@@ -1,6 +1,6 @@
 <?php
 use PHPUnit\Framework\TestCase;
-use NuclearEngagement\MetaRegistration;
+use NuclearEngagement\Core\MetaRegistration;
 
 namespace NuclearEngagement {
     if (!function_exists('sanitize_text_field')) {

@@ -1,7 +1,7 @@
 <?php
 use PHPUnit\Framework\TestCase;
-use NuclearEngagement\SettingsRepository;
-use NuclearEngagement\Container;
+use NuclearEngagement\Core\SettingsRepository;
+use NuclearEngagement\Core\Container;
 
 class RedirectException extends \Exception {}
 
@@ -63,7 +63,7 @@ class DummySetup {
     private $service;
     public function __construct($service) { $this->service = $service; }
     public function nuclen_get_setup_service(): \NuclearEngagement\Services\SetupService { return $this->service; }
-    public function nuclen_get_settings_repository() { return \NuclearEngagement\Container::getInstance()->get('settings'); }
+    public function nuclen_get_settings_repository() { return \NuclearEngagement\Core\Container::getInstance()->get('settings'); }
     private function nuclen_redirect_with_error($msg): void { $this->redirect = ['error',$msg]; throw new RedirectException(); }
     private function nuclen_redirect_with_success($msg): void { $this->redirect = ['success',$msg]; throw new RedirectException(); }
 }

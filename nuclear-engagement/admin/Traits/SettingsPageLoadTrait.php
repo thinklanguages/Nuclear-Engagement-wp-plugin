@@ -23,7 +23,7 @@ trait SettingsPageLoadTrait {
      */
     protected function nuclen_get_current_settings(): array {
         $settings_repo = $this->nuclen_get_settings_repository();
-        $defaults      = \NuclearEngagement\Defaults::nuclen_get_default_settings();
+        $defaults      = \NuclearEngagement\Core\Defaults::nuclen_get_default_settings();
 
         // Get all settings from the repository
         $settings = array();

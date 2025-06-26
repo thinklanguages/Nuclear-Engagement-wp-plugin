@@ -1,7 +1,7 @@
 <?php
 use PHPUnit\Framework\TestCase;
-use NuclearEngagement\SettingsCache;
-use NuclearEngagement\SettingsRepository;
+use NuclearEngagement\Core\SettingsCache;
+use NuclearEngagement\Core\SettingsRepository;
 
 // ------------------------------------------------------
 // WordPress cache stubs

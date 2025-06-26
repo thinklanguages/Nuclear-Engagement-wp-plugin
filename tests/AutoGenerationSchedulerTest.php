@@ -1,7 +1,7 @@
 <?php
 use PHPUnit\Framework\TestCase;
 use NuclearEngagement\Services\AutoGenerationScheduler;
-use NuclearEngagement\SettingsRepository;
+use NuclearEngagement\Core\SettingsRepository;
 
 class DummyRemoteApiService {
     public array $updates = [];

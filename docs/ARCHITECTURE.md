@@ -23,8 +23,8 @@ plugin-root/
 ├── inc/
 │   ├── Modules/
 │   │   ├── Quiz/          # 1 feature = 1 folder
-│   │   │   ├── class-quiz-service.php
-│   │   │   ├── quiz-admin.php
+│   │   │   ├── Quiz_Service.php
+│   │   │   ├── Quiz_Admin.php
 │   │   │   └── assets/
 │   │   ├── Summary/
 │   │   └── TOC/

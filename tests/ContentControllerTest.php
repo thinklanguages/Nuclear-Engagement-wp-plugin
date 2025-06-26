@@ -1,7 +1,7 @@
 <?php
 use PHPUnit\Framework\TestCase;
 use NuclearEngagement\Front\Controller\Rest\ContentController;
-use NuclearEngagement\SettingsRepository;
+use NuclearEngagement\Core\SettingsRepository;
 use NuclearEngagement\Services\ContentStorageService;
 
 namespace NuclearEngagement\Services {

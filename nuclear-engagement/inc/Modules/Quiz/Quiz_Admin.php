@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 namespace NuclearEngagement\Modules\Quiz;
 
-use NuclearEngagement\SettingsRepository;
+use NuclearEngagement\Core\SettingsRepository;
 use NuclearEngagement\Services\LoggingService;
 
 if ( ! defined( 'ABSPATH' ) ) {

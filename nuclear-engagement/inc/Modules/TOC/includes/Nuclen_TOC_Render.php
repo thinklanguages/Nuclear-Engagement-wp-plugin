@@ -1,6 +1,6 @@
 <?php
 /**
- * File: modules/toc/includes/class-nuclen-toc-render.php
+ * File: modules/toc/includes/Nuclen_TOC_Render.php
  *
  * Public-facing shortcode handler for the TOC module.
  *
@@ -11,7 +11,7 @@ declare(strict_types=1);
 
 namespace NuclearEngagement\Modules\TOC;
 
-use NuclearEngagement\SettingsRepository;
+use NuclearEngagement\Core\SettingsRepository;
 
 if ( ! defined( 'ABSPATH' ) ) {
     exit;

@@ -117,65 +117,65 @@ msgstr ""
 msgid "Failed to schedule event %s"
 msgstr ""
 
-#: nuclear-engagement/inc/Modules/TOC/includes/class-nuclen-toc-assets.php:99
+#: nuclear-engagement/inc/Modules/TOC/includes/Nuclen_TOC_Assets.php:99
 msgid "Hide"
 msgstr ""
 
-#: nuclear-engagement/inc/Modules/TOC/includes/class-nuclen-toc-assets.php:100
+#: nuclear-engagement/inc/Modules/TOC/includes/Nuclen_TOC_Assets.php:100
 msgid "Show"
 msgstr ""
 
-#: nuclear-engagement/inc/Modules/TOC/includes/class-nuclen-toc-render.php:145
+#: nuclear-engagement/inc/Modules/TOC/includes/Nuclen_TOC_Render.php:145
 msgid "Show table of contents"
 msgstr ""
 
-#: nuclear-engagement/inc/Modules/TOC/includes/class-nuclen-toc-render.php:146
+#: nuclear-engagement/inc/Modules/TOC/includes/Nuclen_TOC_Render.php:146
 msgid "Hide table of contents"
 msgstr ""
 
-#: nuclear-engagement/inc/Modules/TOC/includes/class-nuclen-toc-admin.php:48
-#: nuclear-engagement/inc/Modules/TOC/includes/class-nuclen-toc-admin.php:49
+#: nuclear-engagement/inc/Modules/TOC/includes/Nuclen_TOC_Admin.php:48
+#: nuclear-engagement/inc/Modules/TOC/includes/Nuclen_TOC_Admin.php:49
 msgid "Nuclen TOC"
 msgstr ""
 
-#: nuclear-engagement/inc/Modules/TOC/includes/class-nuclen-toc-admin.php:92
+#: nuclear-engagement/inc/Modules/TOC/includes/Nuclen_TOC_Admin.php:92
 msgid "Copy"
 msgstr ""
 
-#: nuclear-engagement/inc/Modules/TOC/includes/class-nuclen-toc-admin.php:93
+#: nuclear-engagement/inc/Modules/TOC/includes/Nuclen_TOC_Admin.php:93
 msgid "Copied!"
 msgstr ""
 
-#: nuclear-engagement/inc/Modules/TOC/includes/class-nuclen-toc-admin.php:115
+#: nuclear-engagement/inc/Modules/TOC/includes/Nuclen_TOC_Admin.php:115
 msgid "Minimum heading level"
 msgstr ""
 
-#: nuclear-engagement/inc/Modules/TOC/includes/class-nuclen-toc-admin.php:116
+#: nuclear-engagement/inc/Modules/TOC/includes/Nuclen_TOC_Admin.php:116
 msgid "Maximum heading level"
 msgstr ""
 
-#: nuclear-engagement/inc/Modules/TOC/includes/class-nuclen-toc-admin.php:127
+#: nuclear-engagement/inc/Modules/TOC/includes/Nuclen_TOC_Admin.php:127
 msgid "Collapsible"
 msgstr ""
 
-#: nuclear-engagement/inc/Modules/TOC/includes/class-nuclen-toc-admin.php:128
+#: nuclear-engagement/inc/Modules/TOC/includes/Nuclen_TOC_Admin.php:128
 msgid "Start collapsed"
 msgstr ""
 
-#: nuclear-engagement/inc/Modules/TOC/includes/class-nuclen-toc-admin.php:129
+#: nuclear-engagement/inc/Modules/TOC/includes/Nuclen_TOC_Admin.php:129
 msgid "Smooth scroll"
 msgstr ""
 
-#: nuclear-engagement/inc/Modules/TOC/includes/class-nuclen-toc-admin.php:130
+#: nuclear-engagement/inc/Modules/TOC/includes/Nuclen_TOC_Admin.php:130
 msgid "Highlight current section"
 msgstr ""
 
-#: nuclear-engagement/inc/Modules/Quiz/class-quiz-shortcode.php:69
+#: nuclear-engagement/inc/Modules/Quiz/Quiz_Shortcode.php:69
 #: nuclear-engagement/bootstrap.php:132
 msgid "Test your knowledge"
 msgstr ""
 
-#: nuclear-engagement/inc/Modules/Summary/includes/class-nuclen-summary-shortcode.php:55
+#: nuclear-engagement/inc/Modules/Summary/includes/Nuclen_Summary_Shortcode.php:55
 #: nuclear-engagement/bootstrap.php:133
 msgid "Key Facts"
 msgstr ""

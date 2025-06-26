@@ -23,8 +23,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 
 use NuclearEngagement\Utils;
-use NuclearEngagement\SettingsRepository;
-use NuclearEngagement\Container;
+use NuclearEngagement\Core\SettingsRepository;
+use NuclearEngagement\Core\Container;
 
 class FrontClass {
 
