@@ -50,6 +50,12 @@ Run the JavaScript tests with:
 npm run test
 ```
 
+Run the end-to-end flows using [Maestro](https://maestro.mobile.dev):
+
+```bash
+bash scripts/run-e2e.sh
+```
+
 Run static analysis using PHPStan:
 
 ```bash
