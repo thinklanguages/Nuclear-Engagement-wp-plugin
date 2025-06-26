@@ -11,7 +11,7 @@
 
 declare( strict_types = 1 );
 
-namespace NuclearEngagement;
+namespace NuclearEngagement\Core;
 
 // If this file is called directly, abort.
 if ( ! defined( 'ABSPATH' ) ) {

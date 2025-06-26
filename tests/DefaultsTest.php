@@ -1,6 +1,6 @@
 <?php
 use PHPUnit\Framework\TestCase;
-use NuclearEngagement\Defaults;
+use NuclearEngagement\Core\Defaults;
 
 class DefaultsTest extends TestCase {
     public function test_defaults_contains_theme_key() {

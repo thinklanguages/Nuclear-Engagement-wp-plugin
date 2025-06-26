@@ -19,7 +19,7 @@ use NuclearEngagement\Modules\TOC\Nuclen_TOC_Utils;
 use NuclearEngagement\Modules\TOC\Nuclen_TOC_Headings;
 use NuclearEngagement\Modules\TOC\Nuclen_TOC_Render;
 use NuclearEngagement\Modules\TOC\Nuclen_TOC_Admin;
-use NuclearEngagement\SettingsRepository;
+use NuclearEngagement\Core\SettingsRepository;
 
 /*
  * ------------------------------------------------------------------
@@ -35,12 +35,12 @@ define( 'NUCLEN_TOC_URL', plugin_dir_url( __FILE__ ) );
  * ------------------------------------------------------------------
  */
 require_once NUCLEN_TOC_DIR . 'includes/polyfills.php';
-require_once NUCLEN_TOC_DIR . 'includes/class-nuclen-toc-utils.php';
-require_once NUCLEN_TOC_DIR . 'includes/class-nuclen-toc-assets.php';
-require_once NUCLEN_TOC_DIR . 'includes/class-nuclen-toc-view.php';
-require_once NUCLEN_TOC_DIR . 'includes/class-nuclen-toc-headings.php';
-require_once NUCLEN_TOC_DIR . 'includes/class-nuclen-toc-render.php';
-require_once NUCLEN_TOC_DIR . 'includes/class-nuclen-toc-admin.php';
+require_once NUCLEN_TOC_DIR . 'includes/Nuclen_TOC_Utils.php';
+require_once NUCLEN_TOC_DIR . 'includes/Nuclen_TOC_Assets.php';
+require_once NUCLEN_TOC_DIR . 'includes/Nuclen_TOC_View.php';
+require_once NUCLEN_TOC_DIR . 'includes/Nuclen_TOC_Headings.php';
+require_once NUCLEN_TOC_DIR . 'includes/Nuclen_TOC_Render.php';
+require_once NUCLEN_TOC_DIR . 'includes/Nuclen_TOC_Admin.php';
 
 // Clear caches when posts are saved or deleted.
 add_action( 'save_post', array( 'Nuclen_TOC_Utils', 'clear_cache_for_post' ) );
@@ -55,7 +55,7 @@ add_action(
     'plugins_loaded',
     static function () {
         new Nuclen_TOC_Headings();  // filter for heading IDs.
-        new Nuclen_TOC_Render( \NuclearEngagement\SettingsRepository::get_instance() ); // shortcode handler.
+        new Nuclen_TOC_Render( \NuclearEngagement\Core\SettingsRepository::get_instance() ); // shortcode handler.
         if ( is_admin() ) {
             new Nuclen_TOC_Admin();    // settings page.
         }

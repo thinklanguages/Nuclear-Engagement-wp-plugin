@@ -12,7 +12,7 @@ namespace NuclearEngagement\Services;
 
 use NuclearEngagement\Requests\GenerateRequest;
 use NuclearEngagement\Responses\GenerationResponse;
-use NuclearEngagement\SettingsRepository;
+use NuclearEngagement\Core\SettingsRepository;
 use NuclearEngagement\Utils;
 use NuclearEngagement\Services\ApiException;
 

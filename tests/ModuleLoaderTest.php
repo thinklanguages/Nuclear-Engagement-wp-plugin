@@ -1,6 +1,6 @@
 <?php
 use PHPUnit\Framework\TestCase;
-use NuclearEngagement\ModuleLoader;
+use NuclearEngagement\Core\ModuleLoader;
 
 class ModuleLoaderTest extends TestCase {
     private static string $dir;

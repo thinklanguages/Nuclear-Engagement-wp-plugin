@@ -1,6 +1,6 @@
 <?php
 /**
- * File: modules/toc/includes/class-nuclen-toc-view.php
+ * File: modules/toc/includes/Nuclen_TOC_View.php
  *
  * Generates the HTML markup for the front-end TOC.
  *
@@ -15,7 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-use NuclearEngagement\SettingsRepository;
+use NuclearEngagement\Core\SettingsRepository;
 
 /**
  * Output builder for the front-end table of contents.

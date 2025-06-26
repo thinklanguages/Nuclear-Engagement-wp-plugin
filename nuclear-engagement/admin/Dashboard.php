@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 use NuclearEngagement\Utils;
 use NuclearEngagement\Services\DashboardDataService;
-use NuclearEngagement\SettingsRepository;
+use NuclearEngagement\Core\SettingsRepository;
 
 global $wpdb;
 
@@ -24,20 +24,20 @@ global $wpdb;
 ──────────────────────────────────────────────────────────────
  * 1. Determine which post-types we need to examine
  * ──────────────────────────────────────────────────────────── */
-$settings_repo = $settings_repo ?? \NuclearEngagement\SettingsRepository::get_instance();
+$settings_repo = $settings_repo ?? \NuclearEngagement\Core\SettingsRepository::get_instance();
 $data_service  = $data_service  ?? new DashboardDataService();
 $allowed_post_types = $settings_repo->get( 'generation_post_types', array( 'post' ) );
 $allowed_post_types = is_array( $allowed_post_types ) ? $allowed_post_types : array( 'post' );
 
 /* Attempt to use cached inventory unless refresh requested */
-$inventory_cache = \NuclearEngagement\InventoryCache::get();
+$inventory_cache = \NuclearEngagement\Core\InventoryCache::get();
 if (
     isset( $_GET['nuclen_refresh_inventory'] ) &&
     isset( $_GET['nuclen_refresh_inventory_nonce'] ) &&
     wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['nuclen_refresh_inventory_nonce'] ) ), 'nuclen_refresh_inventory' ) &&
     current_user_can( 'manage_options' )
 ) {
-    \NuclearEngagement\InventoryCache::clear();
+    \NuclearEngagement\Core\InventoryCache::clear();
     $inventory_cache = null;
     wp_safe_redirect( remove_query_arg( array( 'nuclen_refresh_inventory', 'nuclen_refresh_inventory_nonce' ) ) );
     exit;
@@ -183,7 +183,7 @@ if ( null === $inventory_cache ) {
     $by_category_quiz     = $drop_zeros( $by_category_quiz );
     $by_category_summary  = $drop_zeros( $by_category_summary );
 
-    \NuclearEngagement\InventoryCache::set(
+    \NuclearEngagement\Core\InventoryCache::set(
         array(
             'by_status_quiz'       => $by_status_quiz,
             'by_status_summary'    => $by_status_summary,

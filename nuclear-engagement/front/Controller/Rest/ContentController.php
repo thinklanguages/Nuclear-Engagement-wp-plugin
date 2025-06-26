@@ -12,7 +12,7 @@ namespace NuclearEngagement\Front\Controller\Rest;
 
 use NuclearEngagement\Requests\ContentRequest;
 use NuclearEngagement\Services\ContentStorageService;
-use NuclearEngagement\SettingsRepository;
+use NuclearEngagement\Core\SettingsRepository;
 use NuclearEngagement\Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {

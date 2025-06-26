@@ -1,9 +1,9 @@
 <?php
 declare(strict_types=1);
 
-namespace NuclearEngagement;
+namespace NuclearEngagement\Core;
 
-use NuclearEngagement\SettingsRepository;
+use NuclearEngagement\Core\SettingsRepository;
 use NuclearEngagement\Services\AutoGenerationService;
 
 if ( ! defined( 'ABSPATH' ) ) {

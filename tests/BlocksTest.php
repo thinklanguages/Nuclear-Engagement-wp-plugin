@@ -1,6 +1,6 @@
 <?php
 use PHPUnit\Framework\TestCase;
-use NuclearEngagement\Blocks;
+use NuclearEngagement\Core\Blocks;
 
 namespace NuclearEngagement\Services {
     class LoggingService {

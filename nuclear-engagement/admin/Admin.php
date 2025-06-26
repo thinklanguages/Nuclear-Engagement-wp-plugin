@@ -15,8 +15,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 use NuclearEngagement\Utils;
-use NuclearEngagement\SettingsRepository;
-use NuclearEngagement\Container;
+use NuclearEngagement\Core\SettingsRepository;
+use NuclearEngagement\Core\Container;
 use NuclearEngagement\Admin\Traits\AdminMetaboxes;
 use NuclearEngagement\Admin\Traits\AdminAjax;
 use NuclearEngagement\Admin\Traits\AdminMenu;
@@ -91,7 +91,7 @@ class Admin {
     /**
      * Get the container instance.
      *
-     * @return \NuclearEngagement\Container
+     * @return \NuclearEngagement\Core\Container
      */
     protected function get_container() {
         return $this->container;

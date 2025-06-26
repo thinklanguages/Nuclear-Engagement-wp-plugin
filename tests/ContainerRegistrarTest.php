@@ -1,8 +1,8 @@
 <?php
 use PHPUnit\Framework\TestCase;
-use NuclearEngagement\Container;
-use NuclearEngagement\ContainerRegistrar;
-use NuclearEngagement\SettingsRepository;
+use NuclearEngagement\Core\Container;
+use NuclearEngagement\Core\ContainerRegistrar;
+use NuclearEngagement\Core\SettingsRepository;
 
 require_once dirname(__DIR__) . '/nuclear-engagement/inc/Core/Container.php';
 require_once dirname(__DIR__) . '/nuclear-engagement/inc/Core/SettingsRepository.php';

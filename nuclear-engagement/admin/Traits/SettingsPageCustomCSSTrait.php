@@ -24,7 +24,7 @@ trait SettingsPageCustomCSSTrait {
     protected function nuclen_write_custom_css( array $s ): void {
 
         /* ── Fill any missing values so we never output empty CSS vars ── */
-        $s = wp_parse_args( $s, \NuclearEngagement\Defaults::nuclen_get_default_settings() );
+        $s = wp_parse_args( $s, \NuclearEngagement\Core\Defaults::nuclen_get_default_settings() );
 
         $css = <<<CSS
 :root{

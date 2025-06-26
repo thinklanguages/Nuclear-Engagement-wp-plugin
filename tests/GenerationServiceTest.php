@@ -1,7 +1,7 @@
 <?php
 use PHPUnit\Framework\TestCase;
 use NuclearEngagement\Services\GenerationService;
-use NuclearEngagement\SettingsRepository;
+use NuclearEngagement\Core\SettingsRepository;
 use NuclearEngagement\Requests\GenerateRequest;
 use NuclearEngagement\Services\ApiException;
 

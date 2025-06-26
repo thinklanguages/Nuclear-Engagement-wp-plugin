@@ -1,6 +1,6 @@
 <?php
 use PHPUnit\Framework\TestCase;
-use NuclearEngagement\Container;
+use NuclearEngagement\Core\Container;
 
 class ContainerTest extends TestCase {
     protected function setUp(): void {

@@ -142,7 +142,7 @@ class DashboardDataServiceTest extends TestCase {
         $svc->get_group_counts( 'p.post_status', 'key', ['post'], ['draft'] );
         $this->assertSame( 1, $wpdb->calls );
 
-        \NuclearEngagement\InventoryCache::clear();
+        \NuclearEngagement\Core\InventoryCache::clear();
 
         $svc->get_group_counts( 'p.post_status', 'key', ['post'], ['draft'] );
         $this->assertSame( 2, $wpdb->calls );
@@ -166,7 +166,7 @@ class DashboardDataServiceTest extends TestCase {
         $svc->get_dual_counts( 'p.post_author', ['post'], ['publish'] );
         $this->assertSame( 1, $wpdb->calls );
 
-        \NuclearEngagement\InventoryCache::clear();
+        \NuclearEngagement\Core\InventoryCache::clear();
 
         $svc->get_dual_counts( 'p.post_author', ['post'], ['publish'] );
         $this->assertSame( 2, $wpdb->calls );

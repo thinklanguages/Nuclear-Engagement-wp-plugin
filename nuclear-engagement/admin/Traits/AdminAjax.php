@@ -5,7 +5,7 @@ declare(strict_types=1);
  *
  * Handles AJAX callbacks - now delegates to controllers.
  *
- * Host class must provide protected get_container(): \NuclearEngagement\Container.
+ * Host class must provide protected get_container(): \NuclearEngagement\Core\Container.
  */
 
 namespace NuclearEngagement\Admin\Traits;

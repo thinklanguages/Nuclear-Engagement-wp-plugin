@@ -13,7 +13,7 @@ declare( strict_types = 1 );
 
 namespace NuclearEngagement\Traits;
 
-use NuclearEngagement\SettingsSanitizer;
+use NuclearEngagement\Core\SettingsSanitizer;
 
 // If this file is called directly, abort.
 if ( ! defined( 'ABSPATH' ) ) {

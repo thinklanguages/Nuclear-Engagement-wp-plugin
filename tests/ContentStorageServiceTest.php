@@ -1,7 +1,7 @@
 <?php
 use PHPUnit\Framework\TestCase;
 use NuclearEngagement\Services\ContentStorageService;
-use NuclearEngagement\SettingsRepository;
+use NuclearEngagement\Core\SettingsRepository;
 
 namespace NuclearEngagement\Services {
     function update_post_meta($postId, $key, $value) {

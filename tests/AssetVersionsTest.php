@@ -1,6 +1,6 @@
 <?php
 use PHPUnit\Framework\TestCase;
-use NuclearEngagement\AssetVersions;
+use NuclearEngagement\Core\AssetVersions;
 
 namespace NuclearEngagement {
     function time() {

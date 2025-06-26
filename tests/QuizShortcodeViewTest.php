@@ -2,7 +2,7 @@
 use PHPUnit\Framework\TestCase;
 use NuclearEngagement\Front\QuizShortcode;
 use NuclearEngagement\Front\QuizView;
-use NuclearEngagement\SettingsRepository;
+use NuclearEngagement\Core\SettingsRepository;
 
 namespace NuclearEngagement\Front {
     function get_the_ID() { return $GLOBALS['current_post_id'] ?? 0; }

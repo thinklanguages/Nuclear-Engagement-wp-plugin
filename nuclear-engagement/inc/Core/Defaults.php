@@ -6,7 +6,7 @@ declare(strict_types=1);
  * @package NuclearEngagement
  */
 
-namespace NuclearEngagement;
+namespace NuclearEngagement\Core;
 
 if ( ! defined( 'ABSPATH' ) ) {
     exit;

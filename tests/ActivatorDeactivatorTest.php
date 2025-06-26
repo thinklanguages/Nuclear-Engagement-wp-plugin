@@ -1,7 +1,7 @@
 <?php
 use PHPUnit\Framework\TestCase;
-use NuclearEngagement\Activator;
-use NuclearEngagement\Deactivator;
+use NuclearEngagement\Core\Activator;
+use NuclearEngagement\Core\Deactivator;
 use NuclearEngagement\Services\AutoGenerationService;
 
 namespace {
@@ -95,7 +95,7 @@ class ActivatorDeactivatorTest extends TestCase {
         $wpdb = new AD_WPDB();
         $wp_options = $wp_autoload = $transients = $update_option_calls = [];
         $cleared_hooks = [];
-        \NuclearEngagement\SettingsRepository::reset_for_tests();
+        \NuclearEngagement\Core\SettingsRepository::reset_for_tests();
     }
 
     public function test_activation_creates_indexes_and_sets_options(): void {

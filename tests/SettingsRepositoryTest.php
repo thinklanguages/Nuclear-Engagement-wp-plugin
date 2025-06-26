@@ -1,8 +1,8 @@
 <?php
 use PHPUnit\Framework\TestCase;
-use NuclearEngagement\SettingsRepository;
-use NuclearEngagement\SettingsSanitizer;
-use NuclearEngagement\SettingsCache;
+use NuclearEngagement\Core\SettingsRepository;
+use NuclearEngagement\Core\SettingsSanitizer;
+use NuclearEngagement\Core\SettingsCache;
 
 if (!isset($GLOBALS['wp_cache'])) { $GLOBALS['wp_cache'] = []; }
 if (!function_exists('wp_cache_get')) {

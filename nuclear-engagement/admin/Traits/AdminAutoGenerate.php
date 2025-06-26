@@ -6,7 +6,7 @@ declare(strict_types=1);
  * Auto-generation on publish - now uses services.
  *
  * Host class must implement `nuclen_get_settings_repository()` and
- * protected `get_container(): \NuclearEngagement\Container`.
+ * protected `get_container(): \NuclearEngagement\Core\Container`.
  */
 
 namespace NuclearEngagement\Admin\Traits;

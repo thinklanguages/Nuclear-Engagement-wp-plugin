@@ -1,6 +1,6 @@
 <?php
 use PHPUnit\Framework\TestCase;
-use NuclearEngagement\InventoryCache;
+use NuclearEngagement\Core\InventoryCache;
 
 // ----------------------------------------------
 // WordPress cache stubs

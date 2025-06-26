@@ -27,9 +27,9 @@ define( 'NUCLEN_SUMMARY_URL', plugin_dir_url( __FILE__ ) );
 /* ------------------------------------------------------------------
  * Includes
  * ------------------------------------------------------------------ */
-require_once NUCLEN_SUMMARY_DIR . 'includes/class-nuclen-summary-view.php';
-require_once NUCLEN_SUMMARY_DIR . 'includes/class-nuclen-summary-shortcode.php';
-require_once NUCLEN_SUMMARY_DIR . 'includes/class-nuclen-summary-metabox.php';
+require_once NUCLEN_SUMMARY_DIR . 'includes/Nuclen_Summary_View.php';
+require_once NUCLEN_SUMMARY_DIR . 'includes/Nuclen_Summary_Shortcode.php';
+require_once NUCLEN_SUMMARY_DIR . 'includes/Nuclen_Summary_Metabox.php';
 
 /* ------------------------------------------------------------------
  * Spin-up
@@ -37,9 +37,9 @@ require_once NUCLEN_SUMMARY_DIR . 'includes/class-nuclen-summary-metabox.php';
 add_action(
     'plugins_loaded',
     static function () {
-        new Nuclen_Summary_Shortcode( \NuclearEngagement\SettingsRepository::get_instance(), new \NuclearEngagement\Front\FrontClass() );
+        new Nuclen_Summary_Shortcode( \NuclearEngagement\Core\SettingsRepository::get_instance(), new \NuclearEngagement\Front\FrontClass() );
         if ( is_admin() ) {
-            new Nuclen_Summary_Metabox( \NuclearEngagement\SettingsRepository::get_instance() );
+            new Nuclen_Summary_Metabox( \NuclearEngagement\Core\SettingsRepository::get_instance() );
         }
     }
 );

@@ -1,6 +1,6 @@
 <?php
 /**
- * File: modules/toc/includes/class-nuclen-toc-utils.php
+ * File: modules/toc/includes/Nuclen_TOC_Utils.php
  *
  * Heavy‑lifting utilities:
  *   ▸ heading extraction with skip‑rules

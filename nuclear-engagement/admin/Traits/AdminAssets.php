@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 namespace NuclearEngagement\Admin\Traits;
 
-use NuclearEngagement\AssetVersions;
+use NuclearEngagement\Core\AssetVersions;
 
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
