@@ -81,11 +81,14 @@ describe('mountOptinBeforeResults', () => {
     const alertMock = vi.fn();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (global as any).alert = alertMock;
+    vi.spyOn(utils, 'storeOptinLocally').mockResolvedValue();
+    vi.spyOn(utils, 'submitToWebhook').mockResolvedValue();
     vi.spyOn(utils, 'isValidEmail').mockReturnValue(false);
     mountOptinBeforeResults(container, baseCtx, vi.fn(), vi.fn());
     (document.getElementById('nuclen-optin-submit') as HTMLElement).click();
     expect(alertMock).toHaveBeenCalled();
     expect(utils.storeOptinLocally).not.toHaveBeenCalled();
+    expect(utils.submitToWebhook).not.toHaveBeenCalled();
   });
 
   it('calls skip callback', () => {
