@@ -79,6 +79,9 @@ spl_autoload_register(
         // Module classes under inc/.
         $paths[] = NUCLEN_PLUGIN_DIR . 'inc/' . $relative . '.php';
 
+        // Core classes reside under inc/Core when no subnamespace is used.
+        $paths[] = NUCLEN_PLUGIN_DIR . 'inc/Core/' . $relative . '.php';
+
         foreach ( $paths as $file ) {
             if ( file_exists( $file ) ) {
                 require_once $file;
