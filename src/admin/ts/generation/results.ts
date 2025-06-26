@@ -1,8 +1,8 @@
 export const REST_ENDPOINT =
-  (window as any).nuclenAdminVars?.rest_receive_content ||
+  window.nuclenAdminVars?.rest_receive_content ||
   '/wp-json/nuclear-engagement/v1/receive-content';
 
-export const REST_NONCE = (window as any).nuclenAdminVars?.rest_nonce || '';
+export const REST_NONCE = window.nuclenAdminVars?.rest_nonce || '';
 import { displayError } from '../utils/displayError';
 import * as logger from '../utils/logger';
 

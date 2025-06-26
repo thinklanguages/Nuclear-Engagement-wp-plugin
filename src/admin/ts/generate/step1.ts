@@ -17,7 +17,7 @@ import * as logger from '../utils/logger';
 
 export function initStep1(elements: GeneratePageElements): void {
   elements.getPostsBtn?.addEventListener('click', async () => {
-    if (!(window as any).nuclenAjax || !(window as any).nuclenAjax.ajax_url) {
+    if (!window.nuclenAjax || !window.nuclenAjax.ajax_url) {
       displayError('Error: Ajax is not configured properly. Please check the plugin settings.');
       return;
     }
@@ -27,13 +27,13 @@ export function initStep1(elements: GeneratePageElements): void {
 
     const formData = new FormData();
     formData.append('action', 'nuclen_get_posts_count');
-    if ((window as any).nuclenAjax?.nonce) {
-      formData.append('security', (window as any).nuclenAjax.nonce);
+    if (window.nuclenAjax?.nonce) {
+      formData.append('security', window.nuclenAjax.nonce);
     }
     const filters: NuclenFilterValues = nuclenCollectFilters();
     nuclenAppendFilters(formData, filters);
 
-    const result = await nuclenFetchWithRetry<any>((window as any).nuclenAjax.ajax_url || '', {
+    const result = await nuclenFetchWithRetry<any>(window.nuclenAjax.ajax_url || '', {
       method: 'POST',
       body: formData,
       credentials: 'same-origin',

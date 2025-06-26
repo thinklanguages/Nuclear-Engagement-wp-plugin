@@ -23,18 +23,18 @@ export function nuclenUpdateProgressBarStep(stepEl: HTMLElement | null, state: s
  * Fetch remaining credits from the SaaS.
  */
 export async function nuclenCheckCreditsAjax(): Promise<number> {
-  if (!(window as any).nuclenAjax || !(window as any).nuclenAjax.ajax_url) {
+  if (!window.nuclenAjax || !window.nuclenAjax.ajax_url) {
     throw new Error('Missing nuclenAjax configuration (ajax_url).');
   }
-  if (!(window as any).nuclenAjax.fetch_action) {
+  if (!window.nuclenAjax.fetch_action) {
     throw new Error('Missing fetch_action in nuclenAjax configuration.');
   }
   const formData = new FormData();
-  formData.append('action', (window as any).nuclenAjax.fetch_action);
-  if ((window as any).nuclenAjax.nonce) {
-    formData.append('security', (window as any).nuclenAjax.nonce);
+  formData.append('action', window.nuclenAjax.fetch_action);
+  if (window.nuclenAjax.nonce) {
+    formData.append('security', window.nuclenAjax.nonce);
   }
-  const result = await nuclenFetchWithRetry<any>((window as any).nuclenAjax.ajax_url, {
+  const result = await nuclenFetchWithRetry<any>(window.nuclenAjax.ajax_url, {
     method: 'POST',
     body: formData,
     credentials: 'same-origin',

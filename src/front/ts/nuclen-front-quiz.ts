@@ -5,4 +5,4 @@
 import { initQuiz } from './nuclen-quiz-main';
 
 /* Expose for lazy loader / global inline calls */
-(window as any).nuclearEngagementInitQuiz = initQuiz;
+window.nuclearEngagementInitQuiz = initQuiz;

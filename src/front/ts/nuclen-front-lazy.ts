@@ -11,7 +11,10 @@
 /**
  * 2a) Lazy-load container. Observes 'containerId' and triggers `initFunctionName` once visible.
  */
-window.NuclenLazyLoadComponent = function (containerId: string, initFunctionName: string | null = null) {
+window.NuclenLazyLoadComponent = function (
+  containerId: string,
+  initFunctionName: string | null = null,
+) {
     const component = document.getElementById(containerId);
     if (!component) return;
 
@@ -19,8 +22,9 @@ window.NuclenLazyLoadComponent = function (containerId: string, initFunctionName
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            if (initFunctionName && typeof (window as any)[initFunctionName] === 'function') {
-              (window as any)[initFunctionName]();
+            const win = window as unknown as Record<string, unknown>;
+            if (initFunctionName && typeof win[initFunctionName] === 'function') {
+              (win[initFunctionName] as () => void)();
             }
             observer.disconnect();
           }

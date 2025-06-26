@@ -77,8 +77,8 @@ import * as logger from './logger';
       mandatory: Boolean(NuclenOptinMandatory),
       promptText: NuclenOptinPromptText,
       submitLabel: NuclenOptinButtonText,
-      enabled: Boolean((window as any).NuclenOptinEnabled),
-      webhook: (window as any).NuclenOptinWebhook,
+      enabled: Boolean(window.NuclenOptinEnabled),
+      webhook: window.NuclenOptinWebhook ?? '',
       ajaxUrl: NuclenOptinAjax?.url ?? '',
       ajaxNonce: NuclenOptinAjax?.nonce ?? '',
     };
