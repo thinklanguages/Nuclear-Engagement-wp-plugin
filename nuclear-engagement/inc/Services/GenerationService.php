@@ -15,6 +15,7 @@ use NuclearEngagement\Responses\GenerationResponse;
 use NuclearEngagement\Core\SettingsRepository;
 use NuclearEngagement\Utils;
 use NuclearEngagement\Services\ApiException;
+use NuclearEngagement\Services\PostDataFetcher;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -41,7 +42,12 @@ class GenerationService {
 	/**
 	 * @var ContentStorageService
 	 */
-	private ContentStorageService $storage;
+        private ContentStorageService $storage;
+
+        /**
+         * @var PostDataFetcher
+         */
+        private PostDataFetcher $fetcher;
 
 	/**
 	 * @var Utils
@@ -55,19 +61,21 @@ class GenerationService {
 	 * @param RemoteApiService      $api
 	 * @param ContentStorageService $storage
 	 */
-	public function __construct(
-		SettingsRepository $settings,
-		RemoteApiService $api,
-		ContentStorageService $storage
-	) {
-			$this->settings = $settings;
-			$this->api      = $api;
-			$this->storage  = $storage;
-			$this->utils    = new Utils();
-		if ( defined( 'NUCLEN_GENERATION_POLL_DELAY' ) ) {
-				$this->pollDelay = (int) constant( 'NUCLEN_GENERATION_POLL_DELAY' );
-		}
-	}
+        public function __construct(
+                SettingsRepository $settings,
+                RemoteApiService $api,
+                ContentStorageService $storage,
+                ?PostDataFetcher $fetcher = null
+        ) {
+                $this->settings = $settings;
+                $this->api      = $api;
+                $this->storage  = $storage;
+                $this->fetcher  = $fetcher ?: new PostDataFetcher();
+                $this->utils    = new Utils();
+                if ( defined( 'NUCLEN_GENERATION_POLL_DELAY' ) ) {
+                        $this->pollDelay = (int) constant( 'NUCLEN_GENERATION_POLL_DELAY' );
+                }
+        }
 
 	/**
 	 * Generate content for multiple posts
@@ -197,36 +205,24 @@ class GenerationService {
 	 * @param string $postStatus
 	 * @return array
 	 */
-	private function getPostsData( array $postIds, string $postType, string $postStatus ): array {
-		global $wpdb;
+        private function getPostsData( array $postIds, string $postType, string $postStatus ): array {
+                $data      = array();
+                $postsById = array();
 
-		$data      = array();
-		$postsById = array();
+                $chunkSize = defined( 'NUCLEN_POST_FETCH_CHUNK' ) ? (int) constant( 'NUCLEN_POST_FETCH_CHUNK' ) : 200;
+                $chunks    = count( $postIds ) <= $chunkSize ? array( $postIds ) : array_chunk( $postIds, $chunkSize );
 
-		$chunkSize = defined( 'NUCLEN_POST_FETCH_CHUNK' ) ? (int) constant( 'NUCLEN_POST_FETCH_CHUNK' ) : 200;
-		$chunks    = count( $postIds ) <= $chunkSize ? array( $postIds ) : array_chunk( $postIds, $chunkSize );
+                foreach ( $chunks as $chunk ) {
+                        $posts = $this->fetcher->fetch( $chunk );
 
-		foreach ( $chunks as $chunk ) {
-			$placeholders = implode( ',', array_fill( 0, count( $chunk ), '%d' ) );
-			$sql          = $wpdb->prepare(
-				"SELECT ID, post_title, post_content
-                 FROM {$wpdb->posts}
-                 WHERE ID IN ($placeholders)
-                   AND post_type = %s
-                   AND post_status = %s",
-				array_merge( $chunk, array( $postType, $postStatus ) )
-			);
-
-			$posts = $wpdb->get_results( $sql );
-
-			foreach ( $posts as $post ) {
-				$postsById[ (int) $post->ID ] = array(
-					'id'      => (int) $post->ID,
-					'title'   => $post->post_title,
-					'content' => wp_strip_all_tags( $post->post_content ),
-				);
-			}
-		}
+                        foreach ( $posts as $post ) {
+                                $postsById[ (int) $post->ID ] = array(
+                                        'id'      => (int) $post->ID,
+                                        'title'   => $post->post_title,
+                                        'content' => wp_strip_all_tags( $post->post_content ),
+                                );
+                        }
+                }
 
 		foreach ( $postIds as $id ) {
 			if ( isset( $postsById[ $id ] ) ) {

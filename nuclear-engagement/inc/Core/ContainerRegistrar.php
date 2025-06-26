@@ -75,14 +75,15 @@ final class ContainerRegistrar {
 					)
 				);
 
-		$container->register(
-			'generation_service',
-			static fn( Container $c ) => new GenerationService(
-				$c->get( 'settings' ),
-				$c->get( 'remote_api' ),
-				$c->get( 'content_storage' )
-			)
-		);
+                $container->register(
+                        'generation_service',
+                        static fn( Container $c ) => new GenerationService(
+                                $c->get( 'settings' ),
+                                $c->get( 'remote_api' ),
+                                $c->get( 'content_storage' ),
+                                new PostDataFetcher()
+                        )
+                );
 
 		$container->register( 'pointer_service', static fn() => new PointerService() );
 				$container->register( 'posts_query_service', static fn() => new PostsQueryService() );
