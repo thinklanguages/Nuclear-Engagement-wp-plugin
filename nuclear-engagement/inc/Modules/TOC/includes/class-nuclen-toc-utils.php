@@ -48,6 +48,7 @@ final class Nuclen_TOC_Utils {
      *
      * @param string $html The HTML content to parse for headings.
      * @param array  $heading_levels Array of specific heading levels to include (e.g., [2, 4] for H2 and H4 only).
+     * @param int    $post_id        Optional post ID used to check cached headings.
      *
      * @return array[] [
      *     'tag'   => 'h2',
@@ -57,7 +58,7 @@ final class Nuclen_TOC_Utils {
      *     'id'    => 'slugified-id'
      * ]
      */
-        public static function extract( string $html, array $heading_levels ): array {
+    public static function extract( string $html, array $heading_levels, int $post_id = 0 ): array {
                 $t0 = microtime( true );
 
                 // If no specific levels provided, use defaults (2-6).
@@ -81,6 +82,15 @@ final class Nuclen_TOC_Utils {
         // Sort and make unique.
         sort( $heading_levels );
         $heading_levels = array_unique( $heading_levels );
+
+        if ( $post_id > 0 ) {
+            $stored = get_post_meta( $post_id, Nuclen_TOC_Headings::META_KEY, true );
+            if ( is_array( $stored ) && ! empty( $stored ) ) {
+                self::$ids_in_post = array_fill_keys( wp_list_pluck( $stored, 'id' ), true );
+                self::$last_parse_ms = (int) round( ( microtime( true ) - $t0 ) * 1000 );
+                return $stored;
+            }
+        }
 
                 // Generate cache key based on content and heading levels.
                 $key          = md5( $html ) . '_' . implode( '', $heading_levels );
@@ -217,6 +227,7 @@ final class Nuclen_TOC_Utils {
 
                wp_cache_delete( $key, self::CACHE_GROUP );
                delete_transient( $transient );
+               delete_post_meta( $post_id, Nuclen_TOC_Headings::META_KEY );
        }
 
         /**

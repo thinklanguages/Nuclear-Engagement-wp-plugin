@@ -17,11 +17,17 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Adds unique IDs to headings within post content.
  */
 final class Nuclen_TOC_Headings {
-        /**
-         * Hook into content filters.
-         */
+
+    /** Meta key for stored headings. */
+    public const META_KEY = 'nuclen_toc_headings';
+
+    /**
+     * Hook into content filters.
+     */
     public function __construct() {
-            add_filter( 'the_content', array( $this, 'nuclen_add_heading_ids' ), 99 );
+        add_filter( 'the_content', array( $this, 'nuclen_add_heading_ids' ), 99 );
+        add_action( 'save_post', array( $this, 'cache_headings_on_save' ), 10, 3 );
+        add_action( 'delete_post', array( $this, 'delete_headings_cache' ) );
     }
 
         /**
@@ -47,7 +53,7 @@ final class Nuclen_TOC_Headings {
         if ( ! nuclen_str_contains( $content, '<h' ) ) {
             return $content; }
 
-        foreach ( Nuclen_TOC_Utils::extract( $content, range( 1, 6 ) ) as $h ) {
+        foreach ( Nuclen_TOC_Utils::extract( $content, range( 1, 6 ), get_the_ID() ) as $h ) {
             $pat         = sprintf(
                 '/(<%1$s\b(?![^>]*\bid=)[^>]*>)(%2$s)(<\/%1$s>)/is',
                 $h['tag'],
@@ -62,5 +68,26 @@ final class Nuclen_TOC_Headings {
                 $content = preg_replace( $pat, $rep, $content, 1 );
         }
         return $content;
+    }
+
+    /**
+     * Cache extracted headings when a post is saved.
+     *
+     * @param int     $post_id Post ID.
+     * @param \WP_Post $post    Post object.
+     */
+    public function cache_headings_on_save( int $post_id, \WP_Post $post ): void {
+        delete_post_meta( $post_id, self::META_KEY );
+        $headings = Nuclen_TOC_Utils::extract( $post->post_content, range( 1, 6 ), $post_id );
+        update_post_meta( $post_id, self::META_KEY, $headings );
+    }
+
+    /**
+     * Remove cached headings when a post is deleted.
+     *
+     * @param int $post_id Post ID.
+     */
+    public function delete_headings_cache( int $post_id ): void {
+        delete_post_meta( $post_id, self::META_KEY );
     }
 }

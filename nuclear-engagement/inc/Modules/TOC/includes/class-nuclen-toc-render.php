@@ -182,7 +182,7 @@ final class Nuclen_TOC_Render {
         $atts     = $this->prepare_shortcode_attributes( $atts, $settings );
 
         $list  = ( strtolower( $atts['list'] ) === 'ol' ) ? 'ol' : 'ul';
-        $heads = Nuclen_TOC_Utils::extract( $post->post_content, $atts['heading_levels'] );
+        $heads = Nuclen_TOC_Utils::extract( $post->post_content, $atts['heading_levels'], $post->ID );
         if ( ! $heads ) {
             return '';
         }
