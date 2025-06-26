@@ -1,10 +1,5 @@
 import { describe, it, beforeAll, beforeEach, afterEach, expect, vi } from 'vitest';
 
-vi.mock('../../src/admin/ts/generation/api', async () => {
-  const actual: any = await vi.importActual('../../src/admin/ts/generation/api');
-  return { ...actual, nuclenFetchWithRetry: vi.fn() };
-});
-
 vi.mock('../../src/admin/ts/nuclen-admin-generate', async () => {
   const actual: any = await vi.importActual('../../src/admin/ts/nuclen-admin-generate');
   return { ...actual, NuclenPollAndPullUpdates: vi.fn() };
@@ -17,7 +12,7 @@ vi.mock('../../src/admin/ts/single/single-generation-utils', () => ({
   storeGenerationResults: vi.fn().mockResolvedValue({ ok: true, data: {} }),
 }));
 
-const { nuclenFetchWithRetry } = await import('../../src/admin/ts/generation/api');
+const api = await import('../../src/admin/ts/generation/api');
 const { NuclenPollAndPullUpdates } = await import('../../src/admin/ts/nuclen-admin-generate');
 const utils = await import('../../src/admin/ts/single/single-generation-utils');
 
@@ -47,17 +42,19 @@ describe('nuclen-admin-single-generation', () => {
       pollOpts = opts;
     });
 
-    (nuclenFetchWithRetry as vi.Mock).mockResolvedValueOnce({
-      ok: true,
-      status: 200,
-      data: { success: true, generation_id: 'gid' },
-    });
+    vi
+      .spyOn(api, 'nuclenFetchWithRetry')
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        data: { success: true, generation_id: 'gid' },
+      });
 
     const btn = document.querySelector<HTMLButtonElement>('.nuclen-generate-single')!;
     btn.click();
     await Promise.resolve();
 
-    expect(nuclenFetchWithRetry).toHaveBeenCalled();
+    expect(api.nuclenFetchWithRetry).toHaveBeenCalled();
     expect(pollOpts).toBeDefined();
 
     pollOpts.onProgress(1, 2);
@@ -72,12 +69,14 @@ describe('nuclen-admin-single-generation', () => {
   });
 
   it('displays error when generation fails', async () => {
-    (nuclenFetchWithRetry as vi.Mock).mockResolvedValueOnce({
-      ok: false,
-      status: 500,
-      data: null,
-      error: 'fail',
-    });
+    vi
+      .spyOn(api, 'nuclenFetchWithRetry')
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 500,
+        data: null,
+        error: 'fail',
+      });
 
     const btn = document.querySelector<HTMLButtonElement>('.nuclen-generate-single')!;
     btn.click();
