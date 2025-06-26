@@ -6,6 +6,8 @@ declare(strict_types=1);
  * @package NuclearEngagement
  */
 
+namespace NuclearEngagement;
+
 use NuclearEngagement\SettingsRepository;
 
 if ( ! function_exists( 'nuclen_settings' ) ) {
@@ -104,5 +106,43 @@ if ( ! function_exists( 'nuclen_settings_array' ) ) {
         }
 
         return $repo->get_array( $key, $default );
+    }
+}
+
+namespace {
+    use function NuclearEngagement\nuclen_settings as ns_settings;
+    use function NuclearEngagement\nuclen_settings_bool as ns_settings_bool;
+    use function NuclearEngagement\nuclen_settings_int as ns_settings_int;
+    use function NuclearEngagement\nuclen_settings_string as ns_settings_string;
+    use function NuclearEngagement\nuclen_settings_array as ns_settings_array;
+
+    if ( ! function_exists( 'nuclen_settings' ) ) {
+        function nuclen_settings( ?string $key = null, $default = null ) {
+            return ns_settings( $key, $default );
+        }
+    }
+
+    if ( ! function_exists( 'nuclen_settings_bool' ) ) {
+        function nuclen_settings_bool( string $key, bool $default = false ): bool {
+            return ns_settings_bool( $key, $default );
+        }
+    }
+
+    if ( ! function_exists( 'nuclen_settings_int' ) ) {
+        function nuclen_settings_int( string $key, int $default = 0 ): int {
+            return ns_settings_int( $key, $default );
+        }
+    }
+
+    if ( ! function_exists( 'nuclen_settings_string' ) ) {
+        function nuclen_settings_string( string $key, string $default = '' ): string {
+            return ns_settings_string( $key, $default );
+        }
+    }
+
+    if ( ! function_exists( 'nuclen_settings_array' ) ) {
+        function nuclen_settings_array( string $key, array $default = array() ): array {
+            return ns_settings_array( $key, $default );
+        }
     }
 }
