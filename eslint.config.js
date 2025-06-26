@@ -17,8 +17,25 @@ if (!fs.existsSync(tsconfigPath)) {
 export default [
   js.configs.recommended,
   {
+    files: [
+      'eslint.config.js',
+      'vite.config.js',
+      'vitest.config.ts',
+      'jest.setup.js'
+    ],
+    languageOptions: {
+      env: {
+        node: true
+      }
+    }
+  },
+  {
     files: ['**/*.ts'],
     languageOptions: {
+      env: {
+        browser: true,
+        es2021: true
+      },
       parser: tsParser,
       parserOptions: {
         project: tsconfigPath,
