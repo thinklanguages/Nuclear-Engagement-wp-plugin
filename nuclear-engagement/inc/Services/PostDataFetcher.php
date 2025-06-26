@@ -11,7 +11,7 @@ declare(strict_types=1);
 namespace NuclearEngagement\Services;
 
 if ( ! defined( 'ABSPATH' ) ) {
-	exit;
+    exit;
 }
 
 /**
@@ -44,15 +44,15 @@ class PostDataFetcher {
                        wp_cache_flush();
                }
        }
-	/**
-	 * Retrieve post rows for the given IDs.
-	 *
-	 * Posts are filtered to published status and exclude those
-	 * with quiz or summary protection meta set.
-	 *
-	 * @param array $ids Post IDs.
-	 * @return array Rows from the posts table.
-	 */
+    /**
+     * Retrieve post rows for the given IDs.
+     *
+     * Posts are filtered to published status and exclude those
+     * with quiz or summary protection meta set.
+     *
+     * @param array $ids Post IDs.
+     * @return array Rows from the posts table.
+     */
        public function fetch( array $ids ): array {
                global $wpdb;
 
@@ -71,8 +71,8 @@ class PostDataFetcher {
                $placeholders = implode( ',', array_fill( 0, count( $ids ), '%d' ) );
                $order_ids    = implode( ',', $ids );
 
-		$sql = $wpdb->prepare(
-			"SELECT p.ID, p.post_title, p.post_content
+        $sql = $wpdb->prepare(
+            "SELECT p.ID, p.post_title, p.post_content
              FROM {$wpdb->posts} p
              LEFT JOIN {$wpdb->postmeta} pmq
                ON pmq.post_id = p.ID
@@ -85,8 +85,8 @@ class PostDataFetcher {
                AND pmq.meta_id IS NULL
                AND pms.meta_id IS NULL
              ORDER BY FIELD(p.ID, $order_ids)",
-			array_merge( array( 'nuclen_quiz_protected', 'nuclen_summary_protected' ), $ids )
-		);
+            array_merge( array( 'nuclen_quiz_protected', 'nuclen_summary_protected' ), $ids )
+        );
 
                $rows = $wpdb->get_results( $sql );
 
