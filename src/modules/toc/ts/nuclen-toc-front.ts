@@ -146,7 +146,7 @@ export function initTocInteractions(): void {
     if (nav) {
       nav.style.display = expanded ? 'none' : '';
     }
-    // @ts-ignore defined via wp_localize_script
+    // @ts-expect-error defined via wp_localize_script
     const l10n = window.nuclenTocL10n as { show: string; hide: string };
     (btn as HTMLElement).textContent = expanded ? l10n.show : l10n.hide;
   });

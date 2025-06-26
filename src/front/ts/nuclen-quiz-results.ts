@@ -133,8 +133,9 @@ export function renderFinal(
       el.classList.remove('nuclen-quiz-result-active-tab'),
     );
     document
-      .getElementsByClassName('nuclen-quiz-result-tab')
-      [idx]?.classList.add('nuclen-quiz-result-active-tab');
+      .getElementsByClassName('nuclen-quiz-result-tab')[idx]?.classList.add(
+        'nuclen-quiz-result-active-tab',
+      );
   };
   window.nuclearEngagementShowQuizQuestionDetails(0);
 
