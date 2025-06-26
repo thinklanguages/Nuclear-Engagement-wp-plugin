@@ -19,7 +19,16 @@ export function nuclenAlertApiError(errMsg: string): void {
   }
 }
 
-export async function nuclenStoreGenerationResults(workflow: string, results: any) {
+export interface StoreResultsResponse {
+  code?: string;
+  finalDate?: string;
+  [key: string]: unknown;
+}
+
+export async function nuclenStoreGenerationResults(
+  workflow: string,
+  results: unknown,
+): Promise<{ ok: boolean; data: StoreResultsResponse | { message: string } }> {
   const payload = { workflow, results };
   let resp: Response;
   try {
@@ -37,7 +46,7 @@ export async function nuclenStoreGenerationResults(workflow: string, results: an
     displayError('Network error');
     return { ok: false, data: { message: 'Network error' } };
   }
-  let data: any = null;
+  let data: StoreResultsResponse | { message: string } | null = null;
   if (resp.ok) {
     try {
       data = await resp.json();
@@ -45,5 +54,5 @@ export async function nuclenStoreGenerationResults(workflow: string, results: an
       return { ok: false, data: { message: 'Invalid JSON' } };
     }
   }
-  return { ok: resp.ok, data };
+  return { ok: resp.ok, data: data ?? { message: 'No data' } };
 }

@@ -1,24 +1,23 @@
-import { nuclenFetchUpdates } from './api';
+import { nuclenFetchUpdates, PollUpdate } from './api';
 
 export function NuclenPollAndPullUpdates({
   intervalMs = 5000,
   generationId,
-  onProgress = (_processed: number, _total: number) => {},
-  onComplete = (_finalData: any) => {},
+  onProgress = () => {},
+  onComplete = () => {},
   onError = (_errMsg: string) => {},
 }: {
   intervalMs?: number;
   generationId: string;
   onProgress?: (processed: number, total: number) => void;
-  onComplete?: (finalData: any) => void;
+  onComplete?: (finalData: PollUpdate) => void;
   onError?: (errMsg: string) => void;
 }) {
   const pollInterval = setInterval(async () => {
     try {
       const pollResults = await nuclenFetchUpdates(generationId);
       if (!pollResults.success) {
-        const errMsg =
-          pollResults.message || pollResults.data?.message || 'Polling error';
+        const errMsg = pollResults.message || 'Polling error';
         throw new Error(errMsg);
       }
 
@@ -46,9 +45,9 @@ export function NuclenPollAndPullUpdates({
           workflow,
         });
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       clearInterval(pollInterval);
-      onError(err.message);
+      onError(err instanceof Error ? err.message : String(err));
     }
   }, intervalMs);
 }

@@ -1,4 +1,11 @@
 import { nuclenFetchWithRetry } from '../nuclen-admin-generate';
+
+interface PostsCountResponse {
+  success: boolean;
+  message?: string;
+  data: { count: number; post_ids: number[] };
+  code?: string;
+}
 import {
   nuclenShowElement,
   nuclenHideElement,
@@ -33,7 +40,7 @@ export function initStep1(elements: GeneratePageElements): void {
     const filters: NuclenFilterValues = nuclenCollectFilters();
     nuclenAppendFilters(formData, filters);
 
-    const result = await nuclenFetchWithRetry<any>(window.nuclenAjax.ajax_url || '', {
+    const result = await nuclenFetchWithRetry<PostsCountResponse>(window.nuclenAjax.ajax_url || '', {
       method: 'POST',
       body: formData,
       credentials: 'same-origin',
@@ -46,11 +53,11 @@ export function initStep1(elements: GeneratePageElements): void {
       return;
     }
     const data = result.data;
-    if (!data.success) {
+    if (!data || !data.success) {
       if (elements.postsCountEl) {
         elements.postsCountEl.innerText = 'Error retrieving post count.';
       }
-      const errMsg = data.message || data.data?.message;
+    const errMsg = data?.message;
       if (errMsg) {
         if (errMsg.includes('Invalid API key')) {
           displayError('Your Gold Code (API key) is invalid. Please create a new one on the NE app and enter it on the plugin Setup page.');
@@ -62,7 +69,7 @@ export function initStep1(elements: GeneratePageElements): void {
       }
       return;
     }
-    const count = data.data.count as number;
+    const count = data.data.count;
     const foundPosts = data.data.post_ids;
     const selectedPostIdsEl = document.getElementById('nuclen_selected_post_ids') as HTMLInputElement | null;
     if (selectedPostIdsEl) {
@@ -100,10 +107,11 @@ export function initStep1(elements: GeneratePageElements): void {
         nuclenShowElement(elements.submitBtn);
         elements.submitBtn.disabled = false;
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       logger.error('Error fetching remaining credits:', err);
       if (elements.creditsInfoEl) {
-        elements.creditsInfoEl.textContent = `Unable to retrieve your credits: ${err.message}`;
+        const msg = err instanceof Error ? err.message : String(err);
+        elements.creditsInfoEl.textContent = `Unable to retrieve your credits: ${msg}`;
       }
       if (elements.submitBtn) {
         elements.submitBtn.disabled = false;

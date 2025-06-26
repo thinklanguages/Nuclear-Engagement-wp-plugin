@@ -8,6 +8,7 @@ import type { GeneratePageElements } from './elements';
 import {
   nuclenAlertApiError,
   nuclenStoreGenerationResults,
+  type StoreResultsResponse,
 } from '../generation/results';
 import { displayError } from '../utils/displayError';
 import * as logger from '../utils/logger';
@@ -50,10 +51,11 @@ export function initStep2(elements: GeneratePageElements): void {
           if (results && typeof results === 'object') {
             try {
               const { ok, data } = await nuclenStoreGenerationResults(workflow, results);
-              if (ok && !data.code) {
-                logger.log('Bulk content stored in WP meta successfully:', data);
+              const resp = data as StoreResultsResponse;
+              if (ok && !resp.code) {
+                logger.log('Bulk content stored in WP meta successfully:', resp);
               } else {
-                logger.error('Error storing bulk content in WP meta:', data);
+                logger.error('Error storing bulk content in WP meta:', resp);
               }
             } catch (err) {
               logger.error('Error storing bulk content in WP meta:', err);
@@ -85,9 +87,10 @@ export function initStep2(elements: GeneratePageElements): void {
           nuclenShowElement(elements.restartBtn);
         },
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       nuclenUpdateProgressBarStep(elements.stepBar3, 'failed');
-      nuclenAlertApiError(error.message);
+      const msg = error instanceof Error ? error.message : String(error);
+      nuclenAlertApiError(msg);
       if (elements.submitBtn) {
         elements.submitBtn.disabled = false;
       }

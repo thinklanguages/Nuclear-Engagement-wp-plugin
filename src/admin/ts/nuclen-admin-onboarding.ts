@@ -119,7 +119,7 @@ export interface NuclenPointer {
         }
 
         try {
-          const result = await nuclenFetchWithRetry<any>(ajaxurl, {
+          const result = await nuclenFetchWithRetry<unknown>(ajaxurl, {
             method: 'POST',
             credentials: 'same-origin',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -129,7 +129,7 @@ export interface NuclenPointer {
             logger.error('Failed to dismiss pointer:', result.error);
             displayError('Failed to dismiss pointer.');
           }
-        } catch (err: any) {
+        } catch (err: unknown) {
           logger.error('Error dismissing pointer:', err);
           displayError('Network error while dismissing pointer.');
         }

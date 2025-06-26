@@ -34,7 +34,7 @@ export async function nuclenCheckCreditsAjax(): Promise<number> {
   if (window.nuclenAjax.nonce) {
     formData.append('security', window.nuclenAjax.nonce);
   }
-  const result = await nuclenFetchWithRetry<any>(window.nuclenAjax.ajax_url, {
+  const result = await nuclenFetchWithRetry<CreditsResponse>(window.nuclenAjax.ajax_url, {
     method: 'POST',
     body: formData,
     credentials: 'same-origin',
@@ -43,8 +43,9 @@ export async function nuclenCheckCreditsAjax(): Promise<number> {
     throw new Error(result.error || `HTTP ${result.status}`);
   }
   const data = result.data;
-  if (!data.success) {
-    throw new Error(data.message || data.data?.message || 'Failed to fetch credits from SaaS');
+  if (!data || !data.success) {
+    const errMsg = data?.message || 'Failed to fetch credits from SaaS';
+    throw new Error(errMsg);
   }
   if (typeof data.data.remaining_credits === 'number') {
     return data.data.remaining_credits;
@@ -82,3 +83,9 @@ export function nuclenToggleSummaryFields(): void {
 }
 
 import { nuclenFetchWithRetry } from '../nuclen-admin-generate';
+
+interface CreditsResponse {
+  success: boolean;
+  message?: string;
+  data: { remaining_credits?: number };
+}

@@ -7,7 +7,30 @@ export interface NuclenFetchResult<T> {
   error?: string;
 }
 
-export async function nuclenFetchWithRetry<T = any>(
+export interface PollUpdate {
+  processed: number;
+  total: number;
+  successCount?: number;
+  failCount?: number;
+  finalReport?: { message?: string };
+  results?: Record<string, any>;
+  workflow: string;
+}
+
+export interface PollResponse {
+  success: boolean;
+  message?: string;
+  data: PollUpdate;
+}
+
+export interface StartGenerationResponse {
+  success: boolean;
+  message?: string;
+  generation_id?: string;
+  data?: { generation_id?: string; message?: string } & Record<string, unknown>;
+}
+
+export async function nuclenFetchWithRetry<T = unknown>(
   url: string,
   options: RequestInit,
   retries = 3,
@@ -36,8 +59,8 @@ export async function nuclenFetchWithRetry<T = any>(
       }
 
       return { ok: false, status, data, error: bodyText };
-    } catch (error: any) {
-      lastError = error as Error;
+    } catch (error: unknown) {
+      lastError = error instanceof Error ? error : new Error(String(error));
       if (attempt === retries) {
         break;
       }
@@ -59,7 +82,7 @@ export async function nuclenFetchWithRetry<T = any>(
   throw lastError;
 }
 
-export async function nuclenFetchUpdates(generationId?: string) {
+export async function nuclenFetchUpdates(generationId?: string): Promise<PollResponse> {
   if (!window.nuclenAjax || !window.nuclenAjax.ajax_url) {
     throw new Error('Missing nuclenAjax configuration (ajax_url).');
   }
@@ -78,7 +101,7 @@ export async function nuclenFetchUpdates(generationId?: string) {
     formData.append('generation_id', generationId);
   }
 
-  const result = await nuclenFetchWithRetry<any>(window.nuclenAjax.ajax_url, {
+  const result = await nuclenFetchWithRetry<PollResponse>(window.nuclenAjax.ajax_url, {
     method: 'POST',
     body: formData,
     credentials: 'same-origin',
@@ -88,10 +111,12 @@ export async function nuclenFetchUpdates(generationId?: string) {
     throw new Error(result.error || `HTTP ${result.status}`);
   }
 
-  return result.data;
+  return result.data as PollResponse;
 }
 
-export async function NuclenStartGeneration(dataToSend: Record<string, any>) {
+export async function NuclenStartGeneration(
+  dataToSend: Record<string, unknown>,
+): Promise<StartGenerationResponse> {
   if (!window.nuclenAdminVars || !window.nuclenAdminVars.ajax_url) {
     throw new Error('Missing WP Ajax config (nuclenAdminVars.ajax_url).');
   }
@@ -104,7 +129,7 @@ export async function NuclenStartGeneration(dataToSend: Record<string, any>) {
   }
   formData.append('security', window.nuclenAjax.nonce);
 
-  const result = await nuclenFetchWithRetry<any>(window.nuclenAdminVars.ajax_url, {
+  const result = await nuclenFetchWithRetry<StartGenerationResponse>(window.nuclenAdminVars.ajax_url, {
     method: 'POST',
     body: formData,
     credentials: 'same-origin',
@@ -120,5 +145,5 @@ export async function NuclenStartGeneration(dataToSend: Record<string, any>) {
     throw new Error(errMsg);
   }
 
-  return data;
+  return data as StartGenerationResponse;
 }

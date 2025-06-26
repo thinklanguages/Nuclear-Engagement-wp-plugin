@@ -4,6 +4,7 @@ import {
   populateSummaryMetaBox,
   storeGenerationResults,
 } from './single-generation-utils';
+import type { StoreResultsResponse } from '../generation/results';
 import {
   NuclenStartGeneration,
   NuclenPollAndPullUpdates,
@@ -48,9 +49,13 @@ export function initSingleGenerationButtons(): void {
           if (results && typeof results === 'object') {
             try {
               const { ok, data } = await storeGenerationResults(wf, results);
-              if (ok && !data.code) {
+              const resp = data as StoreResultsResponse;
+              if (ok && !resp.code) {
                 const postResult = results[postId];
-                const finalDate = data.finalDate && typeof data.finalDate === 'string' ? data.finalDate : undefined;
+                const finalDate =
+                  resp.finalDate && typeof resp.finalDate === 'string'
+                    ? resp.finalDate
+                    : undefined;
                 if (postResult) {
                   if (wf === 'quiz') {
                     populateQuizMetaBox(postResult, finalDate);
@@ -60,7 +65,7 @@ export function initSingleGenerationButtons(): void {
                 }
                 btn.textContent = 'Stored!';
               } else {
-                logger.error('Error storing single-generation results in WP:', data);
+                logger.error('Error storing single-generation results in WP:', resp);
                 btn.textContent = 'Generation failed!';
               }
             } catch (err) {
@@ -78,8 +83,9 @@ export function initSingleGenerationButtons(): void {
           btn.disabled = false;
         },
       });
-    } catch (err: any) {
-      alertApiError(err.message);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      alertApiError(msg);
       btn.textContent = 'Generate';
       btn.disabled = false;
     }

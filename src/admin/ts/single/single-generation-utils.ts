@@ -3,7 +3,18 @@ export {
   nuclenStoreGenerationResults as storeGenerationResults,
 } from '../generation/results';
 
-export function populateQuizMetaBox(postResult: any, finalDate?: string): void {
+interface QuizQuestionResult {
+  question?: string;
+  answers?: string[];
+  explanation?: string;
+}
+
+interface QuizPostResult {
+  date?: string;
+  questions?: QuizQuestionResult[];
+}
+
+export function populateQuizMetaBox(postResult: QuizPostResult, finalDate?: string): void {
   const { date, questions } = postResult;
   const newDate = finalDate || date;
   const dateField = document.querySelector<HTMLInputElement>('input[name="nuclen_quiz_data[date]"]');
@@ -40,7 +51,12 @@ export function populateQuizMetaBox(postResult: any, finalDate?: string): void {
   }
 }
 
-export function populateSummaryMetaBox(postResult: any, finalDate?: string): void {
+interface SummaryPostResult {
+  date?: string;
+  summary?: string;
+}
+
+export function populateSummaryMetaBox(postResult: SummaryPostResult, finalDate?: string): void {
   const { date, summary } = postResult;
   const newDate = finalDate || date;
   const dateField = document.querySelector<HTMLInputElement>('input[name="nuclen_summary_data[date]"]');
@@ -51,7 +67,7 @@ export function populateSummaryMetaBox(postResult: any, finalDate?: string): voi
   }
 
   if (typeof window.tinymce !== 'undefined') {
-    const editor = window.tinymce.get('nuclen_summary_data_summary');
+    const editor = window.tinymce?.get('nuclen_summary_data_summary');
     if (editor && typeof editor.setContent === 'function') {
       editor.setContent(summary || '');
       editor.save();
