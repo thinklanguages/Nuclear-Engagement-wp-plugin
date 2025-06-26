@@ -21,7 +21,7 @@ declare const NuclenStrings: {
   your_answer: string;
 };
 
-declare function gtag(...args: any[]): void;
+declare function gtag(...args: unknown[]): void;
 
 declare global {
   interface Window {

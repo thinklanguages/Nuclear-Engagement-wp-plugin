@@ -3,8 +3,19 @@ export {
   nuclenStoreGenerationResults as storeGenerationResults,
 } from '../generation/results';
 
+export interface PostResult {
+  date?: string;
+  summary?: string;
+  questions?: Array<{
+    question?: string;
+    answers?: string[];
+    explanation?: string;
+  }>;
+  [key: string]: unknown;
+}
+
 export function populateQuizMetaBox(
-  postResult: Record<string, unknown>,
+  postResult: PostResult,
   finalDate?: string
 ): void {
   const { date, questions } = postResult;
@@ -44,7 +55,7 @@ export function populateQuizMetaBox(
 }
 
 export function populateSummaryMetaBox(
-  postResult: Record<string, unknown>,
+  postResult: PostResult,
   finalDate?: string
 ): void {
   const { date, summary } = postResult;
@@ -57,10 +68,19 @@ export function populateSummaryMetaBox(
   }
 
   if (typeof window.tinymce !== 'undefined') {
-    const editor = window.tinymce.get('nuclen_summary_data_summary');
+    const tiny = window.tinymce as {
+      get?: (id: string) => {
+        setContent?: (html: string) => void;
+        save?: () => void;
+      };
+    };
+    let editor: { setContent?: (html: string) => void; save?: () => void } | undefined;
+    if (typeof tiny.get === 'function') {
+      editor = tiny.get('nuclen_summary_data_summary');
+    }
     if (editor && typeof editor.setContent === 'function') {
       editor.setContent(summary || '');
-      editor.save();
+      editor.save?.();
     } else {
       const summaryField = document.querySelector<HTMLTextAreaElement>('textarea[name="nuclen_summary_data[summary]"]');
       if (summaryField) {

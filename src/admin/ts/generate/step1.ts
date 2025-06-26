@@ -15,6 +15,17 @@ import {
 import { displayError } from '../utils/displayError';
 import * as logger from '../utils/logger';
 
+interface PostsCountResponse {
+  success: boolean;
+  message?: string;
+  data: {
+    count: number;
+    post_ids: string[];
+    message?: string;
+    [key: string]: unknown;
+  };
+}
+
 export function initStep1(elements: GeneratePageElements): void {
   elements.getPostsBtn?.addEventListener('click', async () => {
     if (!window.nuclenAjax || !window.nuclenAjax.ajax_url) {
@@ -33,11 +44,14 @@ export function initStep1(elements: GeneratePageElements): void {
     const filters: NuclenFilterValues = nuclenCollectFilters();
     nuclenAppendFilters(formData, filters);
 
-    const result = await nuclenFetchWithRetry(window.nuclenAjax.ajax_url || '', {
-      method: 'POST',
-      body: formData,
-      credentials: 'same-origin',
-    });
+    const result = await nuclenFetchWithRetry<PostsCountResponse>(
+      window.nuclenAjax.ajax_url || '',
+      {
+        method: 'POST',
+        body: formData,
+        credentials: 'same-origin',
+      }
+    );
     if (!result.ok) {
       logger.error('Error retrieving post count:', result.error);
       if (elements.postsCountEl) {
@@ -45,7 +59,7 @@ export function initStep1(elements: GeneratePageElements): void {
       }
       return;
     }
-    const data = result.data;
+    const data = result.data as PostsCountResponse;
     if (!data.success) {
       if (elements.postsCountEl) {
         elements.postsCountEl.innerText = 'Error retrieving post count.';

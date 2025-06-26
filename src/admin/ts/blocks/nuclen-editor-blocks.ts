@@ -1,10 +1,16 @@
 (function(){
-  if (!window.wp || !window.wp.blocks || !window.wp.element || !window.wp.i18n) {
+  interface WPGlobal {
+    blocks?: { registerBlockType: (...args: unknown[]) => void };
+    element?: { createElement: (...args: unknown[]) => unknown };
+    i18n?: { __: (...args: unknown[]) => string };
+  }
+  const wp = window.wp as WPGlobal;
+  if (!wp || !wp.blocks || !wp.element || !wp.i18n) {
     return;
   }
-  const { registerBlockType } = window.wp.blocks;
-  const { createElement } = window.wp.element;
-  const { __ } = window.wp.i18n;
+  const { registerBlockType } = wp.blocks;
+  const { createElement } = wp.element;
+  const { __ } = wp.i18n;
   registerBlockType('nuclear-engagement/quiz', {
     apiVersion: 2,
     title: __('Quiz', 'nuclear-engagement'),

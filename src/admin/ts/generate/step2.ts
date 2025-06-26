@@ -1,4 +1,11 @@
-import { NuclenStartGeneration, NuclenPollAndPullUpdates } from '../nuclen-admin-generate';
+import {
+  NuclenStartGeneration,
+  NuclenPollAndPullUpdates,
+} from '../nuclen-admin-generate';
+import type {
+  StartGenerationResponse,
+  PollingUpdateData,
+} from '../generation/api';
 import {
   nuclenShowElement,
   nuclenHideElement,
@@ -31,7 +38,9 @@ export function initStep2(elements: GeneratePageElements): void {
     }
     try {
       const formDataObj = Object.fromEntries(new FormData(elements.generateForm!).entries());
-      const startResp = await NuclenStartGeneration(formDataObj);
+      const startResp: StartGenerationResponse = await NuclenStartGeneration(
+        formDataObj
+      );
       const generationId =
         startResp.data?.generation_id || startResp.generation_id || 'gen_' + Math.random().toString(36).substring(2);
       NuclenPollAndPullUpdates({
@@ -44,16 +53,17 @@ export function initStep2(elements: GeneratePageElements): void {
             elements.updatesContent.innerText = `Processed ${safeProcessed} of ${safeTotal} posts so far...`;
           }
         },
-        onComplete: async ({ failCount, finalReport, results, workflow }) => {
+        onComplete: async ({ failCount, finalReport, results, workflow }: PollingUpdateData) => {
           nuclenUpdateProgressBarStep(elements.stepBar3, 'done');
           nuclenUpdateProgressBarStep(elements.stepBar4, 'current');
           if (results && typeof results === 'object') {
             try {
               const { ok, data } = await nuclenStoreGenerationResults(workflow, results);
-              if (ok && !data.code) {
-                logger.log('Bulk content stored in WP meta successfully:', data);
+              const respData = data as Record<string, unknown>;
+              if (ok && !('code' in respData)) {
+                logger.log('Bulk content stored in WP meta successfully:', respData);
               } else {
-                logger.error('Error storing bulk content in WP meta:', data);
+                logger.error('Error storing bulk content in WP meta:', respData);
               }
             } catch (err) {
               logger.error('Error storing bulk content in WP meta:', err);
