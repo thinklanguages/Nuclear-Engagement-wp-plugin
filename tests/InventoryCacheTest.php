@@ -49,6 +49,14 @@ if ( ! function_exists( 'delete_transient' ) ) {
     }
 }
 
+if ( ! defined( 'HOUR_IN_SECONDS' ) ) {
+    define( 'HOUR_IN_SECONDS', 3600 );
+}
+
+if ( ! function_exists( 'get_current_blog_id' ) ) {
+    function get_current_blog_id() { return 1; }
+}
+
 class InventoryCacheTest extends TestCase {
     protected function setUp(): void {
         global $wp_cache, $flush_count, $transients;
@@ -67,5 +75,27 @@ class InventoryCacheTest extends TestCase {
         usleep( ( InventoryCache::CLEAR_DEBOUNCE + 1 ) * 1000000 );
         InventoryCache::clear();
         $this->assertSame( 2, $GLOBALS['flush_count'] );
+    }
+
+    public function test_set_get_and_clear() {
+        $data = array( 'foo' => 'bar' );
+
+        InventoryCache::set( $data );
+
+        $key = InventoryCache::CACHE_KEY . '_' . get_current_blog_id();
+
+        $this->assertSame( $data, $GLOBALS['wp_cache'][ InventoryCache::CACHE_GROUP ][ $key ] );
+        $this->assertSame( $data, $GLOBALS['transients'][ $key ] );
+
+        $this->assertSame( $data, InventoryCache::get() );
+
+        unset( $GLOBALS['wp_cache'][ InventoryCache::CACHE_GROUP ][ $key ] );
+        $this->assertSame( $data, InventoryCache::get(), 'falls back to transient' );
+
+        InventoryCache::clear();
+
+        $this->assertArrayNotHasKey( $key, $GLOBALS['wp_cache'][ InventoryCache::CACHE_GROUP ] ?? array() );
+        $this->assertArrayNotHasKey( $key, $GLOBALS['transients'] );
+        $this->assertNull( InventoryCache::get() );
     }
 }
