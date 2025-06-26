@@ -113,6 +113,7 @@ if ( ! function_exists( 'nuclen_settings_array' ) ) {
 
 namespace {
 
+
 use function NuclearEngagement\nuclen_settings as ns_settings;
 use function NuclearEngagement\nuclen_settings_bool as ns_settings_bool;
 use function NuclearEngagement\nuclen_settings_int as ns_settings_int;
@@ -147,6 +148,4 @@ if ( ! function_exists( 'nuclen_settings_array' ) ) {
     function nuclen_settings_array( string $key, array $default = array() ): array {
         return ns_settings_array( $key, $default );
     }
-}
-
 }
