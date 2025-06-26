@@ -11,6 +11,7 @@ namespace NuclearEngagement;
 use NuclearEngagement\Container;
 use NuclearEngagement\Services\{GenerationService, RemoteApiService, ContentStorageService, PointerService, PostsQueryService, AutoGenerationService, AutoGenerationQueue, AutoGenerationScheduler, GenerationPoller, PublishGenerationHandler, VersionService, DashboardDataService};
 use NuclearEngagement\Services\{AdminNoticeService, LoggingService};
+use NuclearEngagement\Services\PostDataFetcher;
 use NuclearEngagement\Services\Remote\{RemoteRequest, ApiResponseHandler};
 use NuclearEngagement\Admin\Controller\Ajax\{GenerateController, UpdatesController, PointerController, PostsCountController};
 use NuclearEngagement\Admin\Controller\OptinExportController;
