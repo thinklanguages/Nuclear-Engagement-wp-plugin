@@ -1,0 +1,6 @@
+appId: com.nuclear.engagement
+---
+- launchApp: {}
+- tapOn: "Progress"
+- assertVisible: "weekly-chart"
+- assertVisible: "streak-modal"
