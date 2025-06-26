@@ -64,6 +64,7 @@ After starting the environment, run PHPUnit and PHPStan from the repository root
 ```bash
 composer test --working-dir=nuclear-engagement
 composer phpstan --working-dir=nuclear-engagement
+# PHPStan analyzes both plugin source and test code
 npm run lint
 ```
 
