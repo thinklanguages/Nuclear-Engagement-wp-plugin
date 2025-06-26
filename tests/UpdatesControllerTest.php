@@ -38,8 +38,9 @@ namespace {
 
     class DummyStorage {
         public array $stored = [];
-        public function storeResults(array $results, string $workflow): void {
+        public function storeResults(array $results, string $workflow): array {
             $this->stored[] = [$results, $workflow];
+            return array_fill_keys(array_keys($results), true);
         }
     }
 

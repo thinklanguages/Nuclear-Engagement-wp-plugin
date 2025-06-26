@@ -119,10 +119,15 @@ class GenerationService {
 		$response->generationId = $request->generationId;
 
 		// Process immediate results if any
-		if ( ! empty( $result['results'] ) && is_array( $result['results'] ) ) {
-			$this->storage->storeResults( $result['results'], $request->workflowType );
-			$response->results = $result['results'];
-		}
+                if ( ! empty( $result['results'] ) && is_array( $result['results'] ) ) {
+                        $statuses = $this->storage->storeResults( $result['results'], $request->workflowType );
+                        if ( array_filter( $statuses, static fn( $s ) => $s !== true ) ) {
+                                $response->success    = false;
+                                $response->error      = 'Failed to store generated content';
+                                return $response;
+                        }
+                        $response->results = $result['results'];
+                }
 
 		return $response;
 	}

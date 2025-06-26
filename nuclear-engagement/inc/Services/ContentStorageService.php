@@ -44,12 +44,16 @@ class ContentStorageService {
 	/**
 	 * Store generation results
 	 *
-	 * @param array  $results
-	 * @param string $workflowType
-	 */
-	public function storeResults( array $results, string $workflowType ): void {
-		$updateLastModified = $this->settings->get_bool( 'update_last_modified', false );
-		$dateNow            = current_time( 'mysql' );
+         * @param array  $results
+         * @param string $workflowType
+         *
+         * @return array<int, mixed> Status for each post ID
+         */
+        public function storeResults( array $results, string $workflowType ): array {
+                $updateLastModified = $this->settings->get_bool( 'update_last_modified', false );
+                $dateNow            = current_time( 'mysql' );
+
+                $statuses = array();
 
 		foreach ( $results as $postIdString => $data ) {
 			$postId = (int) $postIdString;
@@ -59,27 +63,32 @@ class ContentStorageService {
 				$data['date'] = $dateNow;
 			}
 
-			try {
-				if ( $workflowType === 'quiz' ) {
-					$this->storeQuizData( $postId, $data );
-				} else {
-					$this->storeSummaryData( $postId, $data );
-				}
+                        try {
+                                if ( $workflowType === 'quiz' ) {
+                                        $this->storeQuizData( $postId, $data );
+                                } else {
+                                        $this->storeSummaryData( $postId, $data );
+                                }
 
-				// Update post modified time if enabled
-				if ( $updateLastModified ) {
-					$this->updatePostModifiedTime( $postId );
-				} else {
-					clean_post_cache( $postId );
-				}
+                                // Update post modified time if enabled
+                                if ( $updateLastModified ) {
+                                        $this->updatePostModifiedTime( $postId );
+                                } else {
+                                        clean_post_cache( $postId );
+                                }
 
-				\NuclearEngagement\Services\LoggingService::log( "Stored {$workflowType} data for post {$postId}" );
+                                \NuclearEngagement\Services\LoggingService::log( "Stored {$workflowType} data for post {$postId}" );
 
-			} catch ( \Throwable $e ) {
-				\NuclearEngagement\Services\LoggingService::log_exception( $e );
-			}
-		}
-	}
+                                $statuses[ $postId ] = true;
+
+                        } catch ( \Throwable $e ) {
+                                \NuclearEngagement\Services\LoggingService::log_exception( $e );
+                                $statuses[ $postId ] = $e->getMessage();
+                        }
+                }
+
+                return $statuses;
+        }
 
 	/**
 	 * Store quiz data

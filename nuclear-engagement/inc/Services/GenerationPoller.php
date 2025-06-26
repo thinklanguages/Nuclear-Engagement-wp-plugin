@@ -77,14 +77,20 @@ class GenerationPoller {
 			// fetch_updates() checks a short cache to avoid redundant requests.
 			$data = $this->remote_api->fetch_updates( $generation_id );
 
-			if ( ! empty( $data['results'] ) && is_array( $data['results'] ) ) {
-				$this->content_storage->storeResults( $data['results'], $workflow_type );
-								\NuclearEngagement\Services\LoggingService::log(
-									"Poll success for generation {$generation_id}"
-								);
-				$this->cleanup_generation( $generation_id );
-				return;
-			}
+                        if ( ! empty( $data['results'] ) && is_array( $data['results'] ) ) {
+                                $statuses = $this->content_storage->storeResults( $data['results'], $workflow_type );
+                                if ( array_filter( $statuses, static fn( $s ) => $s !== true ) ) {
+                                        \NuclearEngagement\Services\LoggingService::notify_admin(
+                                                sprintf( 'Failed to store results for generation %s', $generation_id )
+                                        );
+                                } else {
+                                        \NuclearEngagement\Services\LoggingService::log(
+                                                "Poll success for generation {$generation_id}"
+                                        );
+                                }
+                                $this->cleanup_generation( $generation_id );
+                                return;
+                        }
 
 			if ( isset( $data['success'] ) && $data['success'] === true ) {
 								\NuclearEngagement\Services\LoggingService::log(
