@@ -9,4 +9,7 @@ namespace NuclearEngagement\Front;
 
 use NuclearEngagement\Modules\Summary\Nuclen_Summary_Shortcode as ModuleSummaryShortcode;
 
-class SummaryShortcode extends ModuleSummaryShortcode {}
+class_alias(
+    ModuleSummaryShortcode::class,
+    __NAMESPACE__ . '\\SummaryShortcode'
+);
