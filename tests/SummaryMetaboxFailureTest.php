@@ -21,6 +21,7 @@ namespace NuclearEngagement\Services {
 namespace {
     use PHPUnit\Framework\TestCase;
     use NuclearEngagement\Modules\Summary\Nuclen_Summary_Metabox;
+    use NuclearEngagement\Modules\Summary\Summary_Service;
     class DummyRepo {
         public function get($key, $default = 0) { return 0; }
     }
@@ -49,7 +50,7 @@ namespace {
         }
 
         public function test_protected_flag_logs_on_failure(): void {
-            $_POST['nuclen_summary_protected'] = '1';
+            $_POST[Summary_Service::PROTECTED_KEY] = '1';
             $box = new Nuclen_Summary_Metabox(new DummyRepo());
             $box->nuclen_save_summary_data_meta(2);
             $expected = [

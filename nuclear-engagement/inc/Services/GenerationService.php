@@ -16,6 +16,7 @@ use NuclearEngagement\Core\SettingsRepository;
 use NuclearEngagement\Utils\Utils;
 use NuclearEngagement\Services\ApiException;
 use NuclearEngagement\Services\PostDataFetcher;
+use NuclearEngagement\Modules\Summary\Summary_Service;
 
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
@@ -241,7 +242,7 @@ class GenerationService {
      * @return bool
      */
     private function isProtected( int $postId, string $workflowType ): bool {
-        $metaKey = $workflowType === 'quiz' ? 'nuclen_quiz_protected' : 'nuclen_summary_protected';
+        $metaKey = $workflowType === 'quiz' ? 'nuclen_quiz_protected' : Summary_Service::PROTECTED_KEY;
         return (bool) get_post_meta( $postId, $metaKey, true );
     }
 }

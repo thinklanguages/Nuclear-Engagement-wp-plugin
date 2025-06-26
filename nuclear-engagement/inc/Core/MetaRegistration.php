@@ -11,6 +11,7 @@ declare(strict_types=1);
 namespace NuclearEngagement\Core;
 
 use function NuclearEngagement\nuclen_settings_array;
+use NuclearEngagement\Modules\Summary\Summary_Service;
 
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
@@ -69,7 +70,7 @@ class MetaRegistration {
             // Register summary data meta
             register_post_meta(
                 $post_type,
-                'nuclen-summary-data',
+                Summary_Service::META_KEY,
                 array(
                     'type'              => 'string',
                     'description'       => 'Nuclear Engagement summary data',
@@ -82,7 +83,7 @@ class MetaRegistration {
 
             register_post_meta(
                 $post_type,
-                'nuclen_summary_protected',
+                Summary_Service::PROTECTED_KEY,
                 array(
                     'type'              => 'boolean',
                     'description'       => 'Nuclear Engagement summary protection flag',

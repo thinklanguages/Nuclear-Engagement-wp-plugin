@@ -14,6 +14,7 @@ use NuclearEngagement\Requests\ContentRequest;
 use NuclearEngagement\Services\ContentStorageService;
 use NuclearEngagement\Core\SettingsRepository;
 use NuclearEngagement\Utils\Utils;
+use NuclearEngagement\Modules\Summary\Summary_Service;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -94,7 +95,7 @@ class ContentController {
 			// Get date from first stored item
 			reset( $contentRequest->results );
 			$firstPostId = key( $contentRequest->results );
-			$metaKey     = $contentRequest->workflow === 'quiz' ? 'nuclen-quiz-data' : 'nuclen-summary-data';
+                        $metaKey     = $contentRequest->workflow === 'quiz' ? 'nuclen-quiz-data' : Summary_Service::META_KEY;
 			$stored      = get_post_meta( $firstPostId, $metaKey, true );
 			$date        = is_array( $stored ) && ! empty( $stored['date'] ) ? $stored['date'] : '';
 

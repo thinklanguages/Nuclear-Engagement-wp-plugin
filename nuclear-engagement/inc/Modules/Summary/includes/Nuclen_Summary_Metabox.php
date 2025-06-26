@@ -14,6 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 use NuclearEngagement\Core\SettingsRepository;
+use NuclearEngagement\Modules\Summary\Summary_Service;
 
 final class Nuclen_Summary_Metabox {
 
@@ -57,7 +58,7 @@ final class Nuclen_Summary_Metabox {
 	 * ---------------------------------------------------------------------- */
 
 	public function nuclen_render_summary_data_meta_box( $post ) {
-		$summary_data = get_post_meta( $post->ID, 'nuclen-summary-data', true );
+                $summary_data = get_post_meta( $post->ID, Summary_Service::META_KEY, true );
 		if ( ! empty( $summary_data ) ) {
 			$summary_data = maybe_unserialize( $summary_data );
 		} else {
@@ -73,7 +74,7 @@ final class Nuclen_Summary_Metabox {
 		$summary = $summary_data['summary'] ?? '';
 		$date    = $summary_data['date'] ?? '';
 
-		$summary_protected = get_post_meta( $post->ID, 'nuclen_summary_protected', true );
+                $summary_protected = get_post_meta( $post->ID, Summary_Service::PROTECTED_KEY, true );
 
 				require NUCLEN_PLUGIN_DIR . 'templates/admin/summary-metabox.php';
 	}
@@ -108,7 +109,7 @@ final class Nuclen_Summary_Metabox {
 		);
 
 		/* ---- Save to DB --------------------------------------------------- */
-		$updated = update_post_meta( $post_id, 'nuclen-summary-data', $formatted );
+                $updated = update_post_meta( $post_id, Summary_Service::META_KEY, $formatted );
 		if ( false === $updated ) {
 			\NuclearEngagement\Services\LoggingService::log( 'Failed to update summary data for post ' . $post_id );
 			\NuclearEngagement\Services\LoggingService::notify_admin( 'Failed to update summary data for post ' . $post_id );
@@ -140,14 +141,14 @@ final class Nuclen_Summary_Metabox {
 		}
 
 		/* ---- Protected flag ---------------------------------------------- */
-		if ( isset( $_POST['nuclen_summary_protected'] ) && $_POST['nuclen_summary_protected'] === '1' ) {
-			$updated_prot = update_post_meta( $post_id, 'nuclen_summary_protected', 1 );
-			if ( false === $updated_prot ) {
-				\NuclearEngagement\Services\LoggingService::log( 'Failed to update summary protected flag for post ' . $post_id );
-				\NuclearEngagement\Services\LoggingService::notify_admin( 'Failed to update summary protected flag for post ' . $post_id );
-			}
-		} else {
-			delete_post_meta( $post_id, 'nuclen_summary_protected' );
-		}
+                if ( isset( $_POST[ Summary_Service::PROTECTED_KEY ] ) && $_POST[ Summary_Service::PROTECTED_KEY ] === '1' ) {
+                        $updated_prot = update_post_meta( $post_id, Summary_Service::PROTECTED_KEY, 1 );
+                        if ( false === $updated_prot ) {
+                                \NuclearEngagement\Services\LoggingService::log( 'Failed to update summary protected flag for post ' . $post_id );
+                                \NuclearEngagement\Services\LoggingService::notify_admin( 'Failed to update summary protected flag for post ' . $post_id );
+                        }
+                } else {
+                        delete_post_meta( $post_id, Summary_Service::PROTECTED_KEY );
+                }
 	}
 }

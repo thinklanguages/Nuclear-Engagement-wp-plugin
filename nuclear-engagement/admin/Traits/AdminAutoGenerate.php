@@ -64,8 +64,8 @@ trait AdminAutoGenerate {
 
 		// Auto-generate summary
 		if ( $gen_summary ) {
-			// Skip if summary is protected
-			$protected = get_post_meta( $post->ID, 'nuclen_summary_protected', true );
+                        // Skip if summary is protected
+                        $protected = get_post_meta( $post->ID, \NuclearEngagement\Modules\Summary\Summary_Service::PROTECTED_KEY, true );
 			if ( ! $protected ) {
 				$this->nuclen_generate_single( $post->ID, 'summary' );
 			}

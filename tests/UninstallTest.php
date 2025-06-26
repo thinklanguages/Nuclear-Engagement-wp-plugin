@@ -1,5 +1,6 @@
 <?php
 use PHPUnit\Framework\TestCase;
+use NuclearEngagement\Modules\Summary\Summary_Service;
 
 if (!defined('WP_UNINSTALL_PLUGIN')) {
     define('WP_UNINSTALL_PLUGIN', true);
@@ -66,7 +67,7 @@ class UninstallTest extends TestCase {
                 'nuclen_quiz_protected' => '1',
             ],
             2 => [
-                'nuclen-summary-data' => 's',
+                Summary_Service::META_KEY => 's',
             ],
         ];
 
@@ -117,7 +118,7 @@ class UninstallTest extends TestCase {
         $this->assertFileDoesNotExist($this->baseDir . '/nuclear-engagement/log.txt');
         $this->assertFileDoesNotExist($this->baseDir . '/nuclear-engagement/nuclen-theme-custom.css');
 
-        $this->assertSame(['nuclen-quiz-data', 'nuclen-summary-data', 'nuclen_quiz_protected', 'nuclen_summary_protected'], $GLOBALS['deleted_meta_keys']);
+        $this->assertSame(['nuclen-quiz-data', Summary_Service::META_KEY, 'nuclen_quiz_protected', Summary_Service::PROTECTED_KEY], $GLOBALS['deleted_meta_keys']);
         $expected_files = [
             $this->baseDir . '/nuclear-engagement/log.txt',
             $this->baseDir . '/nuclear-engagement/nuclen-theme-custom.css',

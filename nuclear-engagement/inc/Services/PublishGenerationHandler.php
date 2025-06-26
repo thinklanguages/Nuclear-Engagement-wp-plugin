@@ -13,6 +13,7 @@ declare(strict_types=1);
 namespace NuclearEngagement\Services;
 
 use NuclearEngagement\Core\SettingsRepository;
+use NuclearEngagement\Modules\Summary\Summary_Service;
 
 if ( ! defined( 'ABSPATH' ) ) {
         exit;
@@ -88,7 +89,7 @@ class PublishGenerationHandler {
         }
 
         if ( $gen_summary ) {
-            $protected = get_post_meta( $post->ID, 'nuclen_summary_protected', true );
+            $protected = get_post_meta( $post->ID, Summary_Service::PROTECTED_KEY, true );
             if ( ! $protected ) {
                 $args = array( $post->ID, 'summary' );
                 if ( ! wp_next_scheduled( AutoGenerationService::START_HOOK, $args ) ) {

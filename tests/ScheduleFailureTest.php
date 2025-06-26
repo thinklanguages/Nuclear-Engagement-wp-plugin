@@ -18,6 +18,7 @@ namespace {
     use NuclearEngagement\Services\AutoGenerationService;
     use NuclearEngagement\Services\GenerationPoller;
     use NuclearEngagement\Core\SettingsRepository;
+    use NuclearEngagement\Modules\Summary\Summary_Service;
     class DummyRemoteApiService {
         public array $updates = [];
         public $generateResponse = [];
@@ -51,7 +52,7 @@ namespace {
                 if (!isset($GLOBALS['wp_posts'][$id])) { continue; }
                 $p = $GLOBALS['wp_posts'][$id];
                 if ($p->post_status !== 'publish') { continue; }
-                if (!empty($GLOBALS['wp_meta'][$id]['nuclen_quiz_protected']) || !empty($GLOBALS['wp_meta'][$id]['nuclen_summary_protected'])) { continue; }
+                if (!empty($GLOBALS['wp_meta'][$id]['nuclen_quiz_protected']) || !empty($GLOBALS['wp_meta'][$id][Summary_Service::PROTECTED_KEY])) { continue; }
                 $rows[] = (object) [ 'ID' => $p->ID, 'post_title' => $p->post_title, 'post_content' => $p->post_content ];
             }
             return $rows;

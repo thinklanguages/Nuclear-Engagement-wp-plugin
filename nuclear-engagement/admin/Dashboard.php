@@ -17,6 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 use NuclearEngagement\Utils\Utils;
 use NuclearEngagement\Services\DashboardDataService;
 use NuclearEngagement\Core\SettingsRepository;
+use NuclearEngagement\Modules\Summary\Summary_Service;
 
 global $wpdb;
 
@@ -142,7 +143,7 @@ if ( null === $inventory_cache ) {
                 JOIN {$wpdb->term_taxonomy}  tt ON tt.term_taxonomy_id = tr.term_taxonomy_id AND tt.taxonomy = 'category'
                 JOIN {$wpdb->terms}          t  ON t.term_id = tt.term_id
                 LEFT JOIN {$wpdb->postmeta}  pm_q ON pm_q.post_id = p.ID AND pm_q.meta_key = 'nuclen-quiz-data'
-                LEFT JOIN {$wpdb->postmeta}  pm_s ON pm_s.post_id = p.ID AND pm_s.meta_key = 'nuclen-summary-data'
+                LEFT JOIN {$wpdb->postmeta}  pm_s ON pm_s.post_id = p.ID AND pm_s.meta_key = '" . Summary_Service::META_KEY . "'
                 WHERE p.post_type  IN ($placeholders_pt)
                   AND p.post_status IN ($placeholders_st)
                 GROUP BY t.term_id",

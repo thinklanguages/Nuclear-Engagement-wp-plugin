@@ -4,6 +4,7 @@ use NuclearEngagement\Services\GenerationService;
 use NuclearEngagement\Core\SettingsRepository;
 use NuclearEngagement\Requests\GenerateRequest;
 use NuclearEngagement\Services\ApiException;
+use NuclearEngagement\Modules\Summary\Summary_Service;
 
 class GS_WPDB {
     public $posts = 'wp_posts';
@@ -26,7 +27,7 @@ class GS_WPDB {
             if (!isset($GLOBALS['wp_posts'][$id])) { continue; }
             $p = $GLOBALS['wp_posts'][$id];
             if ($p->post_status !== 'publish') { continue; }
-            if (!empty($GLOBALS['wp_meta'][$id]['nuclen_quiz_protected']) || !empty($GLOBALS['wp_meta'][$id]['nuclen_summary_protected'])) { continue; }
+            if (!empty($GLOBALS['wp_meta'][$id]['nuclen_quiz_protected']) || !empty($GLOBALS['wp_meta'][$id][Summary_Service::PROTECTED_KEY])) { continue; }
             $rows[] = (object) [
                 'ID' => $p->ID,
                 'post_title' => $p->post_title,

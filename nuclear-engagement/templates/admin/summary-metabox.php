@@ -1,12 +1,14 @@
 <?php
 if ( ! defined( 'ABSPATH' ) ) {
-	exit;
+        exit;
 }
+
+use NuclearEngagement\Modules\Summary\Summary_Service;
 
 wp_nonce_field( 'nuclen_summary_data_nonce', 'nuclen_summary_data_nonce' );
 ?>
 <div><label>
-	<input type="checkbox" name="nuclen_summary_protected" value="1" <?php checked( $summary_protected, 1 ); ?> />
+        <input type="checkbox" name="<?php echo esc_attr( Summary_Service::PROTECTED_KEY ); ?>" value="1" <?php checked( $summary_protected, 1 ); ?> />
 	<?php esc_html_e( 'Protected?', 'nuclear-engagement' ); ?>
 	<span nuclen-tooltip="<?php esc_attr_e( 'Tick this box and save post to prevent overwriting during bulk generation.', 'nuclear-engagement' ); ?>">🛈</span>
 </label></div>
