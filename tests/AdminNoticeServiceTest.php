@@ -1,7 +1,4 @@
 <?php
-use PHPUnit\Framework\TestCase;
-use NuclearEngagement\Services\AdminNoticeService;
-
 namespace NuclearEngagement\Services {
     function add_action(...$args) {
         $GLOBALS['ans_actions'][] = $args;
@@ -12,6 +9,8 @@ namespace NuclearEngagement\Services {
 }
 
 namespace {
+    use PHPUnit\Framework\TestCase;
+    use NuclearEngagement\Services\AdminNoticeService;
     class AdminNoticeServiceTest extends TestCase {
         protected function setUp(): void {
             $GLOBALS['ans_actions'] = [];
