@@ -1,7 +1,4 @@
 <?php
-use PHPUnit\Framework\TestCase;
-use NuclearEngagement\Services\PostDataFetcher;
-
 namespace NuclearEngagement\Services {
     class LoggingService {
         public static array $logs = [];
@@ -10,6 +7,8 @@ namespace NuclearEngagement\Services {
 }
 
 namespace {
+    use PHPUnit\Framework\TestCase;
+    use NuclearEngagement\Services\PostDataFetcher;
     class PDF_WPDB {
         public $posts = 'wp_posts';
         public $postmeta = 'wp_postmeta';

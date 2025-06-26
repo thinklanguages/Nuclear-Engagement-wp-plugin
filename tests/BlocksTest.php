@@ -1,7 +1,4 @@
 <?php
-use PHPUnit\Framework\TestCase;
-use NuclearEngagement\Core\Blocks;
-
 namespace NuclearEngagement\Services {
     class LoggingService {
         public static array $logs = [];
@@ -12,6 +9,8 @@ namespace NuclearEngagement\Services {
 }
 
 namespace {
+    use PHPUnit\Framework\TestCase;
+    use NuclearEngagement\Core\Blocks;
     function register_block_type(string $name, array $args): void {
         $GLOBALS['block_regs'][$name] = $args;
     }

@@ -1,7 +1,4 @@
 <?php
-use PHPUnit\Framework\TestCase;
-use NuclearEngagement\Core\AssetVersions;
-
 namespace NuclearEngagement {
     function time() {
         return $GLOBALS['av_now'] ?? \time();
@@ -9,6 +6,9 @@ namespace NuclearEngagement {
 }
 
 namespace {
+    use PHPUnit\Framework\TestCase;
+    use NuclearEngagement\Core\AssetVersions;
+
     class AssetVersionsTest extends TestCase {
         private static string $dir;
 

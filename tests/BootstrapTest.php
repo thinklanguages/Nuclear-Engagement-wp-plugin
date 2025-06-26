@@ -1,5 +1,4 @@
 <?php
-
 namespace BootstrapTestNS {
     $GLOBALS['test_actions'] = [];
     $GLOBALS['test_activation'] = [];

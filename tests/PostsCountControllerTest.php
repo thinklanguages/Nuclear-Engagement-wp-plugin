@@ -1,8 +1,4 @@
 <?php
-use PHPUnit\Framework\TestCase;
-use NuclearEngagement\Admin\Controller\Ajax\PostsCountController;
-use NuclearEngagement\Requests\PostsCountRequest;
-
 namespace NuclearEngagement\Services {
     class LoggingService {
         public static array $exceptions = [];
@@ -11,6 +7,9 @@ namespace NuclearEngagement\Services {
 }
 
 namespace {
+    use PHPUnit\Framework\TestCase;
+    use NuclearEngagement\Admin\Controller\Ajax\PostsCountController;
+    use NuclearEngagement\Requests\PostsCountRequest;
     // ------------------------------------------------------
     // Basic stubs for WordPress AJAX functions
     // ------------------------------------------------------

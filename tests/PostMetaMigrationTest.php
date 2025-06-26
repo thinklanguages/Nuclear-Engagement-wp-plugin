@@ -1,8 +1,6 @@
 <?php
-use PHPUnit\Framework\TestCase;
-
-// Stub LoggingService to capture log messages
 namespace NuclearEngagement\Services {
+    // Stub LoggingService to capture log messages
     class LoggingService {
         public static array $logs = [];
         public static function log(string $msg): void {
@@ -12,6 +10,7 @@ namespace NuclearEngagement\Services {
 }
 
 namespace {
+    use PHPUnit\Framework\TestCase;
     use NuclearEngagement\Services\LoggingService;
 
     class PostMetaMigrationTest extends TestCase {

@@ -1,8 +1,4 @@
 <?php
-use PHPUnit\Framework\TestCase;
-use NuclearEngagement\Admin\Controller\Ajax\UpdatesController;
-use NuclearEngagement\Services\ApiException;
-
 namespace NuclearEngagement\Services {
     class LoggingService {
         public static array $logs = [];
@@ -12,6 +8,9 @@ namespace NuclearEngagement\Services {
 }
 
 namespace {
+    use PHPUnit\Framework\TestCase;
+    use NuclearEngagement\Admin\Controller\Ajax\UpdatesController;
+    use NuclearEngagement\Services\ApiException;
     if (!function_exists('check_ajax_referer')) { function check_ajax_referer($a,$f,$d=false){ return true; } }
     if (!function_exists('current_user_can')) { function current_user_can($c){ return true; } }
     if (!function_exists('wp_send_json_success')) { function wp_send_json_success($d){ $GLOBALS['json_response']=['success',$d]; } }

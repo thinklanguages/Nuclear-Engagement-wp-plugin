@@ -1,15 +1,14 @@
 <?php
-use PHPUnit\Framework\TestCase;
-use NuclearEngagement\Front\QuizShortcode;
-use NuclearEngagement\Front\QuizView;
-use NuclearEngagement\Core\SettingsRepository;
-
 namespace NuclearEngagement\Front {
     function get_the_ID() { return $GLOBALS['current_post_id'] ?? 0; }
     function maybe_unserialize($data) { return is_string($data) ? unserialize($data) : $data; }
 }
 
 namespace {
+    use PHPUnit\Framework\TestCase;
+    use NuclearEngagement\Front\QuizShortcode;
+    use NuclearEngagement\Front\QuizView;
+    use NuclearEngagement\Core\SettingsRepository;
     if (!function_exists('esc_html')) { function esc_html($t) { return $t; } }
     if (!function_exists('esc_html__')) { function esc_html__($t,$d=null){ return $t; } }
     if (!function_exists('__')) { function __($t,$d=null){ return $t; } }

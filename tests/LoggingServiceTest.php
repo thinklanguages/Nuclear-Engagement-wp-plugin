@@ -1,8 +1,4 @@
 <?php
-use PHPUnit\Framework\TestCase;
-use NuclearEngagement\Services\LoggingService;
-use NuclearEngagement\Services\AdminNoticeService;
-
 namespace NuclearEngagement\Services {
     function add_action(...$args) {
         $GLOBALS['ls_actions'][] = $args;
@@ -46,6 +42,9 @@ namespace NuclearEngagement\Services {
 }
 
 namespace {
+    use PHPUnit\Framework\TestCase;
+    use NuclearEngagement\Services\LoggingService;
+    use NuclearEngagement\Services\AdminNoticeService;
     class LoggingServiceTest extends TestCase {
         private static string $plugin_dir;
 

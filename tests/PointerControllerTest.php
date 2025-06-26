@@ -1,8 +1,4 @@
 <?php
-use PHPUnit\Framework\TestCase;
-use NuclearEngagement\Admin\Controller\Ajax\PointerController;
-use NuclearEngagement\Services\PointerService;
-
 namespace NuclearEngagement\Services {
     class LoggingService {
         public static array $exceptions = [];
@@ -13,6 +9,9 @@ namespace NuclearEngagement\Services {
 }
 
 namespace {
+    use PHPUnit\Framework\TestCase;
+    use NuclearEngagement\Admin\Controller\Ajax\PointerController;
+    use NuclearEngagement\Services\PointerService;
     if (!function_exists('check_ajax_referer')) {
         function check_ajax_referer($a, $f, $d = false) { return true; }
     }

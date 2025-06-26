@@ -1,7 +1,4 @@
 <?php
-use PHPUnit\Framework\TestCase;
-use NuclearEngagement\Modules\Summary\Nuclen_Summary_Metabox;
-
 namespace NuclearEngagement\Modules\Summary {
     function current_user_can($cap, $id) { return true; }
     function wp_unslash($val) { return $val; }
@@ -22,6 +19,8 @@ namespace NuclearEngagement\Services {
 }
 
 namespace {
+    use PHPUnit\Framework\TestCase;
+    use NuclearEngagement\Modules\Summary\Nuclen_Summary_Metabox;
     class DummyRepo {
         public function get($key, $default = 0) { return 0; }
     }

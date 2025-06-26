@@ -1,7 +1,4 @@
 <?php
-use PHPUnit\Framework\TestCase;
-use NuclearEngagement\Admin\Controller\OptinExportController;
-
 namespace NuclearEngagement {
     class OptinData {
         public static int $calls = 0;
@@ -10,6 +7,8 @@ namespace NuclearEngagement {
 }
 
 namespace {
+    use PHPUnit\Framework\TestCase;
+    use NuclearEngagement\Admin\Controller\OptinExportController;
     require_once __DIR__ . '/../nuclear-engagement/admin/Controller/OptinExportController.php';
 
     class OptinExportControllerTest extends TestCase {
