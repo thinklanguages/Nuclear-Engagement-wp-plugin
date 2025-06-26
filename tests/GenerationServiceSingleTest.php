@@ -1,9 +1,4 @@
 <?php
-use PHPUnit\Framework\TestCase;
-use NuclearEngagement\Services\GenerationService;
-use NuclearEngagement\Core\SettingsRepository;
-use NuclearEngagement\Services\ApiException;
-
 // Stub LoggingService to avoid filesystem calls
 namespace NuclearEngagement\Services {
     class LoggingService {
@@ -18,6 +13,10 @@ namespace NuclearEngagement\Services {
 }
 
 namespace {
+    use PHPUnit\Framework\TestCase;
+    use NuclearEngagement\Services\GenerationService;
+    use NuclearEngagement\Core\SettingsRepository;
+    use NuclearEngagement\Services\ApiException;
     class DummyGenApi {
         public ?\Exception $exception = null;
         public array $response = [];

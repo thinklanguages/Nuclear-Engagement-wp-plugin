@@ -1,9 +1,4 @@
 <?php
-use PHPUnit\Framework\TestCase;
-use NuclearEngagement\Front\Controller\Rest\ContentController;
-use NuclearEngagement\Core\SettingsRepository;
-use NuclearEngagement\Services\ContentStorageService;
-
 namespace NuclearEngagement\Services {
     class LoggingService {
         public static array $logs = [];
@@ -17,6 +12,10 @@ namespace NuclearEngagement\Services {
 }
 
 namespace {
+    use PHPUnit\Framework\TestCase;
+    use NuclearEngagement\Front\Controller\Rest\ContentController;
+    use NuclearEngagement\Core\SettingsRepository;
+    use NuclearEngagement\Services\ContentStorageService;
     if (!function_exists('__')) {
         function __($t, $d = null) { return $t; }
     }
