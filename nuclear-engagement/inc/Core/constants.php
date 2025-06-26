@@ -37,6 +37,9 @@ define( 'NUCLEN_POLL_RETRY_DELAY', MINUTE_IN_SECONDS );
 /** Delay for manual generation polling in seconds. */
 define( 'NUCLEN_GENERATION_POLL_DELAY', 30 );
 
+/** Number of post IDs fetched per database query when generating. */
+define( 'NUCLEN_POST_FETCH_CHUNK', 200 );
+
 /** Default summary length when generating posts. */
 define( 'NUCLEN_SUMMARY_LENGTH_DEFAULT', 30 );
 
