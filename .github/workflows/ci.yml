@@ -36,11 +36,22 @@ jobs:
           node-version: '20'
           cache: 'npm'
 
+      # Cache node_modules to speed up repeated installs
+      - name: Cache node modules
+        uses: actions/cache@v3
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
+          restore-keys: ${{ runner.os }}-node-
+
       - name: Install Node dependencies
         run: npm ci
 
       - name: Run Node lint
         run: npm run lint
+
+      - name: Run Node tests
+        run: npm run test
 
       - name: Build assets
         run: npm run build
