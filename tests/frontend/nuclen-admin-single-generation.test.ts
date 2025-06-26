@@ -34,6 +34,8 @@ describe('nuclen-admin-single-generation', () => {
     delete (window as any).nuclenAdminVars;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     delete (window as any).nuclenAjax;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    delete (global as any).fetch;
   });
 
   it('starts generation and updates progress', async () => {
@@ -42,13 +44,16 @@ describe('nuclen-admin-single-generation', () => {
       pollOpts = opts;
     });
 
-    vi
-      .spyOn(api, 'nuclenFetchWithRetry')
-      .mockResolvedValueOnce({
-        ok: true,
-        status: 200,
-        data: { success: true, generation_id: 'gid' },
-      });
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      text: vi.fn().mockResolvedValue(
+        JSON.stringify({ success: true, generation_id: 'gid' })
+      ),
+    }) as unknown as typeof fetch;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (global as any).fetch = fetchMock;
+    vi.spyOn(api, 'nuclenFetchWithRetry');
 
     const btn = document.querySelector<HTMLButtonElement>('.nuclen-generate-single')!;
     btn.click();
@@ -69,14 +74,14 @@ describe('nuclen-admin-single-generation', () => {
   });
 
   it('displays error when generation fails', async () => {
-    vi
-      .spyOn(api, 'nuclenFetchWithRetry')
-      .mockResolvedValueOnce({
-        ok: false,
-        status: 500,
-        data: null,
-        error: 'fail',
-      });
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 500,
+      text: vi.fn().mockResolvedValue('fail'),
+    }) as unknown as typeof fetch;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (global as any).fetch = fetchMock;
+    vi.spyOn(api, 'nuclenFetchWithRetry');
 
     const btn = document.querySelector<HTMLButtonElement>('.nuclen-generate-single')!;
     btn.click();
