@@ -5,8 +5,8 @@ export function NuclenPollAndPullUpdates({
   intervalMs = 5000,
   generationId,
   onProgress = (() => {}) as (processed: number, total: number) => void,
-  onComplete = (_finalData: PollingUpdateData) => {},
-  onError = (_errMsg: string) => {},
+  onComplete = () => {},
+  onError = () => {},
 }: {
   intervalMs?: number;
   generationId: string;
