@@ -3,3 +3,6 @@ includes:
 
 parameters:
     level: 6
+    paths:
+        - nuclear-engagement
+        - tests
