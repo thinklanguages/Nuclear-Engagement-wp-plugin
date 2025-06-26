@@ -71,6 +71,16 @@ npm run lint
   ```bash
   npm run test
   ```
+ - **Run end-to-end flows**
+   Install the [Maestro](https://maestro.mobile.dev) CLI and execute the YAML
+   flows from the `e2e/` folder. The CLI can be installed with:
+   ```bash
+   curl -Ls "https://get.maestro.mobile.dev" | bash
+   ```
+   Then run the flows with:
+  ```bash
+  bash scripts/run-e2e.sh
+  ```
 
 ## Typical workflow
 
