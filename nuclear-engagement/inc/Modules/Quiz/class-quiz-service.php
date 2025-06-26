@@ -60,7 +60,11 @@ final class Quiz_Service {
             }
         }
 
-        update_post_meta( $post_id, self::META_KEY, $formatted );
+        $updated = update_post_meta( $post_id, self::META_KEY, $formatted );
+        if ( false === $updated ) {
+            LoggingService::log( 'Failed to update quiz data for post ' . $post_id );
+            LoggingService::notify_admin( 'Failed to update quiz data for post ' . $post_id );
+        }
         clean_post_cache( $post_id );
     }
 
@@ -76,7 +80,11 @@ final class Quiz_Service {
      */
     public function set_protected( int $post_id, bool $protected ): void {
         if ( $protected ) {
-            update_post_meta( $post_id, self::PROTECTED_KEY, 1 );
+            $updated = update_post_meta( $post_id, self::PROTECTED_KEY, 1 );
+            if ( false === $updated ) {
+                LoggingService::log( 'Failed to update quiz protected flag for post ' . $post_id );
+                LoggingService::notify_admin( 'Failed to update quiz protected flag for post ' . $post_id );
+            }
         } else {
             delete_post_meta( $post_id, self::PROTECTED_KEY );
         }

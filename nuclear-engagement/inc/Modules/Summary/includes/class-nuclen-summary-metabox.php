@@ -108,7 +108,11 @@ final class Nuclen_Summary_Metabox {
         );
 
         /* ---- Save to DB --------------------------------------------------- */
-        update_post_meta( $post_id, 'nuclen-summary-data', $formatted );
+        $updated = update_post_meta( $post_id, 'nuclen-summary-data', $formatted );
+        if ( false === $updated ) {
+            \NuclearEngagement\Services\LoggingService::log( 'Failed to update summary data for post ' . $post_id );
+            \NuclearEngagement\Services\LoggingService::notify_admin( 'Failed to update summary data for post ' . $post_id );
+        }
         clean_post_cache( $post_id );
 
         /* ---- Update post_modified if enabled ----------------------------- */
@@ -137,7 +141,11 @@ final class Nuclen_Summary_Metabox {
 
         /* ---- Protected flag ---------------------------------------------- */
         if ( isset( $_POST['nuclen_summary_protected'] ) && $_POST['nuclen_summary_protected'] === '1' ) {
-            update_post_meta( $post_id, 'nuclen_summary_protected', 1 );
+            $updated_prot = update_post_meta( $post_id, 'nuclen_summary_protected', 1 );
+            if ( false === $updated_prot ) {
+                \NuclearEngagement\Services\LoggingService::log( 'Failed to update summary protected flag for post ' . $post_id );
+                \NuclearEngagement\Services\LoggingService::notify_admin( 'Failed to update summary protected flag for post ' . $post_id );
+            }
         } else {
             delete_post_meta( $post_id, 'nuclen_summary_protected' );
         }
