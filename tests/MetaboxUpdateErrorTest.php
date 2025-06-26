@@ -1,6 +1,4 @@
 <?php
-use PHPUnit\Framework\TestCase;
-
 namespace NuclearEngagement\Admin {
     function current_user_can($cap, $id) { return true; }
     function wp_unslash($val) { return $val; }
@@ -25,6 +23,7 @@ namespace NuclearEngagement\Services {
 }
 
 namespace {
+    use PHPUnit\Framework\TestCase;
     require_once dirname(__DIR__) . '/nuclear-engagement/admin/Traits/AdminQuizMetabox.php';
     require_once dirname(__DIR__) . '/nuclear-engagement/admin/Traits/AdminSummaryMetabox.php';
 

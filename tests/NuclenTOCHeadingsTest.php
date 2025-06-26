@@ -1,6 +1,7 @@
 <?php
-use PHPUnit\Framework\TestCase;
-use NuclearEngagement\Modules\TOC\Nuclen_TOC_Headings;
+namespace {
+    use PHPUnit\Framework\TestCase;
+    use NuclearEngagement\Modules\TOC\Nuclen_TOC_Headings;
 
 // ------------------------------------------------------
 // Constants and WordPress function stubs
@@ -35,6 +36,8 @@ if (!function_exists('__')) { function __($t, $d = null) { return $t; } }
 if (!function_exists('apply_filters')) { function apply_filters($hook, $value) { return $value; } }
 if (!function_exists('wp_strip_all_tags')) { function wp_strip_all_tags($t){ return strip_tags($t); } }
 if (!function_exists('get_the_ID')) { function get_the_ID() { return $GLOBALS['current_post_id'] ?? 0; } }
+
+}
 
 namespace NuclearEngagement\Modules\TOC {
     if (!function_exists('apply_filters')) {

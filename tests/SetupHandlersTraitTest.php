@@ -1,11 +1,4 @@
 <?php
-use PHPUnit\Framework\TestCase;
-use NuclearEngagement\Core\SettingsRepository;
-use NuclearEngagement\Core\Container;
-
-class RedirectException extends \Exception {}
-
-// Stub SetupService inside the plugin namespace
 namespace NuclearEngagement\Services {
     class SetupService {
         public bool $validate_return = true;
@@ -24,6 +17,12 @@ namespace NuclearEngagement\Services {
 }
 
 namespace {
+    use PHPUnit\Framework\TestCase;
+    use NuclearEngagement\Core\SettingsRepository;
+    use NuclearEngagement\Core\Container;
+
+    class RedirectException extends \Exception {}
+
     // Global stubs for WordPress functions
     if (!function_exists('current_user_can')) {
         function current_user_can($cap) {

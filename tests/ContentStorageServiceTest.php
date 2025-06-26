@@ -1,8 +1,4 @@
 <?php
-use PHPUnit\Framework\TestCase;
-use NuclearEngagement\Services\ContentStorageService;
-use NuclearEngagement\Core\SettingsRepository;
-
 namespace NuclearEngagement\Services {
     function update_post_meta($postId, $key, $value) {
         $GLOBALS['wp_meta'][$postId][$key] = $value;
@@ -14,6 +10,9 @@ namespace NuclearEngagement\Services {
 }
 
 namespace {
+    use PHPUnit\Framework\TestCase;
+    use NuclearEngagement\Services\ContentStorageService;
+    use NuclearEngagement\Core\SettingsRepository;
     class ContentStorageServiceTest extends TestCase {
         protected function setUp(): void {
             global $wp_options, $wp_autoload, $wp_meta;

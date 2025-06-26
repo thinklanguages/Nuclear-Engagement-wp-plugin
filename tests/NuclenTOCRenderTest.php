@@ -1,8 +1,9 @@
 <?php
-use PHPUnit\Framework\TestCase;
-use NuclearEngagement\Modules\TOC\Nuclen_TOC_Render;
-use NuclearEngagement\Core\SettingsRepository;
-use NuclearEngagement\Core\Container;
+namespace {
+    use PHPUnit\Framework\TestCase;
+    use NuclearEngagement\Modules\TOC\Nuclen_TOC_Render;
+    use NuclearEngagement\Core\SettingsRepository;
+    use NuclearEngagement\Core\Container;
 
 // ------------------------------------------------------
 // Constants and WordPress function stubs
@@ -55,7 +56,6 @@ if (!function_exists('wp_localize_script')) { function wp_localize_script($h,$o,
 if (!function_exists('is_singular')) { function is_singular(){ return true; } }
 if (!function_exists('get_the_ID')) { function get_the_ID(){ return $GLOBALS['current_post_id'] ?? 0; } }
 
-namespace {
     require_once NUCLEN_TOC_DIR . 'includes/polyfills.php';
     require_once NUCLEN_TOC_DIR . 'includes/class-nuclen-toc-utils.php';
     require_once NUCLEN_TOC_DIR . 'includes/class-nuclen-toc-view.php';

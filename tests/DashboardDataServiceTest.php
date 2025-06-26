@@ -1,7 +1,4 @@
 <?php
-use PHPUnit\Framework\TestCase;
-use NuclearEngagement\Services\DashboardDataService;
-
 namespace NuclearEngagement\Services {
     class LoggingService {
         public static array $logs = [];
@@ -10,6 +7,8 @@ namespace NuclearEngagement\Services {
 }
 
 namespace {
+    use PHPUnit\Framework\TestCase;
+    use NuclearEngagement\Services\DashboardDataService;
 
 if ( ! function_exists( 'date_i18n' ) ) {
     function date_i18n( $format, $timestamp ) { return date( $format, $timestamp ); }
