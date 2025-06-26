@@ -22,6 +22,16 @@ export function nuclenUpdateProgressBarStep(stepEl: HTMLElement | null, state: s
 /**
  * Fetch remaining credits from the SaaS.
  */
+interface CreditsResponse {
+  success: boolean;
+  message?: string;
+  data: {
+    remaining_credits?: number;
+    message?: string;
+    [key: string]: unknown;
+  };
+}
+
 export async function nuclenCheckCreditsAjax(): Promise<number> {
   if (!window.nuclenAjax || !window.nuclenAjax.ajax_url) {
     throw new Error('Missing nuclenAjax configuration (ajax_url).');
@@ -34,15 +44,18 @@ export async function nuclenCheckCreditsAjax(): Promise<number> {
   if (window.nuclenAjax.nonce) {
     formData.append('security', window.nuclenAjax.nonce);
   }
-  const result = await nuclenFetchWithRetry(window.nuclenAjax.ajax_url, {
-    method: 'POST',
-    body: formData,
-    credentials: 'same-origin',
-  });
+  const result = await nuclenFetchWithRetry<CreditsResponse>(
+    window.nuclenAjax.ajax_url,
+    {
+      method: 'POST',
+      body: formData,
+      credentials: 'same-origin',
+    }
+  );
   if (!result.ok) {
     throw new Error(result.error || `HTTP ${result.status}`);
   }
-  const data = result.data;
+  const data = result.data as CreditsResponse;
   if (!data.success) {
     throw new Error(data.message || data.data?.message || 'Failed to fetch credits from SaaS');
   }

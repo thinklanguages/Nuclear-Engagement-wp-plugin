@@ -24,18 +24,18 @@ export default [
       'jest.setup.js'
     ],
     languageOptions: {
-      env: {
-        node: true
+      globals: {
+        module: 'readonly',
+        require: 'readonly',
+        process: 'readonly',
+        __dirname: 'readonly',
+        __filename: 'readonly'
       }
     }
   },
   {
     files: ['**/*.ts'],
     languageOptions: {
-      env: {
-        browser: true,
-        es2021: true
-      },
       parser: tsParser,
       parserOptions: {
         project: tsconfigPath,

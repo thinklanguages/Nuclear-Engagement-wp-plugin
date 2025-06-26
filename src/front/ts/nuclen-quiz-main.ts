@@ -34,7 +34,7 @@ import * as logger from './logger';
 
   declare const NuclenOptinAjax: { url: string; nonce: string };
 
-  declare function gtag(...args: any[]): void;
+  declare function gtag(...args: unknown[]): void;
 
   /* ─────────────────────────────────────────────────────────────
      Entry

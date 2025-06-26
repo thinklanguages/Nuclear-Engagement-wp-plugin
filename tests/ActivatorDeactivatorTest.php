@@ -85,9 +85,10 @@ namespace {
     require_once dirname(__DIR__) . '/nuclear-engagement/inc/OptinData.php';
     require_once dirname(__DIR__) . '/nuclear-engagement/inc/Core/AssetVersions.php';
     require_once dirname(__DIR__) . '/nuclear-engagement/inc/Core/Activator.php';
-    require_once dirname(__DIR__) . '/nuclear-engagement/inc/Core/Deactivator.php';
+require_once dirname(__DIR__) . '/nuclear-engagement/inc/Core/Deactivator.php';
 }
 
+namespace {
 class ActivatorDeactivatorTest extends TestCase {
     protected function setUp(): void {
         global $wpdb, $wp_options, $wp_autoload, $transients, $update_option_calls, $cleared_hooks;
@@ -121,4 +122,5 @@ class ActivatorDeactivatorTest extends TestCase {
         ];
         $this->assertSame($expected, $cleared_hooks);
     }
+}
 }
