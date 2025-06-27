@@ -19,7 +19,7 @@ use NuclearEngagement\Modules\Summary\Summary_Service;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
-}
+		}
 
 trait AssetsTrait {
 
@@ -62,8 +62,8 @@ trait AssetsTrait {
 			return true;
 		}
 		if ( is_admin() || ! is_singular() ) {
-return false;
-}
+			return false;
+		}
 
 /**
  * Build inline JS variables for opt-in settings.
