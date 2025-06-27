@@ -102,7 +102,6 @@ return false;
 			}
 		}
 
-}
 		return false;
 }
 /**
