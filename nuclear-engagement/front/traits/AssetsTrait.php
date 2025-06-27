@@ -65,6 +65,46 @@ trait AssetsTrait {
 return false;
 }
 
+	
+		$post_id = get_the_ID();
+		if ( ! $post_id ) {
+			return false;
+		}
+
+		$post    = get_post( $post_id );
+		$content = $post ? $post->post_content : '';
+
+		if ( function_exists( 'has_block' ) && $post ) {
+			if ( has_block( 'nuclear-engagement/quiz', $post ) || has_block( 'nuclear-engagement/summary', $post ) ) {
+				return true;
+			}
+		}
+
+		if ( has_shortcode( $content, 'nuclear_engagement_quiz' ) || has_shortcode( $content, 'nuclear_engagement_summary' ) ) {
+			return true;
+		}
+
+		$settings_repo   = $this->nuclen_get_settings_repository();
+		$display_quiz    = $settings_repo->get( 'display_quiz', 'manual' );
+		$display_summary = $settings_repo->get( 'display_summary', 'manual' );
+
+		if ( $display_quiz !== 'manual' && $display_quiz !== 'none' ) {
+			$quiz_meta = maybe_unserialize( get_post_meta( $post_id, 'nuclen-quiz-data', true ) );
+			if ( is_array( $quiz_meta ) && ! empty( $quiz_meta['questions'] ) ) {
+				return true;
+			}
+		}
+
+				if ( $display_summary !== 'manual' && $display_summary !== 'none' ) {
+						$summary_meta = get_post_meta( $post_id, Summary_Service::META_KEY, true );
+			if ( is_array( $summary_meta ) && ! empty( trim( $summary_meta['summary'] ?? '' ) ) ) {
+				return true;
+			}
+		}
+
+}
+		return false;
+}
 /**
  * Build inline JS variables for opt-in settings.
  */
@@ -130,44 +170,6 @@ return false;
 		);
 	}
 	
-		$post_id = get_the_ID();
-		if ( ! $post_id ) {
-			return false;
-		}
-
-		$post    = get_post( $post_id );
-		$content = $post ? $post->post_content : '';
-
-		if ( function_exists( 'has_block' ) && $post ) {
-			if ( has_block( 'nuclear-engagement/quiz', $post ) || has_block( 'nuclear-engagement/summary', $post ) ) {
-				return true;
-			}
-		}
-
-		if ( has_shortcode( $content, 'nuclear_engagement_quiz' ) || has_shortcode( $content, 'nuclear_engagement_summary' ) ) {
-			return true;
-		}
-
-		$settings_repo   = $this->nuclen_get_settings_repository();
-		$display_quiz    = $settings_repo->get( 'display_quiz', 'manual' );
-		$display_summary = $settings_repo->get( 'display_summary', 'manual' );
-
-		if ( $display_quiz !== 'manual' && $display_quiz !== 'none' ) {
-			$quiz_meta = maybe_unserialize( get_post_meta( $post_id, 'nuclen-quiz-data', true ) );
-			if ( is_array( $quiz_meta ) && ! empty( $quiz_meta['questions'] ) ) {
-				return true;
-			}
-		}
-
-				if ( $display_summary !== 'manual' && $display_summary !== 'none' ) {
-						$summary_meta = get_post_meta( $post_id, Summary_Service::META_KEY, true );
-			if ( is_array( $summary_meta ) && ! empty( trim( $summary_meta['summary'] ?? '' ) ) ) {
-				return true;
-			}
-		}
-
-		return false;
-	}
 
 	/*
 	────────────────────────────
