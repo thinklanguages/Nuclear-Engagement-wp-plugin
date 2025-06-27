@@ -50,9 +50,7 @@ class Admin {
 		$this->settings_repository = $settings_repository;
 		$this->container           = $container;
 
-		// Meta-boxes
-		add_action( 'add_meta_boxes', array( $this, 'nuclen_add_quiz_data_meta_box' ) );
-		add_action( 'save_post', array( $this, 'nuclen_save_quiz_data_meta' ) );
+// Meta-boxes handled by module loader
 
 		// AJAX & assets
 		add_action( 'wp_ajax_nuclen_fetch_app_updates', array( $this, 'nuclen_fetch_app_updates' ) );
