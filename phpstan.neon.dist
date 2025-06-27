@@ -3,5 +3,7 @@ parameters:
     paths:
         - nuclear-engagement
         - tests
+    excludes_analyse:
+        - nuclear-engagement/vendor/*
     bootstrapFiles:
         - nuclear-engagement/vendor/php-stubs/wordpress-stubs/wordpress-stubs.php
