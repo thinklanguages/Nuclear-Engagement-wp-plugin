@@ -12,7 +12,10 @@
       "NuclearEngagement\\Utils\\": "inc/Utils/",
       "NuclearEngagement\\Traits\\": "inc/Traits/",
       "NuclearEngagement\\": "inc/"
-    }
+    },
+    "files": [
+      "inc/Core/Autoloader.php"
+    ]
   },
   "config": {
         "allow-plugins": {
