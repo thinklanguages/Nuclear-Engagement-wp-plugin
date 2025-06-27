@@ -121,7 +121,7 @@ final class Bootloader {
 	 * Load helper files and constants.
 	 */
 	private static function load_helpers(): void {
-		require_once NUCLEN_PLUGIN_DIR . 'inc/Helpers/settings-functions.php';
+	// SettingsFunctions is autoloaded; legacy wrappers removed.
 
 		if ( file_exists( NUCLEN_PLUGIN_DIR . 'inc/Core/constants.php' ) ) {
 			require_once NUCLEN_PLUGIN_DIR . 'inc/Core/constants.php';
