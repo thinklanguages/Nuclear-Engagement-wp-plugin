@@ -3,6 +3,7 @@ use PHPUnit\Framework\TestCase;
 use NuclearEngagement\Core\SettingsRepository;
 use NuclearEngagement\Core\SettingsSanitizer;
 use NuclearEngagement\Core\SettingsCache;
+require_once dirname(__DIR__) . '/nuclear-engagement/inc/Core/InventoryCache.php';
 
 if (!isset($GLOBALS['wp_cache'])) { $GLOBALS['wp_cache'] = []; }
 if (!function_exists('wp_cache_get')) {
@@ -25,10 +26,21 @@ if (!function_exists('wp_cache_flush_group')) {
 	function wp_cache_flush_group($group) { unset($GLOBALS['wp_cache'][$group]); }
 }
 if (!function_exists('wp_cache_flush')) {
-	function wp_cache_flush() { $GLOBALS['wp_cache'] = []; }
+function wp_cache_flush() { $GLOBALS['wp_cache'] = []; }
 }
+if (!isset($GLOBALS['transients'])) { $GLOBALS['transients'] = []; }
+if (!function_exists('get_transient')) {
+function get_transient($key) { return $GLOBALS['transients'][$key] ?? false; }
+}
+if (!function_exists('set_transient')) {
+function set_transient($key, $value, $ttl = 0) { $GLOBALS['transients'][$key] = $value; }
+}
+if (!function_exists('delete_transient')) {
+function delete_transient($key) { unset($GLOBALS['transients'][$key]); }
+}
+if (!defined('HOUR_IN_SECONDS')) { define('HOUR_IN_SECONDS', 3600); }
 if (!function_exists('get_current_blog_id')) {
-	function get_current_blog_id() { return 1; }
+function get_current_blog_id() { return 1; }
 }
 if (!function_exists('sanitize_text_field')) {
 	function sanitize_text_field($text) { return trim($text); }
@@ -108,8 +120,8 @@ class SettingsRepositoryTest extends TestCase {
 		$this->assertSame('light', $repo->get_string('theme'));
 	}
 
-	public function test_save_sanitizes_values_and_clears_cache() {
-		global $wp_cache;
+public function test_save_sanitizes_values_and_clears_cache() {
+global $wp_cache;
 
 		$repo = SettingsRepository::get_instance(['toc_heading_levels' => [2,3]]);
 		$repo->get_all();
@@ -117,6 +129,16 @@ class SettingsRepositoryTest extends TestCase {
 		$repo->set_array('toc_heading_levels', ['1','7','2'])->save();
 
 		$this->assertEmpty($wp_cache[SettingsCache::CACHE_GROUP] ?? []);
-		$this->assertSame([1,2], $repo->get_array('toc_heading_levels'));
+$this->assertSame([1,2], $repo->get_array('toc_heading_levels'));
+}
+
+	public function test_save_clears_inventory_cache(): void {
+		$repo = SettingsRepository::get_instance();
+		\NuclearEngagement\Core\InventoryCache::set( array( 'foo' => 'bar' ) );
+		$this->assertNotNull( \NuclearEngagement\Core\InventoryCache::get() );
+		
+		$repo->set_string( 'theme', 'dark' )->save();
+		
+		$this->assertNull( \NuclearEngagement\Core\InventoryCache::get() );
 	}
 }
