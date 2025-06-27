@@ -15,7 +15,7 @@ use NuclearEngagement\Helpers\SettingsFunctions;
 // Fetch plugin setup info to decide if we show credits
 $fully_setup = ( SettingsFunctions::get_bool( 'connected', false ) && SettingsFunctions::get_bool( 'wp_app_pass_created', false ) );
 
-$utils = new \NuclearEngagement\Utils();
+$utils = new \NuclearEngagement\Utils\Utils();
 $utils->display_nuclen_page_header();
 ?>
 <div class="wrap nuclen-container">

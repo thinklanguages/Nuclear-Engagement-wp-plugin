@@ -27,7 +27,7 @@ $authors    = get_users( array( 'who' => 'authors' ) );
 // We'll still fetch all public post types, but only show the allowed ones
 $post_types = get_post_types( array( 'public' => true ), 'objects' );
 
-$utils = new \NuclearEngagement\Utils();
+$utils = new \NuclearEngagement\Utils\Utils();
 $utils->display_nuclen_page_header();
 ?>
 
