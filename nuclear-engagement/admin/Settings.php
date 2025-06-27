@@ -10,6 +10,8 @@ declare(strict_types=1);
 
 namespace NuclearEngagement\Admin;
 
+use NuclearEngagement\Core\SettingsRepository;
+
 if ( ! defined( 'ABSPATH' ) ) {
 		exit;
 }
