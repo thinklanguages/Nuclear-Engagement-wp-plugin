@@ -39,11 +39,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 		<div class="nuclen-row">
 			<div class="nuclen-col">
 				<h3><?php esc_html_e( 'Quizzes', 'nuclear-engagement' ); ?></h3>
-                <?php echo $this->nuclen_render_dashboard_stats_table( $by_status_quiz ); // phpcs:ignore ?>
+				<?php echo $this->nuclen_render_dashboard_stats_table( $by_status_quiz ); // phpcs:ignore ?>
 			</div>
 			<div class="nuclen-col">
 				<h3><?php esc_html_e( 'Summaries', 'nuclear-engagement' ); ?></h3>
-                <?php echo $this->nuclen_render_dashboard_stats_table( $by_status_summary ); // phpcs:ignore ?>
+				<?php echo $this->nuclen_render_dashboard_stats_table( $by_status_summary ); // phpcs:ignore ?>
 			</div>
 		</div>
 	</div>
@@ -53,11 +53,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 		<div class="nuclen-row">
 			<div class="nuclen-col">
 				<h3><?php esc_html_e( 'Quizzes', 'nuclear-engagement' ); ?></h3>
-                <?php echo $this->nuclen_render_dashboard_stats_table( $by_category_quiz ); // phpcs:ignore ?>
+				<?php echo $this->nuclen_render_dashboard_stats_table( $by_category_quiz ); // phpcs:ignore ?>
 			</div>
 			<div class="nuclen-col">
 				<h3><?php esc_html_e( 'Summaries', 'nuclear-engagement' ); ?></h3>
-                <?php echo $this->nuclen_render_dashboard_stats_table( $by_category_summary ); // phpcs:ignore ?>
+				<?php echo $this->nuclen_render_dashboard_stats_table( $by_category_summary ); // phpcs:ignore ?>
 			</div>
 		</div>
 	</div>
@@ -67,11 +67,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 		<div class="nuclen-row">
 			<div class="nuclen-col">
 				<h3><?php esc_html_e( 'Quizzes', 'nuclear-engagement' ); ?></h3>
-                <?php echo $this->nuclen_render_dashboard_stats_table( $by_author_quiz ); // phpcs:ignore ?>
+				<?php echo $this->nuclen_render_dashboard_stats_table( $by_author_quiz ); // phpcs:ignore ?>
 			</div>
 			<div class="nuclen-col">
 				<h3><?php esc_html_e( 'Summaries', 'nuclear-engagement' ); ?></h3>
-                <?php echo $this->nuclen_render_dashboard_stats_table( $by_author_summary ); // phpcs:ignore ?>
+				<?php echo $this->nuclen_render_dashboard_stats_table( $by_author_summary ); // phpcs:ignore ?>
 			</div>
 		</div>
 	</div>
@@ -81,11 +81,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 		<div class="nuclen-row">
 			<div class="nuclen-col">
 				<h3><?php esc_html_e( 'Quizzes', 'nuclear-engagement' ); ?></h3>
-                <?php echo $this->nuclen_render_dashboard_stats_table( $by_post_type_quiz ); // phpcs:ignore ?>
+				<?php echo $this->nuclen_render_dashboard_stats_table( $by_post_type_quiz ); // phpcs:ignore ?>
 			</div>
 			<div class="nuclen-col">
 				<h3><?php esc_html_e( 'Summaries', 'nuclear-engagement' ); ?></h3>
-                <?php echo $this->nuclen_render_dashboard_stats_table( $by_post_type_summary ); // phpcs:ignore ?>
+				<?php echo $this->nuclen_render_dashboard_stats_table( $by_post_type_summary ); // phpcs:ignore ?>
 			</div>
 		</div>
 	</div>

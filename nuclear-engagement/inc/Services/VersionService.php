@@ -17,7 +17,7 @@ use NuclearEngagement\Core\AssetVersions;
 
 // If this file is called directly, abort.
 if ( ! defined( 'ABSPATH' ) ) {
-    exit;
+	exit;
 }
 
 /**
@@ -30,33 +30,33 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 final class VersionService {
 
-    /**
-     * Retrieve a version string for the given asset key.
-     *
-     * @since 1.0.0
-     *
-     * @param string $key The unique identifier for the asset (e.g., 'admin-css', 'frontend-js').
-     * @return string The version string for the given asset key, or empty string if not found.
-     *
-     * @throws \InvalidArgumentException If the provided key is empty.
-     */
-    public function get( string $key ): string {
-        if ( '' === trim( $key ) ) {
-            throw new \InvalidArgumentException( 'Asset key cannot be empty.' );
-        }
+	/**
+	 * Retrieve a version string for the given asset key.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param string $key The unique identifier for the asset (e.g., 'admin-css', 'frontend-js').
+	 * @return string The version string for the given asset key, or empty string if not found.
+	 *
+	 * @throws \InvalidArgumentException If the provided key is empty.
+	 */
+	public function get( string $key ): string {
+		if ( '' === trim( $key ) ) {
+			throw new \InvalidArgumentException( 'Asset key cannot be empty.' );
+		}
 
-        /**
-         * Filters the version string for a given asset.
-         *
-         * @since 1.0.0
-         *
-         * @param string $version The version string for the asset.
-         * @param string $key    The asset key being requested.
-         */
-        return (string) apply_filters(
-            'nuclen_asset_version',
-            AssetVersions::get( $key ),
-            $key
-        );
-    }
+		/**
+		 * Filters the version string for a given asset.
+		 *
+		 * @since 1.0.0
+		 *
+		 * @param string $version The version string for the asset.
+		 * @param string $key    The asset key being requested.
+		 */
+		return (string) apply_filters(
+			'nuclen_asset_version',
+			AssetVersions::get( $key ),
+			$key
+		);
+	}
 }

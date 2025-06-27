@@ -68,7 +68,7 @@ trait SetupHandlersTrait {
 	--------------------------------------------------------------
 	#  STEP 2 – Generate & store plugin App Password
 	--------------------------------------------------------------*/
-       public function nuclen_handle_generate_app_password( $bypass_nonce = false ): void {
+	   public function nuclen_handle_generate_app_password( $bypass_nonce = false ): void {
 
 $this->validate_generate_nonce( $bypass_nonce );
 
