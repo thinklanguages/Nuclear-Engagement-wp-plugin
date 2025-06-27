@@ -16,17 +16,16 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage Nuclear_Engagement/public/partials
  */
 
-use function NuclearEngagement\nuclen_settings_string;
-use function NuclearEngagement\nuclen_settings_int;
+use NuclearEngagement\Helpers\SettingsFunctions;
 
 // Get theme settings with type-safe methods
-$theme        = nuclen_settings_string( 'theme', 'bright' );
-$font_size    = nuclen_settings_int( 'font_size', 16 );
-$font_color   = nuclen_settings_string( 'font_color', '#000000' );
-$bg_color     = nuclen_settings_string( 'bg_color', '#ffffff' );
-$border_color = nuclen_settings_string( 'border_color', '#000000' );
-$border_style = nuclen_settings_string( 'border_style', 'solid' );
-$border_width = nuclen_settings_int( 'border_width', 1 );
+$theme        = SettingsFunctions::get_string( 'theme', 'bright' );
+$font_size    = SettingsFunctions::get_int( 'font_size', 16 );
+$font_color   = SettingsFunctions::get_string( 'font_color', '#000000' );
+$bg_color     = SettingsFunctions::get_string( 'bg_color', '#ffffff' );
+$border_color = SettingsFunctions::get_string( 'border_color', '#000000' );
+$border_style = SettingsFunctions::get_string( 'border_style', 'solid' );
+$border_width = SettingsFunctions::get_int( 'border_width', 1 );
 
 // For backward compatibility, create an options array
 $options = array(

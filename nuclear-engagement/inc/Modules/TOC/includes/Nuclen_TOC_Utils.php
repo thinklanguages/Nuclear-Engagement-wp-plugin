@@ -14,7 +14,7 @@ declare(strict_types=1);
 
 namespace NuclearEngagement\Modules\TOC;
 
-use function NuclearEngagement\nuclen_settings_array;
+use NuclearEngagement\Helpers\SettingsFunctions;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -242,7 +242,7 @@ final class Nuclen_TOC_Utils {
 				return;
 		}
 
-			$levels = nuclen_settings_array( 'toc_heading_levels', range( 2, 6 ) );
+               $levels = SettingsFunctions::get_array( 'toc_heading_levels', range( 2, 6 ) );
 
 			$levels = array_unique( array_map( 'intval', $levels ) );
 			sort( $levels );

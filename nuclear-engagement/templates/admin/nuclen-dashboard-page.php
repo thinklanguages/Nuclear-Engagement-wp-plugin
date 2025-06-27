@@ -10,10 +10,10 @@ if ( ! defined( 'ABSPATH' ) ) {
  * We'll fix the “No credits info returned.” by referencing `data.data.remaining_credits`.
  */
 
-use function NuclearEngagement\nuclen_settings_bool;
+use NuclearEngagement\Helpers\SettingsFunctions;
 
 // Fetch plugin setup info to decide if we show credits
-$fully_setup = ( nuclen_settings_bool( 'connected', false ) && nuclen_settings_bool( 'wp_app_pass_created', false ) );
+$fully_setup = ( SettingsFunctions::get_bool( 'connected', false ) && SettingsFunctions::get_bool( 'wp_app_pass_created', false ) );
 
 $utils = new \NuclearEngagement\Utils();
 $utils->display_nuclen_page_header();
