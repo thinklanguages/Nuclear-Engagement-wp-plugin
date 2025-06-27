@@ -77,6 +77,20 @@ During development you can rebuild on the fly with:
 npm run dev
 ```
 
+### Running TypeScript scripts
+
+This project uses ES modules (`"type": "module"` in `package.json`).
+Run any `.ts` utilities with `ts-node` in ESM mode to avoid
+`Unknown file extension \".ts\"` errors:
+
+```bash
+npx ts-node-esm scripts/verifyEnv.ts
+```
+or
+```bash
+node --loader ts-node/esm scripts/verifyEnv.ts
+```
+
 ## Release
 
 Create a production archive with runtime dependencies only:
