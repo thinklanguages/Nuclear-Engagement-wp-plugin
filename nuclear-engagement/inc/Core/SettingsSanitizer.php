@@ -99,9 +99,9 @@ final class SettingsSanitizer {
 	 * @return mixed Sanitized value.
 	 */
 	public static function sanitize_setting( string $key, $value ) {
-		if ( isset( self::SANITIZATION_RULES[ $key ] ) ) {
-			$rule = self::SANITIZATION_RULES[ $key ];
-			return is_callable( $rule ) ? call_user_func( $rule, $value ) : $value;
+		if ( defined( __CLASS__ . '::SANITIZATION_RULES' ) && isset( self::SANITIZATION_RULES[ $key ] ) ) {
+		$rule = self::SANITIZATION_RULES[ $key ];
+		return is_callable( $rule ) ? call_user_func( $rule, $value ) : $value;
 		}
 
 		if ( is_array( $value ) ) {
