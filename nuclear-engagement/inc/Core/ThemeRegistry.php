@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 /**
- * File: includes/Themes.php
+ * File: inc/Core/ThemeRegistry.php
  *
  * Provides a simple registry of available CSS themes.
  *

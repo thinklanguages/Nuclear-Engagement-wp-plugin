@@ -4,7 +4,7 @@ use NuclearEngagement\Core\ThemeRegistry;
 
 class ThemeRegistryTest extends TestCase {
 	public static function setUpBeforeClass(): void {
-		require_once dirname(__DIR__) . '/nuclear-engagement/inc/Core/Themes.php';
+       require_once dirname(__DIR__) . '/nuclear-engagement/inc/Core/ThemeRegistry.php';
 	}
 
 	protected function setUp(): void {
