@@ -13,14 +13,14 @@ namespace {
     use NuclearEngagement\Services\GenerationPoller;
     use NuclearEngagement\Core\SettingsRepository;
 
-    class DummyRemoteApiService {
+    class PollerDummyRemoteApiService {
         public array $updates = [];
         public function fetch_updates(string $id): array {
             return $this->updates[$id] ?? [];
         }
     }
 
-    class DummyContentStorageService {
+    class PollerDummyContentStorageService {
         public array $calls = [];
         public function storeResults(array $results, string $workflow): array {
             $this->calls[] = [$results, $workflow];
@@ -37,13 +37,13 @@ namespace {
             SettingsRepository::reset_for_tests();
         }
 
-        private function makePoller(?DummyRemoteApiService $api = null, ?DummyContentStorageService $store = null): GenerationPoller {
+        private function makePoller(?PollerDummyRemoteApiService $api = null, ?PollerDummyContentStorageService $store = null): GenerationPoller {
             $settings = SettingsRepository::get_instance();
             $settings->set_bool('connected', true)
                      ->set_bool('wp_app_pass_created', true)
                      ->save();
-            $api = $api ?: new DummyRemoteApiService();
-            $store = $store ?: new DummyContentStorageService();
+            $api = $api ?: new PollerDummyRemoteApiService();
+            $store = $store ?: new PollerDummyContentStorageService();
             return new GenerationPoller($settings, $api, $store);
         }
 
@@ -67,9 +67,9 @@ namespace {
             global $wp_options, $wp_events;
             $id = 'gid1';
             $wp_options['nuclen_active_generations'] = [$id => ['foo']];
-            $api = new DummyRemoteApiService();
+            $api = new PollerDummyRemoteApiService();
             $api->updates[$id] = ['results' => ['1' => ['ok']]];
-            $store = new DummyContentStorageService();
+            $store = new PollerDummyContentStorageService();
             $poller = $this->makePoller($api, $store);
             $poller->poll_generation($id, 'quiz', [1], 1);
             $this->assertCount(1, $store->calls);

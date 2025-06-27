@@ -4,7 +4,7 @@ use NuclearEngagement\Services\AutoGenerationQueue;
 use NuclearEngagement\Core\SettingsRepository;
 use NuclearEngagement\Modules\Summary\Summary_Service;
 
-class DummyRemoteApiService {
+class QueueDummyRemoteApiService {
     public array $updates = [];
     public $generateResponse = [];
     public array $lastData = [];
@@ -14,7 +14,7 @@ class DummyRemoteApiService {
     }
 }
 
-class DummyContentStorageService {
+class QueueDummyContentStorageService {
     public array $stored = [];
     public function storeResults(array $results, string $workflowType): array {
         $this->stored[] = [$results, $workflowType];
@@ -22,7 +22,7 @@ class DummyContentStorageService {
     }
 }
 
-class AQ_WPDB {
+class Queue_WPDB {
     public $posts = 'wp_posts';
     public $postmeta = 'wp_postmeta';
     public array $args = [];
@@ -55,17 +55,17 @@ class AQ_WPDB {
 }
 
 class AutoGenerationQueueTest extends TestCase {
-    private DummyRemoteApiService $api;
+    private QueueDummyRemoteApiService $api;
     protected function setUp(): void {
         global $wp_options, $wp_autoload, $wp_posts, $wp_meta, $wp_events, $wpdb;
         $wp_options = $wp_autoload = $wp_posts = $wp_meta = $wp_events = [];
-        $wpdb = new AQ_WPDB();
+        $wpdb = new Queue_WPDB();
         SettingsRepository::reset_for_tests();
     }
 
     private function makeQueue(): AutoGenerationQueue {
-        $this->api = new DummyRemoteApiService();
-        $storage   = new DummyContentStorageService();
+        $this->api = new QueueDummyRemoteApiService();
+        $storage   = new QueueDummyContentStorageService();
         return new AutoGenerationQueue($this->api, $storage, new \NuclearEngagement\Services\PostDataFetcher());
     }
 

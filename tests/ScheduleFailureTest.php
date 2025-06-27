@@ -19,7 +19,7 @@ namespace {
     use NuclearEngagement\Services\GenerationPoller;
     use NuclearEngagement\Core\SettingsRepository;
     use NuclearEngagement\Modules\Summary\Summary_Service;
-    class DummyRemoteApiService {
+    class ScheduleFailDummyRemoteApiService {
         public array $updates = [];
         public $generateResponse = [];
         public array $lastData = [];
@@ -32,7 +32,7 @@ namespace {
         }
     }
 
-    class DummyContentStorageService {
+    class ScheduleFailDummyContentStorageService {
         public array $stored = [];
         public function storeResults(array $results, string $type): array {
             $this->stored[] = [$results, $type];
@@ -40,7 +40,7 @@ namespace {
         }
     }
 
-    class AQ_WPDB {
+    class ScheduleFail_WPDB {
         public $posts = 'wp_posts';
         public $postmeta = 'wp_postmeta';
         public array $args = [];
@@ -63,16 +63,16 @@ namespace {
         protected function setUp(): void {
             global $wp_options, $wp_autoload, $wp_posts, $wp_meta, $wp_events, $wpdb;
             $wp_options = $wp_autoload = $wp_posts = $wp_meta = $wp_events = [];
-            $wpdb = new AQ_WPDB();
+            $wpdb = new ScheduleFail_WPDB();
             \NuclearEngagement\Services\LoggingService::$logs = [];
             \NuclearEngagement\Services\LoggingService::$notices = [];
             SettingsRepository::reset_for_tests();
         }
 
-        private function makeService(?DummyRemoteApiService $api = null): AutoGenerationService {
+        private function makeService(?ScheduleFailDummyRemoteApiService $api = null): AutoGenerationService {
             $settings = SettingsRepository::get_instance();
-            $api      = $api ?: new DummyRemoteApiService();
-            $storage  = new DummyContentStorageService();
+            $api      = $api ?: new ScheduleFailDummyRemoteApiService();
+            $storage  = new ScheduleFailDummyContentStorageService();
             $poller    = new GenerationPoller($settings, $api, $storage);
             $scheduler = new \NuclearEngagement\Services\AutoGenerationScheduler($poller);
             $queue     = new \NuclearEngagement\Services\AutoGenerationQueue($api, $storage, new \NuclearEngagement\Services\PostDataFetcher());
@@ -100,8 +100,8 @@ namespace {
 
         public function test_poller_failure_notifies_admin(): void {
             $settings = SettingsRepository::get_instance();
-            $api      = new DummyRemoteApiService();
-            $storage  = new DummyContentStorageService();
+            $api      = new ScheduleFailDummyRemoteApiService();
+            $storage  = new ScheduleFailDummyContentStorageService();
             $poller   = new GenerationPoller($settings, $api, $storage);
             $poller->poll_generation('gid', 'quiz', [1], 1);
             $this->assertNotEmpty(\NuclearEngagement\Services\LoggingService::$notices);

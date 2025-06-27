@@ -5,7 +5,7 @@ use NuclearEngagement\Core\SettingsRepository;
 use NuclearEngagement\Services\ApiException;
 use NuclearEngagement\Modules\Summary\Summary_Service;
 
-class DummyRemoteApiService {
+class ServiceDummyRemoteApiService {
     public array $updates = [];
     public $generateResponse = [];
     public array $lastData = [];
@@ -19,7 +19,7 @@ class DummyRemoteApiService {
     public function fetch_updates(string $id): array { return $this->updates[$id] ?? []; }
 }
 
-class DummyContentStorageService {
+class ServiceDummyContentStorageService {
     public array $stored = [];
     public function storeResults(array $results, string $workflowType): array {
         $this->stored[] = [$results, $workflowType];
@@ -27,7 +27,7 @@ class DummyContentStorageService {
     }
 }
 
-class AQ_WPDB {
+class Service_WPDB {
     public $posts = 'wp_posts';
     public $postmeta = 'wp_postmeta';
     public array $args = [];
@@ -52,14 +52,14 @@ class AutoGenerationServiceTest extends TestCase {
     protected function setUp(): void {
         global $wp_options, $wp_autoload, $wp_posts, $wp_meta, $wp_events, $wpdb;
         $wp_options = $wp_autoload = $wp_posts = $wp_meta = $wp_events = [];
-        $wpdb = new AQ_WPDB();
+        $wpdb = new Service_WPDB();
         SettingsRepository::reset_for_tests();
     }
 
-    private function makeService(?DummyRemoteApiService $api = null): AutoGenerationService {
+    private function makeService(?ServiceDummyRemoteApiService $api = null): AutoGenerationService {
         $settings = SettingsRepository::get_instance();
-        $api      = $api ?: new DummyRemoteApiService();
-        $storage  = new DummyContentStorageService();
+        $api      = $api ?: new ServiceDummyRemoteApiService();
+        $storage  = new ServiceDummyContentStorageService();
 
         $poller    = new \NuclearEngagement\Services\GenerationPoller($settings, $api, $storage);
         $scheduler = new \NuclearEngagement\Services\AutoGenerationScheduler($poller);
@@ -80,7 +80,7 @@ class AutoGenerationServiceTest extends TestCase {
     public function test_generate_single_does_not_schedule_on_error(): void {
         global $wp_posts, $wp_events, $wp_options;
         $wp_posts[1] = (object)[ 'ID' => 1, 'post_title' => 'T', 'post_content' => 'C' ];
-        $api = new DummyRemoteApiService();
+        $api = new ServiceDummyRemoteApiService();
         $api->generateResponse = new ApiException('nope');
         $service = $this->makeService($api);
         $service->generate_single(1, 'quiz');
@@ -93,7 +93,7 @@ class AutoGenerationServiceTest extends TestCase {
     public function test_process_queue_handles_runtime_exception(): void {
         global $wp_posts, $wp_events, $wp_options;
         $wp_posts[1] = (object)[ 'ID' => 1, 'post_title' => 'T', 'post_content' => 'C' ];
-        $api = new DummyRemoteApiService();
+        $api = new ServiceDummyRemoteApiService();
         $api->generateResponse = new \RuntimeException('missing key');
         $service = $this->makeService($api);
         $service->generate_single(1, 'quiz');
@@ -107,7 +107,7 @@ class AutoGenerationServiceTest extends TestCase {
         global $wp_options;
         $id = 'gen123';
         $wp_options['nuclen_active_generations'] = [ $id => ['foo'=>'bar'] ];
-        $api = new DummyRemoteApiService();
+        $api = new ServiceDummyRemoteApiService();
         $api->updates[$id] = ['results' => ['1'=>['ok']]];
         $service = $this->makeService($api);
         $service->poll_generation($id, 'quiz', [1], 1);
@@ -118,7 +118,7 @@ class AutoGenerationServiceTest extends TestCase {
         global $wp_options;
         $id = 'gen999';
         $wp_options['nuclen_active_generations'] = [ $id => ['foo'=>'bar'] ];
-        $api = new DummyRemoteApiService();
+        $api = new ServiceDummyRemoteApiService();
         $service = $this->makeService($api);
         $service->poll_generation($id, 'quiz', [1], NUCLEN_MAX_POLL_ATTEMPTS);
         $this->assertArrayNotHasKey($id, $wp_options['nuclen_active_generations'] ?? []);
@@ -126,7 +126,7 @@ class AutoGenerationServiceTest extends TestCase {
 
     public function test_poll_generation_schedules_with_increasing_delay(): void {
         global $wp_events;
-        $api = new DummyRemoteApiService();
+        $api = new ServiceDummyRemoteApiService();
         $api->updates['gid'] = ['success' => true];
         $service = $this->makeService($api);
         $start = time();
@@ -172,7 +172,7 @@ class AutoGenerationServiceTest extends TestCase {
         $wp_posts[2] = (object) [ 'ID' => 2, 'post_title' => 'B', 'post_content' => 'C2' ];
         $wp_meta[1]  = [ 'nuclen_quiz_protected' => 1 ];
 
-        $api     = new DummyRemoteApiService();
+        $api     = new ServiceDummyRemoteApiService();
         $service = $this->makeService( $api );
 
         $service->generate_single( 1, 'quiz' );

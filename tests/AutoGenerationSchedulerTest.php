@@ -3,7 +3,7 @@ use PHPUnit\Framework\TestCase;
 use NuclearEngagement\Services\AutoGenerationScheduler;
 use NuclearEngagement\Core\SettingsRepository;
 
-class DummyRemoteApiService {
+class SchedulerDummyRemoteApiService {
     public array $updates = [];
     public $generateResponse = [];
     public array $lastData = [];
@@ -11,7 +11,7 @@ class DummyRemoteApiService {
     public function fetch_updates(string $id): array { return $this->updates[$id] ?? []; }
 }
 
-class DummyContentStorageService {
+class SchedulerDummyContentStorageService {
     public array $stored = [];
     public function storeResults(array $results, string $workflowType): array { $this->stored[] = [$results, $workflowType]; return array_fill_keys(array_keys($results), true); }
 }
@@ -23,10 +23,10 @@ class AutoGenerationSchedulerTest extends TestCase {
         SettingsRepository::reset_for_tests();
     }
 
-    private function makeScheduler(?DummyRemoteApiService $api = null): AutoGenerationScheduler {
+    private function makeScheduler(?SchedulerDummyRemoteApiService $api = null): AutoGenerationScheduler {
         $settings = SettingsRepository::get_instance();
-        $api      = $api ?: new DummyRemoteApiService();
-        $storage  = new DummyContentStorageService();
+        $api      = $api ?: new SchedulerDummyRemoteApiService();
+        $storage  = new SchedulerDummyContentStorageService();
         $poller   = new \NuclearEngagement\Services\GenerationPoller($settings, $api, $storage);
         return new AutoGenerationScheduler($poller);
     }
@@ -35,7 +35,7 @@ class AutoGenerationSchedulerTest extends TestCase {
         global $wp_options;
         $id = 'gen123';
         $wp_options['nuclen_active_generations'] = [ $id => ['foo'=>'bar'] ];
-        $api = new DummyRemoteApiService();
+        $api = new SchedulerDummyRemoteApiService();
         $api->updates[$id] = ['results' => ['1'=>['ok']]];
         $scheduler = $this->makeScheduler($api);
         $scheduler->poll_generation($id, 'quiz', [1], 1);
