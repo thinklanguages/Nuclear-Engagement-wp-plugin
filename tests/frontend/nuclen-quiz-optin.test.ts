@@ -32,14 +32,14 @@ describe('buildOptinInlineHTML', () => {
 	  position: 'with_results',
 	});
 	const expected = `
-  <div id="nuclen-optin-container" class="nuclen-optin-with-results">
+	<div id="nuclen-optin-container" class="nuclen-optin-with-results">
 	<p class="nuclen-fg"><strong>Join us</strong></p>
 	<label for="nuclen-optin-name"  class="nuclen-fg">Name</label>
 	<input  type="text"  id="nuclen-optin-name">
 	<label for="nuclen-optin-email" class="nuclen-fg">Email</label>
 	<input  type="email" id="nuclen-optin-email" required>
 	<button type="button" id="nuclen-optin-submit">Submit</button>
-  </div>`;
+	</div>`;
 	expect(html).toBe(expected);
   });
 });
