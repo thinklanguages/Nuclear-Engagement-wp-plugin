@@ -17,6 +17,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 use NuclearEngagement\Admin\Traits\SettingsPageLoadTrait;
 use NuclearEngagement\Admin\Traits\SettingsPageSaveTrait;
+use NuclearEngagement\Admin\Traits\SettingsCollectTrait;
+use NuclearEngagement\Admin\Traits\SettingsPersistTrait;
 use NuclearEngagement\Admin\Traits\SettingsPageCustomCSSTrait;
 
 /* helper traits are autoloaded */
@@ -26,9 +28,11 @@ use NuclearEngagement\Admin\Traits\SettingsPageCustomCSSTrait;
  */
 trait SettingsPageTrait {
 
-	use SettingsPageLoadTrait;
-	use SettingsPageSaveTrait;
-	use SettingsPageCustomCSSTrait;
+use SettingsPageLoadTrait;
+use SettingsPageSaveTrait;
+use SettingsCollectTrait;
+use SettingsPersistTrait;
+use SettingsPageCustomCSSTrait;
 
 	/**
 	 * Render the plugin Settings page and handle form submission.
