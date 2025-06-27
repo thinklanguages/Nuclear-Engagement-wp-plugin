@@ -62,9 +62,74 @@ trait AssetsTrait {
 			return true;
 		}
 		if ( is_admin() || ! is_singular() ) {
-			return false;
-		}
+return false;
+}
 
+/**
+ * Build inline JS variables for opt-in settings.
+ */
+	private function get_optin_inline_js(): string {
+		$settings_repo = $this->nuclen_get_settings_repository();
+		$inline_js  = '';
+		$inline_js .= 'var NuclenOptinEnabled  = ' . ( $settings_repo->get( 'enable_optin', false ) ? 'true' : 'false' ) . "\n";
+		$raw_mandatory   = $settings_repo->get( 'optin_mandatory', false );
+		$optin_mandatory = ( $raw_mandatory === true || $raw_mandatory === 1 || $raw_mandatory === '1' );
+		$inline_js .= 'var NuclenOptinMandatory = ' . ( $optin_mandatory ? 'true' : 'false' ) . "\n";
+		$inline_js .= 'var NuclenOptinPosition = ' . json_encode( $settings_repo->get( 'optin_position', 'with_results' ) ) . "\n";
+		$inline_js .= 'var NuclenOptinPromptText = ' . json_encode( $settings_repo->get( 'optin_prompt_text', 'Please enter your details to view your score:' ) ) . "\n";
+		$inline_js .= 'var NuclenOptinButtonText = ' . json_encode( $settings_repo->get( 'optin_button_text', 'Submit' ) ) . "\n";
+		$inline_js .= 'var NuclenOptinWebhook = ' . json_encode( $settings_repo->get( 'optin_webhook', '' ) ) . "\n";
+		$inline_js .= 'var NuclenOptinSuccessMessage = ' . json_encode( $settings_repo->get( 'optin_success_message', '' ) ) . "\n";
+		$inline_js .= 'var NuclenCustomQuizHtmlAfter = ' . json_encode( $settings_repo->get( 'custom_quiz_html_after', '' ) ) . "\n";
+		return $inline_js;
+	}
+	
+	/**
+	 * Data for AJAX opt-in requests.
+	 */
+	private function get_optin_ajax_data(): array {
+		return array(
+		'url'   => admin_url( 'admin-ajax.php' ),
+		'nonce' => wp_create_nonce( 'nuclen_optin_nonce' ),
+		);
+		}
+	
+	/**
+	 * Retrieve quiz questions for the current post.
+	 */
+	private function get_post_quiz_data(): array {
+		$post_id   = get_the_ID();
+		$quiz_meta = maybe_unserialize( get_post_meta( $post_id, 'nuclen-quiz-data', true ) );
+		return ( is_array( $quiz_meta ) && isset( $quiz_meta['questions'] ) ) ? $quiz_meta['questions'] : array();
+		}
+	
+	/**
+	 * Numeric settings used by the front-end.
+	 */
+	private function get_numeric_settings(): array {
+		$repo = $this->nuclen_get_settings_repository();
+		return array(
+		'questions_per_quiz'   => $repo->get_int( 'questions_per_quiz', 10 ),
+		'answers_per_question' => $repo->get_int( 'answers_per_question', 4 ),
+		);
+	}
+	
+	/**
+	 * Translatable labels for the quiz interface.
+	 */
+	private function get_translatable_strings(): array {
+		$repo = $this->nuclen_get_settings_repository();
+		return array(
+		'retake_test'   => $repo->get( 'quiz_label_retake_test', __( 'Retake Test', 'nuclear-engagement' ) ),
+		'your_score'    => $repo->get( 'quiz_label_your_score', __( 'Your Score', 'nuclear-engagement' ) ),
+		'perfect'       => $repo->get( 'quiz_label_perfect', __( 'Perfect!', 'nuclear-engagement' ) ),
+		'well_done'     => $repo->get( 'quiz_label_well_done', __( 'Well done!', 'nuclear-engagement' ) ),
+		'retake_prompt' => $repo->get( 'quiz_label_retake_prompt', __( 'Why not retake the test?', 'nuclear-engagement' ) ),
+		'correct'       => $repo->get( 'quiz_label_correct', __( 'Correct:', 'nuclear-engagement' ) ),
+		'your_answer'   => $repo->get( 'quiz_label_your_answer', __( 'Your answer:', 'nuclear-engagement' ) ),
+		);
+	}
+	
 		$post_id = get_the_ID();
 		if ( ! $post_id ) {
 			return false;
@@ -159,62 +224,22 @@ trait AssetsTrait {
 		);
 
 		$settings_repo = $this->nuclen_get_settings_repository();
-
+		
 		/* ───── Inline scalars (booleans & strings) ───── */
-		$inline_js  = '';
-		$inline_js .= 'var NuclenOptinEnabled  = ' . ( $settings_repo->get( 'enable_optin', false ) ? 'true' : 'false' ) . ";\n";
-
-		$raw_mandatory   = $settings_repo->get( 'optin_mandatory', false );
-		$optin_mandatory = ( $raw_mandatory === true || $raw_mandatory === 1 || $raw_mandatory === '1' );
-		$inline_js      .= 'var NuclenOptinMandatory = ' . ( $optin_mandatory ? 'true' : 'false' ) . ";\n";
-
-		$inline_js .= 'var NuclenOptinPosition = ' . json_encode( $settings_repo->get( 'optin_position', 'with_results' ) ) . ";\n";
-		$inline_js .= 'var NuclenOptinPromptText = ' . json_encode( $settings_repo->get( 'optin_prompt_text', 'Please enter your details to view your score:' ) ) . ";\n";
-		$inline_js .= 'var NuclenOptinButtonText = ' . json_encode( $settings_repo->get( 'optin_button_text', 'Submit' ) ) . ";\n";
-		$inline_js .= 'var NuclenOptinWebhook = ' . json_encode( $settings_repo->get( 'optin_webhook', '' ) ) . ";\n";
-		$inline_js .= 'var NuclenOptinSuccessMessage = ' . json_encode( $settings_repo->get( 'optin_success_message', '' ) ) . ";\n";
-		$inline_js .= 'var NuclenCustomQuizHtmlAfter = ' . json_encode( $settings_repo->get( 'custom_quiz_html_after', '' ) ) . ";\n";
-
-		wp_add_inline_script( $this->plugin_name . '-front', $inline_js, 'before' );
-
+		wp_add_inline_script( $this->plugin_name . '-front', $this->get_optin_inline_js(), 'before' );
+		
 		/* ► NEW ◄ – endpoint & nonce for AJAX opt-in storage */
-		wp_localize_script(
-			$this->plugin_name . '-front',
-			'NuclenOptinAjax',
-			array(
-				'url'   => admin_url( 'admin-ajax.php' ),
-				'nonce' => wp_create_nonce( 'nuclen_optin_nonce' ),
-			)
-		);
-
+		wp_localize_script( $this->plugin_name . '-front', 'NuclenOptinAjax', $this->get_optin_ajax_data() );
+		
 		/* Per-post quiz data */
-		$post_id   = get_the_ID();
-		$quiz_meta = maybe_unserialize( get_post_meta( $post_id, 'nuclen-quiz-data', true ) );
-		$questions = ( is_array( $quiz_meta ) && isset( $quiz_meta['questions'] ) ) ? $quiz_meta['questions'] : array();
-		wp_localize_script( $this->plugin_name . '-front', 'postQuizData', $questions );
-
-		/* Numeric settings */
-		wp_localize_script(
-			$this->plugin_name . '-front',
-			'NuclenSettings',
-			array(
-				'questions_per_quiz'   => $settings_repo->get_int( 'questions_per_quiz', 10 ),
-				'answers_per_question' => $settings_repo->get_int( 'answers_per_question', 4 ),
-			)
-		);
-
-		/* Translatable strings for the quiz */
-		$ne_strings = array(
-			'retake_test'   => $settings_repo->get( 'quiz_label_retake_test', __( 'Retake Test', 'nuclear-engagement' ) ),
-			'your_score'    => $settings_repo->get( 'quiz_label_your_score', __( 'Your Score', 'nuclear-engagement' ) ),
-			'perfect'       => $settings_repo->get( 'quiz_label_perfect', __( 'Perfect!', 'nuclear-engagement' ) ),
-			'well_done'     => $settings_repo->get( 'quiz_label_well_done', __( 'Well done!', 'nuclear-engagement' ) ),
-			'retake_prompt' => $settings_repo->get( 'quiz_label_retake_prompt', __( 'Why not retake the test?', 'nuclear-engagement' ) ),
-			'correct'       => $settings_repo->get( 'quiz_label_correct', __( 'Correct:', 'nuclear-engagement' ) ),
-			'your_answer'   => $settings_repo->get( 'quiz_label_your_answer', __( 'Your answer:', 'nuclear-engagement' ) ),
-		);
-		wp_localize_script( $this->plugin_name . '-front', 'NuclenStrings', $ne_strings );
-	}
+				wp_localize_script( $this->plugin_name . '-front', 'postQuizData', $this->get_post_quiz_data() );
+				
+				/* Numeric settings */
+				wp_localize_script( $this->plugin_name . '-front', 'NuclenSettings', $this->get_numeric_settings() );
+				
+				/* Translatable strings for the quiz */
+		wp_localize_script( $this->plugin_name . '-front', 'NuclenStrings', $this->get_translatable_strings() );
+			}
 
 	/**
 	 * Force asset enqueue when shortcodes run outside post content.
