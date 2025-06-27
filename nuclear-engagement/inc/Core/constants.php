@@ -1,8 +1,12 @@
 <?php
 declare(strict_types=1);
 if ( ! defined( 'ABSPATH' ) ) {
-    exit;
-}
+	exit;
+	}
+
+	if ( ! defined( 'MB_IN_BYTES' ) ) {
+	define( 'MB_IN_BYTES', 1024 * 1024 );
+	}
 
 /**
  * Plugin-wide numeric configuration.
@@ -14,7 +18,9 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 
 /** Maximum log file size in bytes. */
-define( 'NUCLEN_LOG_FILE_MAX_SIZE', MB_IN_BYTES );
+if ( ! defined( 'NUCLEN_LOG_FILE_MAX_SIZE' ) ) {
+	define( 'NUCLEN_LOG_FILE_MAX_SIZE', MB_IN_BYTES );
+}
 
 /** Enable buffered logging. */
 define( 'NUCLEN_BUFFER_LOGS', true );
