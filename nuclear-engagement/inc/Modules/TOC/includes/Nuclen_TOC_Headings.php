@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace NuclearEngagement\Modules\TOC;
 
+use NuclearEngagement\Modules\TOC\HeadingExtractor;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -53,7 +55,7 @@ final class Nuclen_TOC_Headings {
 		if ( ! nuclen_str_contains( $content, '<h' ) ) {
 			return $content; }
 
-		foreach ( Nuclen_TOC_Utils::extract( $content, range( 1, 6 ), get_the_ID() ) as $h ) {
+               foreach ( HeadingExtractor::extract( $content, range( 1, 6 ), get_the_ID() ) as $h ) {
 			$pat         = sprintf(
 				'/(<%1$s\b(?![^>]*\bid=)[^>]*>)(%2$s)(<\/%1$s>)/is',
 				$h['tag'],
@@ -78,7 +80,7 @@ final class Nuclen_TOC_Headings {
 	 */
 	public function cache_headings_on_save( int $post_id, \WP_Post $post ): void {
 		delete_post_meta( $post_id, self::META_KEY );
-		$headings = Nuclen_TOC_Utils::extract( $post->post_content, range( 1, 6 ), $post_id );
+               $headings = HeadingExtractor::extract( $post->post_content, range( 1, 6 ), $post_id );
 		update_post_meta( $post_id, self::META_KEY, $headings );
 	}
 

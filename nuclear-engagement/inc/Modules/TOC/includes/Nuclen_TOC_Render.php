@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace NuclearEngagement\Modules\TOC;
 
 use NuclearEngagement\Core\SettingsRepository;
+use NuclearEngagement\Modules\TOC\HeadingExtractor;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -181,8 +182,8 @@ final class Nuclen_TOC_Render {
 			$settings = $this->settings;
 			$atts     = $this->prepare_shortcode_attributes( $atts, $settings );
 
-			$list  = ( strtolower( $atts['list'] ) === 'ol' ) ? 'ol' : 'ul';
-			$heads = Nuclen_TOC_Utils::extract( $post->post_content, $atts['heading_levels'], $post->ID );
+$list  = ( strtolower( $atts['list'] ) === 'ol' ) ? 'ol' : 'ul';
+$heads = HeadingExtractor::extract( $post->post_content, $atts['heading_levels'], $post->ID );
 		if ( ! $heads ) {
 			return '';
 		}

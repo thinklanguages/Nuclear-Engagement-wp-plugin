@@ -15,10 +15,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-use NuclearEngagement\Modules\TOC\Nuclen_TOC_Utils;
 use NuclearEngagement\Modules\TOC\Nuclen_TOC_Headings;
 use NuclearEngagement\Modules\TOC\Nuclen_TOC_Render;
 use NuclearEngagement\Modules\TOC\Nuclen_TOC_Admin;
+use NuclearEngagement\Modules\TOC\TocCache;
 use NuclearEngagement\Core\SettingsRepository;
 
 /*
@@ -35,7 +35,9 @@ define( 'NUCLEN_TOC_URL', plugin_dir_url( __FILE__ ) );
  * ------------------------------------------------------------------
  */
 require_once NUCLEN_TOC_DIR . 'includes/polyfills.php';
-require_once NUCLEN_TOC_DIR . 'includes/Nuclen_TOC_Utils.php';
+require_once NUCLEN_TOC_DIR . 'includes/SlugGenerator.php';
+require_once NUCLEN_TOC_DIR . 'includes/TocCache.php';
+require_once NUCLEN_TOC_DIR . 'includes/HeadingExtractor.php';
 require_once NUCLEN_TOC_DIR . 'includes/Nuclen_TOC_Assets.php';
 require_once NUCLEN_TOC_DIR . 'includes/Nuclen_TOC_View.php';
 require_once NUCLEN_TOC_DIR . 'includes/Nuclen_TOC_Headings.php';
@@ -43,8 +45,8 @@ require_once NUCLEN_TOC_DIR . 'includes/Nuclen_TOC_Render.php';
 require_once NUCLEN_TOC_DIR . 'includes/Nuclen_TOC_Admin.php';
 
 // Clear caches when posts are saved or deleted.
-add_action( 'save_post', array( 'Nuclen_TOC_Utils', 'clear_cache_for_post' ) );
-add_action( 'delete_post', array( 'Nuclen_TOC_Utils', 'clear_cache_for_post' ) );
+add_action( 'save_post', array( 'NuclearEngagement\\Modules\\TOC\\TocCache', 'clear_cache_for_post' ) );
+add_action( 'delete_post', array( 'NuclearEngagement\\Modules\\TOC\\TocCache', 'clear_cache_for_post' ) );
 
 /*
  * ------------------------------------------------------------------
