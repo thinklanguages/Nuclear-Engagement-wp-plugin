@@ -13,8 +13,6 @@ namespace {
     use PHPUnit\Framework\TestCase;
     use NuclearEngagement\Services\SetupService;
     use NuclearEngagement\Services\LoggingService;
-    use NuclearEngagement\Services\SetupService;
-    use NuclearEngagement\Services\LoggingService;
 
     if (!defined('NUCLEN_PLUGIN_VERSION')) { define('NUCLEN_PLUGIN_VERSION', '1.0'); }
     if (!defined('NUCLEN_API_TIMEOUT')) { define('NUCLEN_API_TIMEOUT', 30); }
