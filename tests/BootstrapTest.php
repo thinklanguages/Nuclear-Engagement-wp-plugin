@@ -44,10 +44,14 @@ namespace {
             $this->assertTrue($found_init, 'init hook not registered');
             $this->assertNotEmpty($GLOBALS['test_activation']);
             $this->assertNotEmpty($GLOBALS['test_deactivation']);
-            $this->assertSame('nuclear_engagement_activate_plugin', $GLOBALS['test_activation'][0][1]);
-            $this->assertSame('nuclear_engagement_deactivate_plugin', $GLOBALS['test_deactivation'][0][1]);
             $this->assertSame(NUCLEN_PLUGIN_FILE, $GLOBALS['test_activation'][0][0]);
             $this->assertSame(NUCLEN_PLUGIN_FILE, $GLOBALS['test_deactivation'][0][0]);
+            $this->assertIsArray($GLOBALS['test_activation'][0][1]);
+            $this->assertInstanceOf(\NuclearEngagement\Core\Installer::class, $GLOBALS['test_activation'][0][1][0]);
+            $this->assertSame('activate', $GLOBALS['test_activation'][0][1][1]);
+            $this->assertIsArray($GLOBALS['test_deactivation'][0][1]);
+            $this->assertInstanceOf(\NuclearEngagement\Core\Installer::class, $GLOBALS['test_deactivation'][0][1][0]);
+            $this->assertSame('deactivate', $GLOBALS['test_deactivation'][0][1][1]);
         }
     }
 }
