@@ -6,13 +6,19 @@ Follow the guidelines below when making changes.
 ## Code Style
 
 ### PHP
-- Use 4 spaces for indentation.
+- Use tabs for indentation. Spaces are not allowed.
 - Follow WordPress Coding Standards. Run `composer lint` to check.
 
-### TypeScript
-- Use 2 spaces for indentation.
+-### TypeScript
+- Use tabs for indentation. Spaces are not allowed.
 - Source files live under `src/` and are built into the `nuclear-engagement` plugin directory.
 - Do not use jQuery.
+
+## WordPress Plugin Best Practices
+- Sanitize all user input and escape output.
+- Keep code translation-ready using i18n functions.
+- Use nonces to secure forms and actions.
+- Document custom hooks and filters.
 
 ## Build & Test
 
