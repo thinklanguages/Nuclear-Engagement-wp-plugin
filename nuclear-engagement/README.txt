@@ -259,7 +259,7 @@ The tiny codebase and lazy loading assure fast loading, both in admin and on fro
 * Changed: Architecture refactoring.
 * Changed: Improved security.
 * Changed: Improved performance with optimized database indexes.
-* Deprecated: `nuclen_settings_*` global wrappers in favour of `Helpers\SettingsFunctions`.
+* Changed: Replaced `nuclen_settings_*` helpers with `Helpers\SettingsFunctions`.
 
 = 1.1 – 2025-06-13 =
 * Changed: Architecture refactoring.

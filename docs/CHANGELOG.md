@@ -22,7 +22,7 @@ Release notes for the Nuclear Engagement plugin.
 
 ## 1.1.3 – 2025-07-15
 - Changed: Settings helpers moved to `Helpers\SettingsFunctions`.
-- Deprecated: `nuclen_settings_*` global wrappers.
+- Changed: Replaced `nuclen_settings_*` helpers with `Helpers\SettingsFunctions`.
 
 ## 1.0.3 – 2025-06-11
 - Added: Uninstall data options.
