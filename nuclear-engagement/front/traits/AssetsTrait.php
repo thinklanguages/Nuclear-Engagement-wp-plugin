@@ -19,7 +19,7 @@ use NuclearEngagement\Modules\Summary\Summary_Service;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
-}
+		}
 
 trait AssetsTrait {
 
