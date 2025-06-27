@@ -10,7 +10,7 @@ declare(strict_types=1);
 
 namespace NuclearEngagement\Core;
 
-use function NuclearEngagement\nuclen_settings_array;
+use NuclearEngagement\Helpers\SettingsFunctions;
 use NuclearEngagement\Modules\Summary\Summary_Service;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -36,7 +36,7 @@ class MetaRegistration {
 	 */
 	public static function register_meta_keys(): void {
 		// Get allowed post types from settings
-		$post_types = nuclen_settings_array( 'generation_post_types', array( 'post' ) );
+               $post_types = SettingsFunctions::get_array( 'generation_post_types', array( 'post' ) );
 
 		// Register quiz data meta
 		foreach ( $post_types as $post_type ) {

@@ -20,6 +20,10 @@ Release notes for the Nuclear Engagement plugin.
 ## 1.1.2 – 2025-07-01
 - Added: Database indexes on `wp_postmeta` for quiz and summary meta keys to improve query performance.
 
+## 1.1.3 – 2025-07-15
+- Changed: Settings helpers moved to `Helpers\SettingsFunctions`.
+- Deprecated: `nuclen_settings_*` global wrappers.
+
 ## 1.0.3 – 2025-06-11
 - Added: Uninstall data options.
 - Fixed: Auto content generation upon post publish.
