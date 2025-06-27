@@ -6,7 +6,9 @@ vi.mock('../../src/admin/ts/generation/api', async () => {
   return {
     ...actual,
     nuclenFetchWithRetry,
-    NuclenStartGeneration: vi.fn(async () => nuclenFetchWithRetry()),
+    NuclenStartGeneration: vi.fn(async (...args) => {
+      return await nuclenFetchWithRetry(...args);
+    }),
   };
 });
 
