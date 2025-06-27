@@ -116,6 +116,12 @@ two dedicated classes: `QuizShortcode` and `SummaryShortcode`. Each class
 registers its shortcode and builds output using the corresponding view class.
 `ShortcodesTrait` merely instantiates these handlers and delegates calls.
 The autoloader maps the new classes under the `Front` namespace.
+## Shortcode Templates
+
+Front-end shortcodes render via minimal templates stored under `templates/front`. These files contain only markup so the handler classes remain purely logical.
+- `templates/front/quiz/shortcode.php` wraps the quiz container and attribution.
+- `templates/front/toc/shortcode.php` outputs the TOC wrapper and sticky content.
+
 
 ## Container Registration Extraction
 
