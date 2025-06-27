@@ -1,8 +1,17 @@
 <?php
-namespace NuclearEngagement {
-    class OptinData {
+namespace NuclearEngagement\Services {
+    class OptinExportService {
         public static int $calls = 0;
-        public static function handle_export(): void { self::$calls++; }
+        public function stream_csv(): void { self::$calls++; }
+    }
+}
+
+namespace NuclearEngagement {
+    use NuclearEngagement\Services\OptinExportService;
+    class OptinData {
+        public static function handle_export(): void {
+            ( new OptinExportService() )->stream_csv();
+        }
     }
 }
 
@@ -13,13 +22,13 @@ namespace {
 
     class OptinExportControllerTest extends TestCase {
         protected function setUp(): void {
-            \NuclearEngagement\OptinData::$calls = 0;
+            \NuclearEngagement\Services\OptinExportService::$calls = 0;
         }
 
         public function test_handle_invokes_export(): void {
             $c = new OptinExportController();
             $c->handle();
-            $this->assertSame(1, \NuclearEngagement\OptinData::$calls);
+            $this->assertSame(1, \NuclearEngagement\Services\OptinExportService::$calls);
         }
     }
 }
