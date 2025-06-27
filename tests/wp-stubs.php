@@ -40,3 +40,9 @@ if (!function_exists('wp_remote_retrieve_body')) {
     }
 }
 
+if (!function_exists('locate_template')) {
+    function locate_template($names, $load = false, $require_once = true, $args = []) {
+        return '';
+    }
+}
+

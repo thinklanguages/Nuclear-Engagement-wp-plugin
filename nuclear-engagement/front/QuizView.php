@@ -7,76 +7,74 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 class QuizView {
-	public function container( array $settings ): string {
-		$html = '<section id="nuclen-quiz-container" class="nuclen-quiz">';
-		if ( trim( $settings['html_before'] ) !== '' ) {
-			$html .= $this->startMessage( $settings['html_before'] );
-		}
-		$html .= $this->title( $settings['quiz_title'] );
-		$html .= $this->progressBar();
-		$html .= $this->questionContainer();
-		$html .= $this->answersContainer();
-		$html .= $this->resultContainer();
-		$html .= $this->explanationContainer();
-		$html .= $this->nextButton();
-		$html .= $this->finalResultContainer();
-		$html .= '</section>';
-		return $html;
-	}
+	   public function container( array $settings ): string {
+		   $data = array(
+			   'start_message'		  => '',
+			   'title'			  => $this->title( $settings['quiz_title'] ),
+			   'progress_bar'		  => $this->progressBar(),
+			   'question_container'	  => $this->questionContainer(),
+			   'answers_container'	  => $this->answersContainer(),
+			   'result_container'	  => $this->resultContainer(),
+			   'explanation_container' => $this->explanationContainer(),
+			   'next_button'		  => $this->nextButton(),
+			   'final_result_container' => $this->finalResultContainer(),
+		   );
 
-	public function attribution( bool $show ): string {
-		if ( ! $show ) {
-			return '';
-		}
-		return sprintf(
-			'<div class="nuclen-attribution">%s <a rel="nofollow" href="https://www.nuclearengagement.com" target="_blank">%s</a></div>',
-			esc_html__( 'Quiz by', 'nuclear-engagement' ),
-			esc_html__( 'Nuclear Engagement', 'nuclear-engagement' )
-		);
-	}
+		   if ( trim( $settings['html_before'] ) !== '' ) {
+			   $data['start_message'] = $this->startMessage( $settings['html_before'] );
+		   }
 
-	private function startMessage( string $html_before ): string {
-		return sprintf(
-			'<div id="nuclen-quiz-start-message" class="nuclen-fg">%s</div>',
-			shortcode_unautop( $html_before )
-		);
-	}
+		   return $this->render( 'container', $data );
+	   }
 
-	private function title( string $title ): string {
-		return sprintf(
-			'<h2 id="nuclen-quiz-title" class="nuclen-fg">%s</h2>',
-			esc_html( $title )
-		);
-	}
+	   public function attribution( bool $show ): string {
+		   return $this->render( 'attribution', array( 'show' => $show ) );
+	   }
 
-	private function progressBar(): string {
-		return '<div id="nuclen-quiz-progress-bar-container"><div id="nuclen-quiz-progress-bar"></div></div>';
-	}
+	   private function startMessage( string $html_before ): string {
+		   return $this->render( 'start-message', array( 'html_before' => $html_before ) );
+	   }
 
-	private function questionContainer(): string {
-		return '<div id="nuclen-quiz-question-container" class="nuclen-fg"></div>';
-	}
+	   private function title( string $title ): string {
+		   return $this->render( 'title', array( 'title' => $title ) );
+	   }
 
-	private function answersContainer(): string {
-		return '<div id="nuclen-quiz-answers-container" class="nuclen-quiz-answers-grid"></div>';
-	}
+	   private function progressBar(): string {
+		   return $this->render( 'progress-bar' );
+	   }
 
-	private function resultContainer(): string {
-		return '<div id="nuclen-quiz-result-container"></div>';
-	}
+	   private function questionContainer(): string {
+		   return $this->render( 'question-container' );
+	   }
 
-	private function explanationContainer(): string {
-		return '<div id="nuclen-quiz-explanation-container" class="nuclen-fg nuclen-quiz-hidden"></div>';
-	}
+	   private function answersContainer(): string {
+		   return $this->render( 'answers-container' );
+	   }
 
-	private function nextButton(): string {
-		return sprintf(
-			'<button id="nuclen-quiz-next-button" class="nuclen-quiz-hidden">%s</button>',
-			esc_html__( 'Next', 'nuclear-engagement' )
-		);
-	}
+	   private function resultContainer(): string {
+		   return $this->render( 'result-container' );
+	   }
 
-	private function finalResultContainer(): string {
-		return '<div id="nuclen-quiz-final-result-container"></div>';
-	}
+	   private function explanationContainer(): string {
+		   return $this->render( 'explanation-container' );
+	   }
+
+	   private function nextButton(): string {
+		   return $this->render( 'next-button' );
+	   }
+
+	   private function finalResultContainer(): string {
+		   return $this->render( 'final-result-container' );
+	   }
+
+	   private function render( string $slug, array $data = array() ): string {
+		   $template = locate_template( array( 'nuclear-engagement/quiz/' . $slug . '.php' ), false, false );
+		   if ( '' === $template ) {
+			   $template = NUCLEN_PLUGIN_DIR . 'templates/front/quiz/' . $slug . '.php';
+		   }
+		   ob_start();
+		   extract( $data, EXTR_SKIP );
+		   include $template;
+		   return ob_get_clean();
+	   }
 }
