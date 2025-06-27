@@ -29,9 +29,9 @@ define( 'NUCLEN_SUMMARY_URL', plugin_dir_url( __FILE__ ) );
 ------------------------------------------------------------------
  * Includes
  * ------------------------------------------------------------------ */
-require_once NUCLEN_SUMMARY_DIR . 'includes/Nuclen_Summary_View.php';
-require_once NUCLEN_SUMMARY_DIR . 'includes/Nuclen_Summary_Shortcode.php';
-require_once NUCLEN_SUMMARY_DIR . 'includes/Nuclen_Summary_Metabox.php';
+require_once NUCLEN_SUMMARY_DIR . 'Nuclen_Summary_View.php';
+require_once NUCLEN_SUMMARY_DIR . 'Nuclen_Summary_Shortcode.php';
+require_once NUCLEN_SUMMARY_DIR . 'Nuclen_Summary_Metabox.php';
 
 /*
 ------------------------------------------------------------------
