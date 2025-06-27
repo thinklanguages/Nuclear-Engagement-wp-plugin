@@ -17,6 +17,7 @@ use NuclearEngagement\Core\SettingsRepository;
 use NuclearEngagement\Services\SetupService;
 use NuclearEngagement\Admin\Setup\ConnectHandler;
 use NuclearEngagement\Admin\Setup\AppPasswordHandler;
+use NuclearEngagement\Utils\Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -25,7 +26,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class Setup {
 
-/** @var \NuclearEngagement\Utils */
+/** @var Utils */
 private $utils;
 
 private ConnectHandler $connect_handler;
@@ -38,7 +39,7 @@ private AppPasswordHandler $app_password_handler;
 	private $settings_repository;
 
 public function __construct( SettingsRepository $settings_repository ) {
-$this->utils			   = new \NuclearEngagement\Utils();
+$this->utils			   = new Utils();
 $this->setup_service	   = new SetupService();
 $this->settings_repository = $settings_repository;
 $this->connect_handler	   = new ConnectHandler( $this->setup_service, $this->settings_repository );
