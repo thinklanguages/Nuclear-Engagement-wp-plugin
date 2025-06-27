@@ -22,85 +22,101 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 final class ContainerRegistrar {
-	public static function register( Container $container, SettingsRepository $settings ): void {
-		$container->register( 'settings', static fn() => $settings );
+       public static function register( Container $container, SettingsRepository $settings ): void {
+               $container->register( 'settings', static fn() => $settings );
 
-		$container->register( 'admin_notice_service', static fn() => new AdminNoticeService() );
-		$container->register( 'logging_service', static fn( Container $c ) => new LoggingService( $c->get( 'admin_notice_service' ) ) );
+               self::register_base_services( $container );
+               self::register_remote_services( $container );
+               self::register_generation_services( $container );
+               self::register_utility_services( $container );
+               self::register_controllers( $container );
+       }
 
+       private static function register_base_services( Container $container ): void {
+               $container->register( 'admin_notice_service', static fn() => new AdminNoticeService() );
+               $container->register( 'logging_service', static fn( Container $c ) => new LoggingService( $c->get( 'admin_notice_service' ) ) );
+       }
+
+       private static function register_remote_services( Container $container ): void {
                $container->register( 'remote_request', static fn() => new RemoteRequest() );
                $container->register( 'api_response_handler', static fn() => new ApiResponseHandler() );
-		$container->register( 'remote_api', static fn( Container $c ) => new RemoteApiService( $c->get( 'settings' ), $c->get( 'remote_request' ), $c->get( 'api_response_handler' ) ) );
-		$container->register( 'content_storage', static fn( Container $c ) => new ContentStorageService( $c->get( 'settings' ) ) );
+               $container->register( 'remote_api', static fn( Container $c ) => new RemoteApiService( $c->get( 'settings' ), $c->get( 'remote_request' ), $c->get( 'api_response_handler' ) ) );
+               $container->register( 'content_storage', static fn( Container $c ) => new ContentStorageService( $c->get( 'settings' ) ) );
+       }
 
-				$container->register(
-					'generation_poller',
-					static fn( Container $c ) => new GenerationPoller(
-						$c->get( 'settings' ),
-						$c->get( 'remote_api' ),
-						$c->get( 'content_storage' )
-					)
-				);
+       private static function register_generation_services( Container $container ): void {
+               $container->register(
+                       'generation_poller',
+                       static fn( Container $c ) => new GenerationPoller(
+                               $c->get( 'settings' ),
+                               $c->get( 'remote_api' ),
+                               $c->get( 'content_storage' )
+                       )
+               );
 
-				$container->register(
-					'auto_generation_queue',
-					static fn( Container $c ) => new AutoGenerationQueue(
-						$c->get( 'remote_api' ),
-						$c->get( 'content_storage' ),
-						new PostDataFetcher()
-					)
-				);
+               $container->register(
+                       'auto_generation_queue',
+                       static fn( Container $c ) => new AutoGenerationQueue(
+                               $c->get( 'remote_api' ),
+                               $c->get( 'content_storage' ),
+                               new PostDataFetcher()
+                       )
+               );
 
-				$container->register(
-					'auto_generation_scheduler',
-					static fn( Container $c ) => new AutoGenerationScheduler(
-						$c->get( 'generation_poller' )
-					)
-				);
+               $container->register(
+                       'auto_generation_scheduler',
+                       static fn( Container $c ) => new AutoGenerationScheduler(
+                               $c->get( 'generation_poller' )
+                       )
+               );
 
-		$container->register(
-			'publish_generation_handler',
-			static fn( Container $c ) => new PublishGenerationHandler(
-				$c->get( 'settings' )
-			)
-		);
+               $container->register(
+                       'publish_generation_handler',
+                       static fn( Container $c ) => new PublishGenerationHandler(
+                               $c->get( 'settings' )
+                       )
+               );
 
-				$container->register(
-					'auto_generation_service',
-					static fn( Container $c ) => new AutoGenerationService(
-						$c->get( 'settings' ),
-						$c->get( 'auto_generation_queue' ),
-						$c->get( 'auto_generation_scheduler' ),
-						$c->get( 'publish_generation_handler' )
-					)
-				);
+               $container->register(
+                       'auto_generation_service',
+                       static fn( Container $c ) => new AutoGenerationService(
+                               $c->get( 'settings' ),
+                               $c->get( 'auto_generation_queue' ),
+                               $c->get( 'auto_generation_scheduler' ),
+                               $c->get( 'publish_generation_handler' )
+                       )
+               );
 
-				$container->register(
-						'generation_service',
-						static fn( Container $c ) => new GenerationService(
-								$c->get( 'settings' ),
-								$c->get( 'remote_api' ),
-								$c->get( 'content_storage' ),
-								new PostDataFetcher()
-						)
-				);
+               $container->register(
+                       'generation_service',
+                       static fn( Container $c ) => new GenerationService(
+                               $c->get( 'settings' ),
+                               $c->get( 'remote_api' ),
+                               $c->get( 'content_storage' ),
+                               new PostDataFetcher()
+                       )
+               );
+       }
 
-		$container->register( 'pointer_service', static fn() => new PointerService() );
-				$container->register( 'posts_query_service', static fn() => new PostsQueryService() );
-				$container->register( 'dashboard_data_service', static fn() => new DashboardDataService() );
-				$container->register( 'version_service', static fn() => new VersionService() );
+       private static function register_utility_services( Container $container ): void {
+               $container->register( 'pointer_service', static fn() => new PointerService() );
+               $container->register( 'posts_query_service', static fn() => new PostsQueryService() );
+               $container->register( 'dashboard_data_service', static fn() => new DashboardDataService() );
+               $container->register( 'version_service', static fn() => new VersionService() );
+       }
 
-		$container->register( 'generate_controller', static fn( Container $c ) => new GenerateController( $c->get( 'generation_service' ) ) );
-		$container->register( 'updates_controller', static fn( Container $c ) => new UpdatesController( $c->get( 'remote_api' ), $c->get( 'content_storage' ) ) );
-		$container->register( 'pointer_controller', static fn( Container $c ) => new PointerController( $c->get( 'pointer_service' ) ) );
-		$container->register( 'posts_count_controller', static fn( Container $c ) => new PostsCountController( $c->get( 'posts_query_service' ) ) );
-				$container->register(
-					'content_controller',
-					static fn( Container $c ) => new ContentController(
-						$c->get( 'content_storage' ),
-						$c->get( 'settings' )
-					)
-				);
-		$container->register( 'optin_export_controller', static fn() => new OptinExportController() );
-	}
+       private static function register_controllers( Container $container ): void {
+               $container->register( 'generate_controller', static fn( Container $c ) => new GenerateController( $c->get( 'generation_service' ) ) );
+               $container->register( 'updates_controller', static fn( Container $c ) => new UpdatesController( $c->get( 'remote_api' ), $c->get( 'content_storage' ) ) );
+               $container->register( 'pointer_controller', static fn( Container $c ) => new PointerController( $c->get( 'pointer_service' ) ) );
+               $container->register( 'posts_count_controller', static fn( Container $c ) => new PostsCountController( $c->get( 'posts_query_service' ) ) );
+               $container->register(
+                       'content_controller',
+                       static fn( Container $c ) => new ContentController(
+                               $c->get( 'content_storage' ),
+                               $c->get( 'settings' )
+                       )
+               );
+               $container->register( 'optin_export_controller', static fn() => new OptinExportController() );
+       }
 }
