@@ -175,6 +175,72 @@ class PostsQueryService {
     }
 
     /**
+     * Build SQL JOIN and WHERE clauses for a posts count query.
+     *
+     * @param PostsCountRequest $request
+     * @return string
+     */
+    private function build_sql_clauses( PostsCountRequest $request ): string {
+        global $wpdb;
+
+        $joins  = array();
+        $wheres = array();
+
+        $wheres[] = $wpdb->prepare( 'p.post_type = %s', $request->postType );
+
+        if ( 'any' !== $request->postStatus ) {
+            $wheres[] = $wpdb->prepare( 'p.post_status = %s', $request->postStatus );
+        }
+
+        if ( $request->authorId ) {
+            $wheres[] = $wpdb->prepare( 'p.post_author = %d', $request->authorId );
+        }
+
+        if ( $request->categoryId ) {
+            $joins[]  = "JOIN {$wpdb->term_relationships} tr ON tr.object_id = p.ID";
+            $joins[]  = "JOIN {$wpdb->term_taxonomy} tt ON tt.term_taxonomy_id = tr.term_taxonomy_id AND tt.taxonomy = 'category'";
+            $wheres[] = $wpdb->prepare( 'tt.term_id = %d', $request->categoryId );
+        }
+
+        if ( ! $request->allowRegenerate ) {
+            $meta_key = $request->workflow === 'quiz' ? 'nuclen-quiz-data' : Summary_Service::META_KEY;
+            $joins[]  = $wpdb->prepare( "LEFT JOIN {$wpdb->postmeta} pm_exist ON pm_exist.post_id = p.ID AND pm_exist.meta_key = %s", $meta_key );
+            $wheres[] = 'pm_exist.meta_id IS NULL';
+        }
+
+        if ( ! $request->regenerateProtected ) {
+            $prot_key = $request->workflow === 'quiz' ? 'nuclen_quiz_protected' : Summary_Service::PROTECTED_KEY;
+            $joins[]  = $wpdb->prepare( "LEFT JOIN {$wpdb->postmeta} pm_prot ON pm_prot.post_id = p.ID AND pm_prot.meta_key = %s", $prot_key );
+            $wheres[] = "(pm_prot.meta_id IS NULL OR pm_prot.meta_value != '1')";
+        }
+
+        $sql = "FROM {$wpdb->posts} p " . implode( ' ', $joins );
+        if ( $wheres ) {
+            $sql .= ' WHERE ' . implode( ' AND ', $wheres );
+        }
+
+        return $sql;
+    }
+
+    /**
+     * Execute the COUNT query for posts.
+     *
+     * @param string $sql
+     * @return int
+     */
+    private function execute_count_query( string $sql ): int {
+        global $wpdb;
+
+        $count = (int) $wpdb->get_var( "SELECT COUNT(DISTINCT p.ID) $sql" );
+
+        if ( $wpdb->last_error ) {
+            LoggingService::log( 'Posts query error: ' . $wpdb->last_error );
+        }
+
+        return $count;
+    }
+
+    /**
      * Get posts count and IDs
      *
      * @param PostsCountRequest $request
@@ -193,45 +259,10 @@ class PostsQueryService {
                     return $cached;
         }
 
-            global $wpdb;
+        global $wpdb;
 
-            $joins  = array();
-            $wheres = array();
-
-            $wheres[] = $wpdb->prepare( 'p.post_type = %s', $request->postType );
-
-        if ( 'any' !== $request->postStatus ) {
-                    $wheres[] = $wpdb->prepare( 'p.post_status = %s', $request->postStatus );
-        }
-
-        if ( $request->authorId ) {
-                $wheres[] = $wpdb->prepare( 'p.post_author = %d', $request->authorId );
-        }
-
-        if ( $request->categoryId ) {
-                $joins[]  = "JOIN {$wpdb->term_relationships} tr ON tr.object_id = p.ID";
-                $joins[]  = "JOIN {$wpdb->term_taxonomy} tt ON tt.term_taxonomy_id = tr.term_taxonomy_id AND tt.taxonomy = 'category'";
-                $wheres[] = $wpdb->prepare( 'tt.term_id = %d', $request->categoryId );
-        }
-
-        if ( ! $request->allowRegenerate ) {
-                $meta_key = $request->workflow === 'quiz' ? 'nuclen-quiz-data' : Summary_Service::META_KEY;
-                $joins[]  = $wpdb->prepare( "LEFT JOIN {$wpdb->postmeta} pm_exist ON pm_exist.post_id = p.ID AND pm_exist.meta_key = %s", $meta_key );
-                $wheres[] = 'pm_exist.meta_id IS NULL';
-        }
-
-        if ( ! $request->regenerateProtected ) {
-                $prot_key = $request->workflow === 'quiz' ? 'nuclen_quiz_protected' : Summary_Service::PROTECTED_KEY;
-                $joins[]  = $wpdb->prepare( "LEFT JOIN {$wpdb->postmeta} pm_prot ON pm_prot.post_id = p.ID AND pm_prot.meta_key = %s", $prot_key );
-                $wheres[] = "(pm_prot.meta_id IS NULL OR pm_prot.meta_value != '1')";
-        }
-
-                $sql = "FROM {$wpdb->posts} p " . implode( ' ', $joins );
-        if ( $wheres ) {
-                $sql .= ' WHERE ' . implode( ' AND ', $wheres );
-        }
-
-                $count = (int) $wpdb->get_var( "SELECT COUNT(DISTINCT p.ID) $sql" );
+        $sql   = $this->build_sql_clauses( $request );
+        $count = $this->execute_count_query( $sql );
 
                 $post_ids = array();
                 $limit    = 1000;
