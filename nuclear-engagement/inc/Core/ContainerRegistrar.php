@@ -28,8 +28,8 @@ final class ContainerRegistrar {
 		$container->register( 'admin_notice_service', static fn() => new AdminNoticeService() );
 		$container->register( 'logging_service', static fn( Container $c ) => new LoggingService( $c->get( 'admin_notice_service' ) ) );
 
-		$container->register( 'remote_request', static fn() => new Services\Remote\RemoteRequest() );
-		$container->register( 'api_response_handler', static fn() => new Services\Remote\ApiResponseHandler() );
+               $container->register( 'remote_request', static fn() => new RemoteRequest() );
+               $container->register( 'api_response_handler', static fn() => new ApiResponseHandler() );
 		$container->register( 'remote_api', static fn( Container $c ) => new RemoteApiService( $c->get( 'settings' ), $c->get( 'remote_request' ), $c->get( 'api_response_handler' ) ) );
 		$container->register( 'content_storage', static fn( Container $c ) => new ContentStorageService( $c->get( 'settings' ) ) );
 
