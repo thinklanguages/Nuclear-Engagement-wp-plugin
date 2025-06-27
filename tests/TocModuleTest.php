@@ -172,7 +172,9 @@ if ( ! function_exists( 'get_the_ID' ) ) {
 // Load plugin classes
 // ------------------------------------------------------
 require_once NUCLEN_TOC_DIR . 'includes/polyfills.php';
-require_once NUCLEN_TOC_DIR . 'includes/class-nuclen-toc-utils.php';
+require_once NUCLEN_TOC_DIR . 'includes/SlugGenerator.php';
+require_once NUCLEN_TOC_DIR . 'includes/TocCache.php';
+require_once NUCLEN_TOC_DIR . 'includes/HeadingExtractor.php';
 require_once NUCLEN_TOC_DIR . 'includes/class-nuclen-toc-view.php';
 require_once NUCLEN_TOC_DIR . 'includes/class-nuclen-toc-assets.php';
 require_once NUCLEN_TOC_DIR . 'includes/class-nuclen-toc-headings.php';
@@ -249,13 +251,13 @@ class TocModuleTest extends TestCase {
 
 		$this->registerSettings();
 
-		\NuclearEngagement\Modules\TOC\Nuclen_TOC_Utils::extract( $wp_posts[1]->post_content, [2, 3] );
+\NuclearEngagement\Modules\TOC\HeadingExtractor::extract( $wp_posts[1]->post_content, [2, 3] );
 		$key = md5( $wp_posts[1]->post_content ) . '_23';
 
 		$this->assertArrayHasKey( $key, $wp_cache['nuclen_toc'] );
 		$this->assertArrayHasKey( 'nuclen_toc_' . $key, $transients );
 
-		\NuclearEngagement\Modules\TOC\Nuclen_TOC_Utils::clear_cache_for_post( 1 );
+\NuclearEngagement\Modules\TOC\TocCache::clear_cache_for_post( 1 );
 
 		$this->assertArrayNotHasKey( $key, $wp_cache['nuclen_toc'] );
 		$this->assertArrayNotHasKey( 'nuclen_toc_' . $key, $transients );
