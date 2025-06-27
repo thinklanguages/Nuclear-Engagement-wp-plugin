@@ -51,7 +51,7 @@ final class Bootloader {
 		}
 
 		if ( ! defined( 'NUCLEN_ASSET_VERSION' ) ) {
-			define( 'NUCLEN_ASSET_VERSION', '250625-13' );
+			define( 'NUCLEN_ASSET_VERSION', '250627-1' );
 		}
 	}
 
