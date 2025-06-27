@@ -110,22 +110,7 @@ final class Bootloader {
 		add_action(
 			'init',
 			static function () {
-				$defaults = array(
-					'theme'			   => 'bright',
-					'font_size'		   => '16',
-					'font_color'	   => '#000000',
-					'bg_color'		   => '#ffffff',
-					'border_color'	   => '#000000',
-					'border_style'	   => 'solid',
-					'border_width'	   => '1',
-					'quiz_title'	   => __( 'Test your knowledge', 'nuclear-engagement' ),
-					'summary_title'	   => __( 'Key Facts', 'nuclear-engagement' ),
-					'show_attribution' => false,
-					'display_summary'  => 'none',
-					'display_quiz'	   => 'none',
-					'display_toc'	   => 'manual',
-				);
-
+				$defaults = Defaults::nuclen_get_default_settings();
 				SettingsRepository::get_instance( $defaults );
 			},
 			20
