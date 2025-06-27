@@ -6,10 +6,10 @@ declare(strict_types=1);
  * @package NuclearEngagement\\Services
  */
 
-namespace NuclearEngagement\\Services;
+namespace NuclearEngagement\Services;
 
-use NuclearEngagement\\OptinData;
-use NuclearEngagement\\Services\\LoggingService;
+use NuclearEngagement\OptinData;
+use NuclearEngagement\Services\LoggingService;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;

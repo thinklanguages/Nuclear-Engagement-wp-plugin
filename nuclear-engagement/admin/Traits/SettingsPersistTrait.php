@@ -15,9 +15,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 trait SettingsPersistTrait {
-		 * Sanitize input and merge with defaults.
-		 */
-		private function nuclen_sanitize_and_defaults( array $raw, array $defaults ): array {
+	/**
+	 * Sanitize input and merge with defaults.
+	 */
+	private function nuclen_sanitize_and_defaults( array $raw, array $defaults ): array {
 				$new_settings = $this->nuclen_sanitize_settings( $raw );
 
 				$toc_keys = array(
