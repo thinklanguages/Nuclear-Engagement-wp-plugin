@@ -14,7 +14,7 @@ import type {
   OptinContext,
   NuclenSettings as NuclenSettingsType,
 } from './nuclen-quiz-types';
-  import { shuffle, escapeHtml } from './nuclen-quiz-utils';
+import { escapeHtml } from './nuclen-quiz-utils';
 import {
   QuizUIRefs,
   QuizState,
@@ -22,6 +22,7 @@ import {
   renderOptinBeforeResultsFlow,
 } from './nuclen-quiz-results';
 import * as logger from './logger';
+import { renderQuestion } from './nuclen-quiz-question';
 
   /* Globals injected by wp_localize_script */
   declare const postQuizData: QuizQuestion[];
@@ -90,74 +91,12 @@ import * as logger from './logger';
 
     /* Start */
     nextBtn.addEventListener('click', showNext);
-    renderQuestion();
+    renderQuestion(questions, state, ui, checkAnswer);
+
 
     /* ───────────────────────────────────────────────────────────
        Quiz flow helpers
     ─────────────────────────────────────────────────────────── */
-
-    function renderQuestion(): void {
-      const q = questions[state.currIdx];
-
-      qContainer!.innerHTML = `
-        <div id="nuclen-quiz-question-number" aria-live="polite" aria-atomic="true">
-          ${state.currIdx + 1}/${questions.length}
-        </div>
-        <div class="nuclen-quiz-title" role="heading" aria-level="2">${escapeHtml(q.question)}</div>`;
-
-      const shuffled = shuffle(
-        q.answers.map((ans, idx) => ({ ans, idx })).filter((a) => a.ans.trim()),
-      );
-
-      aContainer!.innerHTML = shuffled
-        .map(
-          (a, i) => `
-            <button
-              class="nuclen-quiz-answer-button nuclen-quiz-possible-answer"
-              data-orig-idx="${a.idx}"
-              tabindex="0"
-              aria-label="Answer ${i + 1}: ${escapeHtml(a.ans)}"
-            >${escapeHtml(a.ans)}</button>`,
-        )
-        .join('');
-
-      const correctIdx = shuffled.findIndex((a) => a.idx === 0);
-
-      /* reset */
-      explContainer!.innerHTML = '';
-      explContainer!.classList.add('nuclen-quiz-hidden');
-      nextBtn!.classList.add('nuclen-quiz-hidden');
-      updateProgress();
-
-      /* one-shot answer handler */
-      const handler = (el: HTMLElement) => {
-        const origIdx = parseInt(el.getAttribute('data-orig-idx') || '0', 10);
-        checkAnswer(origIdx, shuffled.findIndex((a) => a.idx === origIdx), correctIdx);
-        aContainer!.removeEventListener('click', clickListener);
-        aContainer!.removeEventListener('keydown', keyListener);
-      };
-
-      const clickListener = (e: Event) => {
-        const el = e.target as HTMLElement;
-        if (!el.matches('button.nuclen-quiz-answer-button')) return;
-        handler(el);
-      };
-      const keyListener = (e: KeyboardEvent) => {
-        const el = e.target as HTMLElement;
-        if (!el.matches('button.nuclen-quiz-answer-button')) return;
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          handler(el);
-        }
-      };
-
-      aContainer!.addEventListener('click', clickListener);
-      aContainer!.addEventListener('keydown', keyListener);
-    }
-
-    function updateProgress(): void {
-      progBar!.style.width = `${((state.currIdx + 1) / questions.length) * 100}%`;
-    }
 
     function checkAnswer(origIdx: number, shuffledIdx: number, correctIdx: number): void {
       if (origIdx === 0) state.score++;
@@ -191,12 +130,14 @@ import * as logger from './logger';
     function showNext(): void {
       state.currIdx++;
       if (state.currIdx < questions.length) {
-        renderQuestion();
+        renderQuestion(questions, state, ui, checkAnswer);
         return quizContainer!.scrollIntoView();
       }
 
       const finalCb = () =>
-        renderFinal(ui, optin, questions, state, renderQuestion);
+        renderFinal(ui, optin, questions, state, () =>
+          renderQuestion(questions, state, ui, checkAnswer),
+        );
 
       if (optin.enabled && optin.position === 'before_results') {
         return renderOptinBeforeResultsFlow(ui, optin, finalCb);
