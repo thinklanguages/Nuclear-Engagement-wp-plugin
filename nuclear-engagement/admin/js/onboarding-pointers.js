@@ -12,7 +12,8 @@ function nuclenLog(){
 			try {
 				const l = await fetch( e,t ),{status:c,ok:i} = l,d = await l.text().catch( () => "" ),u = d ? (() => {try {
 						return JSON.parse( d )} catch {}})() :null;if (i) {
-						returnok : ! 0,status :c,data :u};return{ok : ! 1,status :c,data :u,error :d}} catch (l) {
+                                                return { ok: !0, status: c, data: u };
+                                } return { ok: !1, status: c, data: u, error: d } } catch (l) {
 				if (s = l,o === n) {
 					break;
 				}nuclenWarn( `Retrying request to ${e} with method ${t.method || "GET"} (${n - o} attempts left). Error : ${s.message}`,s ),await new Promise( m => setTimeout( m,a ) ),a *= 2}o += 1}nuclenError(

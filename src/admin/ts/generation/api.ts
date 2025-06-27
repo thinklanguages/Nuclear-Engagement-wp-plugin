@@ -31,11 +31,22 @@ export async function nuclenFetchWithRetry<T = unknown>(
 		}
 		}
 
-		if (ok) {
-		return { ok: true, status, data };
-		}
+                if (ok) {
+                const success: NuclenFetchResult<T> = {
+                        ok: true,
+                        status: status,
+                        data: data,
+                };
+                return success;
+                }
 
-		return { ok: false, status, data, error: bodyText };
+                const fail: NuclenFetchResult<T> = {
+                        ok: false,
+                        status: status,
+                        data: data,
+                        error: bodyText,
+                };
+                return fail;
 	} catch (error: unknown) {
 		lastError = error as Error;
 		if (attempt === retries) {
