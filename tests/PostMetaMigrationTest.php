@@ -47,7 +47,8 @@ namespace {
 
         public function test_logs_error_and_sets_option_on_failure(): void {
             $this->load_bootstrap();
-            \nuclen_update_migrate_post_meta();
+            $installer = new \NuclearEngagement\Core\Installer();
+            $installer->migrate_post_meta();
             $this->assertNotEmpty(LoggingService::$logs);
             $this->assertSame('fail', get_option('nuclen_meta_migration_error'));
             $this->assertFalse(get_option('nuclen_meta_migration_done'));

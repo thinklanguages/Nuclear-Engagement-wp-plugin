@@ -5,6 +5,7 @@ use NuclearEngagement\Core\SettingsRepository;
 use NuclearEngagement\Core\Defaults;
 use NuclearEngagement\Core\Activator;
 use NuclearEngagement\Core\Deactivator;
+use NuclearEngagement\Core\Installer;
 use NuclearEngagement\Core\MetaRegistration;
 use NuclearEngagement\Core\AssetVersions;
 use NuclearEngagement\Core\Plugin;
@@ -148,18 +149,9 @@ add_action(
 	20
 );
 
-function nuclear_engagement_activate_plugin() {
-	$defaults = Defaults::nuclen_get_default_settings();
-	$settings = SettingsRepository::get_instance( $defaults );
-	Activator::nuclen_activate( $settings );
-}
-register_activation_hook( NUCLEN_PLUGIN_FILE, 'nuclear_engagement_activate_plugin' );
-
-function nuclear_engagement_deactivate_plugin() {
-	$settings = SettingsRepository::get_instance();
-	Deactivator::nuclen_deactivate( $settings );
-}
-register_deactivation_hook( NUCLEN_PLUGIN_FILE, 'nuclear_engagement_deactivate_plugin' );
+$installer = new Installer();
+register_activation_hook( NUCLEN_PLUGIN_FILE, array( $installer, 'activate' ) );
+register_deactivation_hook( NUCLEN_PLUGIN_FILE, array( $installer, 'deactivate' ) );
 
 function nuclear_engagement_redirect_on_activation() {
 	if ( get_transient( 'nuclen_plugin_activation_redirect' ) ) {
@@ -171,49 +163,7 @@ function nuclear_engagement_redirect_on_activation() {
 	}
 }
 add_action( 'admin_init', 'nuclear_engagement_redirect_on_activation' );
-
-function nuclen_update_migrate_post_meta() {
-	if ( get_option( 'nuclen_meta_migration_done' ) ) {
-		return;
-	}
-
-	global $wpdb;
-
-	$check_error = static function () use ( $wpdb ) {
-		if ( ! empty( $wpdb->last_error ) ) {
-			\NuclearEngagement\Services\LoggingService::log( 'Meta migration error: ' . $wpdb->last_error );
-			update_option( 'nuclen_meta_migration_error', $wpdb->last_error );
-			return false;
-		}
-		return true;
-	};
-
-	$wpdb->query(
-		$wpdb->prepare(
-			"UPDATE {$wpdb->postmeta} SET meta_key = %s WHERE meta_key = %s",
-                        \NuclearEngagement\Modules\Summary\Summary_Service::META_KEY,
-			'ne-summary-data'
-		)
-	);
-	if ( ! $check_error() ) {
-		return;
-	}
-
-	$wpdb->query(
-		$wpdb->prepare(
-			"UPDATE {$wpdb->postmeta} SET meta_key = %s WHERE meta_key = %s",
-			'nuclen-quiz-data',
-			'ne-quiz-data'
-		)
-	);
-	if ( ! $check_error() ) {
-		return;
-	}
-
-	delete_option( 'nuclen_meta_migration_error' );
-	update_option( 'nuclen_meta_migration_done', true );
-}
-add_action( 'admin_init', 'nuclen_update_migrate_post_meta', 20 );
+add_action( 'admin_init', array( $installer, 'migrate_post_meta' ), 20 );
 
 function nuclear_engagement_run_plugin() {
 	MetaRegistration::init();
