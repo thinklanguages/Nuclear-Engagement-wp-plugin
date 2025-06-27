@@ -23,7 +23,7 @@ trait AdminAssets {
 	public function wp_enqueue_styles() {
 		wp_enqueue_style(
 			$this->nuclen_get_plugin_name(),
-			plugin_dir_url( __FILE__ ) . 'css/nuclen-admin.css',
+plugin_dir_url( dirname( __DIR__ ) ) . 'admin/css/nuclen-admin.css',
 			array(),
 			AssetVersions::get( 'admin_css' ),
 			'all'
@@ -55,7 +55,7 @@ trait AdminAssets {
 				// separately, so no wp-pointer or jQuery dependencies here.
 				wp_enqueue_script(
 					'nuclen-admin',
-					plugin_dir_url( __DIR__ ) . 'admin/js/nuclen-admin.js',
+plugin_dir_url( dirname( __DIR__ ) ) . 'admin/js/nuclen-admin.js',
 					array(),
 					AssetVersions::get( 'admin_js' ),
 					true
@@ -111,7 +111,7 @@ trait AdminAssets {
 		if ( $hook === 'toplevel_page_nuclear-engagement' ) {
 			wp_enqueue_style(
 				$this->nuclen_get_plugin_name() . '-dashboard',
-				plugin_dir_url( __FILE__ ) . 'css/nuclen-admin-dashboard.css?v=' . NUCLEN_ASSET_VERSION,
+plugin_dir_url( dirname( __DIR__ ) ) . 'admin/css/nuclen-admin-dashboard.css?v=' . NUCLEN_ASSET_VERSION,
 				array(),
 				$this->nuclen_get_version(),
 				'all'
