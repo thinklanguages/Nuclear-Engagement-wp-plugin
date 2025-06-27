@@ -10,11 +10,14 @@ declare(strict_types=1);
 
 namespace NuclearEngagement\Core;
 
+use NuclearEngagement\Traits\CacheInvalidationTrait;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
 final class InventoryCache {
+	use CacheInvalidationTrait;
 	/** Cache key base for inventory data. */
 	public const CACHE_KEY = 'nuclen_inventory_data';
 
@@ -35,35 +38,7 @@ final class InventoryCache {
 	 */
 	public static function register_hooks(): void {
 		$cb = array( self::class, 'clear' );
-		foreach ( array(
-			'save_post',
-			'delete_post',
-			'deleted_post',
-			'trashed_post',
-			'untrashed_post',
-			'transition_post_status',
-			'clean_post_cache',
-		) as $hook ) {
-			add_action( $hook, $cb );
-		}
-		foreach ( array( 'added_post_meta', 'updated_post_meta', 'deleted_post_meta' ) as $hook ) {
-			add_action( $hook, $cb );
-		}
-		foreach ( array(
-			'create_term',
-			'created_term',
-			'edit_term',
-			'edited_term',
-			'delete_term',
-			'deleted_term',
-			'set_object_terms',
-			'added_term_relationship',
-			'deleted_term_relationships',
-			'edited_terms',
-		) as $hook ) {
-			add_action( $hook, $cb );
-		}
-		add_action( 'switch_blog', $cb );
+		self::register_invalidation_hooks( $cb );
 	}
 
 	/**
