@@ -15,7 +15,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'NUCLEN_PLUGIN_DIR', plugin_dir_path( NUCLEN_PLUGIN_FILE ) );
+if ( ! defined( 'NUCLEN_PLUGIN_DIR' ) ) {
+	define( 'NUCLEN_PLUGIN_DIR', plugin_dir_path( NUCLEN_PLUGIN_FILE ) );
+}
 
 if ( ! defined( 'NUCLEN_PLUGIN_VERSION' ) ) {
 	if ( ! function_exists( 'get_file_data' ) ) {
@@ -29,7 +31,9 @@ if ( ! defined( 'NUCLEN_PLUGIN_VERSION' ) ) {
 		define( 'NUCLEN_PLUGIN_VERSION', $data['Version'] );
 }
 
-define( 'NUCLEN_ASSET_VERSION', '250625-13' );
+if ( ! defined( 'NUCLEN_ASSET_VERSION' ) ) {
+	define( 'NUCLEN_ASSET_VERSION', '250625-13' );
+}
 
 $autoload = __DIR__ . '/vendor/autoload.php';
 if ( ! file_exists( $autoload ) ) {
