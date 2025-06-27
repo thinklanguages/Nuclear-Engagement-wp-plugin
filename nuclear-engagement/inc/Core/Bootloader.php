@@ -14,6 +14,7 @@ use NuclearEngagement\Core\MetaRegistration;
 use NuclearEngagement\Core\AssetVersions;
 use NuclearEngagement\Core\Plugin;
 use NuclearEngagement\Core\InventoryCache;
+use NuclearEngagement\Core\Autoloader;
 use NuclearEngagement\Services\PostsQueryService;
 
 /**
@@ -75,39 +76,7 @@ final class Bootloader {
 			return;
 		}
 
-		spl_autoload_register(
-			static function ( $class ) {
-				$prefix = 'NuclearEngagement\\';
-				if ( 0 !== strpos( $class, $prefix ) ) {
-					return;
-				}
-
-				$relative = str_replace( '\\', '/', substr( $class, strlen( $prefix ) ) );
-
-				$paths	 = array();
-				$paths[] = NUCLEN_PLUGIN_DIR . $relative . '.php';
-
-				$segments = explode( '/', $relative );
-				if ( in_array( $segments[0], array( 'Admin', 'Front' ), true ) ) {
-					$segments[0] = strtolower( $segments[0] );
-					$paths[]	 = NUCLEN_PLUGIN_DIR . implode( '/', $segments ) . '.php';
-
-					if ( isset( $segments[1] ) ) {
-						$paths[] = NUCLEN_PLUGIN_DIR . $segments[0] . '/traits/' . $segments[1] . '.php';
-					}
-				}
-
-				$paths[] = NUCLEN_PLUGIN_DIR . 'inc/' . $relative . '.php';
-				$paths[] = NUCLEN_PLUGIN_DIR . 'inc/Core/' . $relative . '.php';
-
-				foreach ( $paths as $file ) {
-					if ( file_exists( $file ) ) {
-						require_once $file;
-						return;
-					}
-				}
-			}
-		);
+	Autoloader::register();
 
 		if ( ! class_exists( AssetVersions::class ) ) {
 			$asset_versions_path = NUCLEN_PLUGIN_DIR . 'inc/Core/AssetVersions.php';
