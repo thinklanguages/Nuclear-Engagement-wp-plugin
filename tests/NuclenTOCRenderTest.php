@@ -57,8 +57,10 @@ if (!function_exists('is_singular')) { function is_singular(){ return true; } }
 if (!function_exists('get_the_ID')) { function get_the_ID(){ return $GLOBALS['current_post_id'] ?? 0; } }
 
 	require_once NUCLEN_TOC_DIR . 'includes/polyfills.php';
-	require_once NUCLEN_TOC_DIR . 'includes/class-nuclen-toc-utils.php';
-	require_once NUCLEN_TOC_DIR . 'includes/class-nuclen-toc-view.php';
+       require_once NUCLEN_TOC_DIR . 'includes/SlugGenerator.php';
+       require_once NUCLEN_TOC_DIR . 'includes/TocCache.php';
+       require_once NUCLEN_TOC_DIR . 'includes/HeadingExtractor.php';
+       require_once NUCLEN_TOC_DIR . 'includes/class-nuclen-toc-view.php';
 	require_once NUCLEN_TOC_DIR . 'includes/class-nuclen-toc-assets.php';
 	require_once NUCLEN_TOC_DIR . 'includes/class-nuclen-toc-headings.php';
 	require_once NUCLEN_TOC_DIR . 'includes/class-nuclen-toc-render.php';

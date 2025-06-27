@@ -52,8 +52,10 @@ namespace NuclearEngagement\Modules\TOC {
 
 namespace {
 	require_once NUCLEN_TOC_DIR . 'includes/polyfills.php';
-	require_once NUCLEN_TOC_DIR . 'includes/class-nuclen-toc-utils.php';
-	require_once NUCLEN_TOC_DIR . 'includes/class-nuclen-toc-headings.php';
+       require_once NUCLEN_TOC_DIR . 'includes/SlugGenerator.php';
+       require_once NUCLEN_TOC_DIR . 'includes/TocCache.php';
+       require_once NUCLEN_TOC_DIR . 'includes/HeadingExtractor.php';
+       require_once NUCLEN_TOC_DIR . 'includes/class-nuclen-toc-headings.php';
 
 	class NuclenTOCHeadingsTest extends TestCase {
 		protected function setUp(): void {

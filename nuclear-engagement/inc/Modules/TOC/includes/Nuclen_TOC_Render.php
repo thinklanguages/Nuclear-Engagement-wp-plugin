@@ -26,7 +26,10 @@ final class Nuclen_TOC_Render {
 	 *
 	 * @var Nuclen_TOC_Assets
 	 */
-	private Nuclen_TOC_Assets $assets;
+private Nuclen_TOC_Assets $assets;
+
+/** Heading extractor instance. */
+	private HeadingExtractor $extractor;
 
 	/**
 	 * View helper instance.
@@ -43,10 +46,11 @@ final class Nuclen_TOC_Render {
 	private SettingsRepository $settings;
 
 	/** Class constructor. */
-	public function __construct( SettingsRepository $settings ) {
-		$this->assets   = new Nuclen_TOC_Assets();
-		$this->view     = new Nuclen_TOC_View();
-		$this->settings = $settings;
+public function __construct( SettingsRepository $settings ) {
+$this->assets   = new Nuclen_TOC_Assets();
+$this->view     = new Nuclen_TOC_View();
+$this->settings = $settings;
+	$this->extractor = new HeadingExtractor();
 
 		add_shortcode( 'nuclear_engagement_toc', array( $this, 'nuclen_toc_shortcode' ) );
 
@@ -182,7 +186,7 @@ final class Nuclen_TOC_Render {
 			$atts     = $this->prepare_shortcode_attributes( $atts, $settings );
 
 			$list  = ( strtolower( $atts['list'] ) === 'ol' ) ? 'ol' : 'ul';
-			$heads = Nuclen_TOC_Utils::extract( $post->post_content, $atts['heading_levels'], $post->ID );
+$heads = $this->extractor->extract( $post->post_content, $atts['heading_levels'], $post->ID );
 		if ( ! $heads ) {
 			return '';
 		}
