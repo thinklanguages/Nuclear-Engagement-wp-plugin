@@ -13,6 +13,7 @@ namespace NuclearEngagement\Services;
 use NuclearEngagement\Requests\PostsCountRequest;
 use NuclearEngagement\Services\LoggingService;
 use NuclearEngagement\Modules\Summary\Summary_Service;
+use NuclearEngagement\Traits\CacheInvalidationTrait;
 
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
@@ -22,6 +23,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Service for querying posts
  */
 class PostsQueryService {
+	use CacheInvalidationTrait;
         /** Cache group for query results. */
     private const CACHE_GROUP = 'nuclen_posts_query';
 
@@ -35,41 +37,9 @@ class PostsQueryService {
          * Register hooks to invalidate caches when posts or terms change.
          */
     public static function register_hooks(): void {
-            $cb = array( self::class, 'clear_cache' );
-
-        foreach ( array(
-            'save_post',
-            'delete_post',
-            'deleted_post',
-            'trashed_post',
-            'untrashed_post',
-            'transition_post_status',
-            'clean_post_cache',
-        ) as $hook ) {
-                add_action( $hook, $cb );
-        }
-
-        foreach ( array( 'added_post_meta', 'updated_post_meta', 'deleted_post_meta' ) as $hook ) {
-                add_action( $hook, $cb );
-        }
-
-        foreach ( array(
-            'create_term',
-            'created_term',
-            'edit_term',
-            'edited_term',
-            'delete_term',
-            'deleted_term',
-            'set_object_terms',
-            'added_term_relationship',
-            'deleted_term_relationships',
-            'edited_terms',
-        ) as $hook ) {
-                add_action( $hook, $cb );
-        }
-
-            add_action( 'switch_blog', $cb );
-    }
+	$cb = array( self::class, 'clear_cache' );
+	self::register_cache_invalidation_hooks( $cb );
+}
 
         /**
          * Clear all cached query results.
