@@ -16,9 +16,9 @@ beforeEach(() => {
   vi.resetModules();
   document.body.innerHTML = '<div id="target"></div>';
   (window as any).nePointerData = {
-    pointers: [{ id: 'p1', target: '#target', title: 'T', content: 'C', position: { edge: 'top', align: 'center' } }],
-    ajaxurl: 'ajax.php',
-    nonce: 'n'
+	pointers: [{ id: 'p1', target: '#target', title: 'T', content: 'C', position: { edge: 'top', align: 'center' } }],
+	ajaxurl: 'ajax.php',
+	nonce: 'n'
   };
 });
 
@@ -29,17 +29,17 @@ afterEach(() => {
 
 describe('nuclen-admin-onboarding', () => {
   it('renders pointer from window data', async () => {
-    await import('../../src/admin/ts/nuclen-admin-onboarding');
-    document.dispatchEvent(new Event('DOMContentLoaded'));
-    expect(document.querySelector('.wp-pointer')).not.toBeNull();
+	await import('../../src/admin/ts/nuclen-admin-onboarding');
+	document.dispatchEvent(new Event('DOMContentLoaded'));
+	expect(document.querySelector('.wp-pointer')).not.toBeNull();
   });
 
   it('sends AJAX dismissal request', async () => {
-    await import('../../src/admin/ts/nuclen-admin-onboarding');
-    document.dispatchEvent(new Event('DOMContentLoaded'));
-    const close = document.querySelector<HTMLAnchorElement>('.wp-pointer .close')!;
-    close.click();
-    await Promise.resolve();
-    expect(nuclenFetchWithRetry).toHaveBeenCalled();
+	await import('../../src/admin/ts/nuclen-admin-onboarding');
+	document.dispatchEvent(new Event('DOMContentLoaded'));
+	const close = document.querySelector<HTMLAnchorElement>('.wp-pointer .close')!;
+	close.click();
+	await Promise.resolve();
+	expect(nuclenFetchWithRetry).toHaveBeenCalled();
   });
 });

@@ -64,15 +64,15 @@ $delete_css       = ! empty( $settings['delete_custom_css_on_uninstall'] );
 
 // Delete generated content from post meta if requested.
 if ( $delete_generated ) {
-                                $meta_keys = array(
-                                        'nuclen-quiz-data',
-                                        \NuclearEngagement\Modules\Summary\Summary_Service::META_KEY,
-                                        'nuclen_quiz_protected',
-                                        \NuclearEngagement\Modules\Summary\Summary_Service::PROTECTED_KEY,
-                                );
-                                foreach ( $meta_keys as $mk ) {
-                                                delete_post_meta_by_key( $mk );
-                                }
+								$meta_keys = array(
+										'nuclen-quiz-data',
+										\NuclearEngagement\Modules\Summary\Summary_Service::META_KEY,
+										'nuclen_quiz_protected',
+										\NuclearEngagement\Modules\Summary\Summary_Service::PROTECTED_KEY,
+								);
+								foreach ( $meta_keys as $mk ) {
+												delete_post_meta_by_key( $mk );
+								}
 }
 
 // Delete plugin settings if requested.
@@ -92,7 +92,7 @@ if ( $delete_log ) {
 
 // Remove custom theme file if requested.
 if ( $delete_css ) {
-                                $info = \NuclearEngagement\Utils\Utils::nuclen_get_custom_css_info();
+								$info = \NuclearEngagement\Utils\Utils::nuclen_get_custom_css_info();
 	if ( ! empty( $info ) && file_exists( $info['path'] ) ) {
 					wp_delete_file( $info['path'] );
 	}

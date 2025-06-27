@@ -2,8 +2,8 @@
 // Keeps backward-compatible imports across the codebase.
 
 export {
-  nuclenFetchWithRetry,
-  nuclenFetchUpdates,
-  NuclenStartGeneration,
+	nuclenFetchWithRetry,
+	nuclenFetchUpdates,
+	NuclenStartGeneration,
 } from './generation/api';
 export { NuclenPollAndPullUpdates } from './generation/polling';

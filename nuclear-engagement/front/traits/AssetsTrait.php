@@ -37,7 +37,7 @@ trait AssetsTrait {
 				);
 		}
 
-                        $css_info = \NuclearEngagement\Utils\Utils::nuclen_get_custom_css_info();
+						$css_info = \NuclearEngagement\Utils\Utils::nuclen_get_custom_css_info();
 		if ( empty( $css_info ) || empty( $css_info['url'] ) ) {
 				\NuclearEngagement\Services\LoggingService::log( 'Invalid custom CSS info - skipping' );
 				return array(
@@ -94,8 +94,8 @@ trait AssetsTrait {
 			}
 		}
 
-                if ( $display_summary !== 'manual' && $display_summary !== 'none' ) {
-                        $summary_meta = get_post_meta( $post_id, Summary_Service::META_KEY, true );
+				if ( $display_summary !== 'manual' && $display_summary !== 'none' ) {
+						$summary_meta = get_post_meta( $post_id, Summary_Service::META_KEY, true );
 			if ( is_array( $summary_meta ) && ! empty( trim( $summary_meta['summary'] ?? '' ) ) ) {
 				return true;
 			}

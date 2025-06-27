@@ -42,10 +42,10 @@ final class Nuclen_Summary_Shortcode {
 		return $html;
 	}
 
-        private function getSummaryData() {
-                $post_id = get_the_ID();
-                return get_post_meta( $post_id, Summary_Service::META_KEY, true );
-        }
+		private function getSummaryData() {
+				$post_id = get_the_ID();
+				return get_post_meta( $post_id, Summary_Service::META_KEY, true );
+		}
 
 	private function isValidSummaryData( $summary_data ): bool {
 		return ! empty( $summary_data ) && ! empty( trim( $summary_data['summary'] ?? '' ) );
