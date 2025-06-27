@@ -1,0 +1,117 @@
+{
+  "toplevel_page_nuclear-engagement": [
+    {
+      "id": "nuclen_dashboard_step1",
+      "target": "#overview-tab",
+      "title": "Post Inventory, at a Glance",
+      "content": "Keep track of which posts lack quizzes or summaries. Looks like many may need an upgrade!",
+      "position": { "edge": "top", "align": "center" }
+    },
+    {
+      "id": "nuclen_dashboard_step2",
+      "target": "#post-type-tab",
+      "title": "Custom Post Types",
+      "content": "Not only posts, but also pages and other custom types are supported.",
+      "position": { "edge": "top", "align": "center" }
+    },
+    {
+      "id": "nuclen_dashboard_step3",
+      "target": "li.toplevel_page_nuclear-engagement ul.wp-submenu a[href=\"admin.php?page=nuclear-engagement-generate\"]",
+      "title": "Generate Engaging Content",
+      "content": "Open the Generate page to create or update your content at scale.",
+      "position": { "edge": "left", "align": "center" }
+    }
+  ],
+  "nuclear-engagement_page_nuclear-engagement-generate": [
+    {
+      "id": "nuclen_generate_step1",
+      "target": "#nuclen_generate_workflow",
+      "title": "Bulk Upgrade",
+      "content": "Generate content for all selected posts in one go.",
+      "position": { "edge": "top", "align": "center" }
+    },
+    {
+      "id": "nuclen_generate_step2",
+      "target": "#nuclen-filters-form .form-table",
+      "title": "Refine Your Selection",
+      "content": "You can filter down to specific authors, categories, or post types.",
+      "position": { "edge": "top", "align": "center" }
+    },
+    {
+      "id": "nuclen_generate_step3",
+      "target": "li.toplevel_page_nuclear-engagement ul.wp-submenu a[href=\"admin.php?page=nuclear-engagement-settings\"]",
+      "title": "Customize Behavior",
+      "content": "You can finuclen-tune how and where new content is displayed under Settings.",
+      "position": { "edge": "left", "align": "center" }
+    }
+  ],
+  "nuclear-engagement_page_nuclear-engagement-settings": [
+    {
+      "id": "nuclen_settings_step1",
+      "target": "#placement-tab",
+      "title": "Display Sections as You Prefer",
+      "content": "Use shortcodes or automatically insert quiz/summary before/after post content.",
+      "position": { "edge": "top", "align": "center" }
+    },
+    {
+      "id": "nuclen_settings_step2",
+      "target": "#optin-tab",
+      "title": "Generate Leads",
+      "content": "Enable an email opt-in form at the end of the quiz, hooking into your marketing tools.",
+      "position": { "edge": "top", "align": "center" }
+    },
+    {
+      "id": "nuclen_settings_step3",
+      "target": "li.toplevel_page_nuclear-engagement ul.wp-submenu a[href=\"admin.php?page=nuclear-engagement-setup\"]",
+      "title": "Easy Setup",
+      "content": "Authorize your site to generate content with NE in two steps.",
+      "position": { "edge": "left", "align": "center" }
+    }
+  ],
+  "nuclear-engagement_page_nuclear-engagement-setup": [
+    {
+      "id": "nuclen_setup_step1",
+      "target": "#nuclen-setup-step-1",
+      "title": "Enter Your Gold Code",
+      "content": "Paste your API key to connect your site with the NE service.",
+      "position": { "edge": "top", "align": "center" }
+    },
+    {
+      "id": "nuclen_setup_step2",
+      "target": "#nuclen-setup-step-2",
+      "title": "One More Click",
+      "content": "Allow NE to push generated content directly into your site.",
+      "position": { "edge": "top", "align": "center" }
+    },
+    {
+      "id": "nuclen_setup_step3",
+      "target": "li.toplevel_page_nuclear-engagement ul.wp-submenu li.wp-first-item",
+      "title": "Check Your Dashboard",
+      "content": "See which posts need a quiz or summary the most.",
+      "position": { "edge": "left", "align": "center" }
+    }
+  ],
+  "post.php": [
+    {
+      "id": "nuclen_postedit_step1",
+      "target": "#nuclen-quiz-data-meta-box",
+      "title": "Generate from Editor",
+      "content": "Create or edit quiz content for this single post.",
+      "position": { "edge": "top", "align": "center" }
+    },
+    {
+      "id": "nuclen_postedit_step2",
+      "target": "#nuclen-generate-quiz-single",
+      "title": "One\u2011Click Generation",
+      "content": "Immediately fetch new quiz data for this post.",
+      "position": { "edge": "right", "align": "center" }
+    },
+    {
+      "id": "nuclen_postedit_step3",
+      "target": "#show-settings-link",
+      "title": "Hide Metaboxes",
+      "content": "You can hide plugin sections here if your editor is cluttered.",
+      "position": { "edge": "bottom", "align": "center" }
+    }
+  ]
+}
