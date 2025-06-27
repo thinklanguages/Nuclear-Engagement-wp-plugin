@@ -23,10 +23,14 @@ class AdminNoticeService {
 		}
 	}
 
-	public function render(): void {
-		foreach ( $this->messages as $msg ) {
-			echo '<div class="notice notice-error"><p>' . esc_html( $msg ) . '</p></div>';
-		}
-		$this->messages = array();
-	}
+       public function render(): void {
+               foreach ( $this->messages as $msg ) {
+                       load_template(
+                               NUCLEN_PLUGIN_DIR . 'templates/admin/notice.php',
+                               true,
+                               array( 'msg' => $msg )
+                       );
+               }
+               $this->messages = array();
+       }
 }

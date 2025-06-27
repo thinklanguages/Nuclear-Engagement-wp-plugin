@@ -41,8 +41,21 @@ if (!function_exists('wp_remote_retrieve_body')) {
 }
 
 if (!function_exists('locate_template')) {
-	function locate_template($names, $load = false, $require_once = true, $args = []) {
-		return '';
-	}
+        function locate_template($names, $load = false, $require_once = true, $args = []) {
+                return '';
+        }
+}
+
+if (!function_exists('load_template')) {
+       function load_template($file, $require_once = true, $args = []) {
+               if (is_array($args)) {
+                       extract($args, EXTR_SKIP);
+               }
+               if ($require_once) {
+                       require $file;
+               } else {
+                       require $file;
+               }
+       }
 }
 
