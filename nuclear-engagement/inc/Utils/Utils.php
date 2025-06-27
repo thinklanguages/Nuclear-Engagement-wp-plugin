@@ -28,17 +28,18 @@ class Utils {
 	 *
 	 * @return void
 	 */
-	public function display_nuclen_page_header(): void {
-		$image_url = plugin_dir_url( __DIR__ ) . 'assets/nuclear-engagement-logo.webp';
-		if ( ! filter_var( $image_url, FILTER_VALIDATE_URL ) ) {
-			return;
-		}
-		$image_html = '<img height="40" width="40" src="' . esc_url( $image_url ) . '" alt="' . esc_attr__( 'Nuclear Engagement Logo', 'nuclear-engagement' ) . '" />';
-		echo '<div id="nuclen-page-header">
-				' . wp_kses_post( $image_html ) . '
-				<p><b>' . esc_html__( 'NUCLEAR ENGAGEMENT', 'nuclear-engagement' ) . '</b></p>
-		</div>';
-	}
+       public function display_nuclen_page_header(): void {
+               $image_url = plugin_dir_url( __DIR__ ) . 'assets/nuclear-engagement-logo.webp';
+               if ( ! filter_var( $image_url, FILTER_VALIDATE_URL ) ) {
+                       return;
+               }
+
+               load_template(
+                       NUCLEN_PLUGIN_DIR . 'templates/admin/page-header.php',
+                       true,
+                       array( 'image_url' => $image_url )
+               );
+       }
 
 	/**
 	 * Retrieve paths and URLs for the custom CSS file.
