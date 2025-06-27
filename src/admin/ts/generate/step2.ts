@@ -19,6 +19,43 @@ import {
 import { displayError } from '../utils/displayError';
 import * as logger from '../utils/logger';
 
+async function storeResults(workflow: string, results: unknown): Promise<void> {
+        if (!results || typeof results !== 'object') {
+                return;
+        }
+        try {
+                const { ok, data } = await nuclenStoreGenerationResults(workflow, results);
+                const respData = data as Record<string, unknown>;
+                if (ok && !('code' in respData)) {
+                        logger.log('Bulk content stored in WP meta successfully:', respData);
+                } else {
+                        logger.error('Error storing bulk content in WP meta:', respData);
+                }
+        } catch (err) {
+                logger.error('Error storing bulk content in WP meta:', err);
+        }
+}
+
+function updateCompletionUi(
+        elements: GeneratePageElements,
+        failCount: number | undefined,
+        finalReport: { message?: string } | undefined,
+): void {
+        if (elements.updatesContent) {
+                if (failCount && finalReport) {
+                        elements.updatesContent.innerText = `Some posts failed. ${finalReport.message || ''}`;
+                        nuclenUpdateProgressBarStep(elements.stepBar4, 'failed');
+                } else {
+                        elements.updatesContent.innerText = 'All posts processed successfully! Your content has been saved.';
+                        nuclenUpdateProgressBarStep(elements.stepBar4, 'done');
+                }
+        }
+        if (elements.submitBtn) {
+                elements.submitBtn.disabled = false;
+        }
+        nuclenShowElement(elements.restartBtn);
+}
+
 export function initStep2(elements: GeneratePageElements): void {
 	elements.generateForm?.addEventListener('submit', async (event) => {
 	event.preventDefault();
@@ -43,51 +80,27 @@ export function initStep2(elements: GeneratePageElements): void {
 		);
 		const generationId =
 		startResp.data?.generation_id || startResp.generation_id || 'gen_' + Math.random().toString(36).substring(2);
-		NuclenPollAndPullUpdates({
-		intervalMs: 5000,
-		generationId,
-		onProgress: (processed, total) => {
-			const safeProcessed = processed === undefined ? 0 : processed;
-			const safeTotal = total === undefined ? '' : total;
-			if (elements.updatesContent) {
-			elements.updatesContent.innerText = `Processed ${safeProcessed} of ${safeTotal} posts so far...`;
-			}
-		},
-		onComplete: async ({ failCount, finalReport, results, workflow }: PollingUpdateData) => {
-			nuclenUpdateProgressBarStep(elements.stepBar3, 'done');
-			nuclenUpdateProgressBarStep(elements.stepBar4, 'current');
-			if (results && typeof results === 'object') {
-			try {
-				const { ok, data } = await nuclenStoreGenerationResults(workflow, results);
-				const respData = data as Record<string, unknown>;
-				if (ok && !('code' in respData)) {
-				logger.log('Bulk content stored in WP meta successfully:', respData);
-				} else {
-				logger.error('Error storing bulk content in WP meta:', respData);
-				}
-			} catch (err) {
-				logger.error('Error storing bulk content in WP meta:', err);
-			}
-			}
-			if (elements.updatesContent) {
-			if (failCount && finalReport) {
-				elements.updatesContent.innerText = `Some posts failed. ${finalReport.message || ''}`;
-				nuclenUpdateProgressBarStep(elements.stepBar4, 'failed');
-			} else {
-				elements.updatesContent.innerText = 'All posts processed successfully! Your content has been saved.';
-				nuclenUpdateProgressBarStep(elements.stepBar4, 'done');
-			}
-			}
-			if (elements.submitBtn) {
-			elements.submitBtn.disabled = false;
-			}
-			nuclenShowElement(elements.restartBtn);
-		},
-		onError: (errMsg: string) => {
-			nuclenUpdateProgressBarStep(elements.stepBar3, 'failed');
-			nuclenAlertApiError(errMsg);
-			if (elements.updatesContent) {
-			elements.updatesContent.innerText = `Error: ${errMsg}`;
+                NuclenPollAndPullUpdates({
+                intervalMs: 5000,
+                generationId,
+                onProgress: (processed, total) => {
+                        const safeProcessed = processed === undefined ? 0 : processed;
+                        const safeTotal = total === undefined ? '' : total;
+                        if (elements.updatesContent) {
+                                elements.updatesContent.innerText = `Processed ${safeProcessed} of ${safeTotal} posts so far...`;
+                        }
+                },
+                onComplete: async ({ failCount, finalReport, results, workflow }: PollingUpdateData) => {
+                        nuclenUpdateProgressBarStep(elements.stepBar3, 'done');
+                        nuclenUpdateProgressBarStep(elements.stepBar4, 'current');
+                        await storeResults(workflow, results);
+                        updateCompletionUi(elements, failCount, finalReport);
+                },
+                onError: (errMsg: string) => {
+                        nuclenUpdateProgressBarStep(elements.stepBar3, 'failed');
+                        nuclenAlertApiError(errMsg);
+                        if (elements.updatesContent) {
+                        elements.updatesContent.innerText = `Error: ${errMsg}`;
 			}
 			if (elements.submitBtn) {
 			elements.submitBtn.disabled = false;

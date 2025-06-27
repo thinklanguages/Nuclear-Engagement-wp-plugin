@@ -3,6 +3,46 @@
 /**
  * Sticky Table of Contents behaviour.
  */
+function applyStickyStyles(
+        wrapper: HTMLElement,
+        toc: HTMLElement,
+        placeholder: HTMLElement,
+        left: number,
+        width: number,
+        height: number,
+        headerOffset: number,
+        rectHeight: number,
+): void {
+        wrapper.classList.add('nuclen-toc-stuck');
+        wrapper.style.position = 'fixed';
+        wrapper.style.top = `${headerOffset}px`;
+        wrapper.style.left = `${left}px`;
+        wrapper.style.width = `${width}px`;
+        wrapper.style.maxHeight = `${height}px`;
+        wrapper.style.overflow = 'visible';
+
+        toc.style.maxHeight = `${height}px`;
+        toc.style.overflow = 'auto';
+
+        placeholder.style.display = 'block';
+        placeholder.style.width = `${width}px`;
+        placeholder.style.height = `${rectHeight}px`;
+}
+
+function clearStickyStyles(
+        wrapper: HTMLElement,
+        toc: HTMLElement,
+        placeholder: HTMLElement,
+): void {
+        wrapper.classList.remove('nuclen-toc-stuck');
+        wrapper.style.cssText = 'transition: top 0.25s ease-out;';
+
+        toc.style.maxHeight = '';
+        toc.style.overflow = '';
+
+        placeholder.style.display = 'none';
+}
+
 export function initStickyToc(): void {
 	const wrappers = document.querySelectorAll<HTMLElement>('.nuclen-toc-sticky');
 	if (!wrappers.length) {
@@ -54,40 +94,29 @@ export function initStickyToc(): void {
 	toc.style.position = 'relative';
 	toc.style.width = '100%';
 
-	const setStuck = (stick: boolean): void => {
-		if (stick === isStuck) {
-		return;
-		}
-		isStuck = stick;
+        const setStuck = (stick: boolean): void => {
+                if (stick === isStuck) {
+                        return;
+                }
+                isStuck = stick;
 
-		if (isStuck) {
-		const h = availHeight();
-		const w = dataMax > 0 ? Math.min(originalWidth, dataMax) : originalWidth;
-
-		wrapper.classList.add('nuclen-toc-stuck');
-		wrapper.style.position = 'fixed';
-		wrapper.style.top = `${headerOffset}px`;
-		wrapper.style.left = `${calcLeft(w)}px`;
-		wrapper.style.width = `${w}px`;
-		wrapper.style.maxHeight = `${h}px`;
-		wrapper.style.overflow = 'visible';
-
-		toc.style.maxHeight = `${h}px`;
-		toc.style.overflow = 'auto';
-
-		ph.style.display = 'block';
-		ph.style.width = `${w}px`;
-		ph.style.height = `${rect.height}px`;
-		} else {
-		wrapper.classList.remove('nuclen-toc-stuck');
-		wrapper.style.cssText = 'transition: top 0.25s ease-out;';
-
-		toc.style.maxHeight = '';
-		toc.style.overflow = '';
-
-		ph.style.display = 'none';
-		}
-	};
+                if (isStuck) {
+                        const h = availHeight();
+                        const w = dataMax > 0 ? Math.min(originalWidth, dataMax) : originalWidth;
+                        applyStickyStyles(
+                                wrapper,
+                                toc,
+                                ph,
+                                calcLeft(w),
+                                w,
+                                h,
+                                headerOffset,
+                                rect.height,
+                        );
+                } else {
+                        clearStickyStyles(wrapper, toc, ph);
+                }
+        };
 
 	const onScroll = (): void => {
 		if (raf) {
@@ -112,18 +141,24 @@ export function initStickyToc(): void {
 
 		const w = dataMax > 0 ? Math.min(originalWidth, dataMax) : originalWidth;
 
-		ph.style.width = `${w}px`;
-		ph.style.height = `${rect.height}px`;
+                ph.style.width = `${w}px`;
+                ph.style.height = `${rect.height}px`;
 
-		if (isStuck) {
-			const h = availHeight();
-			wrapper.style.left = `${calcLeft(w)}px`;
-			wrapper.style.width = `${w}px`;
-			wrapper.style.maxHeight = `${h}px`;
-			toc.style.maxHeight = `${h}px`;
-		}
-		});
-	};
+                if (isStuck) {
+                        const h = availHeight();
+                        applyStickyStyles(
+                                wrapper,
+                                toc,
+                                ph,
+                                calcLeft(w),
+                                w,
+                                h,
+                                headerOffset,
+                                rect.height,
+                        );
+                }
+                });
+        };
 
 	window.addEventListener('scroll', onScroll, { passive: true });
 	window.addEventListener('resize', onResize);
