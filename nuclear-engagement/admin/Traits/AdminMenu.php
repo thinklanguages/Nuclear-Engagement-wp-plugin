@@ -16,6 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 use NuclearEngagement\Admin\Settings;
+use NuclearEngagement\Admin\Dashboard;
 
 trait AdminMenu {
 
@@ -63,11 +64,12 @@ trait AdminMenu {
 	}
 
 	/** Dashboard page callback */
-	public function nuclen_display_dashboard() {
-		$settings_repo = $this->nuclen_get_settings_repository();
-		$data_service  = $this->get_container()->get( 'dashboard_data_service' );
-		include plugin_dir_path( __FILE__ ) . 'Dashboard.php';
-	}
+       public function nuclen_display_dashboard() {
+               $settings_repo = $this->nuclen_get_settings_repository();
+               $data_service  = $this->get_container()->get( 'dashboard_data_service' );
+               $dashboard     = new Dashboard( $settings_repo, $data_service );
+               $dashboard->render();
+       }
 
 	/**
 	 * “Generate” page callback.
