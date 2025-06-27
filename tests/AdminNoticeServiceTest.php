@@ -9,12 +9,15 @@ namespace NuclearEngagement\Services {
 }
 
 namespace {
-	use PHPUnit\Framework\TestCase;
-	use NuclearEngagement\Services\AdminNoticeService;
-	class AdminNoticeServiceTest extends TestCase {
-		protected function setUp(): void {
-			$GLOBALS['ans_actions'] = [];
-		}
+        use PHPUnit\Framework\TestCase;
+        use NuclearEngagement\Services\AdminNoticeService;
+        class AdminNoticeServiceTest extends TestCase {
+                protected function setUp(): void {
+                        $GLOBALS['ans_actions'] = [];
+                        if ( ! defined( 'NUCLEN_PLUGIN_DIR' ) ) {
+                                define( 'NUCLEN_PLUGIN_DIR', dirname( __DIR__ ) . '/nuclear-engagement/' );
+                        }
+                }
 
 		public function test_add_hooks_into_admin_notices_once(): void {
 			$service = new AdminNoticeService();
