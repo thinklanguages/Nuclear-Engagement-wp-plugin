@@ -2,6 +2,8 @@
 namespace {
     use PHPUnit\Framework\TestCase;
     use NuclearEngagement\Admin\Traits\SettingsPageSaveTrait;
+    use NuclearEngagement\Admin\Traits\SettingsCollectTrait;
+    use NuclearEngagement\Admin\Traits\SettingsPersistTrait;
     use NuclearEngagement\Admin\SettingsSanitizeTrait;
     use NuclearEngagement\Core\SettingsRepository;
     use NuclearEngagement\Core\Defaults;
@@ -17,6 +19,8 @@ namespace {
 
     class DummySettingsPage {
         use SettingsPageSaveTrait;
+        use SettingsCollectTrait;
+        use SettingsPersistTrait;
         use SettingsSanitizeTrait;
         public function nuclen_get_settings_repository() { return SettingsRepository::get_instance(); }
     }
