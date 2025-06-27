@@ -42,22 +42,17 @@ require_once NUCLEN_QUIZ_DIR . 'Quiz_Shortcode.php';
  * Spin-up
  * ------------------------------------------------------------------
 */
-add_action(
-		'plugins_loaded',
-		static function () {
-				$settings = SettingsRepository::get_instance();
-				$service  = new Quiz_Service();
+$settings = SettingsRepository::get_instance();
+$service  = new Quiz_Service();
 
-				if ( is_admin() ) {
-						( new Quiz_Admin( $settings, $service ) )->register_hooks();
-				} else {
-						$front = new FrontClass(
-								'nuclear-engagement',
-								defined( 'NUCLEN_PLUGIN_VERSION' ) ? NUCLEN_PLUGIN_VERSION : '1.0.0',
-								$settings,
-								new Container()
-						);
-						( new Quiz_Shortcode( $settings, $front, $service ) )->register();
-				}
-		}
-);
+if ( is_admin() ) {
+                ( new Quiz_Admin( $settings, $service ) )->register_hooks();
+} else {
+                $front = new FrontClass(
+                                'nuclear-engagement',
+                                defined( 'NUCLEN_PLUGIN_VERSION' ) ? NUCLEN_PLUGIN_VERSION : '1.0.0',
+                                $settings,
+                                new Container()
+                );
+                ( new Quiz_Shortcode( $settings, $front, $service ) )->register();
+}

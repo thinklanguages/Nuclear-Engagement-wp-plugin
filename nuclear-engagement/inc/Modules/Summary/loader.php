@@ -37,12 +37,14 @@ require_once NUCLEN_SUMMARY_DIR . 'Nuclen_Summary_Metabox.php';
 ------------------------------------------------------------------
  * Spin-up
  * ------------------------------------------------------------------ */
-add_action(
-	'plugins_loaded',
-	static function () {
-		new Nuclen_Summary_Shortcode( \NuclearEngagement\Core\SettingsRepository::get_instance(), new \NuclearEngagement\Front\FrontClass() );
-		if ( is_admin() ) {
-			new Nuclen_Summary_Metabox( \NuclearEngagement\Core\SettingsRepository::get_instance() );
-		}
-	}
+$settings = \NuclearEngagement\Core\SettingsRepository::get_instance();
+$front    = new \NuclearEngagement\Front\FrontClass(
+        'nuclear-engagement',
+        defined( 'NUCLEN_PLUGIN_VERSION' ) ? NUCLEN_PLUGIN_VERSION : '1.0.0',
+        $settings,
+        new \NuclearEngagement\Core\Container()
 );
+new Nuclen_Summary_Shortcode( $settings, $front );
+if ( is_admin() ) {
+        new Nuclen_Summary_Metabox( $settings );
+}
