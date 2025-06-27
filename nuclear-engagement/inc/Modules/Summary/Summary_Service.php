@@ -9,10 +9,10 @@ declare(strict_types=1);
 namespace NuclearEngagement\Modules\Summary;
 
 if ( ! defined( 'ABSPATH' ) ) {
-    exit;
+	exit;
 }
 
 final class Summary_Service {
-    public const META_KEY      = 'nuclen-summary-data';
-    public const PROTECTED_KEY = 'nuclen_summary_protected';
+	public const META_KEY      = 'nuclen-summary-data';
+	public const PROTECTED_KEY = 'nuclen_summary_protected';
 }

@@ -62,7 +62,8 @@ export default [
     // won't silently change lint behavior.
     rules: {
       ...tsPlugin.configs.recommended.rules,
-      '@typescript-eslint/no-explicit-any': 'off'
+      '@typescript-eslint/no-explicit-any': 'off',
+      indent: ['error', 'tab']
     }
   }
 ];

@@ -64,8 +64,8 @@ trait AdminAutoGenerate {
 
 		// Auto-generate summary
 		if ( $gen_summary ) {
-                        // Skip if summary is protected
-                        $protected = get_post_meta( $post->ID, \NuclearEngagement\Modules\Summary\Summary_Service::PROTECTED_KEY, true );
+						// Skip if summary is protected
+						$protected = get_post_meta( $post->ID, \NuclearEngagement\Modules\Summary\Summary_Service::PROTECTED_KEY, true );
 			if ( ! $protected ) {
 				$this->nuclen_generate_single( $post->ID, 'summary' );
 			}
@@ -110,19 +110,19 @@ trait AdminAutoGenerate {
 						$data = $api->fetch_updates( $generation_id );
 
 			// Check if we have results
-                        if ( ! empty( $data['results'] ) && is_array( $data['results'] ) ) {
-                                $statuses = $storage->storeResults( $data['results'], $workflow_type );
-                                if ( array_filter( $statuses, static fn( $s ) => $s !== true ) ) {
-                                        \NuclearEngagement\Services\LoggingService::notify_admin(
-                                                sprintf( 'Failed to store results for post %d', $post_id )
-                                        );
-                                } else {
-                                        \NuclearEngagement\Services\LoggingService::log(
-                                                "Poll success for post {$post_id} ({$workflow_type}), generation {$generation_id}"
-                                        );
-                                }
-                                return;
-                        }
+						if ( ! empty( $data['results'] ) && is_array( $data['results'] ) ) {
+								$statuses = $storage->storeResults( $data['results'], $workflow_type );
+								if ( array_filter( $statuses, static fn( $s ) => $s !== true ) ) {
+										\NuclearEngagement\Services\LoggingService::notify_admin(
+												sprintf( 'Failed to store results for post %d', $post_id )
+										);
+								} else {
+										\NuclearEngagement\Services\LoggingService::log(
+												"Poll success for post {$post_id} ({$workflow_type}), generation {$generation_id}"
+										);
+								}
+								return;
+						}
 
 			// Check if still processing
 			if ( isset( $data['success'] ) && $data['success'] === true ) {

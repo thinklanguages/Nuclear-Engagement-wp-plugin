@@ -16,8 +16,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 trait SettingsPageSaveTrait {
 
-       use SettingsCollectTrait;
-       use SettingsPersistTrait;
+	   use SettingsCollectTrait;
+	   use SettingsPersistTrait;
 
 	/**
 	 * Process and save submitted settings.
@@ -27,27 +27,27 @@ trait SettingsPageSaveTrait {
 	 * @param array &$new_settings Output: new sanitized settings.
 	 * @return bool                True if a save occurred.
 	 */
-        protected function nuclen_handle_save_settings( array &$settings, array $defaults, array &$new_settings ): bool {
+		protected function nuclen_handle_save_settings( array &$settings, array $defaults, array &$new_settings ): bool {
 
-                /* ───────── Bail if not a form submission ───────── */
-                if (
-                        ! isset( $_POST['nuclen_save_settings'] ) ||
-                        ! check_admin_referer( 'nuclen_settings_nonce', 'nuclen_settings_nonce_field', false )
-                ) {
-                        return false;
-                }
+				/* ───────── Bail if not a form submission ───────── */
+				if (
+						! isset( $_POST['nuclen_save_settings'] ) ||
+						! check_admin_referer( 'nuclen_settings_nonce', 'nuclen_settings_nonce_field', false )
+				) {
+						return false;
+				}
 
-                $raw          = $this->nuclen_collect_input();
-                $new_settings = $this->nuclen_sanitize_and_defaults( $raw, $defaults );
-                $settings     = $this->nuclen_persist_settings( $new_settings );
+				$raw          = $this->nuclen_collect_input();
+				$new_settings = $this->nuclen_sanitize_and_defaults( $raw, $defaults );
+				$settings     = $this->nuclen_persist_settings( $new_settings );
 
-                if ( 'custom' === $settings['theme'] && method_exists( $this, 'nuclen_write_custom_css' ) ) {
-                        $this->nuclen_write_custom_css( $settings );
-                }
+				if ( 'custom' === $settings['theme'] && method_exists( $this, 'nuclen_write_custom_css' ) ) {
+						$this->nuclen_write_custom_css( $settings );
+				}
 
-                $this->nuclen_output_save_notice();
+				$this->nuclen_output_save_notice();
 
-                return true;
-        }
+				return true;
+		}
 
 }

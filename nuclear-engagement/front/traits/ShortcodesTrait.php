@@ -24,17 +24,17 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 trait ShortcodesTrait {
-       private ?SummaryShortcode $summary_shortcode = null;
+	   private ?SummaryShortcode $summary_shortcode = null;
 
-       private function get_summary_shortcode(): SummaryShortcode {
-               if ( $this->summary_shortcode === null ) {
-                       $this->summary_shortcode = new SummaryShortcode(
-                               $this->nuclen_get_settings_repository(),
-                               $this
-                       );
-               }
-               return $this->summary_shortcode;
-       }
+	   private function get_summary_shortcode(): SummaryShortcode {
+			   if ( $this->summary_shortcode === null ) {
+					   $this->summary_shortcode = new SummaryShortcode(
+							   $this->nuclen_get_settings_repository(),
+							   $this
+					   );
+			   }
+			   return $this->summary_shortcode;
+	   }
 
 	/* ---------- Auto-insert into content ---------- */
 	public function nuclen_auto_insert_shortcodes( $content ) {
@@ -83,15 +83,15 @@ trait ShortcodesTrait {
 		return $before_content . $content . $after_content;
 	}
 
-       /* ---------- Shortcode registrations ---------- */
-       public function nuclen_register_quiz_shortcode() {
-               $sc = new QuizShortcode(
-                       $this->nuclen_get_settings_repository(),
-                       $this,
-                       new Quiz_Service()
-               );
-               $sc->register();
-       }
+	   /* ---------- Shortcode registrations ---------- */
+	   public function nuclen_register_quiz_shortcode() {
+			   $sc = new QuizShortcode(
+					   $this->nuclen_get_settings_repository(),
+					   $this,
+					   new Quiz_Service()
+			   );
+			   $sc->register();
+	   }
 
 	public function nuclen_register_summary_shortcode() {
 		$this->get_summary_shortcode()->register();

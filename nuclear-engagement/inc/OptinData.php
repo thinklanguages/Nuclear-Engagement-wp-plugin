@@ -81,15 +81,15 @@ class OptinData {
 		$table   = self::table_name();
 
 		$sql = "
-            CREATE TABLE {$table} (
-                id            BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
-                submitted_at  DATETIME            NOT NULL,
-                url           TEXT                NOT NULL,
-                name          TEXT                NOT NULL,
-                email         VARCHAR(255)        NOT NULL,
-                PRIMARY KEY  (id),
-                KEY email (email)
-            ) {$charset};";
+			CREATE TABLE {$table} (
+				id            BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+				submitted_at  DATETIME            NOT NULL,
+				url           TEXT                NOT NULL,
+				name          TEXT                NOT NULL,
+				email         VARCHAR(255)        NOT NULL,
+				PRIMARY KEY  (id),
+				KEY email (email)
+			) {$charset};";
 
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 		$result = dbDelta( $sql );
@@ -176,7 +176,7 @@ class OptinData {
 	 * ------------------------------------------------------------------- */
 	public static function handle_export(): void {
 
-       $service = new \NuclearEngagement\Services\OptinExportService();
-       $service->stream_csv();
+	   $service = new \NuclearEngagement\Services\OptinExportService();
+	   $service->stream_csv();
 	}
 }

@@ -3,35 +3,35 @@ use PHPUnit\Framework\TestCase;
 use NuclearEngagement\OptinData;
 
 class OptinDataTest extends TestCase {
-    private \ReflectionMethod $escapeMethod;
+	private \ReflectionMethod $escapeMethod;
 
-    protected function setUp(): void {
-        $this->escapeMethod = new \ReflectionMethod(OptinData::class, 'escape_csv_field');
-        $this->escapeMethod->setAccessible(true);
-    }
+	protected function setUp(): void {
+		$this->escapeMethod = new \ReflectionMethod(OptinData::class, 'escape_csv_field');
+		$this->escapeMethod->setAccessible(true);
+	}
 
-    public function test_escape_csv_field_prefixes_formula() {
-        $this->assertSame("'=1+1", $this->escapeMethod->invoke(null, '=1+1'));
-        $this->assertSame("'+SUM(A1)", $this->escapeMethod->invoke(null, '+SUM(A1)'));
-    }
+	public function test_escape_csv_field_prefixes_formula() {
+		$this->assertSame("'=1+1", $this->escapeMethod->invoke(null, '=1+1'));
+		$this->assertSame("'+SUM(A1)", $this->escapeMethod->invoke(null, '+SUM(A1)'));
+	}
 
-    public function test_escape_csv_field_unchanged() {
-        $this->assertSame('plain', $this->escapeMethod->invoke(null, 'plain'));
-    }
+	public function test_escape_csv_field_unchanged() {
+		$this->assertSame('plain', $this->escapeMethod->invoke(null, 'plain'));
+	}
 
-    public function test_dbDelta_not_called_when_table_exists() {
-        global $dbDelta_called, $wpdb;
+	public function test_dbDelta_not_called_when_table_exists() {
+		global $dbDelta_called, $wpdb;
 
-        $dbDelta_called = false;
-        $wpdb = new class {
-            public $prefix = 'wp_';
-            public function get_charset_collate() { return ''; }
-            public function prepare($query, $param) { return $param; }
-            public function get_var($query) { return 'wp_nuclen_optins'; }
-        };
+		$dbDelta_called = false;
+		$wpdb = new class {
+			public $prefix = 'wp_';
+			public function get_charset_collate() { return ''; }
+			public function prepare($query, $param) { return $param; }
+			public function get_var($query) { return 'wp_nuclen_optins'; }
+		};
 
-        OptinData::maybe_create_table();
+		OptinData::maybe_create_table();
 
-        $this->assertFalse($dbDelta_called);
-    }
+		$this->assertFalse($dbDelta_called);
+	}
 }

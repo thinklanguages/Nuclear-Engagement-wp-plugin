@@ -28,102 +28,102 @@ trait SettingsPageCustomCSSTrait {
 
 		$css = <<<CSS
 :root{
-    /* ───── Quiz container ───── */
-    --nuclen-fg-color: {$s['font_color']};
-    --nuclen-quiz-font-color: {$s['font_color']};
-    --nuclen-quiz-bg-color: {$s['bg_color']};
-    --nuclen-quiz-border-color: {$s['quiz_border_color']};
-    --nuclen-quiz-border-style: {$s['quiz_border_style']};
-    --nuclen-quiz-border-width: {$s['quiz_border_width']}px;
-    --nuclen-quiz-border-radius: {$s['quiz_border_radius']}px;
-    --nuclen-quiz-shadow-color: {$s['quiz_shadow_color']};
-    --nuclen-quiz-shadow-blur: {$s['quiz_shadow_blur']}px;
+	/* ───── Quiz container ───── */
+	--nuclen-fg-color: {$s['font_color']};
+	--nuclen-quiz-font-color: {$s['font_color']};
+	--nuclen-quiz-bg-color: {$s['bg_color']};
+	--nuclen-quiz-border-color: {$s['quiz_border_color']};
+	--nuclen-quiz-border-style: {$s['quiz_border_style']};
+	--nuclen-quiz-border-width: {$s['quiz_border_width']}px;
+	--nuclen-quiz-border-radius: {$s['quiz_border_radius']}px;
+	--nuclen-quiz-shadow-color: {$s['quiz_shadow_color']};
+	--nuclen-quiz-shadow-blur: {$s['quiz_shadow_blur']}px;
 
-    /* ───── Quiz answer buttons ───── */
-    --nuclen-quiz-button-bg: {$s['quiz_answer_button_bg_color']};
-    --nuclen-quiz-button-border-color: {$s['quiz_answer_button_border_color']};
-    --nuclen-quiz-button-border-width: {$s['quiz_answer_button_border_width']}px;
-    --nuclen-quiz-button-border-radius: {$s['quiz_answer_button_border_radius']}px;
+	/* ───── Quiz answer buttons ───── */
+	--nuclen-quiz-button-bg: {$s['quiz_answer_button_bg_color']};
+	--nuclen-quiz-button-border-color: {$s['quiz_answer_button_border_color']};
+	--nuclen-quiz-button-border-width: {$s['quiz_answer_button_border_width']}px;
+	--nuclen-quiz-button-border-radius: {$s['quiz_answer_button_border_radius']}px;
 
-    /* ───── Progress bar ───── */
-    --nuclen-quiz-progress-fg: {$s['quiz_progress_bar_fg_color']};
-    --nuclen-quiz-progress-bg: {$s['quiz_progress_bar_bg_color']};
-    --nuclen-quiz-progress-height: {$s['quiz_progress_bar_height']}px;
+	/* ───── Progress bar ───── */
+	--nuclen-quiz-progress-fg: {$s['quiz_progress_bar_fg_color']};
+	--nuclen-quiz-progress-bg: {$s['quiz_progress_bar_bg_color']};
+	--nuclen-quiz-progress-height: {$s['quiz_progress_bar_height']}px;
 
-    /* ───── Summary container ───── */
-    --nuclen-summary-font-color: {$s['summary_font_color']};
-    --nuclen-summary-bg-color: {$s['summary_bg_color']};
-    --nuclen-summary-border-color: {$s['summary_border_color']};
-    --nuclen-summary-border-style: {$s['summary_border_style']};
-    --nuclen-summary-border-width: {$s['summary_border_width']}px;
-    --nuclen-summary-border-radius: {$s['summary_border_radius']}px;
-    --nuclen-summary-shadow-color: {$s['summary_shadow_color']};
-    --nuclen-summary-shadow-blur: {$s['summary_shadow_blur']}px;
+	/* ───── Summary container ───── */
+	--nuclen-summary-font-color: {$s['summary_font_color']};
+	--nuclen-summary-bg-color: {$s['summary_bg_color']};
+	--nuclen-summary-border-color: {$s['summary_border_color']};
+	--nuclen-summary-border-style: {$s['summary_border_style']};
+	--nuclen-summary-border-width: {$s['summary_border_width']}px;
+	--nuclen-summary-border-radius: {$s['summary_border_radius']}px;
+	--nuclen-summary-shadow-color: {$s['summary_shadow_color']};
+	--nuclen-summary-shadow-blur: {$s['summary_shadow_blur']}px;
 
-    /* ───── TOC container ───── */
-    --nuclen-toc-font-size: {$s['toc_font_size']}px;
-    --nuclen-toc-font-color: {$s['toc_font_color']};
-    --nuclen-toc-bg-color: {$s['toc_bg_color']};
-    --nuclen-toc-border-color: {$s['toc_border_color']};
-    --nuclen-toc-border-style: {$s['toc_border_style']};
-    --nuclen-toc-border-width: {$s['toc_border_width']}px;
-    --nuclen-toc-border-radius: {$s['toc_border_radius']}px;
-    --nuclen-toc-shadow-color: {$s['toc_shadow_color']};
-    --nuclen-toc-shadow-blur: {$s['toc_shadow_blur']}px;
-    --nuclen-toc-link: {$s['toc_link_color']};
-    --nuclen-toc-sticky-max-width: {$s['toc_sticky_max_width']}px;
+	/* ───── TOC container ───── */
+	--nuclen-toc-font-size: {$s['toc_font_size']}px;
+	--nuclen-toc-font-color: {$s['toc_font_color']};
+	--nuclen-toc-bg-color: {$s['toc_bg_color']};
+	--nuclen-toc-border-color: {$s['toc_border_color']};
+	--nuclen-toc-border-style: {$s['toc_border_style']};
+	--nuclen-toc-border-width: {$s['toc_border_width']}px;
+	--nuclen-toc-border-radius: {$s['toc_border_radius']}px;
+	--nuclen-toc-shadow-color: {$s['toc_shadow_color']};
+	--nuclen-toc-shadow-blur: {$s['toc_shadow_blur']}px;
+	--nuclen-toc-link: {$s['toc_link_color']};
+	--nuclen-toc-sticky-max-width: {$s['toc_sticky_max_width']}px;
 
-    /* ───── Legacy fallbacks ───── */
-    --nuclen-fg-color: var(--nuclen-quiz-font-color);
-    --nuclen-border-color: var(--nuclen-quiz-border-color);
-    --nuclen-border-style: var(--nuclen-quiz-border-style);
-    --nuclen-border-width: var(--nuclen-quiz-border-width);
-    --nuclen-border-radius: var(--nuclen-quiz-border-radius);
-    --nuclen-progress-fg: var(--nuclen-quiz-progress-fg);
-    --nuclen-progress-bg: var(--nuclen-quiz-progress-bg);
+	/* ───── Legacy fallbacks ───── */
+	--nuclen-fg-color: var(--nuclen-quiz-font-color);
+	--nuclen-border-color: var(--nuclen-quiz-border-color);
+	--nuclen-border-style: var(--nuclen-quiz-border-style);
+	--nuclen-border-width: var(--nuclen-quiz-border-width);
+	--nuclen-border-radius: var(--nuclen-quiz-border-radius);
+	--nuclen-progress-fg: var(--nuclen-quiz-progress-fg);
+	--nuclen-progress-bg: var(--nuclen-quiz-progress-bg);
 }
 
 /* ─── Apply variables to actual elements ─── */
 .nuclen-root .nuclen-quiz{
-    border: var(--nuclen-quiz-border-width) var(--nuclen-quiz-border-style) var(--nuclen-quiz-border-color);
-    border-radius: var(--nuclen-quiz-border-radius);
-    box-shadow: 0 0 var(--nuclen-quiz-shadow-blur) var(--nuclen-quiz-shadow-color);
-    background: var(--nuclen-quiz-bg-color);
-    color: var(--nuclen-quiz-font-color, var(--nuclen-fg-color));
+	border: var(--nuclen-quiz-border-width) var(--nuclen-quiz-border-style) var(--nuclen-quiz-border-color);
+	border-radius: var(--nuclen-quiz-border-radius);
+	box-shadow: 0 0 var(--nuclen-quiz-shadow-blur) var(--nuclen-quiz-shadow-color);
+	background: var(--nuclen-quiz-bg-color);
+	color: var(--nuclen-quiz-font-color, var(--nuclen-fg-color));
 }
 
 .nuclen-root .nuclen-summary{
-    border: var(--nuclen-summary-border-width) var(--nuclen-summary-border-style) var(--nuclen-summary-border-color);
-    border-radius: var(--nuclen-summary-border-radius);
-    box-shadow: 0 0 var(--nuclen-summary-shadow-blur) var(--nuclen-summary-shadow-color);
-    background: var(--nuclen-summary-bg-color);
-    color: var(--nuclen-summary-font-color, var(--nuclen-fg-color));
+	border: var(--nuclen-summary-border-width) var(--nuclen-summary-border-style) var(--nuclen-summary-border-color);
+	border-radius: var(--nuclen-summary-border-radius);
+	box-shadow: 0 0 var(--nuclen-summary-shadow-blur) var(--nuclen-summary-shadow-color);
+	background: var(--nuclen-summary-bg-color);
+	color: var(--nuclen-summary-font-color, var(--nuclen-fg-color));
 }
 
 .nuclen-root .nuclen-toc-wrapper{
-    font-size: var(--nuclen-toc-font-size);
-    border: var(--nuclen-toc-border-width) var(--nuclen-toc-border-style) var(--nuclen-toc-border-color);
-    border-radius: var(--nuclen-toc-border-radius);
-    box-shadow: 0 0 var(--nuclen-toc-shadow-blur) var(--nuclen-toc-shadow-color);
-    background: var(--nuclen-toc-bg-color);
-    color: var(--nuclen-toc-font-color);
+	font-size: var(--nuclen-toc-font-size);
+	border: var(--nuclen-toc-border-width) var(--nuclen-toc-border-style) var(--nuclen-toc-border-color);
+	border-radius: var(--nuclen-toc-border-radius);
+	box-shadow: 0 0 var(--nuclen-toc-shadow-blur) var(--nuclen-toc-shadow-color);
+	background: var(--nuclen-toc-bg-color);
+	color: var(--nuclen-toc-font-color);
 }
 .nuclen-root .nuclen-toc-wrapper a{
-    color: var(--nuclen-toc-link);
+	color: var(--nuclen-toc-link);
 }
 
 .nuclen-root #nuclen-quiz-progress-bar-container{
-    background: var(--nuclen-quiz-progress-bg);
-    height: var(--nuclen-quiz-progress-height);
+	background: var(--nuclen-quiz-progress-bg);
+	height: var(--nuclen-quiz-progress-height);
 }
 .nuclen-root #nuclen-quiz-progress-bar{
-    background: var(--nuclen-quiz-progress-fg);
-    height: 100%;
-    width: 0;
+	background: var(--nuclen-quiz-progress-fg);
+	height: 100%;
+	width: 0;
 }
 CSS;
 
-                                $css_info = \NuclearEngagement\Utils\Utils::nuclen_get_custom_css_info();
+								$css_info = \NuclearEngagement\Utils\Utils::nuclen_get_custom_css_info();
 		if ( empty( $css_info ) ) {
 				\NuclearEngagement\Services\LoggingService::notify_admin( __( 'Could not create custom CSS directory.', 'nuclear-engagement' ) );
 				return;

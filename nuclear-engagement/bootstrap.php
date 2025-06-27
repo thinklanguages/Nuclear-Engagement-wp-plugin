@@ -172,11 +172,11 @@ function nuclear_engagement_run_plugin() {
 }
 
 function nuclear_engagement_init() {
-        try {
-                InventoryCache::register_hooks();
-                PostsQueryService::register_hooks();
-                \NuclearEngagement\Services\PostDataFetcher::register_hooks();
-        } catch ( \Throwable $e ) {
+		try {
+				InventoryCache::register_hooks();
+				PostsQueryService::register_hooks();
+				\NuclearEngagement\Services\PostDataFetcher::register_hooks();
+		} catch ( \Throwable $e ) {
 		\NuclearEngagement\Services\LoggingService::log( 'Nuclear Engagement: Cache registration failed - ' . $e->getMessage() );
 		add_action(
 			'admin_notices',
