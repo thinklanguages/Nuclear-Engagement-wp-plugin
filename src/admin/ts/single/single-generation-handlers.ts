@@ -31,10 +31,24 @@ export function initSingleGenerationButtons(): void {
     btn.textContent = 'Generating...';
 
     try {
-      const startResp: StartGenerationResponse = await NuclenStartGeneration({
+      const startResp: StartGenerationResponse | {
+        ok: boolean;
+        status: number;
+        error?: string;
+        data?: { generation_id?: string; [key: string]: unknown };
+        generation_id?: string;
+      } = await NuclenStartGeneration({
         nuclen_selected_post_ids: JSON.stringify([postId]),
         nuclen_selected_generate_workflow: workflow,
       });
+
+      if ('ok' in startResp && !startResp.ok) {
+        alertApiError((startResp as { error?: string }).error || 'Generation failed');
+        btn.textContent = 'Generate';
+        btn.disabled = false;
+        return;
+      }
+
       const generationId =
         startResp.data?.generation_id ||
         startResp.generation_id ||
