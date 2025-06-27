@@ -134,6 +134,19 @@ settings updates. To simplify the core class and keep the method count below
 `SettingsRepository` uses the trait to expose the same public API while keeping
 its own implementation lean. The autoloader maps the new trait.
 
+## Settings Page Save Traits
+
+`SettingsPageSaveTrait` grew beyond its coordinating role as it handled input
+collection, sanitization and persistence directly. These responsibilities now
+live in two smaller traits:
+
+- `SettingsCollectTrait` gathers raw values from `$_POST`.
+- `SettingsPersistTrait` applies defaults, saves via `SettingsRepository` and
+  prints the "Settings saved" notice.
+
+`SettingsPageSaveTrait` simply orchestrates the workflow via
+`nuclen_handle_save_settings()` while using the new traits.
+
 ## Onboarding Pointer Definitions Extraction
 
 The original `Onboarding` class bundled a huge array of pointer definitions directly in the `enqueue_nuclen_onboarding_pointers()` method. The file exceeded 240 lines and the method itself was difficult to read. The pointer data now lives in a dedicated `OnboardingPointers` class under `admin/`. `Onboarding` simply pulls the definitions from this new class. This keeps the main class concise and makes the pointer data easier to maintain.
