@@ -85,4 +85,3 @@
 	$this->assertStringContainsString( 'var NuclenOptinEnabled  = true', $result );
 	}
 	}
-	

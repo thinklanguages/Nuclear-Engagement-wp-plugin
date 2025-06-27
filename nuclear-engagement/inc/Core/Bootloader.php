@@ -51,7 +51,7 @@ final class Bootloader {
 		}
 
 		if ( ! defined( 'NUCLEN_ASSET_VERSION' ) ) {
-			define( 'NUCLEN_ASSET_VERSION', '250625-13' );
+			define( 'NUCLEN_ASSET_VERSION', '250627-1' );
 		}
 	}
 
@@ -121,7 +121,7 @@ final class Bootloader {
 	 * Load helper files and constants.
 	 */
 	private static function load_helpers(): void {
-		require_once NUCLEN_PLUGIN_DIR . 'inc/Helpers/settings-functions.php';
+	// SettingsFunctions is autoloaded; legacy wrappers removed.
 
 		if ( file_exists( NUCLEN_PLUGIN_DIR . 'inc/Core/constants.php' ) ) {
 			require_once NUCLEN_PLUGIN_DIR . 'inc/Core/constants.php';

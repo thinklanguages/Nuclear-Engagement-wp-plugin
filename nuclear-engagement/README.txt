@@ -250,8 +250,18 @@ The tiny codebase and lazy loading assure fast loading, both in admin and on fro
 
 == Changelog ==
 
-= 1.1 – 2025-06-13 =
+= 1.2 – 2025-06-27 =
+* Added: Support for custom post types.
+* Added: Dashboard section showing scheduled content generation tasks.
+* Added: Inventory data caching with manual refresh and persistent transients.
 * Added: Test infrastructure for improved code quality.
+* Changed: Expanded cache invalidation to cover more post and term events.
+* Changed: Architecture refactoring.
+* Changed: Improved security.
+* Changed: Improved performance with optimized database indexes.
+* Changed: Replaced `nuclen_settings_*` helpers with `Helpers\SettingsFunctions`.
+
+= 1.1 – 2025-06-13 =
 * Changed: Architecture refactoring.
 * Changed: Improved security.
 * Changed: Improved performance.
