@@ -46,9 +46,12 @@ trait SettingsPersistenceTrait {
 		// Only update if settings have changed.
 		if ( $merged !== $current ) {
 			$autoload = $this->should_autoload( $merged );
-			$result   = update_option( self::OPTION, $merged, $autoload ? 'yes' : 'no' );
+                        $result   = update_option( self::OPTION, $merged, $autoload ? 'yes' : 'no' );
+                        if ( $result ) {
+                                \NuclearEngagement\Core\InventoryCache::clear();
+                        }
 
-			// Also update legacy option for backward compatibility.
+                        // Also update legacy option for backward compatibility.
 			if ( $result && false !== get_option( 'nuclear_engagement_setup' ) ) {
 				$legacy_data = array(
 					'api_key'             => $merged['api_key'] ?? '',
