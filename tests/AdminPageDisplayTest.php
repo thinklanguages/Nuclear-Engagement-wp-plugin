@@ -35,6 +35,7 @@ if (!function_exists('wp_enqueue_style')) { function wp_enqueue_style($h){ $GLOB
 if (!function_exists('wp_localize_script')) { function wp_localize_script($h,$o,$d){ $GLOBALS['localized'][$o]=$d; } }
 if (!function_exists('wp_create_nonce')) { function wp_create_nonce($a){ return 'nonce'; } }
 if (!function_exists('rest_url')) { function rest_url($p=''){ return 'rest/'.$p; } }
+
 if (!function_exists('get_post_stati')) { function get_post_stati($a=[], $o='objects'){ return ['draft'=>(object)['label'=>'Draft']]; } }
 if (!function_exists('get_post_type_object')) { function get_post_type_object($t){ return (object)['labels'=>(object)['name'=>'Post']]; } }
 if (!function_exists('get_users')) { function get_users($a){ return []; } }
@@ -60,6 +61,7 @@ protected function setUp(): void {
 global $wp_options, $wp_cache, $transients, $enqueued_scripts, $enqueued_styles, $localized;
 $wp_options = $wp_cache = $transients = [];
 $enqueued_scripts = $enqueued_styles = $localized = [];
+
 SettingsRepository::reset_for_tests();
 Container::getInstance()->reset();
 if (!defined('NUCLEN_PLUGIN_DIR')) {
@@ -74,6 +76,7 @@ define('NUCLEN_PLUGIN_VERSION', '1.0');
 if (!defined('NUCLEN_ASSET_VERSION')) {
 define('NUCLEN_ASSET_VERSION', 'dev');
 }
+
 }
 
 public function test_render_setup_page_outputs_steps(): void {
@@ -174,5 +177,6 @@ public function nuclen_get_version() { return '1.0'; }
 $host->nuclen_enqueue_dashboard_styles('toplevel_page_nuclear-engagement');
 $this->assertContains('nuclen-dashboard', $enqueued_styles[0]);
 }
+
 }
 }
