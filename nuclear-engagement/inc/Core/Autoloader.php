@@ -44,6 +44,8 @@ final class Autoloader {
 
 		$paths[] = NUCLEN_PLUGIN_DIR . 'inc/' . $relative . '.php';
 		$paths[] = NUCLEN_PLUGIN_DIR . 'inc/Core/' . $relative . '.php';
+		$paths[] = NUCLEN_PLUGIN_DIR . 'inc/Helpers/' . $relative . '.php';
+		$paths[] = NUCLEN_PLUGIN_DIR . 'inc/Repositories/' . $relative . '.php';
 
 		foreach ( $paths as $file ) {
 			if ( file_exists( $file ) ) {

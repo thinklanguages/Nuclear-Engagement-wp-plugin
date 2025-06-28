@@ -10,6 +10,8 @@ declare(strict_types=1);
 
 namespace NuclearEngagement\Admin\Traits;
 
+use NuclearEngagement\Helpers\FormSanitizer;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -22,9 +24,7 @@ trait SettingsCollectTrait {
 			   $raw = array();
 
 			   // theme preset
-			   $raw['theme'] = isset( $_POST['nuclen_theme'] )
-					   ? sanitize_text_field( wp_unslash( $_POST['nuclen_theme'] ) )
-					   : '';
+			   $raw['theme'] = FormSanitizer::sanitize_post_text( 'nuclen_theme' );
 
 			   $raw = array_merge(
 					   $raw,

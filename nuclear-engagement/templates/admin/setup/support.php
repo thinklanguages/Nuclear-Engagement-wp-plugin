@@ -12,9 +12,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 <!-- ───── Support ───── -->
 <h2><?php esc_html_e( 'Support', 'nuclear-engagement' ); ?></h2>
 <p>
-	<?php esc_html_e( 'This is an early version. Some details might have been overlooked, functionalities might be missing or broken, or there might be plugin conflicts on some websites.', 'nuclear-engagement' ); ?>
-</p>
-<p>
 	<?php
 	printf(
 		wp_kses(
