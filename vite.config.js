@@ -7,6 +7,7 @@ export default defineConfig({
   root: 'src',
 
   build: {
+    target: 'es2017',
     // Output to the "nuclear-engagement" folder (the plugin root).
     outDir: path.resolve(__dirname, 'nuclear-engagement'),
     emptyOutDir: false,
