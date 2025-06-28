@@ -222,14 +222,13 @@ These routines now reside in a dedicated `PostsQueryService` used by
 
 This keeps query logic contained while leaving `Utils` focused on rendering tasks.
 
-## jQuery Removal from Onboarding
+## Onboarding Pointer Implementation
 
-The original onboarding pointer script relied on jQuery and the `wp-pointer` plugin.
-To meet the "no jQuery" guideline, the logic now uses vanilla TypeScript.
-`onboarding-pointers.js` manually positions `.wp-pointer` elements and sends
-dismissal requests via `fetch`. The PHP loader no longer enqueues the
-`wp-pointer` script or lists jQuery as a dependency—only the style sheet
-remains. This reduces dependencies and keeps the admin bundle lightweight.
+The plugin leverages WordPress' native `wp-pointer` script which depends on
+jQuery. `nuclen-admin-onboarding.ts` feeds pointer data into the standard
+`pointer()` API and sends dismissal requests via `fetch`. Both the style and
+script are enqueued so the default behavior is preserved while keeping the PHP
+loader concise.
 
 ## jQuery Removal from Settings Display
 
