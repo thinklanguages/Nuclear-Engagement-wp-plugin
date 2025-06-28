@@ -12,9 +12,9 @@ declare global {
 
 // 2) Describe the structure of the pointer data
 export interface NuclenPointerData {
-	pointers: NuclenPointer[];
-	ajaxurl: string;
-	nonce?: string; // Add the nonce
+pointers: NuclenPointer[];
+ajaxurl: string;
+nonce: string | undefined;
 }
 
 // 3) Each pointer has the properties your PHP code provides
@@ -51,7 +51,7 @@ export interface NuclenPointer {
 		}
 
 		const ptr = pointers[currentIndex];
-		const target = document.querySelector<HTMLElement>(ptr.target);
+const target = document.querySelector(ptr.target) as HTMLElement | null;
 
 		if (!target) {
 		currentIndex++;
@@ -107,8 +107,9 @@ export interface NuclenPointer {
 		wrapper.style.top = `${Math.max(top, 0)}px`;
 		wrapper.style.left = `${Math.max(left, 0)}px`;
 
-		const close = wrapper.querySelector<HTMLAnchorElement>('.close');
-		close?.addEventListener('click', async (e) => {
+const close = wrapper.querySelector('.close') as HTMLAnchorElement | null;
+if ( close ) {
+close.addEventListener('click', async (e) => {
 		e.preventDefault();
 
 		const form = new URLSearchParams();
@@ -129,10 +130,10 @@ export interface NuclenPointer {
 			logger.error('Failed to dismiss pointer:', result.error);
 			displayError('Failed to dismiss pointer.');
 			}
-		} catch (err: unknown) {
-			logger.error('Error dismissing pointer:', err);
-			displayError('Network error while dismissing pointer.');
-		}
+} catch (err) {
+logger.error('Error dismissing pointer:', err);
+displayError('Network error while dismissing pointer.');
+}
 
 		wrapper.remove();
 		currentIndex++;

@@ -95,6 +95,7 @@ function nuclenLog(){
 								wrapper.style.left = Math.max( left, 0 ) + 'px';
 
 								const close = wrapper.querySelector( '.close' );
+							if ( close ) {
 								close.addEventListener(
 									'click',
 									function ( e ) {
@@ -134,6 +135,7 @@ function nuclenLog(){
 												} )();
 									}
 								);
+							}
 							}
 
 								document.addEventListener( 'DOMContentLoaded', showNext );
