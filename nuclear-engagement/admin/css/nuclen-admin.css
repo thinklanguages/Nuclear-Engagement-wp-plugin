@@ -177,12 +177,12 @@ Classes for form groups, labels, inputs, and buttons.
   }
 
   input[type="color"].nuclen-input {
-                min-width: 40px;
-                width: 40px;
-                height: 34px;
-                padding: 0;
-                background: none;
-                border: none;
+min-width: 40px;
+width: 40px;
+height: 34px;
+padding: 0;
+border: 0;
+border-radius: 4px;
   }
 
 /* Utility inputs */
