@@ -137,10 +137,10 @@ class ContentStorageService {
 				throw new \InvalidArgumentException( "Invalid quiz data for post {$postId}" );
 		}
 
-			$formatted = array(
-				'questions' => $questions,
-				'date'      => $data['date'] ?? current_time( 'mysql' ),
-			);
+				$formatted = array(
+					'date'      => $data['date'] ?? current_time( 'mysql' ),
+					'questions' => $questions,
+);
 
 			$current = get_post_meta( $postId, 'nuclen-quiz-data', true );
 			if ( $current === $formatted ) {
@@ -194,10 +194,10 @@ class ContentStorageService {
 			'span'   => array( 'class' => array() ),
 		);
 
-		$formatted = array(
-			'summary' => wp_kses( $data['summary'], $allowedHtml ),
-			'date'    => $data['date'] ?? current_time( 'mysql' ),
-		);
+				$formatted = array(
+					'date'    => $data['date'] ?? current_time( 'mysql' ),
+					'summary' => wp_kses( $data['summary'], $allowedHtml ),
+);
 
 			$current = get_post_meta( $postId, Summary_Service::META_KEY, true );
 			if ( $current === $formatted ) {
