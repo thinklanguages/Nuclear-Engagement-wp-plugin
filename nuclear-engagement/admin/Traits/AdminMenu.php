@@ -1,13 +1,13 @@
 <?php
 declare(strict_types=1);
 /**
- * File: admin/Traits/AdminMenu.php
- *
- * Adds the Nuclear Engagement admin menu and hides the “Generate” page
- * until **both** setup steps are finished (API key + WP App Password).
- *
- * @package NuclearEngagement\Admin
- */
+	* File: admin/Traits/AdminMenu.php
+	*
+	* Adds the Nuclear Engagement admin menu and hides the “Generate” page
+	* until **both** setup steps are finished (API key + WP App Password).
+	*
+	* @package NuclearEngagement\Admin
+	*/
 
 namespace NuclearEngagement\Admin\Traits;
 
@@ -64,12 +64,12 @@ trait AdminMenu {
 	}
 
 	/** Dashboard page callback */
-       public function nuclen_display_dashboard() {
-               $settings_repo = $this->nuclen_get_settings_repository();
-               $data_service  = $this->get_container()->get( 'dashboard_data_service' );
-               $dashboard     = new Dashboard( $settings_repo, $data_service );
-               $dashboard->render();
-       }
+		public function nuclen_display_dashboard() {
+				$settings_repo = $this->nuclen_get_settings_repository();
+				$data_service  = $this->get_container()->get( 'dashboard_data_service' );
+				$dashboard     = new Dashboard( $settings_repo, $data_service );
+				$dashboard->render();
+		}
 
 	/**
 	 * “Generate” page callback.
