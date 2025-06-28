@@ -1,0 +1,308 @@
+/**
+ * Design Tokens - Nuclear Engagement Plugin
+ * 
+ * Core design system variables following design token methodology.
+ * These tokens form the foundation of the entire design system.
+ */
+
+:root {
+  /* === COLOR PALETTE === */
+  
+  /* Primary Brand Colors */
+  --ne-color-primary-050: #e3f2fd;
+  --ne-color-primary-100: #bbdefb;
+  --ne-color-primary-200: #90caf9;
+  --ne-color-primary-300: #64b5f6;
+  --ne-color-primary-400: #42a5f5;
+  --ne-color-primary-500: #2196f3;
+  --ne-color-primary-600: #1e88e5;
+  --ne-color-primary-700: #1976d2;
+  --ne-color-primary-800: #1565c0;
+  --ne-color-primary-900: #0d47a1;
+
+  /* Secondary Colors */
+  --ne-color-secondary-050: #f3e5f5;
+  --ne-color-secondary-100: #e1bee7;
+  --ne-color-secondary-200: #ce93d8;
+  --ne-color-secondary-300: #ba68c8;
+  --ne-color-secondary-400: #ab47bc;
+  --ne-color-secondary-500: #9c27b0;
+  --ne-color-secondary-600: #8e24aa;
+  --ne-color-secondary-700: #7b1fa2;
+  --ne-color-secondary-800: #6a1b9a;
+  --ne-color-secondary-900: #4a148c;
+
+  /* Neutral Grays */
+  --ne-color-neutral-000: #ffffff;
+  --ne-color-neutral-050: #fafafa;
+  --ne-color-neutral-100: #f5f5f5;
+  --ne-color-neutral-200: #eeeeee;
+  --ne-color-neutral-300: #e0e0e0;
+  --ne-color-neutral-400: #bdbdbd;
+  --ne-color-neutral-500: #9e9e9e;
+  --ne-color-neutral-600: #757575;
+  --ne-color-neutral-700: #616161;
+  --ne-color-neutral-800: #424242;
+  --ne-color-neutral-900: #212121;
+  --ne-color-neutral-950: #0a0a0a;
+
+  /* Semantic Colors */
+  --ne-color-success-050: #e8f5e8;
+  --ne-color-success-500: #4caf50;
+  --ne-color-success-900: #1b5e20;
+
+  --ne-color-warning-050: #fff8e1;
+  --ne-color-warning-500: #ff9800;
+  --ne-color-warning-900: #e65100;
+
+  --ne-color-error-050: #ffebee;
+  --ne-color-error-500: #f44336;
+  --ne-color-error-900: #b71c1c;
+
+  --ne-color-info-050: #e1f5fe;
+  --ne-color-info-500: #03a9f4;
+  --ne-color-info-900: #01579b;
+
+  /* === SPACING SCALE === */
+  
+  /* Base unit: 4px (0.25rem) */
+  --ne-space-0: 0;
+  --ne-space-px: 1px;
+  --ne-space-0-5: 0.125rem;  /* 2px */
+  --ne-space-1: 0.25rem;     /* 4px */
+  --ne-space-1-5: 0.375rem;  /* 6px */
+  --ne-space-2: 0.5rem;      /* 8px */
+  --ne-space-2-5: 0.625rem;  /* 10px */
+  --ne-space-3: 0.75rem;     /* 12px */
+  --ne-space-3-5: 0.875rem;  /* 14px */
+  --ne-space-4: 1rem;        /* 16px */
+  --ne-space-5: 1.25rem;     /* 20px */
+  --ne-space-6: 1.5rem;      /* 24px */
+  --ne-space-7: 1.75rem;     /* 28px */
+  --ne-space-8: 2rem;        /* 32px */
+  --ne-space-9: 2.25rem;     /* 36px */
+  --ne-space-10: 2.5rem;     /* 40px */
+  --ne-space-11: 2.75rem;    /* 44px */
+  --ne-space-12: 3rem;       /* 48px */
+  --ne-space-14: 3.5rem;     /* 56px */
+  --ne-space-16: 4rem;       /* 64px */
+  --ne-space-20: 5rem;       /* 80px */
+  --ne-space-24: 6rem;       /* 96px */
+  --ne-space-28: 7rem;       /* 112px */
+  --ne-space-32: 8rem;       /* 128px */
+
+  /* === TYPOGRAPHY SCALE === */
+  
+  /* Font Families */
+  --ne-font-family-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --ne-font-family-serif: Georgia, Cambria, "Times New Roman", Times, serif;
+  --ne-font-family-mono: "SF Mono", Monaco, Inconsolata, "Roboto Mono", Consolas, monospace;
+
+  /* Font Sizes - Type Scale (1.25 - Major Third) */
+  --ne-font-size-xs: 0.75rem;    /* 12px */
+  --ne-font-size-sm: 0.875rem;   /* 14px */
+  --ne-font-size-base: 1rem;     /* 16px */
+  --ne-font-size-lg: 1.125rem;   /* 18px */
+  --ne-font-size-xl: 1.25rem;    /* 20px */
+  --ne-font-size-2xl: 1.5rem;    /* 24px */
+  --ne-font-size-3xl: 1.875rem;  /* 30px */
+  --ne-font-size-4xl: 2.25rem;   /* 36px */
+  --ne-font-size-5xl: 3rem;      /* 48px */
+  --ne-font-size-6xl: 3.75rem;   /* 60px */
+  --ne-font-size-7xl: 4.5rem;    /* 72px */
+  --ne-font-size-8xl: 6rem;      /* 96px */
+  --ne-font-size-9xl: 8rem;      /* 128px */
+
+  /* Font Weights */
+  --ne-font-weight-thin: 100;
+  --ne-font-weight-extralight: 200;
+  --ne-font-weight-light: 300;
+  --ne-font-weight-normal: 400;
+  --ne-font-weight-medium: 500;
+  --ne-font-weight-semibold: 600;
+  --ne-font-weight-bold: 700;
+  --ne-font-weight-extrabold: 800;
+  --ne-font-weight-black: 900;
+
+  /* Line Heights */
+  --ne-line-height-none: 1;
+  --ne-line-height-tight: 1.25;
+  --ne-line-height-snug: 1.375;
+  --ne-line-height-normal: 1.5;
+  --ne-line-height-relaxed: 1.625;
+  --ne-line-height-loose: 2;
+
+  /* Letter Spacing */
+  --ne-letter-spacing-tighter: -0.05em;
+  --ne-letter-spacing-tight: -0.025em;
+  --ne-letter-spacing-normal: 0em;
+  --ne-letter-spacing-wide: 0.025em;
+  --ne-letter-spacing-wider: 0.05em;
+  --ne-letter-spacing-widest: 0.1em;
+
+  /* === LAYOUT & SIZING === */
+  
+  /* Border Radius */
+  --ne-radius-none: 0;
+  --ne-radius-sm: 0.125rem;    /* 2px */
+  --ne-radius-base: 0.25rem;   /* 4px */
+  --ne-radius-md: 0.375rem;    /* 6px */
+  --ne-radius-lg: 0.5rem;      /* 8px */
+  --ne-radius-xl: 0.75rem;     /* 12px */
+  --ne-radius-2xl: 1rem;       /* 16px */
+  --ne-radius-3xl: 1.5rem;     /* 24px */
+  --ne-radius-full: 9999px;
+
+  /* Border Widths */
+  --ne-border-width-0: 0;
+  --ne-border-width-1: 1px;
+  --ne-border-width-2: 2px;
+  --ne-border-width-4: 4px;
+  --ne-border-width-8: 8px;
+
+  /* Shadows */
+  --ne-shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --ne-shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --ne-shadow-base: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --ne-shadow-md: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --ne-shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  --ne-shadow-xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+  --ne-shadow-2xl: 0 50px 100px -20px rgb(0 0 0 / 0.25);
+  --ne-shadow-inner: inset 0 2px 4px 0 rgb(0 0 0 / 0.05);
+
+  /* === BREAKPOINTS === */
+  
+  /* Mobile-first responsive breakpoints */
+  --ne-breakpoint-sm: 640px;   /* Small tablets */
+  --ne-breakpoint-md: 768px;   /* Large tablets */
+  --ne-breakpoint-lg: 1024px;  /* Laptops */
+  --ne-breakpoint-xl: 1280px;  /* Desktops */
+  --ne-breakpoint-2xl: 1536px; /* Large desktops */
+
+  /* === ANIMATION & TRANSITIONS === */
+  
+  /* Transition Durations */
+  --ne-duration-75: 75ms;
+  --ne-duration-100: 100ms;
+  --ne-duration-150: 150ms;
+  --ne-duration-200: 200ms;
+  --ne-duration-300: 300ms;
+  --ne-duration-500: 500ms;
+  --ne-duration-700: 700ms;
+  --ne-duration-1000: 1000ms;
+
+  /* Transition Easing */
+  --ne-ease-linear: linear;
+  --ne-ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ne-ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ne-ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* === Z-INDEX SCALE === */
+  
+  --ne-z-index-hide: -1;
+  --ne-z-index-auto: auto;
+  --ne-z-index-base: 0;
+  --ne-z-index-docked: 10;
+  --ne-z-index-dropdown: 1000;
+  --ne-z-index-sticky: 1020;
+  --ne-z-index-banner: 1030;
+  --ne-z-index-overlay: 1040;
+  --ne-z-index-modal: 1050;
+  --ne-z-index-popover: 1060;
+  --ne-z-index-skiplink: 1070;
+  --ne-z-index-toast: 1080;
+  --ne-z-index-tooltip: 1090;
+
+  /* === SEMANTIC DESIGN TOKENS === */
+  
+  /* Text Colors */
+  --ne-text-primary: var(--ne-color-neutral-900);
+  --ne-text-secondary: var(--ne-color-neutral-600);
+  --ne-text-tertiary: var(--ne-color-neutral-500);
+  --ne-text-disabled: var(--ne-color-neutral-400);
+  --ne-text-inverse: var(--ne-color-neutral-000);
+  
+  /* Background Colors */
+  --ne-bg-primary: var(--ne-color-neutral-000);
+  --ne-bg-secondary: var(--ne-color-neutral-050);
+  --ne-bg-tertiary: var(--ne-color-neutral-100);
+  --ne-bg-inverse: var(--ne-color-neutral-900);
+  
+  /* Border Colors */
+  --ne-border-primary: var(--ne-color-neutral-200);
+  --ne-border-secondary: var(--ne-color-neutral-300);
+  --ne-border-focus: var(--ne-color-primary-500);
+  
+  /* Component-specific tokens */
+  --ne-button-height-sm: 2rem;
+  --ne-button-height-md: 2.5rem;
+  --ne-button-height-lg: 3rem;
+  
+  --ne-input-height-sm: 2rem;
+  --ne-input-height-md: 2.5rem;
+  --ne-input-height-lg: 3rem;
+  
+  --ne-container-max-width: 1200px;
+  --ne-container-padding: var(--ne-space-4);
+}
+
+/* === DARK MODE TOKENS === */
+
+:root[data-theme="dark"],
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    /* Override semantic tokens for dark mode */
+    --ne-text-primary: var(--ne-color-neutral-100);
+    --ne-text-secondary: var(--ne-color-neutral-300);
+    --ne-text-tertiary: var(--ne-color-neutral-400);
+    --ne-text-disabled: var(--ne-color-neutral-600);
+    --ne-text-inverse: var(--ne-color-neutral-900);
+    
+    --ne-bg-primary: var(--ne-color-neutral-950);
+    --ne-bg-secondary: var(--ne-color-neutral-900);
+    --ne-bg-tertiary: var(--ne-color-neutral-800);
+    --ne-bg-inverse: var(--ne-color-neutral-100);
+    
+    --ne-border-primary: var(--ne-color-neutral-700);
+    --ne-border-secondary: var(--ne-color-neutral-600);
+    
+    /* Adjust shadows for dark mode */
+    --ne-shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+    --ne-shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.4), 0 1px 2px -1px rgb(0 0 0 / 0.4);
+    --ne-shadow-base: 0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.4);
+    --ne-shadow-md: 0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -4px rgb(0 0 0 / 0.4);
+    --ne-shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.4), 0 8px 10px -6px rgb(0 0 0 / 0.4);
+    --ne-shadow-xl: 0 25px 50px -12px rgb(0 0 0 / 0.5);
+    --ne-shadow-2xl: 0 50px 100px -20px rgb(0 0 0 / 0.5);
+  }
+}
+
+/* === HIGH CONTRAST MODE === */
+
+@media (prefers-contrast: high) {
+  :root {
+    --ne-border-width-1: 2px;
+    --ne-border-width-2: 3px;
+    
+    /* Increase contrast ratios */
+    --ne-text-secondary: var(--ne-color-neutral-800);
+    --ne-text-tertiary: var(--ne-color-neutral-700);
+    --ne-border-primary: var(--ne-color-neutral-400);
+    --ne-border-secondary: var(--ne-color-neutral-500);
+  }
+}
+
+/* === REDUCED MOTION === */
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --ne-duration-75: 0ms;
+    --ne-duration-100: 0ms;
+    --ne-duration-150: 0ms;
+    --ne-duration-200: 0ms;
+    --ne-duration-300: 0ms;
+    --ne-duration-500: 0ms;
+    --ne-duration-700: 0ms;
+    --ne-duration-1000: 0ms;
+  }
+}
