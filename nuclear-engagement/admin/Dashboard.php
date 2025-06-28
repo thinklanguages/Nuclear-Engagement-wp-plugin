@@ -54,9 +54,7 @@ public function render(): void {
  * Collect all dashboard stats.
  *
  * @return array Dashboard data arrays.
- */
 private function gather_dashboard_data(): array {
-       global $wpdb;
 
        $allowed_post_types = $this->settings_repo->get( 'generation_post_types', array( 'post' ) );
        $allowed_post_types = is_array( $allowed_post_types ) ? $allowed_post_types : array( 'post' );
@@ -65,91 +63,10 @@ private function gather_dashboard_data(): array {
        $inventory_cache = \NuclearEngagement\Core\InventoryCache::get();
 
        if ( null === $inventory_cache ) {
-               $status_rows    = $this->data_service->get_dual_counts( 'p.post_status', $allowed_post_types, $post_statuses );
-               $status_objects = get_post_stati( array(), 'objects' );
-               $by_status_quiz = $by_status_summary = array();
-               foreach ( $status_rows as $r ) {
-                       $label                                  = $status_objects[ $r['g'] ]->label ?? ucfirst( $r['g'] );
-                       $by_status_quiz[ $label ]['with']       = (int) $r['quiz_with'];
-                       $by_status_quiz[ $label ]['without']    = (int) $r['quiz_without'];
-                       $by_status_summary[ $label ]['with']    = (int) $r['summary_with'];
-                       $by_status_summary[ $label ]['without'] = (int) $r['summary_without'];
-               }
-
-               $ptype_rows = $this->data_service->get_dual_counts( 'p.post_type', $allowed_post_types, $post_statuses );
-               $by_post_type_quiz = $by_post_type_summary = array();
-               foreach ( $ptype_rows as $r ) {
-                       $pt_obj                                    = get_post_type_object( $r['g'] );
-                       $label                                     = $pt_obj->labels->name ?? ucfirst( $r['g'] );
-                       $by_post_type_quiz[ $label ]['with']       = (int) $r['quiz_with'];
-                       $by_post_type_quiz[ $label ]['without']    = (int) $r['quiz_without'];
-                       $by_post_type_summary[ $label ]['with']    = (int) $r['summary_with'];
-                       $by_post_type_summary[ $label ]['without'] = (int) $r['summary_without'];
-               }
-
-               $author_rows = $this->data_service->get_dual_counts( 'p.post_author', $allowed_post_types, $post_statuses );
-               $author_ids  = array_map( static fn ( $row ) => (int) $row['g'], $author_rows );
-
-               $author_names = array();
-               if ( $author_ids ) {
-                       $users = get_users(
-                               array(
-                                       'include' => $author_ids,
-                                       'fields'  => array( 'ID', 'display_name' ),
-                               )
-                       );
-                       foreach ( $users as $user ) {
-                               $author_names[ (int) $user->ID ] = $user->display_name;
-                       }
-               }
-
-               $by_author_quiz = $by_author_summary = array();
-               foreach ( $author_rows as $r ) {
-                       $id                                    = (int) $r['g'];
-                       $name                                  = $author_names[ $id ] ?? __( 'Unknown Author', 'nuclear-engagement' );
-                       $by_author_quiz[ $name ]['with']       = (int) $r['quiz_with'];
-                       $by_author_quiz[ $name ]['without']    = (int) $r['quiz_without'];
-                       $by_author_summary[ $name ]['with']    = (int) $r['summary_with'];
-                       $by_author_summary[ $name ]['without'] = (int) $r['summary_without'];
-               }
-
-               $with_cat_pt      = array_filter( $allowed_post_types, fn( $pt ) => in_array( 'category', get_object_taxonomies( $pt ), true ) );
-               $by_category_quiz = $by_category_summary = array();
-               if ( $with_cat_pt ) {
-                       $sanitized_pt    = array_map( 'sanitize_key', $with_cat_pt );
-                       $sanitized_st    = array_map( 'sanitize_key', $post_statuses );
-                       $placeholders_pt = implode( ',', array_fill( 0, count( $sanitized_pt ), '%s' ) );
-                       $placeholders_st = implode( ',', array_fill( 0, count( $sanitized_st ), '%s' ) );
-                       $sql_cat         = $wpdb->prepare(
-                               "SELECT t.term_id,
-                               t.name AS cat_name,
-                               SUM(CASE WHEN pm_q.meta_id IS NULL THEN 0 ELSE 1 END) AS quiz_with,
-                               SUM(CASE WHEN pm_q.meta_id IS NULL THEN 1 ELSE 0 END) AS quiz_without,
-                               SUM(CASE WHEN pm_s.meta_id IS NULL THEN 0 ELSE 1 END) AS summary_with,
-                               SUM(CASE WHEN pm_s.meta_id IS NULL THEN 1 ELSE 0 END) AS summary_without
-                       FROM {$wpdb->posts} p
-                       JOIN {$wpdb->term_relationships} tr ON tr.object_id = p.ID
-                       JOIN {$wpdb->term_taxonomy}  tt ON tt.term_taxonomy_id = tr.term_taxonomy_id AND tt.taxonomy = 'category'
-                       JOIN {$wpdb->terms}          t  ON t.term_id = tt.term_id
-                       LEFT JOIN {$wpdb->postmeta}  pm_q ON pm_q.post_id = p.ID AND pm_q.meta_key = 'nuclen-quiz-data'
-                       LEFT JOIN {$wpdb->postmeta}  pm_s ON pm_s.post_id = p.ID AND pm_s.meta_key = '" . Summary_Service::META_KEY . "'
-                       WHERE p.post_type  IN ($placeholders_pt)
-                       AND p.post_status IN ($placeholders_st)
-                       GROUP BY t.term_id",
-                               array_merge( $sanitized_pt, $sanitized_st )
-                       );
-                       $cat_rows = $wpdb->get_results( $sql_cat, ARRAY_A );
-                       if ( ! empty( $wpdb->last_error ) ) {
-                               \NuclearEngagement\Services\LoggingService::log( 'Category stats query error: ' . $wpdb->last_error );
-                               $cat_rows = array();
-                       }
-                       foreach ( $cat_rows as $r ) {
-                               $by_category_quiz[ $r['cat_name'] ]['with']       = (int) $r['quiz_with'];
-                               $by_category_quiz[ $r['cat_name'] ]['without']    = (int) $r['quiz_without'];
-                               $by_category_summary[ $r['cat_name'] ]['with']    = (int) $r['summary_with'];
-                               $by_category_summary[ $r['cat_name'] ]['without'] = (int) $r['summary_without'];
-                       }
-               }
+		list( $by_status_quiz, $by_status_summary )       = $this->get_status_stats( $allowed_post_types, $post_statuses );
+		list( $by_post_type_quiz, $by_post_type_summary ) = $this->get_post_type_stats( $allowed_post_types, $post_statuses );
+		list( $by_author_quiz, $by_author_summary )       = $this->get_author_stats( $allowed_post_types, $post_statuses );
+		list( $by_category_quiz, $by_category_summary )   = $this->get_category_stats( $allowed_post_types, $post_statuses );
 
                $drop_zeros = static function ( array $arr ) {
                        return array_filter( $arr, static fn ( $c ) => ( ( $c['with'] ?? 0 ) + ( $c['without'] ?? 0 ) ) > 0 );
@@ -240,5 +157,91 @@ $html .= '</tr>';
 
 $html .= '</table>';
 return $html;
+}
+
+/**
+ * Get stats grouped by post status.
+ */
+	private function get_status_stats( array $post_types, array $statuses ): array {
+		$status_rows    = $this->data_service->get_dual_counts( 'p.post_status', $post_types, $statuses );
+		$status_objects = get_post_stati( array(), 'objects' );
+		$quiz           = $summary = array();
+		foreach ( $status_rows as $r ) {
+		$label            = $status_objects[ $r['g'] ]->label ?? ucfirst( $r['g'] );
+		$quiz[ $label ]['with']       = (int) $r['quiz_with'];
+		$quiz[ $label ]['without']    = (int) $r['quiz_without'];
+		$summary[ $label ]['with']    = (int) $r['summary_with'];
+		$summary[ $label ]['without'] = (int) $r['summary_without'];
+		}
+		
+		return array( $quiz, $summary );
+}
+
+/**
+ * Get stats grouped by post type.
+ */
+	private function get_post_type_stats( array $post_types, array $statuses ): array {
+		$ptype_rows = $this->data_service->get_dual_counts( 'p.post_type', $post_types, $statuses );
+		$quiz       = $summary = array();
+		foreach ( $ptype_rows as $r ) {
+		$pt_obj                                = get_post_type_object( $r['g'] );
+		$label                                 = $pt_obj->labels->name ?? ucfirst( $r['g'] );
+		$quiz[ $label ]['with']       = (int) $r['quiz_with'];
+		$quiz[ $label ]['without']    = (int) $r['quiz_without'];
+		$summary[ $label ]['with']    = (int) $r['summary_with'];
+		$summary[ $label ]['without'] = (int) $r['summary_without'];
+		}
+		
+		return array( $quiz, $summary );
+}
+
+/**
+ * Get stats grouped by post author.
+ */
+	private function get_author_stats( array $post_types, array $statuses ): array {
+		$author_rows = $this->data_service->get_dual_counts( 'p.post_author', $post_types, $statuses );
+		$author_ids  = array_map( static fn ( $row ) => (int) $row['g'], $author_rows );
+		$author_names = array();
+		if ( $author_ids ) {
+		$users = get_users(
+		array(
+		'include' => $author_ids,
+		'fields'  => array( 'ID', 'display_name' ),
+		)
+		);
+		foreach ( $users as $user ) {
+		$author_names[ (int) $user->ID ] = $user->display_name;
+		}
+		}
+		$quiz = $summary = array();
+		foreach ( $author_rows as $r ) {
+		$id                               = (int) $r['g'];
+		$name                             = $author_names[ $id ] ?? __( 'Unknown Author', 'nuclear-engagement' );
+		$quiz[ $name ]['with']       = (int) $r['quiz_with'];
+		$quiz[ $name ]['without']    = (int) $r['quiz_without'];
+$summary[ $name ]['with']    = (int) $r['summary_with'];
+$summary[ $name ]['without'] = (int) $r['summary_without'];
+}
+
+return array( $quiz, $summary );
+}
+
+/**
+ * Get stats grouped by category.
+ */
+	private function get_category_stats( array $post_types, array $statuses ): array {
+		$with_cat_pt      = array_filter( $post_types, fn( $pt ) => in_array( 'category', get_object_taxonomies( $pt ), true ) );
+		$quiz = $summary = array();
+		if ( $with_cat_pt ) {
+		$cat_rows = $this->data_service->get_category_counts( $with_cat_pt, $statuses );
+		foreach ( $cat_rows as $r ) {
+		$quiz[ $r['cat_name'] ]['with']       = (int) $r['quiz_with'];
+		$quiz[ $r['cat_name'] ]['without']    = (int) $r['quiz_without'];
+		$summary[ $r['cat_name'] ]['with']    = (int) $r['summary_with'];
+		$summary[ $r['cat_name'] ]['without'] = (int) $r['summary_without'];
+		}
+		}
+		
+		return array( $quiz, $summary );
 }
 }

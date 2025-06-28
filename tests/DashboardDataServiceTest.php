@@ -192,7 +192,7 @@ class DashboardDataServiceTest extends TestCase {
 		$this->assertEmpty( $transients );
 	}
 
-	public function test_dual_counts_returns_empty_on_error(): void {
+        public function test_dual_counts_returns_empty_on_error(): void {
 		global $wpdb, $wp_cache, $transients;
 		$wp_cache = $transients = [];
 		$wpdb = new class {
@@ -210,7 +210,52 @@ class DashboardDataServiceTest extends TestCase {
 		$this->assertSame( [], $res );
 		$this->assertSame( ['Dashboard query error: fail'], \NuclearEngagement\Services\LoggingService::$logs );
 		$this->assertEmpty( $wp_cache );
-		$this->assertEmpty( $transients );
-	}
+                $this->assertEmpty( $transients );
+        }
+
+        public function test_get_category_counts_returns_results(): void {
+                global $wpdb;
+                $wpdb = new class {
+                        public $posts = 'wp_posts';
+                        public $postmeta = 'wp_postmeta';
+                        public $term_relationships = 'wp_term_relationships';
+                        public $term_taxonomy = 'wp_term_taxonomy';
+                        public $terms = 'wp_terms';
+                        public array $args = [];
+                        public function prepare( $q, ...$a ) { $this->args = $a; return 'SQL'; }
+                        public function get_results( $sql, $out ) { return [ [ 'term_id' => 1, 'cat_name' => 'News', 'quiz_with' => 1, 'quiz_without' => 0, 'summary_with' => 1, 'summary_without' => 0 ] ]; }
+                };
+
+                $svc  = new DashboardDataService();
+                $rows = $svc->get_category_counts( ['post'], ['publish'] );
+
+                $this->assertSame( 'News', $rows[0]['cat_name'] );
+                $this->assertSame( ['post','publish'], $wpdb->args );
+        }
+
+        public function test_get_category_counts_returns_empty_on_error(): void {
+                global $wpdb, $wp_cache, $transients;
+                $wp_cache = $transients = [];
+                $wpdb = new class {
+                        public $posts = 'wp_posts';
+                        public $postmeta = 'wp_postmeta';
+                        public $term_relationships = 'wp_term_relationships';
+                        public $term_taxonomy = 'wp_term_taxonomy';
+                        public $terms = 'wp_terms';
+                        public string $last_error = '';
+                        public function prepare( $q, ...$a ) { return 'SQL'; }
+                        public function get_results( $sql, $out ) { $this->last_error = 'fail'; return []; }
+                };
+
+                \NuclearEngagement\Services\LoggingService::$logs = [];
+
+                $svc = new DashboardDataService();
+                $rows = $svc->get_category_counts( ['post'], ['publish'] );
+
+                $this->assertSame( [], $rows );
+                $this->assertSame( ['Category stats query error: fail'], \NuclearEngagement\Services\LoggingService::$logs );
+                $this->assertEmpty( $wp_cache );
+                $this->assertEmpty( $transients );
+        }
 }
 }
