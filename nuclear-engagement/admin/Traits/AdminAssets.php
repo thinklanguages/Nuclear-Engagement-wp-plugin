@@ -18,6 +18,19 @@ if ( ! defined( 'ABSPATH' ) ) {
 trait AdminAssets {
 
 	/**
+	 * Register the admin script for later use.
+	 */
+	public function nuclen_register_admin_scripts() {
+	wp_register_script(
+	'nuclen-admin',
+	plugin_dir_url( dirname( __DIR__ ) ) . 'admin/js/nuclen-admin.js',
+	array(),
+	AssetVersions::get( 'admin_js' ),
+	true
+	);
+	}
+
+	/**
 	 * Enqueue base admin CSS for all plugin admin screens.
 	 */
 	public function wp_enqueue_styles() {
