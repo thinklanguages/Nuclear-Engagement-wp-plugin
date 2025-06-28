@@ -16,6 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 final class QueryOptimizer {
 	/**
 	 * Query cache for repeated queries.
+	 * Note: This is kept for backward compatibility but CacheManager is preferred.
 	 *
 	 * @var array<string, mixed>
 	 */
@@ -36,7 +37,12 @@ final class QueryOptimizer {
 	/**
 	 * Batch size for large operations.
 	 */
-	private const BATCH_SIZE = 100;
+	private const BATCH_SIZE = 500;
+	
+	/**
+	 * Maximum batch size for memory-intensive operations.
+	 */
+	private const MAX_BATCH_SIZE = 1000;
 
 	/**
 	 * Initialize query optimizer.
@@ -135,7 +141,9 @@ final class QueryOptimizer {
 			$posts = [];
 			$all_metadata = [];
 
-			foreach ( array_chunk( $post_ids, self::BATCH_SIZE ) as $batch_ids ) {
+			// Use larger batch size for simple operations, smaller for complex ones
+			$batch_size = empty( $meta_keys ) ? self::MAX_BATCH_SIZE : self::BATCH_SIZE;
+			foreach ( array_chunk( $post_ids, $batch_size ) as $batch_ids ) {
 				// Get post data
 				$batch_posts = self::get_posts_batch( $batch_ids );
 				$posts = array_merge( $posts, $batch_posts );
@@ -308,7 +316,7 @@ final class QueryOptimizer {
 		}
 
 		// Check if we can serve this from cache
-		$cache_key = 'wp_query_' . md5( serialize( $query->query_vars ) );
+		$cache_key = 'wp_query_' . hash( 'xxh3', wp_json_encode( $query->query_vars ) );
 		$cached_result = CacheManager::get( $cache_key, 'queries' );
 
 		if ( $cached_result !== false ) {

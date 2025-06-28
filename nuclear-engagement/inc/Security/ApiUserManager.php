@@ -197,14 +197,60 @@ class ApiUserManager {
 			[
 				'operation'    => $operation,
 				'user_id'      => get_current_user_id(),
-				'user_ip'      => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
-				'user_agent'   => $_SERVER['HTTP_USER_AGENT'] ?? 'unknown',
+				'user_ip'      => self::sanitize_ip_address( $_SERVER['REMOTE_ADDR'] ?? 'unknown' ),
+				'user_agent'   => self::sanitize_user_agent( $_SERVER['HTTP_USER_AGENT'] ?? 'unknown' ),
 				'timestamp'    => current_time( 'mysql', true ),
 			],
 			$context
 		);
 		
 		LoggingService::log( 'API Operation: ' . wp_json_encode( $log_data ) );
+	}
+	
+	/**
+	 * Sanitize and validate IP address for logging
+	 *
+	 * @param string $ip Raw IP address.
+	 * @return string Sanitized IP or 'unknown' if invalid.
+	 */
+	private static function sanitize_ip_address( string $ip ): string {
+		if ( $ip === 'unknown' ) {
+			return 'unknown';
+		}
+		
+		// Remove any non-IP characters
+		$ip = preg_replace( '/[^0-9a-fA-F:.]/', '', $ip );
+		
+		// Validate IPv4 or IPv6
+		if ( filter_var( $ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 | FILTER_FLAG_IPV6 ) ) {
+			// Hash IP for privacy while maintaining uniqueness for rate limiting
+			return 'ip_' . substr( hash( 'sha256', $ip . wp_salt() ), 0, 12 );
+		}
+		
+		return 'unknown';
+	}
+	
+	/**
+	 * Sanitize user agent string for logging
+	 *
+	 * @param string $user_agent Raw user agent string.
+	 * @return string Sanitized user agent.
+	 */
+	private static function sanitize_user_agent( string $user_agent ): string {
+		if ( $user_agent === 'unknown' ) {
+			return 'unknown';
+		}
+		
+		// Remove potentially sensitive information and limit length
+		$user_agent = sanitize_text_field( $user_agent );
+		$user_agent = substr( $user_agent, 0, 200 ); // Limit length
+		
+		// Extract only browser/OS info, remove specific version details
+		if ( preg_match( '/^(\w+)/', $user_agent, $matches ) ) {
+			return $matches[1] . '_browser';
+		}
+		
+		return 'generic_browser';
 	}
 	
 	/**

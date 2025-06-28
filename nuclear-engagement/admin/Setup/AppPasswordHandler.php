@@ -3,6 +3,7 @@ namespace NuclearEngagement\Admin\Setup;
 
 use NuclearEngagement\Services\SetupService;
 use NuclearEngagement\Core\SettingsRepository;
+use NuclearEngagement\Security\TokenManager;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -11,10 +12,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 class AppPasswordHandler {
 	private SetupService $setup_service;
 	private SettingsRepository $settings_repository;
+	private TokenManager $token_manager;
 
-	public function __construct( SetupService $setup_service, SettingsRepository $settings_repository ) {
+	public function __construct( SetupService $setup_service, SettingsRepository $settings_repository, TokenManager $token_manager ) {
 		$this->setup_service	   = $setup_service;
 		$this->settings_repository = $settings_repository;
+		$this->token_manager       = $token_manager;
 	}
 
 	public function generate_app_password( bool $bypass_nonce = false ): void {
@@ -34,7 +37,7 @@ class AppPasswordHandler {
 			$this->redirect_with_error( 'Failed to send App Password to the SaaS.' );
 		}
 
-		$this->persist_app_password( $new_password, $uuid );
+		$this->persist_app_password_securely( $new_password, $uuid );
 
 		$this->redirect_with_success( 'Setup completed – you are ready to go!' );
 	}
@@ -51,12 +54,12 @@ class AppPasswordHandler {
 		$app_setup = get_option( 'nuclear_engagement_setup', array() );
 		$app_setup['wp_app_pass_created'] = false;
 		$app_setup['wp_app_pass_uuid'] = '';
-		$app_setup['plugin_password'] = '';
+		$app_setup['plugin_token_hash'] = '';
 		update_option( 'nuclear_engagement_setup', $app_setup );
 
 		$this->settings_repository->set( 'wp_app_pass_created', false )
 			->set( 'wp_app_pass_uuid', '' )
-			->set( 'plugin_password', '' )
+			->set( 'plugin_token_hash', '' )
 			->save();
 
 		$this->redirect_with_success( 'App Password revoked.' );
@@ -95,20 +98,29 @@ class AppPasswordHandler {
 		);
 	}
 
-	protected function persist_app_password( string $password, string $uuid ): void {
+	protected function persist_app_password_securely( string $password, string $uuid ): void {
+		// Generate a secure token for local authentication
+		$secure_token = $this->token_manager->generate_secure_token();
+		$token_hash = $this->token_manager->hash_token( $secure_token );
+		
+		// Store only the hash, not the actual password or token
 		$this->settings_repository->set( 'wp_app_pass_created', true )
 			->set( 'wp_app_pass_uuid', $uuid )
-			->set( 'plugin_password', $password )
+			->set( 'plugin_token_hash', $token_hash )
 			->set( 'connected', true )
 			->save();
 
 		$app_setup = get_option( 'nuclear_engagement_setup', array() );
 		$app_setup['wp_app_pass_created'] = true;
 		$app_setup['wp_app_pass_uuid'] = $uuid;
-		$app_setup['plugin_password'] = $password;
+		$app_setup['plugin_token_hash'] = $token_hash;
 		$app_setup['connected'] = true;
 		update_option( 'nuclear_engagement_setup', $app_setup );
 		wp_cache_delete( 'nuclear_engagement_setup', 'options' );
+		
+		// Store the actual token in a transient for immediate use only
+		// This will expire after 5 minutes for security
+		set_transient( 'nuclear_engagement_temp_token_' . $uuid, $secure_token, 300 );
 	}
 
 	protected function redirect_with_error( $msg ): void {

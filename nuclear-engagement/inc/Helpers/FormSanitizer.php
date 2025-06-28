@@ -15,20 +15,35 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+/**
+ * @deprecated Use InputValidator for new code. This class is kept for backward compatibility.
+ */
+
 class FormSanitizer {
 
 	/**
 	 * Sanitize text field from POST data with unslashing.
+	 * Enhanced with basic validation.
 	 *
 	 * @param string $key The POST key to sanitize.
 	 * @param string $default Default value if key doesn't exist.
+	 * @param array  $validation_rules Optional validation rules.
 	 * @return string Sanitized value.
 	 */
-	public static function sanitize_post_text( string $key, string $default = '' ): string {
+	public static function sanitize_post_text( string $key, string $default = '', array $validation_rules = [] ): string {
 		if ( ! isset( $_POST[ $key ] ) ) {
 			return $default;
 		}
-		return sanitize_text_field( wp_unslash( $_POST[ $key ] ) );
+		
+		$value = wp_unslash( $_POST[ $key ] );
+		
+		// Apply validation if rules provided
+		if ( ! empty( $validation_rules ) ) {
+			$validated = InputValidator::validate_text( $value, $key, $validation_rules );
+			return $validated !== false ? $validated : $default;
+		}
+		
+		return sanitize_text_field( $value );
 	}
 
 	/**
@@ -77,6 +92,7 @@ class FormSanitizer {
 
 	/**
 	 * Sanitize integer field from POST data.
+	 * Enhanced with proper validation including negative numbers.
 	 *
 	 * @param string $key The POST key to sanitize.
 	 * @param int $default Default value if key doesn't exist.
@@ -88,8 +104,15 @@ class FormSanitizer {
 		if ( ! isset( $_POST[ $key ] ) ) {
 			return $default;
 		}
-		$value = absint( $_POST[ $key ] );
-		return max( $min, min( $max, $value ) );
+		
+		$validation_rules = [
+			'min' => $min,
+			'max' => $max,
+			'default' => $default
+		];
+		
+		$validated = InputValidator::validate_integer( $_POST[ $key ], $key, $validation_rules );
+		return $validated !== false ? $validated : $default;
 	}
 
 	/**

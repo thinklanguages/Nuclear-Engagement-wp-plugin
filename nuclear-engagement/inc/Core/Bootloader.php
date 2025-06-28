@@ -20,25 +20,18 @@ use NuclearEngagement\Services\PostDataFetcher;
 use NuclearEngagement\Services\LoggingService;
 
 /**
- * Bootstraps the plugin.
+ * Simplified bootstraps the plugin using dependency injection.
  * 
  * @package NuclearEngagement\Core
  * @since 1.0.0
  */
 final class Bootloader {
 	/**
-	 * Initialization state tracking.
+	 * Service container instance.
 	 *
-	 * @var array<string, bool>
+	 * @var ServiceContainer
 	 */
-	private static array $initialized = [];
-	
-	/**
-	 * Cached service instances.
-	 *
-	 * @var array<string, object>
-	 */
-	private static array $instances = [];
+	private static ?ServiceContainer $container = null;
 	
 	/**
 	 * Plugin initialization status.
@@ -46,6 +39,19 @@ final class Bootloader {
 	 * @var bool
 	 */
 	private static bool $plugin_initialized = false;
+	
+	/**
+	 * Get the service container
+	 *
+	 * @return ServiceContainer
+	 */
+	public static function getContainer(): ServiceContainer {
+		if ( self::$container === null ) {
+			self::$container = ServiceContainer::getInstance();
+			self::$container->registerCoreServices();
+		}
+		return self::$container;
+	}
 	
 	/**
 	 * Initialize plugin loading.
@@ -58,7 +64,7 @@ final class Bootloader {
 		try {
 			self::define_constants();
 			self::register_autoloaders();
-			self::load_helpers();
+			self::getContainer()->initializeCoreServices();
 			self::register_hooks();
 			self::$plugin_initialized = true;
 		} catch ( \Throwable $e ) {

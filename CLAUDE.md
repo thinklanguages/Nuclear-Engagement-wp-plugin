@@ -1,0 +1,1 @@
+Claude, please refer to AGENTS.md.

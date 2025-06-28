@@ -72,7 +72,7 @@ final class ServiceDiscovery {
 			];
 		}
 
-		$cache_key = 'nuclen_discovered_services_' . md5( serialize( $directories ) );
+		$cache_key = 'nuclen_discovered_services_' . hash( 'xxh3', implode( '|', $directories ) );
 		$cached = wp_cache_get( $cache_key, 'nuclen_services' );
 
 		if ( $cached !== false ) {
