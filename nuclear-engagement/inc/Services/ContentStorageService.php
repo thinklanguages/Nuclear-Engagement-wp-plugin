@@ -142,8 +142,17 @@ class ContentStorageService {
 				'date'      => $data['date'] ?? current_time( 'mysql' ),
 			);
 
-			if ( ! update_post_meta( $postId, 'nuclen-quiz-data', $formatted ) ) {
-					throw new \RuntimeException( "Failed to update quiz data for post {$postId}" );
+			$current = get_post_meta( $postId, 'nuclen-quiz-data', true );
+			if ( $current === $formatted ) {
+			return;
+			}
+
+			$updated = update_post_meta( $postId, 'nuclen-quiz-data', $formatted );
+			if ( $updated === false ) {
+			$check = get_post_meta( $postId, 'nuclen-quiz-data', true );
+			if ( $check !== $formatted ) {
+			throw new \RuntimeException( "Failed to update quiz data for post {$postId}" );
+			}
 			}
 	}
 
@@ -190,9 +199,18 @@ class ContentStorageService {
 			'date'    => $data['date'] ?? current_time( 'mysql' ),
 		);
 
-		if ( ! update_post_meta( $postId, Summary_Service::META_KEY, $formatted ) ) {
+			$current = get_post_meta( $postId, Summary_Service::META_KEY, true );
+			if ( $current === $formatted ) {
+			return;
+			}
+
+			$updated = update_post_meta( $postId, Summary_Service::META_KEY, $formatted );
+			if ( $updated === false ) {
+			$check = get_post_meta( $postId, Summary_Service::META_KEY, true );
+			if ( $check !== $formatted ) {
 			throw new \RuntimeException( "Failed to update summary data for post {$postId}" );
-		}
+			}
+			}
 	}
 
 	/**
