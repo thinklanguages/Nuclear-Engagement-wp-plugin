@@ -30,7 +30,7 @@ class Utils {
 	 */
 
        public function display_nuclen_page_header(): void {
-$image_url = plugins_url( 'assets/nuclear-engagement-logo.webp', NUCLEN_PLUGIN_FILE );
+	$image_url = NUCLEN_PLUGIN_URL . 'assets/nuclear-engagement-logo.webp';
                if ( ! filter_var( $image_url, FILTER_VALIDATE_URL ) ) {
                        return;
                }

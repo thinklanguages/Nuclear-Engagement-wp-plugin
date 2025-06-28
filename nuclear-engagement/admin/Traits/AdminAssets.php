@@ -23,7 +23,7 @@ trait AdminAssets {
 	public function nuclen_register_admin_scripts() {
 	wp_register_script(
 	'nuclen-admin',
-	plugin_dir_url( dirname( __DIR__ ) ) . 'admin/js/nuclen-admin.js',
+	NUCLEN_PLUGIN_URL . 'admin/js/nuclen-admin.js',
 	array(),
 	AssetVersions::get( 'admin_js' ),
 	true
@@ -34,13 +34,13 @@ trait AdminAssets {
 	 * Enqueue base admin CSS for all plugin admin screens.
 	 */
 	public function wp_enqueue_styles() {
-		wp_enqueue_style(
-			$this->nuclen_get_plugin_name(),
-plugin_dir_url( dirname( __DIR__ ) ) . 'admin/css/nuclen-admin.css',
-			array(),
-			AssetVersions::get( 'admin_css' ),
-			'all'
-		);
+	wp_enqueue_style(
+	$this->nuclen_get_plugin_name(),
+	NUCLEN_PLUGIN_URL . 'admin/css/nuclen-admin.css',
+	array(),
+	AssetVersions::get( 'admin_css' ),
+	'all'
+	);
 	}
 
 	/**
@@ -66,14 +66,14 @@ plugin_dir_url( dirname( __DIR__ ) ) . 'admin/css/nuclen-admin.css',
 
 				// Enqueue the admin bundle. Onboarding handles pointer styles
 				// separately, so no wp-pointer or jQuery dependencies here.
-				wp_enqueue_script(
-					'nuclen-admin',
-plugin_dir_url( dirname( __DIR__ ) ) . 'admin/js/nuclen-admin.js',
-					array(),
-					AssetVersions::get( 'admin_js' ),
-					true
-				);
-
+	wp_enqueue_script(
+	'nuclen-admin',
+	NUCLEN_PLUGIN_URL . 'admin/js/nuclen-admin.js',
+	array(),
+	AssetVersions::get( 'admin_js' ),
+	true
+	);
+	
 		// Provide two objects:
 		// 1) "security" => wp_create_nonce('nuclen_admin_ajax_nonce') for your admin-ajax calls
 		// 2) "rest_nonce" => wp_create_nonce('wp_rest') for your custom REST route
@@ -123,12 +123,12 @@ plugin_dir_url( dirname( __DIR__ ) ) . 'admin/js/nuclen-admin.js',
 	public function nuclen_enqueue_dashboard_styles( $hook ) {
 		if ( $hook === 'toplevel_page_nuclear-engagement' ) {
 			wp_enqueue_style(
-				$this->nuclen_get_plugin_name() . '-dashboard',
-plugin_dir_url( dirname( __DIR__ ) ) . 'admin/css/nuclen-admin-dashboard.css?v=' . NUCLEN_ASSET_VERSION,
-				array(),
-				$this->nuclen_get_version(),
-				'all'
-			);
-		}
+					$this->nuclen_get_plugin_name() . '-dashboard',
+					NUCLEN_PLUGIN_URL . 'admin/css/nuclen-admin-dashboard.css?v=' . NUCLEN_ASSET_VERSION,
+					array(),
+					$this->nuclen_get_version(),
+					'all'
+				);
+			}
 	}
 }
