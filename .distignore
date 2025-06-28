@@ -1,14 +1,14 @@
 # development only
 node_modules
 src
-vite.config.js
+vite.config.ts
 tsconfig.json
 package.json
 package-lock.json
 scripts
 .git
 .gitignore
-eslint.config.js
+eslint.config.ts
 # dev dependencies removed from production build
 vendor/bin
 vendor/phpunit

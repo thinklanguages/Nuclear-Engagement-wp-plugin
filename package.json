@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "lint": "eslint \"src/**/*.ts\"",
+    "lint": "eslint --config eslint.config.ts \"src/**/*.ts\"",
     "i18n": "bash scripts/update-translations.sh",
     "test": "vitest"
   },
