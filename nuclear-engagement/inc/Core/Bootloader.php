@@ -41,6 +41,10 @@ final class Bootloader {
 			define( 'NUCLEN_PLUGIN_DIR', plugin_dir_path( NUCLEN_PLUGIN_FILE ) );
 		}
 
+		if ( ! defined( 'NUCLEN_PLUGIN_URL' ) ) {
+			define( 'NUCLEN_PLUGIN_URL', plugins_url( '/', NUCLEN_PLUGIN_FILE ) );
+		}
+
 		if ( ! defined( 'NUCLEN_PLUGIN_VERSION' ) ) {
 			if ( ! function_exists( 'get_file_data' ) ) {
 				require_once ABSPATH . 'wp-includes/functions.php';

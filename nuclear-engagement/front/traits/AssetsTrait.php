@@ -180,14 +180,14 @@ return false;
 		}
 
 		/* Base CSS */
-		wp_enqueue_style(
-			$this->plugin_name,
-			plugin_dir_url( __FILE__ ) . '../css/nuclen-front.css',
-			array(),
-			AssetVersions::get( 'front_css' ),
-			'all'
-		);
-
+			wp_enqueue_style(
+				$this->plugin_name,
+					NUCLEN_PLUGIN_URL . 'front/css/nuclen-front.css',
+					array(),
+					AssetVersions::get( 'front_css' ),
+					'all'
+					);
+		
 				/* Custom theme CSS */
 				$settings_repo = $this->nuclen_get_settings_repository();
 				$theme_choice  = $settings_repo->get( 'theme', 'bright' );
@@ -218,11 +218,11 @@ return false;
 		/* Main bundle */
 		wp_enqueue_script(
 			$this->plugin_name . '-front',
-			plugin_dir_url( __DIR__ ) . 'js/nuclen-front.js',
+			NUCLEN_PLUGIN_URL . 'front/js/nuclen-front.js',
 			array(),
 			AssetVersions::get( 'front_js' ),
 			true
-		);
+			);
 
 		$settings_repo = $this->nuclen_get_settings_repository();
 		

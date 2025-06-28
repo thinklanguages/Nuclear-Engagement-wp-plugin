@@ -87,7 +87,7 @@ class Onboarding {
 
 				wp_enqueue_script(
 					'nuclen-onboarding',
-					plugin_dir_url( __DIR__ ) . 'admin/js/onboarding-pointers.js',
+					NUCLEN_PLUGIN_URL . 'admin/js/onboarding-pointers.js',
 					array( 'wp-util' ),
 					AssetVersions::get( 'onboarding_js' ),
 					true
