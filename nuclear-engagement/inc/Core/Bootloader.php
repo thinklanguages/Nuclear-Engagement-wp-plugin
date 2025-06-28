@@ -16,6 +16,8 @@ use NuclearEngagement\Core\Plugin;
 use NuclearEngagement\Core\InventoryCache;
 use NuclearEngagement\Core\Autoloader;
 use NuclearEngagement\Services\PostsQueryService;
+use NuclearEngagement\Services\PostDataFetcher;
+use NuclearEngagement\Services\LoggingService;
 
 /**
  * Bootstraps the plugin.
@@ -105,24 +107,78 @@ final class Bootloader {
 	 * Register WordPress hooks.
 	 */
 	private static function register_hooks(): void {
-		add_action( 'init', 'nuclear_engagement_load_textdomain' );
+		add_action( 'init', array( self::class, 'load_textdomain' ) );
 
-		add_action(
-			'init',
-			static function () {
-				$defaults = Defaults::nuclen_get_default_settings();
-				SettingsRepository::get_instance( $defaults );
-			},
-			20
+				add_action(
+					'init',
+					static function () {
+						$defaults = Defaults::nuclen_get_default_settings();
+						SettingsRepository::get_instance( $defaults );
+					},
+					20
+				);
+		
+				$installer = new Installer();
+				\register_activation_hook( NUCLEN_PLUGIN_FILE, array( $installer, 'activate' ) );
+				\register_deactivation_hook( NUCLEN_PLUGIN_FILE, array( $installer, 'deactivate' ) );
+		
+		add_action( 'admin_init', array( self::class, 'redirect_on_activation' ) );
+				add_action( 'admin_init', array( $installer, 'migrate_post_meta' ), 20 );
+		
+		add_action( 'plugins_loaded', array( self::class, 'init_plugin' ) );
+}
+
+		/**
+		 * Load the plugin text domain for translations.
+		 */
+		public static function load_textdomain(): void {
+		load_plugin_textdomain(
+		'nuclear-engagement',
+		false,
+		dirname( plugin_basename( NUCLEN_PLUGIN_FILE ) ) . '/languages/'
 		);
-
-		$installer = new Installer();
-		\register_activation_hook( NUCLEN_PLUGIN_FILE, array( $installer, 'activate' ) );
-		\register_deactivation_hook( NUCLEN_PLUGIN_FILE, array( $installer, 'deactivate' ) );
-
-		add_action( 'admin_init', 'nuclear_engagement_redirect_on_activation' );
-		add_action( 'admin_init', array( $installer, 'migrate_post_meta' ), 20 );
-
-		add_action( 'plugins_loaded', 'nuclear_engagement_init' );
-	}
+		}
+		
+		/**
+		 * Redirect to the setup screen on plugin activation.
+		 */
+		public static function redirect_on_activation(): void {
+		if ( get_transient( 'nuclen_plugin_activation_redirect' ) ) {
+		delete_transient( 'nuclen_plugin_activation_redirect' );
+		if ( is_admin() && ! ( defined( 'DOING_AJAX' ) && DOING_AJAX ) ) {
+		wp_safe_redirect( admin_url( 'admin.php?page=nuclear-engagement-setup' ) );
+		exit;
+		}
+		}
+		}
+		
+		/**
+		 * Initialize and execute the core plugin logic.
+		 */
+		public static function run_plugin(): void {
+		MetaRegistration::init();
+		$plugin = new Plugin();
+		$plugin->nuclen_run();
+		}
+		
+		/**
+		 * Register services and bootstrap the plugin.
+		 */
+		public static function init_plugin(): void {
+		try {
+		InventoryCache::register_hooks();
+		PostsQueryService::register_hooks();
+		PostDataFetcher::register_hooks();
+		} catch ( \Throwable $e ) {
+		LoggingService::log( 'Nuclear Engagement: Cache system initialization failed - ' . $e->getMessage() );
+		add_action(
+		'admin_notices',
+		static function () {
+		echo '<div class="error"><p>Nuclear Engagement: Cache system initialization failed.</p></div>';
+		}
+		);
+		}
+		
+		self::run_plugin();
+		}
 }

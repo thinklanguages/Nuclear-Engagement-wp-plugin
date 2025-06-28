@@ -29,13 +29,13 @@ class BootstrapTest extends TestCase {
 	public function test_hooks_registered(): void {
 		$found_plugins_loaded = false;
 		$found_init = false;
-		foreach ( $GLOBALS['test_actions'] as $args ) {
-			if ( $args[0] === 'plugins_loaded' && $args[1] === 'nuclear_engagement_init' ) {
-				$found_plugins_loaded = true;
-			}
-			if ( $args[0] === 'init' && $args[1] === 'nuclear_engagement_load_textdomain' ) {
-				$found_init = true;
-			}
+               foreach ( $GLOBALS['test_actions'] as $args ) {
+                       if ( $args[0] === 'plugins_loaded' && $args[1] === array( \NuclearEngagement\Core\Bootloader::class, 'init_plugin' ) ) {
+                               $found_plugins_loaded = true;
+                       }
+                       if ( $args[0] === 'init' && $args[1] === array( \NuclearEngagement\Core\Bootloader::class, 'load_textdomain' ) ) {
+                               $found_init = true;
+                       }
 		}
 		$this->assertTrue( $found_plugins_loaded, 'plugins_loaded hook not registered' );
 		$this->assertTrue( $found_init, 'init hook not registered' );
