@@ -417,3 +417,8 @@ Quick helper classes for display, text alignment, etc.
 .u-mb-sm { margin-bottom: var(--nuclen-spacing-sm); }
 .u-mb-md { margin-bottom: var(--nuclen-spacing-md); }
 .u-mb-lg { margin-bottom: var(--nuclen-spacing-lg); }
+
+/* Ensure onboarding pointers appear above sidebar */
+.wp-pointer {
+	z-index: 100600 !important;
+}
