@@ -137,11 +137,14 @@ displayError('Network error while dismissing pointer.');
 
 		wrapper.remove();
 		currentIndex++;
-		nuclenShowNextPointer();
-		});
-	}
+nuclenShowNextPointer();
+});
+}
 
-	// Start the sequence
-	nuclenShowNextPointer();
-	});
+// End nuclenShowNextPointer()
+}
+
+// Start the sequence
+nuclenShowNextPointer();
+});
 })();
