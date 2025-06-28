@@ -41,11 +41,11 @@ final class Blocks {
 			)
 		);
 
-		register_block_type(
-			'nuclear-engagement/summary',
-			array(
-				'api_version'     => 2,
-				'title'           => __( 'Summary', 'nuclear-engagement' ),
+                register_block_type(
+                        'nuclear-engagement/summary',
+                        array(
+                                'api_version'     => 2,
+                                'title'           => __( 'Summary', 'nuclear-engagement' ),
 				'category'        => 'widgets',
 				'icon'            => 'excerpt-view',
 				'render_callback' => static function (): string {
@@ -55,8 +55,26 @@ final class Blocks {
 					}
 					return $out;
 				},
-				'editor_script'   => 'nuclen-admin',
-			)
-		);
-	}
+                                'editor_script'   => 'nuclen-admin',
+                        )
+                );
+
+               register_block_type(
+                       'nuclear-engagement/toc',
+                       array(
+                               'api_version'     => 2,
+                               'title'           => __( 'TOC', 'nuclear-engagement' ),
+                               'category'        => 'widgets',
+                               'icon'            => 'list-view',
+                               'render_callback' => static function (): string {
+                                       $out = do_shortcode( '[nuclear_engagement_toc]' );
+                                       if ( ! is_string( $out ) || trim( $out ) === '' ) {
+                                               return '<p>' . esc_html__( 'TOC unavailable.', 'nuclear-engagement' ) . '</p>';
+                                       }
+                                       return $out;
+                               },
+                               'editor_script'   => 'nuclen-admin',
+                       )
+               );
+        }
 }

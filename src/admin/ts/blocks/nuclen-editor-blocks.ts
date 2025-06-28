@@ -19,12 +19,20 @@
 	edit: () => createElement('p', null, __('Quiz will render on the front-end.', 'nuclear-engagement')),
 	save: () => null,
 	});
-	registerBlockType('nuclear-engagement/summary', {
-	apiVersion: 2,
-	title: __('Summary', 'nuclear-engagement'),
-	icon: 'excerpt-view',
-	category: 'widgets',
-	edit: () => createElement('p', null, __('Summary will render on the front-end.', 'nuclear-engagement')),
-	save: () => null,
-	});
+        registerBlockType('nuclear-engagement/summary', {
+        apiVersion: 2,
+        title: __('Summary', 'nuclear-engagement'),
+        icon: 'excerpt-view',
+        category: 'widgets',
+        edit: () => createElement('p', null, __('Summary will render on the front-end.', 'nuclear-engagement')),
+        save: () => null,
+        });
+        registerBlockType('nuclear-engagement/toc', {
+        apiVersion: 2,
+        title: __('TOC', 'nuclear-engagement'),
+        icon: 'list-view',
+        category: 'widgets',
+        edit: () => createElement('p', null, __('TOC will render on the front-end.', 'nuclear-engagement')),
+        save: () => null,
+        });
 })();
