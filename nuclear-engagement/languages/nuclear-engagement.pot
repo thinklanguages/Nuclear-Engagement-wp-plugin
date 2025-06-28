@@ -88,6 +88,10 @@ msgstr ""
 msgid "Summary"
 msgstr ""
 
+#: nuclear-engagement/inc/Core/Blocks.php:66
+msgid "TOC"
+msgstr ""
+
 #: nuclear-engagement/inc/OptinData.php:181
 msgid "Insufficient permissions."
 msgstr ""
@@ -264,4 +268,8 @@ msgstr ""
 
 #: src/admin/ts/blocks/nuclen-editor-blocks.ts:21
 msgid "Summary will render on the front-end."
+msgstr ""
+
+#: src/admin/ts/blocks/nuclen-editor-blocks.ts:29
+msgid "TOC will render on the front-end."
 msgstr ""

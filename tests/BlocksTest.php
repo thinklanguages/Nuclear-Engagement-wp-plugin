@@ -48,29 +48,35 @@ namespace {
 			$this->assertSame([], $GLOBALS['block_regs']);
 		}
 
-		public function test_registers_two_blocks_and_callbacks_use_shortcodes(): void {
-			Blocks::register();
-			$this->assertCount(2, $GLOBALS['block_regs']);
-			$this->assertArrayHasKey('nuclear-engagement/quiz', $GLOBALS['block_regs']);
-			$this->assertArrayHasKey('nuclear-engagement/summary', $GLOBALS['block_regs']);
+               public function test_registers_three_blocks_and_callbacks_use_shortcodes(): void {
+                       Blocks::register();
+                       $this->assertCount(3, $GLOBALS['block_regs']);
+                       $this->assertArrayHasKey('nuclear-engagement/quiz', $GLOBALS['block_regs']);
+                       $this->assertArrayHasKey('nuclear-engagement/summary', $GLOBALS['block_regs']);
+                       $this->assertArrayHasKey('nuclear-engagement/toc', $GLOBALS['block_regs']);
 
-			$quiz_cb = $GLOBALS['block_regs']['nuclear-engagement/quiz']['render_callback'];
-			$summary_cb = $GLOBALS['block_regs']['nuclear-engagement/summary']['render_callback'];
+                       $quiz_cb = $GLOBALS['block_regs']['nuclear-engagement/quiz']['render_callback'];
+                       $summary_cb = $GLOBALS['block_regs']['nuclear-engagement/summary']['render_callback'];
+                       $toc_cb = $GLOBALS['block_regs']['nuclear-engagement/toc']['render_callback'];
 
-			$this->assertIsCallable($quiz_cb);
-			$this->assertIsCallable($summary_cb);
+                       $this->assertIsCallable($quiz_cb);
+                       $this->assertIsCallable($summary_cb);
+                       $this->assertIsCallable($toc_cb);
 
-			$quiz_html = $quiz_cb();
-			$summary_html = $summary_cb();
+                       $quiz_html = $quiz_cb();
+                       $summary_html = $summary_cb();
+                       $toc_html = $toc_cb();
 
-			$this->assertSame('OUT:[nuclear_engagement_quiz]', $quiz_html);
-			$this->assertSame('OUT:[nuclear_engagement_summary]', $summary_html);
+                       $this->assertSame('OUT:[nuclear_engagement_quiz]', $quiz_html);
+                       $this->assertSame('OUT:[nuclear_engagement_summary]', $summary_html);
+                       $this->assertSame('OUT:[nuclear_engagement_toc]', $toc_html);
 
-			$this->assertSame([
-				'[nuclear_engagement_quiz]',
-				'[nuclear_engagement_summary]'
-			], $GLOBALS['shortcode_calls']);
-			$this->assertSame([], \NuclearEngagement\Services\LoggingService::$logs);
-		}
+                       $this->assertSame([
+                                '[nuclear_engagement_quiz]',
+                                '[nuclear_engagement_summary]',
+                                '[nuclear_engagement_toc]'
+                        ], $GLOBALS['shortcode_calls']);
+                       $this->assertSame([], \NuclearEngagement\Services\LoggingService::$logs);
+               }
 	}
 }
