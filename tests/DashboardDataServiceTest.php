@@ -192,7 +192,7 @@ class DashboardDataServiceTest extends TestCase {
 		$this->assertEmpty( $transients );
 	}
 
-	public function test_dual_counts_returns_empty_on_error(): void {
+        public function test_dual_counts_returns_empty_on_error(): void {
 		global $wpdb, $wp_cache, $transients;
 		$wp_cache = $transients = [];
 		$wpdb = new class {
@@ -210,7 +210,27 @@ class DashboardDataServiceTest extends TestCase {
 		$this->assertSame( [], $res );
 		$this->assertSame( ['Dashboard query error: fail'], \NuclearEngagement\Services\LoggingService::$logs );
 		$this->assertEmpty( $wp_cache );
-		$this->assertEmpty( $transients );
-	}
+                $this->assertEmpty( $transients );
+        }
+
+        public function test_get_category_dual_counts_returns_rows(): void {
+                global $wpdb;
+                $wpdb = new class {
+                        public $posts = 'wp_posts';
+                        public $term_relationships = 'wp_term_relationships';
+                        public $term_taxonomy = 'wp_term_taxonomy';
+                        public $terms = 'wp_terms';
+                        public $postmeta = 'wp_postmeta';
+                        public array $args = [];
+                        public function prepare( $q, ...$a ) { $this->args = $a; return 'SQL'; }
+                        public function get_results( $sql, $output ) { return [ [ 'cat_name' => 'News', 'quiz_with' => 1, 'quiz_without' => 0, 'summary_with' => 2, 'summary_without' => 3 ] ]; }
+                };
+
+                $svc = new DashboardDataService();
+                $rows = $svc->get_category_dual_counts( ['post'], ['publish'] );
+
+                $this->assertSame( 'News', $rows[0]['cat_name'] );
+                $this->assertSame( ['post','publish'], $wpdb->args );
+        }
 }
 }
