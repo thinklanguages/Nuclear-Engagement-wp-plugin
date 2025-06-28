@@ -44,20 +44,20 @@ namespace {
 			];
 			$service->storeQuizData(1, $data);
 			$expected = [
+				'date' => '2025-01-01',
 				'questions' => [
 					[
-						'question' => 'Q1',
-						'answers' => ['A1','A2'],
-						'explanation' => 'E1',
-					],
-					[
-						'question' => 'Q2',
-						'answers' => ['A1'],
-						'explanation' => '',
-					],
-				],
-				'date' => '2025-01-01',
-			];
+'question' => 'Q1',
+'answers' => ['A1','A2'],
+'explanation' => 'E1',
+],
+[
+'question' => 'Q2',
+'answers' => ['A1'],
+'explanation' => '',
+],
+],
+];
 			$this->assertSame($expected, $GLOBALS['wp_meta'][1]['nuclen-quiz-data']);
 		}
 
