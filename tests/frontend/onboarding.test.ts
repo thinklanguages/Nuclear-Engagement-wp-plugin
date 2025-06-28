@@ -15,17 +15,44 @@ const { nuclenFetchWithRetry } = await import('../../src/admin/ts/nuclen-admin-g
 beforeEach(() => {
   vi.resetModules();
   document.body.innerHTML = '<div id="target"></div>';
+  (global as any).jQuery = (selector: any) => {
+    if (typeof selector === 'function') {
+      selector(jQuery);
+      return;
+    }
+    const element = document.querySelector(selector);
+    const api: any = {
+      pointer(opts: any) {
+        if (typeof opts === 'object') {
+          const wrapper = document.createElement('div');
+          wrapper.className = 'wp-pointer';
+          wrapper.innerHTML = `${opts.content}<a class="close" href="#">Dismiss</a>`;
+          element?.appendChild(wrapper);
+          if (opts.close) {
+            wrapper.querySelector('.close')?.addEventListener('click', opts.close);
+          }
+        }
+        return api;
+      },
+    };
+    api.pointer['open'] = () => {};
+    return api;
+  };
+  (global as any).$ = (global as any).jQuery;
   (window as any).nePointerData = {
-	pointers: [{ id: 'p1', target: '#target', title: 'T', content: 'C', position: { edge: 'top', align: 'center' } }],
-	ajaxurl: 'ajax.php',
-	nonce: 'n'
+    pointers: [{ id: 'p1', target: '#target', title: 'T', content: 'C', position: { edge: 'top', align: 'center' } }],
+    ajaxurl: 'ajax.php',
+    nonce: 'n'
   };
 });
 
 afterEach(() => {
+  delete (global as any).jQuery;
+  delete (global as any).$;
   delete (window as any).nePointerData;
   document.body.innerHTML = '';
 });
+
 
 describe('nuclen-admin-onboarding', () => {
   it('renders pointer from window data', async () => {
