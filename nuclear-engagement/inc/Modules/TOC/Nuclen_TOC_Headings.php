@@ -28,7 +28,7 @@ final class Nuclen_TOC_Headings {
 	 */
 	public function __construct() {
 		add_filter( 'the_content', array( $this, 'nuclen_add_heading_ids' ), 99 );
-		add_action( 'save_post', array( $this, 'cache_headings_on_save' ), 10, 3 );
+               add_action( 'save_post', array( $this, 'cache_headings_on_save' ), 10, 2 );
 		add_action( 'delete_post', array( $this, 'delete_headings_cache' ) );
 	}
 
