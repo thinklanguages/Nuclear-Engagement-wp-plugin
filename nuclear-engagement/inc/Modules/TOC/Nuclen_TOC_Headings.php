@@ -1,9 +1,9 @@
 <?php
 /**
- * Injects unique IDs into post headings for jump links.
- *
- * @package NuclearEngagement
- */
+	* Injects unique IDs into post headings for jump links.
+	*
+	* @package NuclearEngagement
+	*/
 
 declare(strict_types=1);
 
@@ -16,8 +16,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Adds unique IDs to headings within post content.
- */
+	* Adds unique IDs to headings within post content.
+	*/
 final class Nuclen_TOC_Headings {
 
 	/** Meta key for stored headings. */
@@ -55,7 +55,7 @@ final class Nuclen_TOC_Headings {
 		if ( ! nuclen_str_contains( $content, '<h' ) ) {
 			return $content; }
 
-               foreach ( HeadingExtractor::extract( $content, range( 1, 6 ), get_the_ID() ) as $h ) {
+				foreach ( HeadingExtractor::extract( $content, range( 1, 6 ), get_the_ID() ) as $h ) {
 			$pat         = sprintf(
 				'/(<%1$s\b(?![^>]*\bid=)[^>]*>)(%2$s)(<\/%1$s>)/is',
 				$h['tag'],
@@ -80,7 +80,7 @@ final class Nuclen_TOC_Headings {
 	 */
 	public function cache_headings_on_save( int $post_id, \WP_Post $post ): void {
 		delete_post_meta( $post_id, self::META_KEY );
-               $headings = HeadingExtractor::extract( $post->post_content, range( 1, 6 ), $post_id );
+				$headings = HeadingExtractor::extract( $post->post_content, range( 1, 6 ), $post_id );
 		update_post_meta( $post_id, self::META_KEY, $headings );
 	}
 

@@ -1,12 +1,12 @@
 <?php
 declare(strict_types=1);
 /**
- * File: front/Controller/Rest/ContentController.php
- *
- * Content Controller
- *
- * @package NuclearEngagement\Front\Controller\Rest
- */
+	* File: front/Controller/Rest/ContentController.php
+	*
+	* Content Controller
+	*
+	* @package NuclearEngagement\Front\Controller\Rest
+	*/
 
 namespace NuclearEngagement\Front\Controller\Rest;
 
@@ -21,12 +21,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * REST controller for receiving content.
- *
- * Accepts authentication via the custom header `X-WP-App-Password`
- * using the plugin-generated password, or falls back to a standard
- * admin nonce check when present.
- */
+	* REST controller for receiving content.
+	*
+	* Accepts authentication via the custom header `X-WP-App-Password`
+	* using the plugin-generated password, or falls back to a standard
+	* admin nonce check when present.
+	*/
 class ContentController {
 	/**
 	 * @var ContentStorageService
@@ -86,16 +86,16 @@ class ContentController {
 
 			$contentRequest = ContentRequest::fromJson( $data );
 
-                        // Store the results
-                        $statuses = $this->storage->storeResults( $contentRequest->results, $contentRequest->workflow );
-                        if ( array_filter( $statuses, static fn( $s ) => $s !== true ) ) {
-                                return new \WP_Error( 'ne_store_failed', __( 'Failed to store content', 'nuclear-engagement' ), array( 'status' => 500 ) );
-                        }
+						// Store the results
+						$statuses = $this->storage->storeResults( $contentRequest->results, $contentRequest->workflow );
+						if ( array_filter( $statuses, static fn( $s ) => $s !== true ) ) {
+								return new \WP_Error( 'ne_store_failed', __( 'Failed to store content', 'nuclear-engagement' ), array( 'status' => 500 ) );
+						}
 
 			// Get date from first stored item
 			reset( $contentRequest->results );
 			$firstPostId = key( $contentRequest->results );
-                        $metaKey     = $contentRequest->workflow === 'quiz' ? 'nuclen-quiz-data' : Summary_Service::META_KEY;
+						$metaKey     = $contentRequest->workflow === 'quiz' ? 'nuclen-quiz-data' : Summary_Service::META_KEY;
 			$stored      = get_post_meta( $firstPostId, $metaKey, true );
 			$date        = is_array( $stored ) && ! empty( $stored['date'] ) ? $stored['date'] : '';
 

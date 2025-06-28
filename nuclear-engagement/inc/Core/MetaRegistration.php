@@ -1,12 +1,12 @@
 <?php
 declare(strict_types=1);
 /**
- * File: includes/MetaRegistration.php
- *
- * Register meta keys for better query performance
- *
- * @package NuclearEngagement
- */
+	* File: includes/MetaRegistration.php
+	*
+	* Register meta keys for better query performance
+	*
+	* @package NuclearEngagement
+	*/
 
 namespace NuclearEngagement\Core;
 
@@ -18,10 +18,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Class MetaRegistration
- *
- * Handles registration of post meta keys for improved query performance
- */
+	* Class MetaRegistration
+	*
+	* Handles registration of post meta keys for improved query performance
+	*/
 class MetaRegistration {
 
 	/**
@@ -36,7 +36,7 @@ class MetaRegistration {
 	 */
 	public static function register_meta_keys(): void {
 		// Get allowed post types from settings
-               $post_types = SettingsFunctions::get_array( 'generation_post_types', array( 'post' ) );
+				$post_types = SettingsFunctions::get_array( 'generation_post_types', array( 'post' ) );
 
 		// Register quiz data meta
 		foreach ( $post_types as $post_type ) {

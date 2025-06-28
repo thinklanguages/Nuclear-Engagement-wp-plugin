@@ -1,14 +1,14 @@
 <?php
 /**
- * File: modules/toc/includes/Nuclen_TOC_Utils.php
- *
- * Heavy‑lifting utilities:
- *   ▸ heading extraction with skip‑rules
- *   ▸ slug deduplication
- *   ▸ object‑cache wrapper
- *
- * @package NuclearEngagement
- */
+	* File: modules/toc/includes/Nuclen_TOC_Utils.php
+	*
+	* Heavy‑lifting utilities:
+	*   ▸ heading extraction with skip‑rules
+	*   ▸ slug deduplication
+	*   ▸ object‑cache wrapper
+	*
+	* @package NuclearEngagement
+	*/
 
 declare(strict_types=1);
 
@@ -21,8 +21,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Utility helpers for TOC parsing and slug generation.
- */
+	* Utility helpers for TOC parsing and slug generation.
+	*/
 final class Nuclen_TOC_Utils {
 
 	private const CACHE_GROUP = 'nuclen_toc';
@@ -242,7 +242,7 @@ final class Nuclen_TOC_Utils {
 				return;
 		}
 
-               $levels = SettingsFunctions::get_array( 'toc_heading_levels', range( 2, 6 ) );
+				$levels = SettingsFunctions::get_array( 'toc_heading_levels', range( 2, 6 ) );
 
 			$levels = array_unique( array_map( 'intval', $levels ) );
 			sort( $levels );
