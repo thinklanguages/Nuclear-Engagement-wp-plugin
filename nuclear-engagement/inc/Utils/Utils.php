@@ -28,11 +28,12 @@ class Utils {
 	 *
 	 * @return void
 	 */
-		public function display_nuclen_page_header(): void {
-	$image_url = plugin_dir_url( NUCLEN_PLUGIN_FILE ) . 'assets/nuclear-engagement-logo.webp';
-				if ( ! filter_var( $image_url, FILTER_VALIDATE_URL ) ) {
-						return;
-				}
+
+       public function display_nuclen_page_header(): void {
+$image_url = plugins_url( 'assets/nuclear-engagement-logo.webp', NUCLEN_PLUGIN_FILE );
+               if ( ! filter_var( $image_url, FILTER_VALIDATE_URL ) ) {
+                       return;
+               }
 
 				load_template(
 						NUCLEN_PLUGIN_DIR . 'templates/admin/page-header.php',
