@@ -127,18 +127,30 @@ class ContentController {
 	 * @return bool
 	 */
 	public function permissions( \WP_REST_Request $request ): bool {
-			$header_pass = sanitize_text_field( (string) $request->get_header( 'X-WP-App-Password' ) );
-			$stored_pass = $this->settings->get_string( 'plugin_password', '' );
-
+		$header_pass = sanitize_text_field( (string) $request->get_header( 'X-WP-App-Password' ) );
+		$stored_pass = $this->settings->get_string( 'plugin_password', '' );
+		
 		if ( ! empty( $stored_pass ) && hash_equals( $stored_pass, $header_pass ) ) {
-				return true;
+		if ( 0 === get_current_user_id() ) {
+		$user = get_user_by( 'id', 1 );
+		if ( ! $user ) {
+		$admins = get_users( array( 'role' => 'administrator', 'number' => 1, 'fields' => 'ids' ) );
+		if ( ! empty( $admins ) ) {
+		$user = get_user_by( 'id', (int) $admins[0] );
 		}
-
-			$nonce = $request->get_header( 'X-WP-Nonce' );
+		}
+		if ( $user ) {
+		wp_set_current_user( $user->ID );
+		}
+		}
+		return true;
+		}
+		
+		$nonce = $request->get_header( 'X-WP-Nonce' );
 		if ( wp_verify_nonce( $nonce, 'wp_rest' ) && current_user_can( 'manage_options' ) ) {
-				return true;
+		return true;
 		}
-
-			return false;
-	}
+		
+		return false;
+}
 }
