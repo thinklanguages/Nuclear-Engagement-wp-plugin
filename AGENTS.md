@@ -45,3 +45,8 @@ Follow the guidelines below when making changes.
 - Always edit the TypeScript source under `src/` rather than the built JavaScript in `nuclear-engagement`.
 - Do not remove existing functionality unless explicitly requested or approved by the user.
 
+## Documentation
+
+- Record changes to plugin behavior in `nuclear-engagement/README.txt`.
+- Add each item under the latest version heading in the `== Changelog ==` section.
+
