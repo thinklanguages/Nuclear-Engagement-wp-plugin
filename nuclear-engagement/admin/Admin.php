@@ -1,12 +1,12 @@
 <?php
 declare(strict_types=1);
 /**
- * File: admin/Admin.php
- *
- * Main Admin Class for Nuclear Engagement Plugin
- *
- * @package NuclearEngagement\Admin
- */
+	* File: admin/Admin.php
+	*
+	* Main Admin Class for Nuclear Engagement Plugin
+	*
+	* @package NuclearEngagement\Admin
+	*/
 
 namespace NuclearEngagement\Admin;
 
@@ -48,13 +48,13 @@ class Admin {
 		$this->version             = $version;
 		$this->utils               = new Utils();
 		$this->settings_repository = $settings_repository;
-               $this->container           = $container;
+				$this->container           = $container;
 
 // Meta-boxes handled by module loader
 
-               // AJAX & assets
-               add_action( 'init', array( $this, 'nuclen_register_admin_scripts' ), 9 );
-               add_action( 'wp_ajax_nuclen_fetch_app_updates', array( $this, 'nuclen_fetch_app_updates' ) );
+				// AJAX & assets
+				add_action( 'init', array( $this, 'nuclen_register_admin_scripts' ), 9 );
+				add_action( 'wp_ajax_nuclen_fetch_app_updates', array( $this, 'nuclen_fetch_app_updates' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'wp_enqueue_scripts' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'wp_enqueue_styles' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'nuclen_enqueue_dashboard_styles' ) );
