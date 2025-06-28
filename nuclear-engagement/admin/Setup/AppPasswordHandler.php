@@ -75,7 +75,9 @@ class AppPasswordHandler {
 	}
 
 	protected function create_app_password(): array {
-		$new_password = wp_generate_password( 32, false, false );
+		// Security fix: Enable special characters for stronger password entropy
+		// This significantly increases security against brute force attacks
+		$new_password = wp_generate_password( 32, true, true );
 		$uuid = wp_generate_uuid4();
 		$current_user = wp_get_current_user();
 		return array( $new_password, $uuid, $current_user );

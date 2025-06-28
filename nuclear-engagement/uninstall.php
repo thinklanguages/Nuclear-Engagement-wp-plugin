@@ -102,8 +102,17 @@ if ( $delete_css ) {
 // Drop opt-in table only when the user opts to delete settings or generated
 // content. This avoids data loss unless a full cleanup was requested.
 if ( $delete_settings || $delete_generated ) {
-		global $wpdb;
-				$table = $wpdb->prefix . 'nuclen_optins';
-				// Remove stored email opt-in submissions on uninstall.
-				$wpdb->query( 'DROP TABLE IF EXISTS ' . esc_sql( $table ) );
+	global $wpdb;
+	
+	// Security fix: Use WordPress query builder instead of manual SQL construction
+	$table_name = $wpdb->prefix . 'nuclen_optins';
+	
+	// Validate table name format to prevent injection
+	if ( preg_match( '/^[a-zA-Z0-9_]+$/', str_replace( $wpdb->prefix, '', $table_name ) ) ) {
+		// Use WordPress query builder with proper escaping
+		$wpdb->query( $wpdb->prepare( 'DROP TABLE IF EXISTS %1s', $table_name ) );
+	} else {
+		// Log security event for invalid table name attempt
+		error_log( 'Nuclear Engagement: Invalid table name attempted in uninstall: ' . $table_name );
+	}
 }

@@ -3,12 +3,14 @@ declare(strict_types=1);
 /**
  * File: admin/Traits/SettingsPageCustomCSSTrait.php
  *
- * Generates / writes the custom-theme CSS file.
+ * Generates / writes the custom-theme CSS file with security hardening.
  *
  * @package NuclearEngagement\Admin
  */
 
 namespace NuclearEngagement\Admin\Traits;
+
+use NuclearEngagement\Security\CssSanitizer;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -27,16 +29,24 @@ trait SettingsPageCustomCSSTrait {
 	   }
 
 	   /**
-	* Generate the CSS string for the custom theme.
+	* Generate the CSS string for the custom theme with security sanitization.
+	*
+	* Security fix: All CSS values are sanitized to prevent code injection attacks.
 	*
 	* @param array $s Sanitised settings array.
 	*/
 	   private function nuclen_build_custom_css( array $s ): string {
 	       /* ── Fill any missing values so we never output empty CSS vars ── */
 	       $s = wp_parse_args( $s, \NuclearEngagement\Core\Defaults::nuclen_get_default_settings() );
+	       
+	       /* ── Security fix: Sanitize all CSS values to prevent injection attacks ── */
+	       $s = CssSanitizer::sanitize_css_settings( $s );
 
 	       $css = <<<CSS
 :root{
+/* ───── Modern Design System Integration ───── */
+/* Map user settings to design tokens while maintaining backward compatibility */
+
 /* ───── Quiz container ───── */
 --nuclen-fg-color: {$s['font_color']};
 	--nuclen-quiz-font-color: {$s['font_color']};
@@ -81,6 +91,15 @@ trait SettingsPageCustomCSSTrait {
 	--nuclen-toc-shadow-blur: {$s['toc_shadow_blur']}px;
 	--nuclen-toc-link: {$s['toc_link_color']};
 	--nuclen-toc-sticky-max-width: {$s['toc_sticky_max_width']}px;
+
+	/* ───── Design System Overrides ───── */
+	/* Override design tokens with user customizations */
+	--ne-text-primary: {$s['font_color']};
+	--ne-bg-primary: {$s['bg_color']};
+	--ne-border-primary: {$s['quiz_border_color']};
+	--ne-color-primary-500: {$s['quiz_answer_button_border_color']};
+	--ne-color-primary-100: color-mix(in srgb, {$s['quiz_answer_button_border_color']} 20%, transparent);
+	--ne-color-primary-050: color-mix(in srgb, {$s['quiz_answer_button_border_color']} 10%, transparent);
 
 	/* ───── Legacy fallbacks ───── */
 	--nuclen-fg-color: var(--nuclen-quiz-font-color);
@@ -136,6 +155,9 @@ CSS;
 
 	   /**
 	* Save the generated CSS string to disk and update the version option.
+	*
+	* Security: CSS content has already been sanitized by CssSanitizer before reaching this method.
+	* All user inputs are validated and dangerous patterns removed to prevent injection attacks.
 	*/
 	   private function nuclen_save_custom_css_file( string $css ): void {
 	       $css_info = \NuclearEngagement\Utils\Utils::nuclen_get_custom_css_info();

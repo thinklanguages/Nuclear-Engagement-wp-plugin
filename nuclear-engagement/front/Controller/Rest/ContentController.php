@@ -15,6 +15,7 @@ use NuclearEngagement\Services\ContentStorageService;
 use NuclearEngagement\Core\SettingsRepository;
 use NuclearEngagement\Utils\Utils;
 use NuclearEngagement\Modules\Summary\Summary_Service;
+use NuclearEngagement\Security\ApiUserManager;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -122,35 +123,73 @@ class ContentController {
 	}
 
 	/**
-	 * Check permissions
+	 * Check permissions with secure API user management.
 	 *
-	 * @return bool
+	 * Security fix: Use dedicated service account instead of admin impersonation.
+	 * This implements proper capability-based authorization and audit trails.
+	 *
+	 * @param \WP_REST_Request $request The REST request.
+	 * @return bool True if authorized, false otherwise.
 	 */
 	public function permissions( \WP_REST_Request $request ): bool {
 		$header_pass = sanitize_text_field( (string) $request->get_header( 'X-WP-App-Password' ) );
 		$stored_pass = $this->settings->get_string( 'plugin_password', '' );
 		
+		// API Password Authentication
 		if ( ! empty( $stored_pass ) && hash_equals( $stored_pass, $header_pass ) ) {
-		if ( 0 === get_current_user_id() ) {
-		$user = get_user_by( 'id', 1 );
-		if ( ! $user ) {
-		$admins = get_users( array( 'role' => 'administrator', 'number' => 1, 'fields' => 'ids' ) );
-		if ( ! empty( $admins ) ) {
-		$user = get_user_by( 'id', (int) $admins[0] );
-		}
-		}
-		if ( $user ) {
-		wp_set_current_user( $user->ID );
-		}
-		}
-		return true;
+			// Security fix: Use dedicated API service account instead of admin impersonation
+			if ( 0 === get_current_user_id() ) {
+				$service_user = ApiUserManager::get_service_account();
+				
+				if ( ! $service_user ) {
+					ApiUserManager::log_api_operation( 'authentication_failed', [
+						'reason' => 'service_account_not_found',
+						'ip'     => $_SERVER['REMOTE_ADDR'] ?? 'unknown'
+					] );
+					return false;
+				}
+				
+				// Set current user to the dedicated API service account
+				wp_set_current_user( $service_user->ID );
+				
+				// Log successful API authentication
+				ApiUserManager::log_api_operation( 'api_authentication_success', [
+					'service_user_id' => $service_user->ID,
+					'endpoint'        => $request->get_route()
+				] );
+			}
+			
+			// Verify the current user has required API capabilities
+			if ( ! current_user_can( 'manage_nuclear_engagement_content' ) ) {
+				ApiUserManager::log_api_operation( 'authorization_failed', [
+					'reason'      => 'insufficient_capabilities',
+					'user_id'     => get_current_user_id(),
+					'required_cap' => 'manage_nuclear_engagement_content'
+				] );
+				return false;
+			}
+			
+			return true;
 		}
 		
+		// Nonce-based Authentication (for admin users)
 		$nonce = $request->get_header( 'X-WP-Nonce' );
 		if ( wp_verify_nonce( $nonce, 'wp_rest' ) && current_user_can( 'manage_options' ) ) {
-		return true;
+			ApiUserManager::log_api_operation( 'nonce_authentication_success', [
+				'user_id'  => get_current_user_id(),
+				'endpoint' => $request->get_route()
+			] );
+			return true;
 		}
 		
+		// Log failed authentication attempt
+		ApiUserManager::log_api_operation( 'authentication_failed', [
+			'reason'       => 'invalid_credentials',
+			'has_password' => ! empty( $header_pass ),
+			'has_nonce'    => ! empty( $nonce ),
+			'ip'           => $_SERVER['REMOTE_ADDR'] ?? 'unknown'
+		] );
+		
 		return false;
-}
+	}
 }
