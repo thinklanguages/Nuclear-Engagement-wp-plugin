@@ -18,10 +18,10 @@ export default [
   js.configs.recommended,
   {
     files: [
-      'eslint.config.js',
-      'vite.config.js',
+      'eslint.config.ts',
+      'vite.config.ts',
       'vitest.config.ts',
-      'jest.setup.js'
+      'jest.setup.ts'
     ],
     languageOptions: {
       globals: {
