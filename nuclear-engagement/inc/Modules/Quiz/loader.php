@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 use NuclearEngagement\Core\SettingsRepository;
 use NuclearEngagement\Front\FrontClass;
-use NuclearEngagement\Core\Container;
+use NuclearEngagement\Core\ServiceContainer;
 
 /*
 ------------------------------------------------------------------

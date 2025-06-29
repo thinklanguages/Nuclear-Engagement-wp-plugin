@@ -24,7 +24,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 use NuclearEngagement\Utils\Utils;
 use NuclearEngagement\Core\SettingsRepository;
-use NuclearEngagement\Core\Container;
+use NuclearEngagement\Core\ServiceContainer;
 
 class FrontClass {
 
@@ -50,7 +50,7 @@ class FrontClass {
 	 * @param string             $version The plugin version.
 	 * @param SettingsRepository $settings_repository The settings repository.
 	 */
-	public function __construct( $plugin_name, $version, SettingsRepository $settings_repository, Container $container ) {
+	public function __construct( $plugin_name, $version, SettingsRepository $settings_repository, ServiceContainer $container ) {
 			$this->plugin_name         = $plugin_name;
 			$this->version             = $version;
 			$this->utils               = new Utils();

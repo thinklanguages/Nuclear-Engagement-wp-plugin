@@ -156,8 +156,8 @@ final class ServiceDiscovery {
 		];
 
 		try {
-			if ( Container::bound( $service_id ) ) {
-				$service = Container::resolve( $service_id );
+			if ( ServiceContainer::bound( $service_id ) ) {
+				$service = ServiceContainer::resolve( $service_id );
 				
 				// Check if service has a health check method
 				if ( method_exists( $service, 'healthCheck' ) ) {
@@ -196,7 +196,7 @@ final class ServiceDiscovery {
 	 * Run health checks for all registered services.
 	 */
 	public static function run_health_checks(): void {
-		$services = Container::getServices();
+		$services = ServiceContainer::getServices();
 		
 		foreach ( $services['bindings'] as $service_id ) {
 			self::checkServiceHealth( $service_id );
@@ -233,7 +233,7 @@ final class ServiceDiscovery {
 
 		foreach ( $graph as $service => $dependencies ) {
 			foreach ( $dependencies as $dependency ) {
-				if ( ! Container::bound( $dependency ) && ! class_exists( $dependency ) ) {
+				if ( ! ServiceContainer::bound( $dependency ) && ! class_exists( $dependency ) ) {
 					$missing[$service][] = $dependency;
 				}
 			}
@@ -423,18 +423,18 @@ final class ServiceDiscovery {
 	 */
 	private static function registerDiscoveredService( string $class, array $metadata ): void {
 		$factory = function() use ( $class ) {
-			return Container::resolve( $class );
+			return ServiceContainer::resolve( $class );
 		};
 
 		if ( $metadata['metadata']['singleton'] ?? false ) {
-			Container::singleton( $class, $factory );
+			ServiceContainer::singleton( $class, $factory );
 		} else {
-			Container::bind( $class, $factory );
+			ServiceContainer::bind( $class, $factory );
 		}
 
 		// Register interfaces
 		foreach ( $metadata['interfaces'] as $interface ) {
-			Container::interface( $interface, $class );
+			ServiceContainer::interface( $interface, $class );
 		}
 	}
 }

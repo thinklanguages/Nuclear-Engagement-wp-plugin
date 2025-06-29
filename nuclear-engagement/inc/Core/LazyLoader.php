@@ -254,7 +254,7 @@ final class LazyLoader {
 			function() {
 				// Load dashboard widgets only when needed
 				if ( class_exists( 'NuclearEngagement\\Admin\\DashboardWidgets' ) ) {
-					Container::resolve( 'NuclearEngagement\\Admin\\DashboardWidgets' )->register();
+					ServiceContainer::resolve( 'NuclearEngagement\\Admin\\DashboardWidgets' )->register();
 				}
 			},
 			'admin_init',
@@ -269,7 +269,7 @@ final class LazyLoader {
 			function() {
 				// Load frontend assets only when needed
 				if ( class_exists( 'NuclearEngagement\\Frontend\\Assets' ) ) {
-					Container::resolve( 'NuclearEngagement\\Frontend\\Assets' )->enqueue();
+					ServiceContainer::resolve( 'NuclearEngagement\\Frontend\\Assets' )->enqueue();
 				}
 			},
 			'frontend_scripts',
@@ -283,7 +283,7 @@ final class LazyLoader {
 			'post_editor',
 			function() {
 				if ( class_exists( 'NuclearEngagement\\Editor\\PostEditor' ) ) {
-					Container::resolve( 'NuclearEngagement\\Editor\\PostEditor' )->init();
+					ServiceContainer::resolve( 'NuclearEngagement\\Editor\\PostEditor' )->init();
 				}
 			},
 			'admin_init',
@@ -297,7 +297,7 @@ final class LazyLoader {
 			'rest_api',
 			function() {
 				if ( class_exists( 'NuclearEngagement\\API\\RestEndpoints' ) ) {
-					Container::resolve( 'NuclearEngagement\\API\\RestEndpoints' )->register();
+					ServiceContainer::resolve( 'NuclearEngagement\\API\\RestEndpoints' )->register();
 				}
 			},
 			'init',
@@ -311,7 +311,7 @@ final class LazyLoader {
 			'ajax_handlers',
 			function() {
 				if ( class_exists( 'NuclearEngagement\\Ajax\\Handlers' ) ) {
-					Container::resolve( 'NuclearEngagement\\Ajax\\Handlers' )->register();
+					ServiceContainer::resolve( 'NuclearEngagement\\Ajax\\Handlers' )->register();
 				}
 			},
 			'init',
@@ -325,7 +325,7 @@ final class LazyLoader {
 			'cron_jobs',
 			function() {
 				if ( class_exists( 'NuclearEngagement\\Cron\\Jobs' ) ) {
-					Container::resolve( 'NuclearEngagement\\Cron\\Jobs' )->schedule();
+					ServiceContainer::resolve( 'NuclearEngagement\\Cron\\Jobs' )->schedule();
 				}
 			},
 			'init',

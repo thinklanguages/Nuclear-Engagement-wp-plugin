@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 use NuclearEngagement\Utils\Utils;
 use NuclearEngagement\Core\SettingsRepository;
-use NuclearEngagement\Core\Container;
+use NuclearEngagement\Core\ServiceContainer;
 use NuclearEngagement\Admin\Traits\AdminMetaboxes;
 use NuclearEngagement\Admin\Traits\AdminAjax;
 use NuclearEngagement\Admin\Traits\AdminMenu;
@@ -33,7 +33,7 @@ class Admin {
 	private $version;
 	private $utils;
 	private $settings_repository;
-	/** @var Container */
+	/** @var ServiceContainer */
 	private $container;
 
 	/**
@@ -43,7 +43,7 @@ class Admin {
 	 * @param string             $version
 	 * @param SettingsRepository $settings_repository
 	 */
-	public function __construct( $plugin_name, $version, SettingsRepository $settings_repository, Container $container ) {
+	public function __construct( $plugin_name, $version, SettingsRepository $settings_repository, ServiceContainer $container ) {
 		$this->plugin_name         = $plugin_name;
 		$this->version             = $version;
 		$this->utils               = new Utils();

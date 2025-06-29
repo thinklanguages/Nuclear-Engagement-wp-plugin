@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 namespace NuclearEngagement\Core;
 
-use NuclearEngagement\Core\Container;
+use NuclearEngagement\Core\ServiceContainer;
 use NuclearEngagement\Services\{GenerationService, RemoteApiService, ContentStorageService, PointerService, PostsQueryService, AutoGenerationService, AutoGenerationQueue, AutoGenerationScheduler, GenerationPoller, PublishGenerationHandler, VersionService, DashboardDataService};
 use NuclearEngagement\Services\{AdminNoticeService, LoggingService};
 use NuclearEngagement\Services\PostDataFetcher;
@@ -22,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 final class ContainerRegistrar {
-		public static function register( Container $container, SettingsRepository $settings ): void {
+		public static function register( ServiceContainer $container, SettingsRepository $settings ): void {
 				$container->register( 'settings', static fn() => $settings );
 
 				self::register_base_services( $container );
@@ -32,19 +32,19 @@ final class ContainerRegistrar {
 				self::register_controllers( $container );
 		}
 
-		private static function register_base_services( Container $container ): void {
+		private static function register_base_services( ServiceContainer $container ): void {
 				$container->register( 'admin_notice_service', static fn() => new AdminNoticeService() );
 				$container->register( 'logging_service', static fn( Container $c ) => new LoggingService( $c->get( 'admin_notice_service' ) ) );
 		}
 
-		private static function register_remote_services( Container $container ): void {
+		private static function register_remote_services( ServiceContainer $container ): void {
 				$container->register( 'remote_request', static fn( Container $c ) => new RemoteRequest( $c->get( 'settings' ) ) );
 				$container->register( 'api_response_handler', static fn() => new ApiResponseHandler() );
 				$container->register( 'remote_api', static fn( Container $c ) => new RemoteApiService( $c->get( 'settings' ), $c->get( 'remote_request' ), $c->get( 'api_response_handler' ) ) );
 				$container->register( 'content_storage', static fn( Container $c ) => new ContentStorageService( $c->get( 'settings' ) ) );
 		}
 
-		private static function register_generation_services( Container $container ): void {
+		private static function register_generation_services( ServiceContainer $container ): void {
 				$container->register(
 						'generation_poller',
 						static fn( Container $c ) => new GenerationPoller(
@@ -98,14 +98,14 @@ final class ContainerRegistrar {
 				);
 		}
 
-		private static function register_utility_services( Container $container ): void {
+		private static function register_utility_services( ServiceContainer $container ): void {
 				$container->register( 'pointer_service', static fn() => new PointerService() );
 				$container->register( 'posts_query_service', static fn() => new PostsQueryService() );
 				$container->register( 'dashboard_data_service', static fn() => new DashboardDataService() );
 				$container->register( 'version_service', static fn() => new VersionService() );
 		}
 
-		private static function register_controllers( Container $container ): void {
+		private static function register_controllers( ServiceContainer $container ): void {
 				$container->register( 'generate_controller', static fn( Container $c ) => new GenerateController( $c->get( 'generation_service' ) ) );
 				$container->register( 'updates_controller', static fn( Container $c ) => new UpdatesController( $c->get( 'remote_api' ), $c->get( 'content_storage' ) ) );
 				$container->register( 'pointer_controller', static fn( Container $c ) => new PointerController( $c->get( 'pointer_service' ) ) );

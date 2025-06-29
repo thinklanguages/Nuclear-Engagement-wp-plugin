@@ -19,7 +19,7 @@ use NuclearEngagement\Front\FrontClass;
 use NuclearEngagement\Admin\Onboarding;
 use NuclearEngagement\Core\Defaults;
 use NuclearEngagement\Core\SettingsRepository;
-use NuclearEngagement\Core\Container;
+use NuclearEngagement\Core\ServiceContainer;
 use NuclearEngagement\OptinData;
 use NuclearEngagement\Services\{GenerationService, RemoteApiService, ContentStorageService, PointerService, PostsQueryService, AutoGenerationService};
 use NuclearEngagement\Admin\Controller\Ajax\{GenerateController, UpdatesController, PointerController, PostsCountController};
@@ -34,9 +34,9 @@ class Plugin {
 	protected SettingsRepository $settings_repository;
 
 	/**
-	 * @var Container
+	 * @var ServiceContainer
 	 */
-	private Container $container;
+	private ServiceContainer $container;
 
 	public function __construct() {
 		$this->version     = defined( 'NUCLEN_PLUGIN_VERSION' ) ? NUCLEN_PLUGIN_VERSION : '1.0.0';
@@ -62,7 +62,7 @@ class Plugin {
 		);
 
 		$this->nuclen_load_dependencies();
-		$this->container = Container::getInstance();
+		$this->container = ServiceContainer::getInstance();
 		ContainerRegistrar::register( $this->container, $this->settings_repository );
 		// Register hooks for auto-generation on every request
 		$auto_generation_service = $this->container->get( 'auto_generation_service' );
