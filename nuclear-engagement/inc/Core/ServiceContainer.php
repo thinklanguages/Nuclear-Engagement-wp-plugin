@@ -13,6 +13,8 @@ class ServiceContainer {
 	private array $services = [];
 	private array $singletons = [];
 	private array $factories = [];
+	private array $aliases = [];
+	private array $resolving = [];
 	
 	private function __construct() {}
 	
@@ -57,6 +59,13 @@ class ServiceContainer {
 	 * @throws \RuntimeException If service not found.
 	 */
 	public function get( string $service_name ) {
+		$service_name = $this->resolveAlias( $service_name );
+		
+		// Check for circular dependencies
+		if ( isset( $this->resolving[ $service_name ] ) ) {
+			throw new \RuntimeException( "Circular dependency detected for service: {$service_name}" );
+		}
+		
 		// Return cached instance if available
 		if ( isset( $this->services[ $service_name ] ) ) {
 			return $this->services[ $service_name ];
@@ -64,14 +73,20 @@ class ServiceContainer {
 		
 		// Create new instance using factory
 		if ( isset( $this->factories[ $service_name ] ) ) {
-			$instance = $this->factories[ $service_name ]( $this );
+			$this->resolving[ $service_name ] = true;
 			
-			// Cache if singleton
-			if ( isset( $this->singletons[ $service_name ] ) ) {
-				$this->services[ $service_name ] = $instance;
+			try {
+				$instance = $this->factories[ $service_name ]( $this );
+				
+				// Cache if singleton
+				if ( isset( $this->singletons[ $service_name ] ) ) {
+					$this->services[ $service_name ] = $instance;
+				}
+				
+				return $instance;
+			} finally {
+				unset( $this->resolving[ $service_name ] );
 			}
-			
-			return $instance;
 		}
 		
 		throw new \RuntimeException( "Service '{$service_name}' not found in container." );
@@ -95,7 +110,7 @@ class ServiceContainer {
 	public function registerCoreServices(): void {
 		// Settings Repository
 		$this->register( 'settings_repository', function() {
-			return new SettingsRepository();
+			return SettingsRepository::get_instance();
 		} );
 		
 		// Token Manager
@@ -169,6 +184,27 @@ class ServiceContainer {
 	 */
 	public function clearCache(): void {
 		$this->services = [];
+	}
+	
+	/**
+	 * Create an alias for a service
+	 *
+	 * @param string $alias    Alias name.
+	 * @param string $service_name Original service identifier.
+	 * @return void
+	 */
+	public function alias( string $alias, string $service_name ): void {
+		$this->aliases[ $alias ] = $service_name;
+	}
+	
+	/**
+	 * Resolve alias to actual service identifier
+	 *
+	 * @param string $service_name Service identifier or alias.
+	 * @return string
+	 */
+	private function resolveAlias( string $service_name ): string {
+		return $this->aliases[ $service_name ] ?? $service_name;
 	}
 	
 	/**

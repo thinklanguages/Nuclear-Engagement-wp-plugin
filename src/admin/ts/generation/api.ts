@@ -1,4 +1,5 @@
 import * as logger from '../utils/logger';
+import { API_CONFIG } from '../../../shared/constants';
 
 export interface NuclenFetchResult<T> {
 	ok: boolean;
@@ -10,8 +11,8 @@ export interface NuclenFetchResult<T> {
 export async function nuclenFetchWithRetry<T = unknown>(
 	url: string,
 	options: RequestInit,
-	retries = 3,
-	initialDelayMs = 500
+	retries = API_CONFIG.RETRY_COUNT,
+	initialDelayMs = API_CONFIG.INITIAL_DELAY_MS
 ): Promise<NuclenFetchResult<T>> {
 	let attempt = 0;
 	let delay = initialDelayMs;

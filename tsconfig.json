@@ -34,6 +34,7 @@
     "src/admin/ts/**/*",
     "src/front/ts/**/*",
     "src/front/ts/nuclen-globals.d.ts",
-    "src/modules/toc/ts/**/*"
+    "src/modules/toc/ts/**/*",
+    "src/shared/**/*"
   ]
 }

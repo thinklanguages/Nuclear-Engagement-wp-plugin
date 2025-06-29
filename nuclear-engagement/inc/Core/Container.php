@@ -9,7 +9,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 /**
  * Dependency Injection Container.
- *
+ * 
+ * @deprecated Use ServiceContainer instead
  * @package NuclearEngagement\Core
  * @since 1.0.0
  */

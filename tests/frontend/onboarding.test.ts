@@ -20,18 +20,30 @@ beforeEach(() => {
       selector(jQuery);
       return;
     }
+    if (typeof selector !== 'string') {
+      return { 
+        pointer: () => ({}),
+        ready: (fn: Function) => fn(),
+        length: 1
+      };
+    }
     const element = document.querySelector(selector);
     const api: any = {
+      length: element ? 1 : 0,
       pointer(opts: any) {
-        if (typeof opts === 'object') {
+        if (typeof opts === 'object' && element) {
           const wrapper = document.createElement('div');
           wrapper.className = 'wp-pointer';
           wrapper.innerHTML = `${opts.content}<a class="close" href="#">Dismiss</a>`;
-          element?.appendChild(wrapper);
+          element.appendChild(wrapper);
           if (opts.close) {
             wrapper.querySelector('.close')?.addEventListener('click', opts.close);
           }
         }
+        return api;
+      },
+      ready(fn: Function) {
+        fn();
         return api;
       },
     };

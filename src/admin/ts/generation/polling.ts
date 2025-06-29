@@ -1,8 +1,9 @@
 import { nuclenFetchUpdates } from './api';
 import type { PollingUpdateData, PollingUpdateResponse } from './api';
+import { API_CONFIG } from '../../../shared/constants';
 
 export function NuclenPollAndPullUpdates({
-	intervalMs = 5000,
+	intervalMs = API_CONFIG.POLLING_INTERVAL_MS,
 	generationId,
 	onProgress = (() => {}) as (processed: number, total: number) => void,
 	onComplete = () => {},

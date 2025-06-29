@@ -10,7 +10,15 @@
       "Bash(git commit:*)",
       "Bash(composer install:*)",
       "Bash(npm test)",
-      "Bash(vendor/bin/phpunit --version)"
+      "Bash(vendor/bin/phpunit --version)",
+      "Bash(ls:*)",
+      "Bash(rm:*)",
+      "Bash(npm install)",
+      "Bash(composer test)",
+      "Bash(./vendor/bin/phpunit:*)",
+      "Bash(npm test:*)",
+      "Bash(npm run build:*)",
+      "Bash(npm run lint)"
     ],
     "deny": []
   }

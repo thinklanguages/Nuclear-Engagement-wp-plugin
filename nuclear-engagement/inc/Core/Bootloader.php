@@ -41,6 +41,20 @@ final class Bootloader {
 	private static bool $plugin_initialized = false;
 	
 	/**
+	 * Track initialization status for various components.
+	 *
+	 * @var array<string, bool>
+	 */
+	private static array $initialized = [];
+	
+	/**
+	 * Store singleton instances.
+	 *
+	 * @var array<string, object>
+	 */
+	private static array $instances = [];
+	
+	/**
 	 * Get the service container
 	 *
 	 * @return ServiceContainer
@@ -128,7 +142,7 @@ final class Bootloader {
 		}
 
 		if ( ! defined( 'NUCLEN_ASSET_VERSION' ) ) {
-			define( 'NUCLEN_ASSET_VERSION', '250628-15' );
+			define( 'NUCLEN_ASSET_VERSION', NUCLEN_PLUGIN_VERSION );
 		}
 	}
 
