@@ -24,6 +24,7 @@ trait AdminMenu {
 	 * Register top‑level menu and sub‑pages.
 	 */
 	public function nuclen_add_admin_menu() {
+		// Debug: Log that this method is being called
 		add_menu_page(
 			esc_html__( 'Nuclear Engagement', 'nuclear-engagement' ),
 			esc_html__( 'Nuclear Engagement', 'nuclear-engagement' ),
@@ -50,6 +51,15 @@ trait AdminMenu {
 			'manage_options',
 			'nuclear-engagement-generate',
 			array( $this, 'nuclen_display_generate_page' )
+		);
+
+		add_submenu_page(
+			'nuclear-engagement',
+			esc_html__( 'Nuclear Engagement – Setup', 'nuclear-engagement' ),
+			esc_html__( 'Setup', 'nuclear-engagement' ),
+			'manage_options',
+			'nuclear-engagement-setup',
+			array( $this, 'nuclen_display_setup_page' )
 		);
 
 		$settings = new Settings( $this->nuclen_get_settings_repository() );
@@ -124,5 +134,13 @@ trait AdminMenu {
 
 		$html .= '</table>';
 		return $html;
+	}
+
+	/**
+	 * Setup page callback.
+	 */
+	public function nuclen_display_setup_page() {
+		$setup = new \NuclearEngagement\Admin\Setup( $this->nuclen_get_settings_repository() );
+		$setup->nuclen_render_setup_page();
 	}
 }

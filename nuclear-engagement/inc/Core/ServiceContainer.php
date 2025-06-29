@@ -143,12 +143,6 @@ class ServiceContainer {
 			);
 		} );
 		
-		// API Configuration Page
-		$this->register( 'api_configuration_page', function( $container ) {
-			return new \NuclearEngagement\Admin\ApiConfigurationPage(
-				$container->get( 'settings_repository' )
-			);
-		} );
 		
 		// Error Handler
 		$this->register( 'error_handler', function() {

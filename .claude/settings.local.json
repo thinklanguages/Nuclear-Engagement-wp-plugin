@@ -18,7 +18,9 @@
       "Bash(./vendor/bin/phpunit:*)",
       "Bash(npm test:*)",
       "Bash(npm run build:*)",
-      "Bash(npm run lint)"
+      "Bash(npm run lint)",
+      "Bash(php -l:*)",
+      "Bash(mv:*)"
     ],
     "deny": []
   }

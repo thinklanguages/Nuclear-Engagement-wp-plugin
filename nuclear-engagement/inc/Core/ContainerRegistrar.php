@@ -38,7 +38,7 @@ final class ContainerRegistrar {
 		}
 
 		private static function register_remote_services( Container $container ): void {
-				$container->register( 'remote_request', static fn() => new RemoteRequest() );
+				$container->register( 'remote_request', static fn( Container $c ) => new RemoteRequest( $c->get( 'settings' ) ) );
 				$container->register( 'api_response_handler', static fn() => new ApiResponseHandler() );
 				$container->register( 'remote_api', static fn( Container $c ) => new RemoteApiService( $c->get( 'settings' ), $c->get( 'remote_request' ), $c->get( 'api_response_handler' ) ) );
 				$container->register( 'content_storage', static fn( Container $c ) => new ContentStorageService( $c->get( 'settings' ) ) );

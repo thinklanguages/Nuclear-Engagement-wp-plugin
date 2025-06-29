@@ -51,6 +51,46 @@ final class Container {
 	private static array $resolving = [];
 
 	/**
+	 * Container instance for instance-based access.
+	 *
+	 * @var Container|null
+	 */
+	private static ?Container $instance = null;
+
+	/**
+	 * Get the singleton instance of the container.
+	 *
+	 * @return Container
+	 */
+	public static function getInstance(): Container {
+		if ( self::$instance === null ) {
+			self::$instance = new self();
+		}
+		return self::$instance;
+	}
+
+	/**
+	 * Instance-based service resolution for backward compatibility.
+	 *
+	 * @param string $abstract Service identifier.
+	 * @return object
+	 */
+	public function get( string $abstract ): object {
+		return self::resolve( $abstract );
+	}
+
+	/**
+	 * Instance-based service registration for backward compatibility.
+	 *
+	 * @param string   $abstract Service identifier.
+	 * @param callable $factory  Factory function.
+	 * @param bool     $singleton Whether to treat as singleton.
+	 */
+	public function register( string $abstract, callable $factory, bool $singleton = true ): void {
+		self::bind( $abstract, $factory, $singleton );
+	}
+
+	/**
 	 * Bind a service to the container.
 	 *
 	 * @param string   $abstract  Service identifier.
@@ -145,7 +185,26 @@ final class Container {
 	private static function createInstance( string $abstract ): object {
 		// Use bound factory if available
 		if ( isset( self::$bindings[$abstract] ) ) {
-			return call_user_func( self::$bindings[$abstract]['factory'] );
+			$factory = self::$bindings[$abstract]['factory'];
+			
+			// Check if factory expects parameters using reflection
+			try {
+				$reflection = new \ReflectionFunction( $factory );
+				if ( $reflection->getNumberOfParameters() > 0 ) {
+					// Factory expects container parameter
+					return call_user_func( $factory, self::getInstance() );
+				} else {
+					// Factory expects no parameters
+					return call_user_func( $factory );
+				}
+			} catch ( \ReflectionException $e ) {
+				// Fallback: try with no parameters first, then with container
+				try {
+					return call_user_func( $factory );
+				} catch ( \Error $e ) {
+					return call_user_func( $factory, self::getInstance() );
+				}
+			}
 		}
 
 		// Try to autowire the class

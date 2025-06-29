@@ -8,6 +8,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+
 require_once __DIR__ . '/inc/Core/Bootloader.php';
 
-Bootloader::init();
+try {
+	Bootloader::init();
+} catch ( \Throwable $e ) {
+}

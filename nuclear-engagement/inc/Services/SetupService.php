@@ -48,12 +48,22 @@ class SetupService {
 	private Utils $utils;
 
 	/**
+	 * Remote request instance.
+	 *
+	 * @since 1.0.0
+	 * @var RemoteRequest
+	 */
+	private RemoteRequest $remote_request;
+
+	/**
 	 * Constructor.
 	 *
 	 * @since 1.0.0
+	 * @param RemoteRequest $remote_request Remote request instance.
 	 */
-	public function __construct() {
+	public function __construct( RemoteRequest $remote_request ) {
 		$this->utils = new Utils();
+		$this->remote_request = $remote_request;
 	}
 
 	/**
@@ -72,7 +82,7 @@ class SetupService {
 		$timeout = defined( 'NUCLEN_API_TIMEOUT' ) ? NUCLEN_API_TIMEOUT : self::DEFAULT_TIMEOUT;
 
 		$response = wp_remote_post(
-			RemoteRequest::API_BASE . '/check-api-key',
+			$this->remote_request->get_api_base() . '/check-api-key',
 			array(
 				'method'             => 'POST',
 				'headers'            => array( 'Content-Type' => 'application/json' ),
@@ -116,7 +126,7 @@ class SetupService {
 		}
 
 		$response = wp_remote_post(
-			RemoteRequest::API_BASE . '/store-wp-creds',
+			$this->remote_request->get_api_base() . '/store-wp-creds',
 			array(
 				'method'             => 'POST',
 				'headers'            => array( 'Content-Type' => 'application/json' ),

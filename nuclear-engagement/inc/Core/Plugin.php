@@ -48,7 +48,7 @@ class Plugin {
 
 		/* ───── Ensure DB table exists on activation ───── */
 		register_activation_hook(
-			dirname( __DIR__ ) . '/nuclear-engagement.php',
+			NUCLEN_PLUGIN_FILE,
 			function () {
 				if ( ! \NuclearEngagement\OptinData::table_exists() ) {
 					$created = \NuclearEngagement\OptinData::maybe_create_table();
@@ -92,6 +92,9 @@ class Plugin {
 
 		$plugin_admin = new Admin( $this->nuclen_get_plugin_name(), $this->nuclen_get_version(), $this->settings_repository, $this->container );
 
+		// Scripts registration
+		$this->loader->nuclen_add_action( 'init', $plugin_admin, 'nuclen_register_admin_scripts', 9 );
+
 		// Enqueue
 		$this->loader->nuclen_add_action( 'admin_enqueue_scripts', $plugin_admin, 'wp_enqueue_styles' );
 		$this->loader->nuclen_add_action( 'admin_enqueue_scripts', $plugin_admin, 'wp_enqueue_scripts' );
@@ -100,6 +103,7 @@ class Plugin {
 
 		// Admin Menu
 		$this->loader->nuclen_add_action( 'admin_menu', $plugin_admin, 'nuclen_add_admin_menu' );
+		
 
 		// AJAX - now using controllers
 		$generate_controller    = $this->container->get( 'generate_controller' );
@@ -110,13 +114,13 @@ class Plugin {
 		$this->loader->nuclen_add_action( 'wp_ajax_nuclen_fetch_app_updates', $updates_controller, 'handle' );
 		$this->loader->nuclen_add_action( 'wp_ajax_nuclen_get_posts_count', $posts_count_controller, 'handle' );
 
-		// Setup actions
+		// Setup actions (menu registration is now handled in AdminMenu trait)
 		$setup = new \NuclearEngagement\Admin\Setup( $this->settings_repository );
-		$this->loader->nuclen_add_action( 'admin_menu', $setup, 'nuclen_add_setup_page' );
 		$this->loader->nuclen_add_action( 'admin_post_nuclen_connect_app', $setup, 'nuclen_handle_connect_app' );
 		$this->loader->nuclen_add_action( 'admin_post_nuclen_generate_app_password', $setup, 'nuclen_handle_generate_app_password' );
 		$this->loader->nuclen_add_action( 'admin_post_nuclen_reset_api_key', $setup, 'nuclen_handle_reset_api_key' );
 		$this->loader->nuclen_add_action( 'admin_post_nuclen_reset_wp_app_connection', $setup, 'nuclen_handle_reset_wp_app_connection' );
+
 
 		// Onboarding pointers - use controller
 		$onboarding = new Onboarding();

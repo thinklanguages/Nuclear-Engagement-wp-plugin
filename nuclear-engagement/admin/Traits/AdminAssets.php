@@ -26,8 +26,9 @@ trait AdminAssets {
 	NUCLEN_PLUGIN_URL . 'admin/js/nuclen-admin.js',
 	array(),
 	AssetVersions::get( 'admin_js' ),
-	true
+	array( 'strategy' => 'defer', 'in_footer' => true )
 	);
+	wp_script_add_data( 'nuclen-admin', 'type', 'module' );
 	}
 
 	/**
@@ -71,8 +72,9 @@ trait AdminAssets {
 	NUCLEN_PLUGIN_URL . 'admin/js/nuclen-admin.js',
 	array(),
 	AssetVersions::get( 'admin_js' ),
-	true
+	array( 'strategy' => 'defer', 'in_footer' => true )
 	);
+	wp_script_add_data( 'nuclen-admin', 'type', 'module' );
 	
 		// Provide two objects:
 		// 1) "security" => wp_create_nonce('nuclen_admin_ajax_nonce') for your admin-ajax calls

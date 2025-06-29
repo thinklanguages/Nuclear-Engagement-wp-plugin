@@ -15,9 +15,11 @@ namespace NuclearEngagement\Admin;
 
 use NuclearEngagement\Core\SettingsRepository;
 use NuclearEngagement\Services\SetupService;
+use NuclearEngagement\Services\Remote\RemoteRequest;
 use NuclearEngagement\Admin\Setup\ConnectHandler;
 use NuclearEngagement\Admin\Setup\AppPasswordHandler;
 use NuclearEngagement\Utils\Utils;
+use NuclearEngagement\Security\TokenManager;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -40,10 +42,12 @@ private AppPasswordHandler $app_password_handler;
 
 public function __construct( SettingsRepository $settings_repository ) {
 $this->utils			   = new Utils();
-$this->setup_service	   = new SetupService();
+$remote_request            = new RemoteRequest( $settings_repository );
+$this->setup_service	   = new SetupService( $remote_request );
 $this->settings_repository = $settings_repository;
+$token_manager             = new TokenManager( $this->settings_repository );
 $this->connect_handler	   = new ConnectHandler( $this->setup_service, $this->settings_repository );
-$this->app_password_handler = new AppPasswordHandler( $this->setup_service, $this->settings_repository );
+$this->app_password_handler = new AppPasswordHandler( $this->setup_service, $this->settings_repository, $token_manager );
 }
 
 	public function nuclen_get_utils() {

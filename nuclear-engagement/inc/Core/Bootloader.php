@@ -78,6 +78,7 @@ final class Bootloader {
 		try {
 			self::define_constants();
 			self::register_autoloaders();
+			self::load_helpers();
 			self::getContainer()->initializeCoreServices();
 			self::register_hooks();
 			self::$plugin_initialized = true;
@@ -97,20 +98,7 @@ final class Bootloader {
 			LoggingService::log( 'Nuclear Engagement: Initialization failed - ' . $e->getMessage() );
 		}
 		
-		error_log( 'Nuclear Engagement: Critical initialization error - ' . $e->getMessage() );
 		
-		// Show admin notice
-		if ( is_admin() ) {
-			add_action( 'admin_notices', function() use ( $e ) {
-				printf(
-					'<div class="error"><p>%s</p></div>',
-					esc_html( sprintf(
-						__( 'Nuclear Engagement failed to initialize: %s', 'nuclear-engagement' ),
-						$e->getMessage()
-					) )
-				);
-			} );
-		}
 	}
 
 	/**
@@ -360,10 +348,6 @@ final class Bootloader {
 		} catch ( \Throwable $e ) {
 			LoggingService::log( 'Nuclear Engagement: Service registration failed - ' . $e->getMessage() );
 			
-			// Show admin notice for service failures
-			add_action( 'admin_notices', function() {
-				echo '<div class="error"><p>Nuclear Engagement: Service initialization failed. Please check error logs.</p></div>';
-			} );
 		}
 	}
 }

@@ -52,15 +52,8 @@ class Admin {
 
 // Meta-boxes handled by module loader
 
-				// AJAX & assets
-				add_action( 'init', array( $this, 'nuclen_register_admin_scripts' ), 9 );
-				add_action( 'wp_ajax_nuclen_fetch_app_updates', array( $this, 'nuclen_fetch_app_updates' ) );
-		add_action( 'admin_enqueue_scripts', array( $this, 'wp_enqueue_scripts' ) );
-		add_action( 'admin_enqueue_scripts', array( $this, 'wp_enqueue_styles' ) );
-		add_action( 'admin_enqueue_scripts', array( $this, 'nuclen_enqueue_dashboard_styles' ) );
-
-		// Admin menu
-		add_action( 'admin_menu', array( $this, 'nuclen_add_admin_menu' ) );
+		// Note: Hooks are registered via the loader system in Plugin.php
+		// This avoids duplicate registration and ensures proper timing
 
 		// Auto-generation on publish is now handled by AutoGenerationService
 		// The service is registered in the Plugin class and handles its own hooks
