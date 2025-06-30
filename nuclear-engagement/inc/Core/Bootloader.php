@@ -3,9 +3,9 @@ declare(strict_types=1);
 
 namespace NuclearEngagement\Core;
 
-if ( ! defined( 'ABSPATH' ) ) {
+		if ( ! defined( 'ABSPATH' ) ) {
 	exit;
-}
+		}
 
 use NuclearEngagement\Core\SettingsRepository;
 use NuclearEngagement\Core\Defaults;
@@ -134,29 +134,19 @@ final class Bootloader {
 		}
 	}
 
-	/**
-	 * Register Composer and fallback autoloaders.
-	 */
-	private static function register_autoloaders(): void {
-		$autoload = __DIR__ . '/../../vendor/autoload.php';
-		if ( ! file_exists( $autoload ) ) {
-			$autoload = dirname( __DIR__, 2 ) . '/vendor/autoload.php';
-		}
-		if ( file_exists( $autoload ) ) {
-			require_once $autoload;
-		} else {
-			$logging = __DIR__ . '/../Services/LoggingService.php';
-			if ( file_exists( $logging ) ) {
-				require_once $logging;
-			}
-			LoggingService::log( 'Nuclear Engagement: vendor autoload not found.' );
-			LoggingService::notify_admin( 'Nuclear Engagement dependencies missing. Please run composer install.' );
-			return;
-		}
-
+/**
+ * Register plugin and optional Composer autoloaders.
+ */
+private static function register_autoloaders(): void {
+		// Always load the plugin autoloader first so core classes resolve.
+		require_once __DIR__ . '/Autoloader.php';
 		Autoloader::register();
+
+		$autoload = dirname( __DIR__, 2 ) . '/vendor/autoload.php';
+		if ( file_exists( $autoload ) ) {
+		require_once $autoload;
+		}
 	}
-	
 	/**
 	 * Load helper files and constants.
 	 */
