@@ -260,7 +260,6 @@ The tiny codebase and lazy loading assure fast loading, both in admin and on fro
 * Changed: Improved security.
 * Changed: Improved performance with optimized database indexes.
 * Changed: Replaced `nuclen_settings_*` helpers with `Helpers\SettingsFunctions`.
-* Fixed: Admin menu pages missing on sites without Composer.
 
 = 1.1 – 2025-06-13 =
 * Changed: Architecture refactoring.

@@ -146,6 +146,7 @@ private static function register_autoloaders(): void {
 		if ( file_exists( $autoload ) ) {
 		require_once $autoload;
 		}
+
 	}
 	/**
 	 * Load helper files and constants.
