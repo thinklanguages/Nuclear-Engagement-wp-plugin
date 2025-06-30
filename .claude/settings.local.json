@@ -20,7 +20,9 @@
       "Bash(npm run build:*)",
       "Bash(npm run lint)",
       "Bash(php -l:*)",
-      "Bash(mv:*)"
+      "Bash(mv:*)",
+      "Bash(composer:*)",
+      "Bash(php:*)"
     ],
     "deny": []
   }

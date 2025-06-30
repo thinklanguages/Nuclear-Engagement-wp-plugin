@@ -52,7 +52,7 @@ if ( is_admin() ) {
 								'nuclear-engagement',
 								defined( 'NUCLEN_PLUGIN_VERSION' ) ? NUCLEN_PLUGIN_VERSION : '1.0.0',
 								$settings,
-								new Container()
+								ServiceContainer::getInstance()
 				);
 				( new Quiz_Shortcode( $settings, $front, $service ) )->register();
 }

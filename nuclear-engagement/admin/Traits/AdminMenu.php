@@ -24,7 +24,6 @@ trait AdminMenu {
 	 * Register top‑level menu and sub‑pages.
 	 */
 	public function nuclen_add_admin_menu() {
-		// Debug: Log that this method is being called
 		add_menu_page(
 			esc_html__( 'Nuclear Engagement', 'nuclear-engagement' ),
 			esc_html__( 'Nuclear Engagement', 'nuclear-engagement' ),

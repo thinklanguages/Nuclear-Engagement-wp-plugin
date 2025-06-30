@@ -7,7 +7,7 @@ declare(strict_types=1);
  *
  * REST-API route registration - now delegates to controller.
  *
- * Host class must implement protected get_container(): \NuclearEngagement\Core\Container.
+ * Host class must implement protected get_container(): \NuclearEngagement\Core\ServiceContainer.
  *
  * @package NuclearEngagement\Front
  */

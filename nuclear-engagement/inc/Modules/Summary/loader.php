@@ -42,7 +42,7 @@ $front    = new \NuclearEngagement\Front\FrontClass(
 		'nuclear-engagement',
 		defined( 'NUCLEN_PLUGIN_VERSION' ) ? NUCLEN_PLUGIN_VERSION : '1.0.0',
 		$settings,
-		new \NuclearEngagement\Core\Container()
+		\NuclearEngagement\Core\ServiceContainer::getInstance()
 );
 new Nuclen_Summary_Shortcode( $settings, $front );
 if ( is_admin() ) {

@@ -83,7 +83,7 @@ class Admin {
 	/**
 	 * Get the container instance.
 	 *
-	 * @return \NuclearEngagement\Core\Container
+	 * @return \NuclearEngagement\Core\ServiceContainer
 	 */
 	protected function get_container() {
 		return $this->container;
