@@ -260,6 +260,7 @@ The tiny codebase and lazy loading assure fast loading, both in admin and on fro
 * Changed: Improved security.
 * Changed: Improved performance with optimized database indexes.
 * Changed: Replaced `nuclen_settings_*` helpers with `Helpers\SettingsFunctions`.
+* Fixed: Plugin admin pages missing when Composer dependencies were absent.
 
 = 1.1 – 2025-06-13 =
 * Changed: Architecture refactoring.

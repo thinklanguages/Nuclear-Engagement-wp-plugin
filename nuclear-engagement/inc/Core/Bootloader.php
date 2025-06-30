@@ -142,19 +142,25 @@ final class Bootloader {
 		if ( ! file_exists( $autoload ) ) {
 			$autoload = dirname( __DIR__, 2 ) . '/vendor/autoload.php';
 		}
-		if ( file_exists( $autoload ) ) {
-			require_once $autoload;
-		} else {
-			$logging = __DIR__ . '/../Services/LoggingService.php';
-			if ( file_exists( $logging ) ) {
-				require_once $logging;
-			}
-			LoggingService::log( 'Nuclear Engagement: vendor autoload not found.' );
-			LoggingService::notify_admin( 'Nuclear Engagement dependencies missing. Please run composer install.' );
-			return;
-		}
-
-		Autoloader::register();
+	if ( file_exists( $autoload ) ) {
+	require_once $autoload;
+	} else {
+	// Ensure the plugin autoloader is available even without Composer.
+	require_once __DIR__ . '/Autoloader.php';
+	Autoloader::register();
+	
+	$logging = __DIR__ . '/../Services/LoggingService.php';
+	if ( file_exists( $logging ) ) {
+	require_once $logging;
+	LoggingService::log( 'Nuclear Engagement: vendor autoload not found.' );
+	LoggingService::notify_admin( 'Nuclear Engagement dependencies missing. Please run composer install.' );
+	}
+	
+	return;
+	}
+	
+	// Composer autoloader loaded – now register the plugin autoloader.
+	Autoloader::register();
 	}
 	
 	/**
