@@ -252,6 +252,7 @@ The tiny codebase and lazy loading assure fast loading, both in admin and on fro
 
 = 1.2 – 2025-07-01 =
 * Added: Gutenberg blocks for summaries, quizzes and TOC.
+* Added: Improved theme system.
 * Added: Dashboard section showing scheduled content generation tasks.
 * Added: Inventory data caching with manual refresh and persistent transients.
 * Added: Test infrastructure for improved code quality.

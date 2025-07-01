@@ -21,7 +21,7 @@ use NuclearEngagement\Core\Defaults;
 use NuclearEngagement\Core\SettingsRepository;
 use NuclearEngagement\Core\ServiceContainer;
 use NuclearEngagement\OptinData;
-use NuclearEngagement\Services\{GenerationService, RemoteApiService, ContentStorageService, PointerService, PostsQueryService, AutoGenerationService};
+use NuclearEngagement\Services\{GenerationService, RemoteApiService, ContentStorageService, PointerService, PostsQueryService, AutoGenerationService, ThemeMigrationService, ThemeLoader};
 use NuclearEngagement\Admin\Controller\Ajax\{GenerateController, UpdatesController, PointerController, PostsCountController};
 use NuclearEngagement\Front\Controller\Rest\ContentController;
 use NuclearEngagement\Core\ContainerRegistrar;
@@ -58,6 +58,10 @@ class Plugin {
 						);
 					}
 				}
+				
+				// Run theme migration
+				$migration_service = new ThemeMigrationService();
+				$migration_service->migrate_legacy_settings();
 			}
 		);
 
@@ -68,6 +72,9 @@ class Plugin {
 		// Define hooks immediately, before any service initialization
 		$this->nuclen_define_admin_hooks();
 		$this->nuclen_define_public_hooks();
+		
+		// Initialize theme system
+		$this->nuclen_init_theme_system();
 		
 		// Run the loader immediately to register all hooks
 		$this->loader->nuclen_run();
@@ -173,6 +180,30 @@ class Plugin {
 		$this->loader->nuclen_add_action( 'init', $plugin_public, 'nuclen_register_summary_shortcode' );
 		$this->loader->nuclen_add_filter( 'the_content', $plugin_public, 'nuclen_auto_insert_shortcodes', 50 );
 			$this->loader->nuclen_add_action( 'init', '\\NuclearEngagement\\Core\\Blocks', 'register' );
+	}
+
+	/*
+	─────────────────────────────────────────────
+		Theme System
+	──────────────────────────────────────────── */
+	private function nuclen_init_theme_system() {
+		// Run migration on init for existing installations
+		add_action('init', function() {
+			$migration_service = new ThemeMigrationService();
+			if (!$migration_service->check_migration_status()) {
+				$migration_service->migrate_legacy_settings();
+			}
+		}, 5);
+
+		// Initialize theme loader
+		$theme_loader = new ThemeLoader();
+		$theme_loader->init();
+
+		// Add critical CSS to head
+		add_action('wp_head', function() {
+			$theme_loader = new ThemeLoader();
+			echo $theme_loader->get_inline_critical_css();
+		}, 5);
 	}
 
 	/*
