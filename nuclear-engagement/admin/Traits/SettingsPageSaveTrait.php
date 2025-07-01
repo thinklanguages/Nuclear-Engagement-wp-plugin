@@ -41,9 +41,7 @@ trait SettingsPageSaveTrait {
 				$new_settings = $this->nuclen_sanitize_and_defaults( $raw, $defaults );
 				$settings     = $this->nuclen_persist_settings( $new_settings );
 
-				if ( 'custom' === $settings['theme'] && method_exists( $this, 'nuclen_write_custom_css' ) ) {
-						$this->nuclen_write_custom_css( $settings );
-				}
+				// Custom CSS generation is handled in SettingsPageTrait after save
 
 				$this->nuclen_output_save_notice();
 

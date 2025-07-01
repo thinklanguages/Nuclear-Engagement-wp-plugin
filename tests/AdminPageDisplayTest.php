@@ -47,8 +47,11 @@ if (!function_exists('get_transient')) { function get_transient($k){ return $GLO
 }
 
 namespace {
+// Load the AdminMenu trait
+require_once __DIR__ . '/../nuclear-engagement/admin/Traits/AdminMenu.php';
+
 class DummyAdmin {
-use AdminMenu;
+use \NuclearEngagement\Admin\Traits\AdminMenu;
 private $repo;
 private $container;
 public function __construct($r,$c){ $this->repo=$r; $this->container=$c; }

@@ -28,7 +28,26 @@
       "Bash(cp:*)",
       "Bash(vendor/bin/phpunit:*)",
       "Bash(npx tsc:*)",
-      "Bash(npx eslint:*)"
+      "Bash(npx eslint:*)",
+      "Bash(chmod:*)",
+      "Bash(sudo apt:*)",
+      "Bash(sudo apt install:*)",
+      "Bash(npx playwright:*)",
+      "Bash(sed:*)",
+      "Bash(apt list:*)",
+      "Bash(apt:*)",
+      "Bash(curl:*)",
+      "Bash(echo $PATH)",
+      "Bash(/mnt/c/tools/php84/php.exe:*)",
+      "Bash(alias php=\"/mnt/c/tools/php84/php.exe\")",
+      "Bash(npm run typecheck:*)",
+      "Bash(npm run:*)",
+      "Bash(tsc --noEmit)",
+      "Bash(bash:*)",
+      "Bash(dos2unix:*)",
+      "Bash(sudo npx playwright:*)",
+      "Bash(docker:*)",
+      "Bash(./run-all-tests.sh)"
     ],
     "deny": []
   }

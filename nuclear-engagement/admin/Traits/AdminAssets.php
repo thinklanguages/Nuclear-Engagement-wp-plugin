@@ -82,18 +82,42 @@ trait AdminAssets {
 			return;
 		}
 
+		// For post editor pages, check if the post type is supported
+		if ( in_array( $hook, array( 'post.php', 'post-new.php' ), true ) ) {
+			// Use static variable to prevent multiple get_option calls
+			static $allowed_post_types = null;
+			
+			if ( $allowed_post_types === null ) {
+				$settings = get_option( 'nuclen_settings', array() );
+				$allowed_post_types = isset( $settings['generation_post_types'] ) ? $settings['generation_post_types'] : array( 'post' );
+			}
+			
+			global $post;
+			$post_type = $post ? $post->post_type : get_post_type();
+			if ( ! $post_type && isset( $_GET['post_type'] ) ) {
+				$post_type = sanitize_key( $_GET['post_type'] );
+			}
+			if ( ! $post_type ) {
+				$post_type = 'post';
+			}
+			
+			if ( ! in_array( $post_type, $allowed_post_types, true ) ) {
+				return;
+			}
+		}
+
 				// Enqueue the logger module first
 				wp_enqueue_script(
 				'nuclen-logger',
-				NUCLEN_PLUGIN_URL . 'logger-CX9s0JXb.js',
+				NUCLEN_PLUGIN_URL . 'logger-CjYDh3vN.js',
 				array(),
 				AssetVersions::get( 'admin_js' ),
 				true
 				);
-				// Add module type using script loader tag filter
+				// Add module type and defer loading
 				add_filter( 'script_loader_tag', function( $tag, $handle ) {
 					if ( 'nuclen-logger' === $handle ) {
-						return str_replace( '<script ', '<script type="module" ', $tag );
+						return str_replace( '<script ', '<script type="module" defer ', $tag );
 					}
 					return $tag;
 				}, 10, 2 );
@@ -108,10 +132,10 @@ trait AdminAssets {
 	AssetVersions::get( 'admin_js' ),
 	true
 	);
-	// Add module type using script loader tag filter
+	// Add module type and defer loading
 	add_filter( 'script_loader_tag', function( $tag, $handle ) {
 		if ( 'nuclen-admin' === $handle ) {
-			return str_replace( '<script ', '<script type="module" ', $tag );
+			return str_replace( '<script ', '<script type="module" defer ', $tag );
 		}
 		return $tag;
 	}, 10, 2 );

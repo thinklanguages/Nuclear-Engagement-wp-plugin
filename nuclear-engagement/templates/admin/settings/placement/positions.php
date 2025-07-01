@@ -6,7 +6,7 @@
 		</div>
 		<div class="nuclen-column nuclen-input-col">
 				<select name="nuclen_display_summary" id="nuclen_display_summary" class="nuclen-input">
-						<option value="manual" <?php selected( $settings['display_summary'], 'manual' ); ?>><?php esc_html_e( 'Manually via shortcode', 'nuclear-engagement' ); ?></option>
+						<option value="manual" <?php selected( $settings['display_summary'], 'manual' ); ?>><?php esc_html_e( 'Shortcode / Block', 'nuclear-engagement' ); ?></option>
 						<option value="before" <?php selected( $settings['display_summary'], 'before' ); ?>><?php esc_html_e( 'Before post content', 'nuclear-engagement' ); ?></option>
 						<option value="after"  <?php selected( $settings['display_summary'], 'after' ); ?>><?php esc_html_e( 'After post content', 'nuclear-engagement' ); ?></option>
 				</select>
@@ -21,7 +21,7 @@
 		</div>
 		<div class="nuclen-column nuclen-input-col">
 				<select name="nuclen_display_quiz" id="nuclen_display_quiz" class="nuclen-input">
-						<option value="manual" <?php selected( $settings['display_quiz'], 'manual' ); ?>><?php esc_html_e( 'Manually via shortcode', 'nuclear-engagement' ); ?></option>
+						<option value="manual" <?php selected( $settings['display_quiz'], 'manual' ); ?>><?php esc_html_e( 'Shortcode / Block', 'nuclear-engagement' ); ?></option>
 						<option value="before" <?php selected( $settings['display_quiz'], 'before' ); ?>><?php esc_html_e( 'Before post content', 'nuclear-engagement' ); ?></option>
 						<option value="after"  <?php selected( $settings['display_quiz'], 'after' ); ?>><?php esc_html_e( 'After post content', 'nuclear-engagement' ); ?></option>
 				</select>
@@ -36,7 +36,7 @@
 		</div>
 		<div class="nuclen-column nuclen-input-col">
 				<select name="nuclen_display_toc" id="nuclen_display_toc" class="nuclen-input">
-						<option value="manual" <?php selected( $settings['display_toc'] ?? 'manual', 'manual' ); ?>><?php esc_html_e( 'Manually via shortcode', 'nuclear-engagement' ); ?></option>
+						<option value="manual" <?php selected( $settings['display_toc'] ?? 'manual', 'manual' ); ?>><?php esc_html_e( 'Shortcode / Block', 'nuclear-engagement' ); ?></option>
 						<option value="before" <?php selected( $settings['display_toc'] ?? 'manual', 'before' ); ?>><?php esc_html_e( 'Before post content', 'nuclear-engagement' ); ?></option>
 						<option value="after"  <?php selected( $settings['display_toc'] ?? 'manual', 'after' ); ?>><?php esc_html_e( 'After post content', 'nuclear-engagement' ); ?></option>
 				</select>

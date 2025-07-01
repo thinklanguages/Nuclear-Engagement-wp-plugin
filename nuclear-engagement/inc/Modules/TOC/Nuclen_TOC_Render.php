@@ -174,7 +174,14 @@ final class Nuclen_TOC_Render {
 	 * @return string Generated HTML markup.
 	 */
 	public function nuclen_toc_shortcode( array $atts ): string {
-			$post = get_post( get_the_ID() );
+			$post_id = get_the_ID();
+		
+		// Validate post ID before proceeding
+		if ( ! $post_id || ! is_int( $post_id ) ) {
+			return '';
+		}
+		
+		$post = get_post( $post_id );
 		if ( null === $post ) {
 				return '';
 		}

@@ -1,4 +1,9 @@
 (function(){
+	// Only register blocks if we're in the block editor
+	if (!document.body.classList.contains('block-editor-page')) {
+		return;
+	}
+	
 	interface WPGlobal {
 	blocks?: { registerBlockType: (...args: unknown[]) => void };
 	element?: { createElement: (...args: unknown[]) => unknown };

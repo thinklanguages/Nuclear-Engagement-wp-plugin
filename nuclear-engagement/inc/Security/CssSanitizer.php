@@ -279,6 +279,11 @@ class CssSanitizer {
 		];
 		
 		foreach ( $settings as $key => $value ) {
+			// Skip arrays and objects
+			if ( is_array( $value ) || is_object( $value ) ) {
+				continue;
+			}
+			
 			if ( isset( $sanitization_rules[ $key ] ) ) {
 				$sanitized[ $key ] = self::sanitize_css_value( (string) $value, $sanitization_rules[ $key ] );
 			} else {

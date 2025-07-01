@@ -16,6 +16,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 	*/
 
 $image_url = isset( $image_url ) ? (string) $image_url : '';
+
+// Fallback: Try to construct the URL using plugins_url if image_url is empty
+if ( empty( $image_url ) ) {
+	$image_url = plugins_url( 'assets/images/nuclear-engagement-logo.webp', dirname( dirname( __DIR__ ) ) . '/nuclear-engagement.php' );
+}
 ?>
 <div id="nuclen-page-header">
 	<img height="40" width="40" src="<?php echo esc_url( $image_url ); ?>" alt="<?php esc_attr_e( 'Nuclear Engagement Logo', 'nuclear-engagement' ); ?>" />

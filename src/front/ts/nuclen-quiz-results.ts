@@ -10,7 +10,6 @@ import {
 import { escapeHtml } from './nuclen-quiz-utils';
 
 // Globals injected by wp_localize_script
-declare const NuclenCustomQuizHtmlAfter: string;
 declare const NuclenStrings: {
 	retake_test: string;
 	your_score: string;
@@ -75,10 +74,10 @@ ${state.score} / ${questions.length}
 	});
 	html += '</div><div id="nuclen-quiz-result-details-container" class="nuclen-fg dashboard-box"></div>';
 
-	if (NuclenCustomQuizHtmlAfter?.trim()) {
+	if (window.NuclenCustomQuizHtmlAfter?.trim()) {
 		html += `
 <div id="nuclen-quiz-end-message" class="nuclen-fg">
-${NuclenCustomQuizHtmlAfter}
+${window.NuclenCustomQuizHtmlAfter}
 </div>`;
 	}
 

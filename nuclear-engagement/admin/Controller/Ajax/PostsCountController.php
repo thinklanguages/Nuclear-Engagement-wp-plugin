@@ -48,6 +48,19 @@ class PostsCountController extends BaseController {
 			// Parse request
 			$request = PostsCountRequest::fromPost( $_POST );
 
+			// Validate post type against allowed post types
+			$settings = get_option( 'nuclear_engagement_settings', array() );
+			$allowed_post_types = $settings['generation_post_types'] ?? array( 'post' );
+			
+			// Debug logging (commented out temporarily to isolate 500 error)
+			// LoggingService::log( 'PostsCountController: Allowed post types: ' . implode( ', ', $allowed_post_types ) );
+			// LoggingService::log( 'PostsCountController: Requested post type: ' . $request->postType );
+			
+			if ( ! empty( $request->postType ) && ! in_array( $request->postType, $allowed_post_types, true ) ) {
+				$this->sendError( 'Selected post type is not allowed for generation.' );
+				return;
+			}
+
 			// Get posts
 			$result = $this->service->getPostsCount( $request );
 

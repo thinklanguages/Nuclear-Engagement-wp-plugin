@@ -26,9 +26,7 @@ async function storeResults(workflow: string, results: unknown): Promise<void> {
 	try {
 		const { ok, data } = await nuclenStoreGenerationResults(workflow, results);
 		const respData = data as Record<string, unknown>;
-		if (ok && !('code' in respData)) {
-			logger.log('Bulk content stored in WP meta successfully:', respData);
-		} else {
+		if (!ok || 'code' in respData) {
 			logger.error('Error storing bulk content in WP meta:', respData);
 		}
 	} catch (err) {

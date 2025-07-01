@@ -10,7 +10,8 @@ export default defineConfig({
     // Output to the "nuclear-engagement" folder (the plugin root).
     outDir: path.resolve(__dirname, 'nuclear-engagement'),
     emptyOutDir: false,
-
+    
+    // Inline small chunks to avoid module loading issues
     rollupOptions: {
       // Entry points for admin, front and the TOC module
       input: {
@@ -46,8 +47,7 @@ export default defineConfig({
 
         // If you have dynamic imports or code-splitting, place those chunks here:
         chunkFileNames: (chunkInfo) => {
-          // You can customize further if you want separate folders for each entry's chunks.
-          // For simplicity, just put them next to the main files with a hash:
+          // Place chunks at the root level for easier resolution
           return '[name]-[hash].js';
         }
       }

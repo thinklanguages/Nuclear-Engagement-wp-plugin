@@ -110,16 +110,16 @@ return false;
 	private function get_optin_inline_js(): string {
 		$settings_repo = $this->nuclen_get_settings_repository();
 		$inline_js  = '';
-		$inline_js .= 'var NuclenOptinEnabled  = ' . ( $settings_repo->get( 'enable_optin', false ) ? 'true' : 'false' ) . "\n";
+		$inline_js .= 'window.NuclenOptinEnabled  = ' . ( $settings_repo->get( 'enable_optin', false ) ? 'true' : 'false' ) . ";\n";
 		$raw_mandatory   = $settings_repo->get( 'optin_mandatory', false );
 		$optin_mandatory = ( $raw_mandatory === true || $raw_mandatory === 1 || $raw_mandatory === '1' );
-		$inline_js .= 'var NuclenOptinMandatory = ' . ( $optin_mandatory ? 'true' : 'false' ) . "\n";
-		$inline_js .= 'var NuclenOptinPosition = ' . json_encode( $settings_repo->get( 'optin_position', 'with_results' ) ) . "\n";
-		$inline_js .= 'var NuclenOptinPromptText = ' . json_encode( $settings_repo->get( 'optin_prompt_text', 'Please enter your details to view your score:' ) ) . "\n";
-		$inline_js .= 'var NuclenOptinButtonText = ' . json_encode( $settings_repo->get( 'optin_button_text', 'Submit' ) ) . "\n";
-		$inline_js .= 'var NuclenOptinWebhook = ' . json_encode( $settings_repo->get( 'optin_webhook', '' ) ) . "\n";
-		$inline_js .= 'var NuclenOptinSuccessMessage = ' . json_encode( $settings_repo->get( 'optin_success_message', '' ) ) . "\n";
-		$inline_js .= 'var NuclenCustomQuizHtmlAfter = ' . json_encode( $settings_repo->get( 'custom_quiz_html_after', '' ) ) . "\n";
+		$inline_js .= 'window.NuclenOptinMandatory = ' . ( $optin_mandatory ? 'true' : 'false' ) . ";\n";
+		$inline_js .= 'window.NuclenOptinPosition = ' . json_encode( $settings_repo->get( 'optin_position', 'with_results' ) ) . ";\n";
+		$inline_js .= 'window.NuclenOptinPromptText = ' . json_encode( $settings_repo->get( 'optin_prompt_text', 'Please enter your details to view your score:' ) ) . ";\n";
+		$inline_js .= 'window.NuclenOptinButtonText = ' . json_encode( $settings_repo->get( 'optin_button_text', 'Submit' ) ) . ";\n";
+		$inline_js .= 'window.NuclenOptinWebhook = ' . json_encode( $settings_repo->get( 'optin_webhook', '' ) ) . ";\n";
+		$inline_js .= 'window.NuclenOptinSuccessMessage = ' . json_encode( $settings_repo->get( 'optin_success_message', '' ) ) . ";\n";
+		$inline_js .= 'window.NuclenCustomQuizHtmlAfter = ' . json_encode( $settings_repo->get( 'custom_quiz_html_after', '' ) ) . ";\n";
 		return $inline_js;
 	}
 	
@@ -137,7 +137,13 @@ return false;
 	 * Retrieve quiz questions for the current post.
 	 */
 	private function get_post_quiz_data(): array {
-		$post_id   = get_the_ID();
+		$post_id = get_the_ID();
+		
+		// Validate post ID before proceeding
+		if ( ! $post_id || ! is_int( $post_id ) ) {
+			return array();
+		}
+		
 		$quiz_meta = maybe_unserialize( get_post_meta( $post_id, 'nuclen-quiz-data', true ) );
 		return ( is_array( $quiz_meta ) && isset( $quiz_meta['questions'] ) ) ? $quiz_meta['questions'] : array();
 		}
@@ -188,21 +194,25 @@ return false;
 					'all'
 					);
 		
-				/* Custom theme CSS */
+				/* Theme CSS */
 				$settings_repo = $this->nuclen_get_settings_repository();
 				$theme_choice  = $settings_repo->get( 'theme', 'bright' );
 
-		if ( $theme_choice === 'custom' ) {
+		// Load theme-specific CSS for all theme types
+		if ( $theme_choice !== 'bright' ) { // 'bright' is the default, no additional CSS needed
+			if ( $theme_choice === 'custom' ) {
 				$assets = $this->get_theme_assets( $theme_choice );
-			if ( $assets['url'] !== '' ) {
-						wp_enqueue_style(
-							$this->plugin_name . '-theme',
-							$assets['url'],
-							array(),
-							$assets['version'],
-							'all'
-						);
+				if ( $assets['url'] !== '' ) {
+					wp_enqueue_style(
+						$this->plugin_name . '-theme',
+						$assets['url'],
+						array( $this->plugin_name ), // Depend on base CSS to load after it
+						$assets['version'],
+						'all'
+					);
+				}
 			}
+			// Note: 'dark' theme is handled via CSS variables in nuclen-front.css
 		}
 	}
 
@@ -223,7 +233,14 @@ return false;
 			AssetVersions::get( 'front_js' ),
 			true
 		);
-		wp_script_add_data( $this->plugin_name . '-front', 'type', 'module' );
+		
+		// Ensure script is loaded as ES6 module
+		add_filter( 'script_loader_tag', function( $tag, $handle, $src ) {
+			if ( $handle === $this->plugin_name . '-front' ) {
+				return '<script type="module" src="' . esc_url( $src ) . '"></script>' . "\n";
+			}
+			return $tag;
+		}, 10, 3 );
 
 		$settings_repo = $this->nuclen_get_settings_repository();
 		

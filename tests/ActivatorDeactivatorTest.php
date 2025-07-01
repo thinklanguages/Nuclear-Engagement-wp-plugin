@@ -102,7 +102,7 @@ class ActivatorDeactivatorTest extends TestCase {
 
 	public function test_activation_creates_indexes_and_sets_options(): void {
 		global $wpdb, $wp_options, $transients, $update_option_calls;
-		Activator::nuclen_activate();
+		\NuclearEngagement\Core\Activator::nuclen_activate();
 		$this->assertTrue($transients['nuclen_plugin_activation_redirect']);
 		$this->assertArrayHasKey('nuclear_engagement_setup', $wp_options);
 		$this->assertSame(1, $update_option_calls['nuclear_engagement_setup'] ?? 0);
@@ -114,7 +114,7 @@ class ActivatorDeactivatorTest extends TestCase {
 		global $wp_options, $transients, $cleared_hooks;
 		$wp_options['nuclen_active_generations'] = ['x'];
 		$transients['nuclen_plugin_activation_redirect'] = true;
-		Deactivator::nuclen_deactivate();
+		\NuclearEngagement\Core\Deactivator::nuclen_deactivate();
 		$this->assertArrayNotHasKey('nuclen_active_generations', $wp_options);
 		$this->assertArrayNotHasKey('nuclen_plugin_activation_redirect', $transients);
 		$expected = [

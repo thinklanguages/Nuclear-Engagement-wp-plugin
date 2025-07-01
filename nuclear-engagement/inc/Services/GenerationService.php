@@ -87,7 +87,7 @@ class GenerationService {
 	 */
 	public function generateContent( GenerateRequest $request ): GenerationResponse {
 		// Get posts data
-		$posts = $this->getPostsData( $request->postIds, $request->postType, $request->postStatus );
+		$posts = $this->getPostsData( $request->postIds, $request->postType, $request->postStatus, $request->workflowType );
 		if ( empty( $posts ) ) {
 			throw new \RuntimeException( 'No matching posts found' );
 		}
@@ -204,9 +204,10 @@ class GenerationService {
 	 * @param array  $postIds
 	 * @param string $postType
 	 * @param string $postStatus
+	 * @param string $workflowType
 	 * @return array
 	 */
-		private function getPostsData( array $postIds, string $postType, string $postStatus ): array {
+		private function getPostsData( array $postIds, string $postType, string $postStatus, string $workflowType = '' ): array {
 				$data      = array();
 				$postsById = array();
 
@@ -214,7 +215,7 @@ class GenerationService {
 				$chunks    = count( $postIds ) <= $chunkSize ? array( $postIds ) : array_chunk( $postIds, $chunkSize );
 
 				foreach ( $chunks as $chunk ) {
-						$posts = $this->fetcher->fetch( $chunk );
+						$posts = $this->fetcher->fetch( $chunk, $workflowType );
 
 						foreach ( $posts as $post ) {
 								$postsById[ (int) $post->ID ] = array(

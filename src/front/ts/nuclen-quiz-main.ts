@@ -28,11 +28,6 @@ import { renderQuestion } from './nuclen-quiz-question';
 declare const postQuizData: QuizQuestion[];
 declare const NuclenSettings: NuclenSettingsType;
 
-declare const NuclenOptinPosition: string;
-declare const NuclenOptinMandatory: boolean;
-declare const NuclenOptinPromptText: string;
-declare const NuclenOptinButtonText: string;
-
 declare const NuclenOptinAjax: { url: string; nonce: string };
 
 	declare function gtag(...args: unknown[]): void;
@@ -62,10 +57,10 @@ export function initQuiz(): void {
 	const maxAnswers   = NuclenSettings?.answers_per_question ?? 4;
 
 	const optin: OptinContext = {
-		position: (NuclenOptinPosition as 'with_results' | 'before_results') ?? 'with_results',
-		mandatory: Boolean(NuclenOptinMandatory),
-		promptText: NuclenOptinPromptText,
-		submitLabel: NuclenOptinButtonText,
+		position: (window.NuclenOptinPosition as 'with_results' | 'before_results') ?? 'with_results',
+		mandatory: Boolean(window.NuclenOptinMandatory),
+		promptText: window.NuclenOptinPromptText ?? '',
+		submitLabel: window.NuclenOptinButtonText ?? '',
 		enabled: Boolean(window.NuclenOptinEnabled),
 		webhook: window.NuclenOptinWebhook ?? '',
 		ajaxUrl: NuclenOptinAjax?.url ?? '',

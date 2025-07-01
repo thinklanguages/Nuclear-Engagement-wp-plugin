@@ -5,4 +5,21 @@
             <directory>tests</directory>
         </testsuite>
     </testsuites>
+    
+    <filter>
+        <whitelist processUncoveredFilesFromWhitelist="true">
+            <directory suffix=".php">nuclear-engagement/inc</directory>
+            <exclude>
+                <directory suffix=".php">tests</directory>
+                <directory suffix=".php">vendor</directory>
+                <directory suffix=".php">node_modules</directory>
+            </exclude>
+        </whitelist>
+    </filter>
+    
+    <logging>
+        <log type="coverage-html" target="coverage/html"/>
+        <log type="coverage-clover" target="coverage.xml"/>
+        <log type="coverage-text" target="php://stdout" showUncoveredFiles="false"/>
+    </logging>
 </phpunit>

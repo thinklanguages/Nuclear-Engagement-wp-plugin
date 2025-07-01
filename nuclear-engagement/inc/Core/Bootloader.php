@@ -84,6 +84,8 @@ final class Bootloader {
 			self::$plugin_initialized = true;
 		} catch ( \Throwable $e ) {
 			self::handle_initialization_error( $e );
+			// Stop plugin initialization on error
+			return;
 		}
 	}
 	
@@ -95,10 +97,25 @@ final class Bootloader {
 	private static function handle_initialization_error( \Throwable $e ): void {
 		// Log the error
 		if ( class_exists( LoggingService::class ) ) {
-			LoggingService::log( 'Nuclear Engagement: Initialization failed - ' . $e->getMessage() );
+			LoggingService::log( 'Nuclear Engagement: Critical initialization failure - ' . $e->getMessage() );
+			LoggingService::log( 'Nuclear Engagement: Stack trace - ' . $e->getTraceAsString() );
+		} else {
+			// Fallback logging if LoggingService is not available
+			error_log( 'Nuclear Engagement: Critical initialization failure - ' . $e->getMessage() );
 		}
 		
+		// Show admin notice for critical errors
+		if ( is_admin() ) {
+			add_action( 'admin_notices', function() use ( $e ) {
+				echo '<div class="notice notice-error"><p>';
+				echo '<strong>Nuclear Engagement Plugin Error:</strong> ';
+				echo 'Plugin initialization failed. Please check error logs. Error: ' . esc_html( $e->getMessage() );
+				echo '</p></div>';
+			} );
+		}
 		
+		// Mark plugin as failed to prevent further initialization attempts
+		self::$plugin_initialized = false;
 	}
 
 	/**
@@ -114,7 +131,7 @@ final class Bootloader {
 		}
 
 		if ( ! defined( 'NUCLEN_PLUGIN_URL' ) ) {
-			define( 'NUCLEN_PLUGIN_URL', plugins_url( '/', NUCLEN_PLUGIN_FILE ) );
+			define( 'NUCLEN_PLUGIN_URL', plugin_dir_url( NUCLEN_PLUGIN_FILE ) );
 		}
 
 		if ( ! defined( 'NUCLEN_PLUGIN_VERSION' ) ) {

@@ -23,10 +23,7 @@ trait AdminHeaderTrait {
 	protected function display_admin_header(): void {
 		$image_url = NUCLEN_PLUGIN_URL . 'assets/images/nuclear-engagement-logo.webp';
 		
-		if ( ! filter_var( $image_url, FILTER_VALIDATE_URL ) ) {
-			return;
-		}
-
+		// Always load the template, even if URL validation fails
 		load_template(
 			NUCLEN_PLUGIN_DIR . 'templates/admin/page-header.php',
 			true,

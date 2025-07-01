@@ -36,12 +36,12 @@ class GenerateRequest {
 	/**
 	 * @var int Summary length in words
 	 */
-	public int $summaryLength = NUCLEN_SUMMARY_LENGTH_DEFAULT;
+	public int $summaryLength = 30; // Default value
 
 	/**
 	 * @var int Number of summary items
 	 */
-	public int $summaryItems = NUCLEN_SUMMARY_ITEMS_DEFAULT;
+	public int $summaryItems = 3; // Default value
 
 	/**
 	 * @var string Generation ID for tracking
@@ -76,6 +76,9 @@ class GenerateRequest {
 				throw new \InvalidArgumentException( 'Invalid JSON payload: ' . json_last_error_msg() );
 			}
 		}
+		
+		// Debug log the payload
+		\NuclearEngagement\Services\LoggingService::log( 'GenerateRequest payload: ' . print_r( $payload, true ) );
 
 		// Extract and validate post IDs
 		$postIdsJson      = $payload['nuclen_selected_post_ids'] ?? '';
@@ -114,18 +117,27 @@ class GenerateRequest {
 			$request->summaryFormat = 'paragraph';
 		}
 
+		// Use constants if defined, otherwise use defaults
+		$summaryLengthMin = defined( 'NUCLEN_SUMMARY_LENGTH_MIN' ) ? NUCLEN_SUMMARY_LENGTH_MIN : 20;
+		$summaryLengthMax = defined( 'NUCLEN_SUMMARY_LENGTH_MAX' ) ? NUCLEN_SUMMARY_LENGTH_MAX : 50;
+		$summaryLengthDefault = defined( 'NUCLEN_SUMMARY_LENGTH_DEFAULT' ) ? NUCLEN_SUMMARY_LENGTH_DEFAULT : 30;
+		
+		$summaryItemsMin = defined( 'NUCLEN_SUMMARY_ITEMS_MIN' ) ? NUCLEN_SUMMARY_ITEMS_MIN : 3;
+		$summaryItemsMax = defined( 'NUCLEN_SUMMARY_ITEMS_MAX' ) ? NUCLEN_SUMMARY_ITEMS_MAX : 7;
+		$summaryItemsDefault = defined( 'NUCLEN_SUMMARY_ITEMS_DEFAULT' ) ? NUCLEN_SUMMARY_ITEMS_DEFAULT : 3;
+		
 		$request->summaryLength = max(
-			NUCLEN_SUMMARY_LENGTH_MIN,
+			$summaryLengthMin,
 			min(
-				NUCLEN_SUMMARY_LENGTH_MAX,
-				(int) ( $payload['nuclen_selected_summary_length'] ?? NUCLEN_SUMMARY_LENGTH_DEFAULT )
+				$summaryLengthMax,
+				(int) ( $payload['nuclen_selected_summary_length'] ?? $summaryLengthDefault )
 			)
 		);
 		$request->summaryItems  = max(
-			NUCLEN_SUMMARY_ITEMS_MIN,
+			$summaryItemsMin,
 			min(
-				NUCLEN_SUMMARY_ITEMS_MAX,
-				(int) ( $payload['nuclen_selected_summary_number_of_items'] ?? NUCLEN_SUMMARY_ITEMS_DEFAULT )
+				$summaryItemsMax,
+				(int) ( $payload['nuclen_selected_summary_number_of_items'] ?? $summaryItemsDefault )
 			)
 		);
 

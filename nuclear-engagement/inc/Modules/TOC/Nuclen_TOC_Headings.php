@@ -28,7 +28,7 @@ final class Nuclen_TOC_Headings {
 	 */
 		public function __construct() {
 		add_filter( 'the_content', array( $this, 'nuclen_add_heading_ids' ), 99 );
-               add_action( 'save_post', array( $this, 'cache_headings_on_save' ), 10, 2 );
+               add_action( 'save_post', array( $this, 'cache_headings_on_save' ), 10, 3 );
 		add_action( 'delete_post', array( $this, 'delete_headings_cache' ) );
 	}
 
@@ -55,7 +55,10 @@ final class Nuclen_TOC_Headings {
 		if ( ! nuclen_str_contains( $content, '<h' ) ) {
 			return $content; }
 
-				foreach ( HeadingExtractor::extract( $content, range( 1, 6 ), get_the_ID() ) as $h ) {
+				$post_id = get_the_ID();
+			$post_id = $post_id && is_int( $post_id ) ? $post_id : 0;
+			
+			foreach ( HeadingExtractor::extract( $content, range( 1, 6 ), $post_id ) as $h ) {
 			$pat         = sprintf(
 				'/(<%1$s\b(?![^>]*\bid=)[^>]*>)(%2$s)(<\/%1$s>)/is',
 				$h['tag'],

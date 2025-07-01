@@ -90,10 +90,21 @@ class PostsQueryService {
 	public function buildQueryArgs( PostsCountRequest $request ): array {
 		$metaQuery = array( 'relation' => 'AND' );
 
+		// Ensure we have a valid post type
+		$post_type = ! empty( $request->postType ) ? $request->postType : 'post';
+
+		// Handle post status properly
+		if ( 'any' === $request->postStatus ) {
+			// Use a predefined list of common viewable statuses
+			$post_status = array( 'publish', 'private', 'draft', 'pending', 'future' );
+		} else {
+			$post_status = $request->postStatus;
+		}
+
 		$queryArgs = array(
-			'post_type'      => $request->postType,
-			'posts_per_page' => -1,
-			'post_status'    => $request->postStatus,
+			'post_type'      => $post_type,
+			'posts_per_page' => 1000, // Limit to prevent memory exhaustion
+			'post_status'    => $post_status,
 			'fields'         => 'ids',
 		);
 
@@ -156,10 +167,23 @@ class PostsQueryService {
 		$joins  = array();
 		$wheres = array();
 
-		$wheres[] = $wpdb->prepare( 'p.post_type = %s', $request->postType );
+		// Ensure we have a valid post type
+		$post_type = ! empty( $request->postType ) ? $request->postType : 'post';
+		$wheres[] = $wpdb->prepare( 'p.post_type = %s', $post_type );
 
 		if ( 'any' !== $request->postStatus ) {
 			$wheres[] = $wpdb->prepare( 'p.post_status = %s', $request->postStatus );
+		} else {
+			// When 'any' is selected, use a predefined list of common viewable statuses
+			$viewable_statuses = array( 'publish', 'private', 'draft', 'pending', 'future' );
+			
+			if ( ! empty( $viewable_statuses ) ) {
+				$placeholders = implode( ', ', array_fill( 0, count( $viewable_statuses ), '%s' ) );
+				// Build the query with proper escaping
+				$prepared_args = array( "p.post_status IN ($placeholders)" );
+				$prepared_args = array_merge( $prepared_args, $viewable_statuses );
+				$wheres[] = call_user_func_array( array( $wpdb, 'prepare' ), $prepared_args );
+			}
 		}
 
 		if ( $request->authorId ) {
@@ -192,23 +216,6 @@ class PostsQueryService {
 		return $sql;
 	}
 
-	/**
-	 * Execute the COUNT query for posts.
-	 *
-	 * @param string $sql
-	 * @return int
-	 */
-	private function execute_count_query( string $sql ): int {
-		global $wpdb;
-
-		$count = (int) $wpdb->get_var( "SELECT COUNT(DISTINCT p.ID) $sql" );
-
-		if ( $wpdb->last_error ) {
-			LoggingService::log( 'Posts query error: ' . $wpdb->last_error );
-		}
-
-		return $count;
-	}
 
 	/**
 	 * Get posts count and IDs
@@ -231,36 +238,60 @@ class PostsQueryService {
 
 		global $wpdb;
 
-		$sql   = $this->build_sql_clauses( $request );
-		$count = $this->execute_count_query( $sql );
+		$sql = $this->build_sql_clauses( $request );
+		
+		// Debug logging (commented out temporarily to isolate 500 error)
+		// LoggingService::log( 'PostsQueryService: Request post type: ' . $request->postType );
+		// LoggingService::log( 'PostsQueryService: Request post status: ' . $request->postStatus );
+		// LoggingService::log( 'PostsQueryService: SQL clauses: ' . $sql );
 
-				$post_ids = array();
-				$limit    = 1000;
-				$offset   = 0;
+		// Get all post IDs first to ensure consistency
+		$post_ids = array();
+		$limit    = 1000;
+		$offset   = 0;
 
 		do {
-				$query    = $wpdb->prepare(
-					"SELECT DISTINCT p.ID $sql ORDER BY p.ID ASC LIMIT %d OFFSET %d",
-					$limit,
-					$offset
-				);
-				$batch    = $wpdb->get_col( $query );
+			$query = $wpdb->prepare(
+				"SELECT DISTINCT p.ID $sql ORDER BY p.ID ASC LIMIT %d OFFSET %d",
+				$limit,
+				$offset
+			);
+			
+			// Log the first query for debugging (commented out temporarily)
+			// if ( $offset === 0 ) {
+			// 	LoggingService::log( 'PostsQueryService: First SQL query: ' . $query );
+			// }
+			
+			$batch = $wpdb->get_col( $query );
+			if ( ! empty( $batch ) ) {
 				$post_ids = array_merge( $post_ids, $batch );
-				$offset  += $limit;
+			}
+			$offset += $limit;
 		} while ( count( $batch ) === $limit );
 
 		if ( $wpdb->last_error ) {
-				LoggingService::log( 'Posts query error: ' . $wpdb->last_error );
+			LoggingService::log( 'Posts query error: ' . $wpdb->last_error );
 		}
 
-				$result = array(
-					'count'    => $count,
-					'post_ids' => $post_ids,
-				);
+		// Ensure unique post IDs
+		$post_ids = array_unique( array_map( 'intval', $post_ids ) );
+		
+		// Count is the actual number of unique post IDs found
+		$count = count( $post_ids );
+		
+		// Debug logging (commented out temporarily)
+		// LoggingService::log( 'PostsQueryService: Total posts found: ' . $count );
+		// LoggingService::log( 'PostsQueryService: Allow regenerate: ' . ( $request->allowRegenerate ? 'true' : 'false' ) );
+		// LoggingService::log( 'PostsQueryService: Workflow: ' . $request->workflow );
 
-				wp_cache_set( $cache_key, $result, self::CACHE_GROUP, self::CACHE_TTL );
-				set_transient( $transient_key, $result, self::CACHE_TTL );
+		$result = array(
+			'count'    => $count,
+			'post_ids' => array_values( $post_ids ), // Re-index array
+		);
 
-				return $result;
+		wp_cache_set( $cache_key, $result, self::CACHE_GROUP, self::CACHE_TTL );
+		set_transient( $transient_key, $result, self::CACHE_TTL );
+
+		return $result;
 	}
 }

@@ -39,8 +39,14 @@ trait SettingsPageCustomCSSTrait {
 	       /* ── Fill any missing values so we never output empty CSS vars ── */
 	       $s = wp_parse_args( $s, \NuclearEngagement\Core\Defaults::nuclen_get_default_settings() );
 	       
+	       /* ── Debug: Log the settings before sanitization ── */
+	       \NuclearEngagement\Services\LoggingService::log( 'CSS Generation - Settings before sanitization: ' . wp_json_encode( array_slice( $s, 0, 10 ) ) );
+	       
 	       /* ── Security fix: Sanitize all CSS values to prevent injection attacks ── */
 	       $s = CssSanitizer::sanitize_css_settings( $s );
+	       
+	       /* ── Debug: Log the settings after sanitization ── */
+	       \NuclearEngagement\Services\LoggingService::log( 'CSS Generation - Settings after sanitization: ' . wp_json_encode( array_slice( $s, 0, 10 ) ) );
 
 	       $css = <<<CSS
 :root{

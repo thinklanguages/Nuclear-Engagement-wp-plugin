@@ -52,10 +52,11 @@ class PostDataFetcher {
 	 * Posts are filtered to published status and exclude those
 	 * with quiz or summary protection meta set.
 	 *
-	 * @param array $ids Post IDs.
+	 * @param array  $ids Post IDs.
+	 * @param string $workflowType Optional. Workflow type to check protection for. If empty, checks both.
 	 * @return array Rows from the posts table.
 	 */
-	   public function fetch( array $ids ): array {
+	   public function fetch( array $ids, string $workflowType = '' ): array {
 			   global $wpdb;
 
 			   if ( empty( $ids ) ) {
@@ -63,7 +64,7 @@ class PostDataFetcher {
 			   }
 
 			   $ids          = array_map( 'absint', $ids );
-			   $cache_key    = md5( implode( ',', $ids ) . '|' . get_current_blog_id() );
+			   $cache_key    = md5( implode( ',', $ids ) . '|' . $workflowType . '|' . get_current_blog_id() );
 			   $found        = false;
 			   $cached       = wp_cache_get( $cache_key, self::CACHE_GROUP, false, $found );
 			   if ( $found && is_array( $cached ) ) {
@@ -73,22 +74,78 @@ class PostDataFetcher {
 			   $placeholders = implode( ',', array_fill( 0, count( $ids ), '%d' ) );
 			   $order_ids    = implode( ',', $ids );
 
-		$sql = $wpdb->prepare(
-			"SELECT p.ID, p.post_title, p.post_content
-			 FROM {$wpdb->posts} p
-			 LEFT JOIN {$wpdb->postmeta} pmq
-			   ON pmq.post_id = p.ID
-			  AND pmq.meta_key = %s
-			 LEFT JOIN {$wpdb->postmeta} pms
-			   ON pms.post_id = p.ID
-			  AND pms.meta_key = %s
-			 WHERE p.ID IN ($placeholders)
-			   AND p.post_status = 'publish'
-			   AND pmq.meta_id IS NULL
-			   AND pms.meta_id IS NULL
-			 ORDER BY FIELD(p.ID, $order_ids)",
-			array_merge( array( 'nuclen_quiz_protected', Summary_Service::PROTECTED_KEY ), $ids )
-		);
+		// Build SQL based on workflow type
+		if ( $workflowType === 'quiz' ) {
+			// Only check quiz protection for quiz generation
+			// First, prepare the base query with placeholders
+			$base_query = "SELECT p.ID, p.post_title, p.post_content
+				 FROM {$wpdb->posts} p
+				 LEFT JOIN {$wpdb->postmeta} pmq
+				   ON pmq.post_id = p.ID
+				  AND pmq.meta_key = %s
+				 WHERE p.ID IN ($placeholders)
+				   AND p.post_status = 'publish'
+				   AND pmq.meta_id IS NULL";
+			
+			// Prepare without ORDER BY first
+			$sql = $wpdb->prepare(
+				$base_query,
+				array_merge( array( 'nuclen_quiz_protected' ), $ids )
+			);
+			
+			// Add ORDER BY with proper parameterization
+			$order_placeholders = implode( ',', array_fill( 0, count( $ids ), '%d' ) );
+			$sql .= ' ORDER BY FIELD(p.ID, ' . $order_placeholders . ')';
+			$sql = $wpdb->prepare( $sql, $ids );
+			
+		} elseif ( $workflowType === 'summary' ) {
+			// Only check summary protection for summary generation
+			$base_query = "SELECT p.ID, p.post_title, p.post_content
+				 FROM {$wpdb->posts} p
+				 LEFT JOIN {$wpdb->postmeta} pms
+				   ON pms.post_id = p.ID
+				  AND pms.meta_key = %s
+				 WHERE p.ID IN ($placeholders)
+				   AND p.post_status = 'publish'
+				   AND pms.meta_id IS NULL";
+			
+			// Prepare without ORDER BY first
+			$sql = $wpdb->prepare(
+				$base_query,
+				array_merge( array( Summary_Service::PROTECTED_KEY ), $ids )
+			);
+			
+			// Add ORDER BY with proper parameterization
+			$order_placeholders = implode( ',', array_fill( 0, count( $ids ), '%d' ) );
+			$sql .= ' ORDER BY FIELD(p.ID, ' . $order_placeholders . ')';
+			$sql = $wpdb->prepare( $sql, $ids );
+			
+		} else {
+			// Default behavior: check both protections (backward compatibility)
+			$base_query = "SELECT p.ID, p.post_title, p.post_content
+				 FROM {$wpdb->posts} p
+				 LEFT JOIN {$wpdb->postmeta} pmq
+				   ON pmq.post_id = p.ID
+				  AND pmq.meta_key = %s
+				 LEFT JOIN {$wpdb->postmeta} pms
+				   ON pms.post_id = p.ID
+				  AND pms.meta_key = %s
+				 WHERE p.ID IN ($placeholders)
+				   AND p.post_status = 'publish'
+				   AND pmq.meta_id IS NULL
+				   AND pms.meta_id IS NULL";
+			
+			// Prepare without ORDER BY first
+			$sql = $wpdb->prepare(
+				$base_query,
+				array_merge( array( 'nuclen_quiz_protected', Summary_Service::PROTECTED_KEY ), $ids )
+			);
+			
+			// Add ORDER BY with proper parameterization
+			$order_placeholders = implode( ',', array_fill( 0, count( $ids ), '%d' ) );
+			$sql .= ' ORDER BY FIELD(p.ID, ' . $order_placeholders . ')';
+			$sql = $wpdb->prepare( $sql, $ids );
+		}
 
 			   $rows = $wpdb->get_results( $sql );
 

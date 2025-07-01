@@ -1,0 +1,102 @@
+version: '3.8'
+
+services:
+  # MySQL Database
+  db:
+    image: mysql:5.7
+    environment:
+      MYSQL_DATABASE: wordpress_test
+      MYSQL_USER: wordpress
+      MYSQL_PASSWORD: wordpress
+      MYSQL_ROOT_PASSWORD: rootpassword
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  # WordPress
+  wordpress:
+    image: wordpress:latest
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8080:80"
+    environment:
+      WORDPRESS_DB_HOST: db
+      WORDPRESS_DB_USER: wordpress
+      WORDPRESS_DB_PASSWORD: wordpress
+      WORDPRESS_DB_NAME: wordpress_test
+      WORDPRESS_DEBUG: 1
+      WORDPRESS_CONFIG_EXTRA: |
+        define('WP_DEBUG_LOG', true);
+        define('WP_DEBUG_DISPLAY', false);
+        define('SCRIPT_DEBUG', true);
+    volumes:
+      - ./nuclear-engagement:/var/www/html/wp-content/plugins/nuclear-engagement
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Test Runner
+  test-runner:
+    build:
+      context: .
+      dockerfile: Dockerfile.tests
+    depends_on:
+      wordpress:
+        condition: service_healthy
+    environment:
+      - WORDPRESS_URL=http://wordpress
+      - PLAYWRIGHT_BASE_URL=http://wordpress
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/vendor
+    networks:
+      - default
+    command: |
+      bash -c "
+        echo 'Waiting for WordPress to be ready...'
+        sleep 10
+        
+        echo 'Setting up WordPress...'
+        apt-get update && apt-get install -y default-mysql-client
+        mysql -h db -u root -prootpassword wordpress_test < /app/tests/fixtures/test-data.sql || echo 'No test data to import'
+        
+        echo 'Running all tests...'
+        /app/run-all-tests.sh
+      "
+
+  # WordPress CLI for setup
+  wpcli:
+    image: wordpress:cli
+    depends_on:
+      wordpress:
+        condition: service_healthy
+    volumes:
+      - ./nuclear-engagement:/var/www/html/wp-content/plugins/nuclear-engagement
+    environment:
+      WORDPRESS_DB_HOST: db
+      WORDPRESS_DB_USER: wordpress
+      WORDPRESS_DB_PASSWORD: wordpress
+      WORDPRESS_DB_NAME: wordpress_test
+    command: |
+      bash -c "
+        sleep 15
+        wp core install --path=/var/www/html --url=http://localhost:8080 \
+          --title='Test Site' --admin_user=admin --admin_password=admin \
+          --admin_email=admin@test.com --skip-email --allow-root
+        wp plugin activate nuclear-engagement --allow-root
+        wp post create --post_title='Test Post for Nuclear Engagement' \
+          --post_content='This is a test post for E2E tests.' \
+          --post_status=publish --allow-root
+        echo 'WordPress setup complete!'
+      "
+
+volumes:
+  db_data:

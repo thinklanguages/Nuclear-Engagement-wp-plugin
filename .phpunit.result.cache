@@ -1,0 +1,1 @@
+{"version":1,"defects":{"ActivatorDeactivatorTest::test_activation_creates_indexes_and_sets_options":4,"ActivatorDeactivatorTest::test_deactivation_clears_hooks_and_options":4},"times":{"ActivatorDeactivatorTest::test_activation_creates_indexes_and_sets_options":0.002,"ActivatorDeactivatorTest::test_deactivation_clears_hooks_and_options":0.001}}

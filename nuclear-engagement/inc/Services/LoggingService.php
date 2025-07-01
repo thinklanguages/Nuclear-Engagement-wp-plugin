@@ -99,8 +99,30 @@ class LoggingService {
 	/** Fallback when writing to the log fails. */
 	private function fallback( string $original, string $error ): void {
 		$timestamp = gmdate( 'Y-m-d H:i:s' );
-		error_log( "[Nuclear Engagement] [{$timestamp}] {$original} - {$error}" );
-		$this->add_admin_notice( $error );
+		$log_message = "[Nuclear Engagement] [{$timestamp}] {$original} - {$error}";
+		
+		// Try to use WordPress debug log first if available
+		if ( defined( 'WP_DEBUG_LOG' ) && WP_DEBUG_LOG ) {
+			if ( function_exists( 'wp_debug_log' ) ) {
+				wp_debug_log( $log_message );
+				return;
+			}
+		}
+		
+		// Fallback to system error_log with rate limiting
+		$rate_limit_key = 'nuclen_error_log_' . md5( $error );
+		$last_logged = get_transient( $rate_limit_key );
+		
+		if ( ! $last_logged ) {
+			// Only log once per hour for the same error to prevent spam
+			error_log( $log_message );
+			set_transient( $rate_limit_key, time(), HOUR_IN_SECONDS );
+			
+			// Only show admin notice for critical errors, not routine log failures
+			if ( strpos( $error, 'Failed to create log directory' ) !== false ) {
+				$this->add_admin_notice( $error );
+			}
+		}
 	}
 
 		/** Determine if logging should be buffered. */

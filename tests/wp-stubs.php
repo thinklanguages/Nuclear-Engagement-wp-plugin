@@ -59,3 +59,9 @@ if (!function_exists('load_template')) {
        }
 }
 
+if (!function_exists('wp_cache_flush')) {
+    function wp_cache_flush() {
+        return true;
+    }
+}
+

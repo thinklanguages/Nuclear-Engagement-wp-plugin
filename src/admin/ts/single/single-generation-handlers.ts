@@ -14,6 +14,7 @@ import { displayError } from '../utils/displayError';
 import * as logger from '../utils/logger';
 
 export function initSingleGenerationButtons(): void {
+	// Use passive listener for better scroll performance
 	document.addEventListener('click', async (event: MouseEvent) => {
 		const target = event.target;
 		if (!(target instanceof HTMLElement)) return;

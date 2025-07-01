@@ -30,17 +30,39 @@ class Utils {
 	 */
 
        public function display_nuclen_page_header(): void {
-	$image_url = NUCLEN_PLUGIN_URL . 'assets/images/nuclear-engagement-logo.webp';
-               if ( ! filter_var( $image_url, FILTER_VALIDATE_URL ) ) {
-                       return;
-               }
-
-				load_template(
-						NUCLEN_PLUGIN_DIR . 'templates/admin/page-header.php',
-						true,
-						array( 'image_url' => $image_url )
-				);
+		// Validate plugin constants to prevent path traversal
+		if ( ! defined( 'NUCLEN_PLUGIN_URL' ) || ! defined( 'NUCLEN_PLUGIN_DIR' ) ) {
+			return;
 		}
+		
+		// Construct and validate image URL
+		$image_url = NUCLEN_PLUGIN_URL . 'assets/images/nuclear-engagement-logo.webp';
+		
+		// Validate that the image URL starts with the plugin URL (no path traversal)
+		if ( strpos( $image_url, NUCLEN_PLUGIN_URL ) !== 0 ) {
+			return;
+		}
+		
+		// Validate template path to prevent directory traversal
+		$template_path = NUCLEN_PLUGIN_DIR . 'templates/admin/page-header.php';
+		$real_plugin_dir = realpath( NUCLEN_PLUGIN_DIR );
+		$real_template_path = realpath( $template_path );
+		
+		// Ensure template is within plugin directory and exists
+		if ( ! $real_template_path || 
+			 ! $real_plugin_dir || 
+			 strpos( $real_template_path, $real_plugin_dir ) !== 0 ||
+			 ! file_exists( $real_template_path ) ) {
+			return;
+		}
+		
+		// Load template safely
+		load_template(
+			$real_template_path,
+			true,
+			array( 'image_url' => esc_url( $image_url ) )
+		);
+	}
 
 	/**
 	 * Retrieve paths and URLs for the custom CSS file.

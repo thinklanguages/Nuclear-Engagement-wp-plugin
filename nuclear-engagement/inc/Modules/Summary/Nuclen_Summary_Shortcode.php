@@ -44,6 +44,12 @@ final class Nuclen_Summary_Shortcode {
 
 		private function getSummaryData() {
 				$post_id = get_the_ID();
+				
+				// Validate post ID before proceeding
+				if ( ! $post_id || ! is_int( $post_id ) ) {
+					return false;
+				}
+				
 				return get_post_meta( $post_id, Summary_Service::META_KEY, true );
 		}
 

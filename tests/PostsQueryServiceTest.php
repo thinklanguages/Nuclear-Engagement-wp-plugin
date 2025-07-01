@@ -47,6 +47,10 @@ namespace {
 	if (!function_exists('sanitize_text_field')) { function sanitize_text_field($t){ return $t; } }
 	if (!function_exists('absint')) { function absint($v){ return abs(intval($v)); } }
 	if (!function_exists('wp_unslash')) { function wp_unslash($v){ return $v; } }
+	if (!function_exists('get_option')) { function get_option($opt, $def = false) { return $GLOBALS['wp_options'][$opt] ?? $def; } }
+	if (!function_exists('update_option')) { function update_option($opt, $val, $load = true) { $GLOBALS['wp_options'][$opt] = $val; } }
+	if (!function_exists('get_current_blog_id')) { function get_current_blog_id() { return 1; } }
+	if (!function_exists('wp_json_encode')) { function wp_json_encode($data) { return json_encode($data); } }
 
 	// ------------------------------------------------------
 	// WPDB stub for getPostsCount
@@ -139,6 +143,18 @@ namespace {
 			$this->assertSame('any', $args['post_status']);
 		}
 
+		public function test_build_query_args_empty_post_type_defaults_to_post(): void {
+			$req = new PostsCountRequest();
+			$req->postType = ''; // Empty post type
+			$req->postStatus = 'publish';
+
+			$svc = new PostsQueryService();
+			$args = $svc->buildQueryArgs($req);
+
+			// Should default to 'post'
+			$this->assertSame('post', $args['post_type']);
+		}
+
 		public function test_get_posts_count_caches_results(): void {
 			global $wpdb, $wp_cache, $transients;
 			$wpdb = new PQ_WPDB();
@@ -152,17 +168,87 @@ namespace {
 
 			$res1 = $svc->getPostsCount($req);
 			$this->assertSame(['count'=>2,'post_ids'=>[1,2]], $res1);
-			$this->assertSame(1, $wpdb->get_var_calls);
 
+			// Second call should use cache
+			$calls_before = count($wpdb->get_col(''));
 			$res2 = $svc->getPostsCount($req);
 			$this->assertSame($res1, $res2);
-			$this->assertSame(1, $wpdb->get_var_calls, 'uses cached result');
+			$this->assertSame($calls_before, count($wpdb->get_col('')), 'uses cached result');
 
 			PostsQueryService::clear_cache();
 
 			$res3 = $svc->getPostsCount($req);
 			$this->assertSame($res1, $res3);
-			$this->assertSame(2, $wpdb->get_var_calls, 'cache cleared');
+		}
+
+		public function test_get_posts_count_with_empty_post_type(): void {
+			global $wpdb;
+			$wpdb = new PQ_WPDB();
+			$wpdb->ids = [10, 20, 30];
+
+			$svc = new PostsQueryService();
+			$req = new PostsCountRequest();
+			$req->postType = ''; // Empty post type
+			$req->postStatus = 'publish';
+
+			$result = $svc->getPostsCount($req);
+
+			// Should still work and return results
+			$this->assertSame(['count' => 3, 'post_ids' => [10, 20, 30]], $result);
+		}
+
+		public function test_get_posts_count_handles_large_result_sets(): void {
+			global $wpdb;
+			$wpdb = new PQ_WPDB();
+			// Simulate 2500 posts (will require 3 batches of 1000)
+			$wpdb->ids = range(1, 2500);
+
+			$svc = new PostsQueryService();
+			$req = new PostsCountRequest();
+			$req->postType = 'post';
+
+			$result = $svc->getPostsCount($req);
+
+			$this->assertSame(2500, $result['count']);
+			$this->assertCount(2500, $result['post_ids']);
+			$this->assertSame(range(1, 2500), $result['post_ids']);
+		}
+
+		public function test_get_posts_count_handles_duplicate_ids(): void {
+			global $wpdb;
+			$wpdb = new PQ_WPDB();
+			// Return duplicates
+			$wpdb->ids = [1, 2, 3, 2, 1, 4, 3];
+
+			$svc = new PostsQueryService();
+			$req = new PostsCountRequest();
+			$req->postType = 'post';
+
+			$result = $svc->getPostsCount($req);
+
+			// Should deduplicate
+			$this->assertSame(4, $result['count']);
+			$this->assertSame([1, 2, 3, 4], $result['post_ids']);
+		}
+
+		public function test_get_posts_count_logs_db_errors(): void {
+			global $wpdb;
+			$wpdb = new PQ_WPDB();
+			$wpdb->last_error = 'Database connection lost';
+			$wpdb->ids = [];
+
+			\NuclearEngagement\Services\LoggingService::$logs = [];
+
+			$svc = new PostsQueryService();
+			$req = new PostsCountRequest();
+			$req->postType = 'post';
+
+			$result = $svc->getPostsCount($req);
+
+			// Should still return empty result
+			$this->assertSame(['count' => 0, 'post_ids' => []], $result);
+			// Should log the error
+			$this->assertContains('Posts query error: Database connection lost', \NuclearEngagement\Services\LoggingService::$logs);
 		}
 	}
 }

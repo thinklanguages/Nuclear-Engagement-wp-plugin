@@ -40,6 +40,17 @@ class GenerateController extends BaseController {
 	 */
 	public function handle(): void {
 		try {
+			// Sanitized debug logging - only log non-sensitive keys
+			$safe_post_data = array();
+			$safe_keys = array( 'action', 'workflow', 'step', 'batch_size', 'total_items' );
+			foreach ( $safe_keys as $key ) {
+				if ( isset( $_POST[ $key ] ) ) {
+					$safe_post_data[ $key ] = sanitize_text_field( $_POST[ $key ] );
+				}
+			}
+			\NuclearEngagement\Services\LoggingService::log(
+				'GenerateController received request with safe data: ' . wp_json_encode( $safe_post_data )
+			);
 
 			if ( ! $this->verifyRequest( 'nuclen_admin_ajax_nonce' ) ) {
 				return;

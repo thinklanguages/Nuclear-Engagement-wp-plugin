@@ -115,8 +115,16 @@ class Quiz_Shortcode {
 		// Force enqueue frontend assets (CSS/JS) for quiz functionality
 		$this->front->nuclen_force_enqueue_assets();
 		
+		// Get current post ID
+		$post_id = get_the_ID();
+		
+		// Validate post ID before proceeding
+		if ( ! $post_id || ! is_int( $post_id ) ) {
+			return '';
+		}
+		
 		// Retrieve quiz data for the current post
-		$quiz_data = $this->service->get_quiz_data( get_the_ID() );
+		$quiz_data = $this->service->get_quiz_data( $post_id );
 		
 		// Validate quiz data before rendering
 		if ( ! $this->isValidQuizData( $quiz_data ) ) {

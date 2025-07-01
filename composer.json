@@ -1,0 +1,34 @@
+{
+    "name": "nuclear-engagement/plugin",
+    "description": "WordPress plugin for nuclear engagement with AI-powered content generation",
+    "type": "wordpress-plugin",
+    "require": {
+        "php": ">=7.4"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9.0",
+        "mockery/mockery": "^1.4",
+        "wp-phpunit/wp-phpunit": "^6.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "NuclearEngagement\\": "nuclear-engagement/inc/",
+            "NuclearEngagement\\Admin\\": "nuclear-engagement/admin/",
+            "NuclearEngagement\\Front\\": "nuclear-engagement/front/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "phpunit",
+        "test:coverage": "phpunit --coverage-html coverage/html --coverage-clover coverage.xml"
+    },
+    "config": {
+        "allow-plugins": {
+            "composer/installers": true
+        }
+    }
+}

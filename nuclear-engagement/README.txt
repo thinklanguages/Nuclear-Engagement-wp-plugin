@@ -1,4 +1,4 @@
-=== Nuclear Engagement – Instantly Generate AI Summaries, Quizzes & Table of Contents at Scale ===
+=== Nuclear Engagement – Instantly Generate AI Summaries, Quizzes & TOC at Scale ===
 Plugin Name: Nuclear Engagement
 Plugin URI: https://www.nuclearengagement.com?ref=wp_listing&link=plugin_uri
 Author: Stefano Lodola
@@ -8,7 +8,7 @@ Tags: AI writer, quiz, summary, table of contents, email optin
 Requires at least: 6.1
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 1.1
+Stable tag: 1.2
 License: GPL-2.0+
 License URI: http://www.gnu.org/licenses/gpl-2.0.txt
 Donate link: https://buy.stripe.com/3csg1Tdn0a9h3ss288
@@ -27,11 +27,11 @@ These interactive elements boost **time on page**, reduce **bounce rates**, and 
 If you want visitors to stay longer and interact with your content, Nuclear Engagement is your plug-and-play solution.
 It's called Nuclear Engagement because it is the nuclear option to boost blog engagement.
 
-With NE, you can **bulk generate engaging content like quizzes and summaries from your blog posts using AI**. The generated content is stored in post meta fields, which you can display via shortcodes or automatic insertion.
+With NE, you can **bulk generate engaging content like quizzes and summaries from your blog posts using AI**. The generated content is stored in post meta fields, which you can display via shortcodes, blocks or automatic insertion.
 
 🚀 **3× Longer Visits** with instant AI quizzes & summaries
 ⚙️ **1‑Click, Sitewide**: Bulk process 100+ posts in seconds
-🔒 **No Coding Needed**: Auto‑insert via shortcode or auto‑append
+🔒 **No Coding Needed**: Auto‑insert via shortcode, block or auto‑append
 📈 **Lead Capture**: Built‑in email opt‑in via Zapier & Make
 
 #### Why Nuclear Engagement
@@ -103,7 +103,7 @@ If you’re tired of seeing users leave after skimming an article, or you simply
 - [AI Summaries](https://www.nuclearengagement.com/feature/summary-creation?ref=wp_listing&link=ai_summaries): Automatically create a skimmable outline that hooks your readers.
 - Automatic Table of Contents: Automatically create a TOC to help navigation.
 - [Email Opt-in](https://www.nuclearengagement.com/feature/emailoptin?ref=wp_listing&link=email_optin): Collect email addresses at the end of quizzes to add them to your mailing list via Zapier, Make, etc.
-- [Customizable Display Options](https://www.nuclearengagement.com/feature/embedding?ref=wp_listing&link=customizable_display): Choose to insert generated content before, after, or via shortcodes for optimal layout.
+- [Customizable Display Options](https://www.nuclearengagement.com/feature/embedding?ref=wp_listing&link=customizable_display): Choose to insert generated content before, after, or via shortcodes or blocks for optimal layout.
 - [Seamless WordPress Integration](https://www.nuclearengagement.com/feature/wordpress-integration?ref=wp_listing&link=wordpress_integration): Enjoy an easy-to-install plugin that fits smoothly into your existing site setup.
 - [Engagement Analytics](https://www.nuclearengagement.com/feature/analytics?ref=wp_listing&link=engagement_analytics): Monitor reader behavior and quiz completions to refine your content strategy.
 
@@ -143,8 +143,8 @@ I'm also looking forward to get feature requests and suggestions. Help me make N
 2. On the post editor, simply click the **generate button** on the relevant metabox; on the generation page, first select the posts to process, then click the generate button
 3. Wait on page until you see a **success message** (usually a few seconds)
 4. Check the **generated content** on the post editor and manually edit or regenerate if needed (usually not needed)
-5. On the plugin's **settings page**, choose where to display the generated content: automatically appended before or after the post content; or, through shortcodes
-6. Only if you use **shortcodes**, place them on the single post template (that's one placement that applies to every post)
+5. On the plugin's **settings page**, choose where to display the generated content: automatically appended before or after the post content; or, through shortcodes or blocks
+6. Only if you use **shortcodes or blocks**, place them on the single post template (that's one placement that applies to every post)
 7. Open the post on the **frontend** (either as published or as a preview) to see the generated content
 8. Done! Your engaging content is now live.
 
@@ -207,7 +207,7 @@ Yes, you can manually edit the content from the post editor or regenerate it fro
 Yes, the generated content is based on the post content and matches it also in terms of tone and style.
 
 = How are the generated quizzes and summaries displayed on my site? =
-They can be automatically appended to your posts or inserted manually using shortcodes in your post templates.
+They can be automatically appended to your posts or inserted manually using shortcodes or blocks in your post templates.
 
 = Can I customize the style and placement of the generated content? =
 Yes, you can adjust styling options to ensure that quizzes and summaries blend seamlessly with your theme and choose whether they appear before or after your post content.
@@ -250,16 +250,18 @@ The tiny codebase and lazy loading assure fast loading, both in admin and on fro
 
 == Changelog ==
 
-= 1.2 – 2025-06-27 =
-* Added: Support for custom post types.
+= 1.2 – 2025-07-01 =
+* Added: Gutenberg blocks for summaries, quizzes and TOC.
 * Added: Dashboard section showing scheduled content generation tasks.
 * Added: Inventory data caching with manual refresh and persistent transients.
 * Added: Test infrastructure for improved code quality.
+* Changed: Improve background processing.
 * Changed: Expanded cache invalidation to cover more post and term events.
 * Changed: Architecture refactoring.
 * Changed: Improved security.
-* Changed: Improved performance with optimized database indexes.
-* Changed: Replaced `nuclen_settings_*` helpers with `Helpers\SettingsFunctions`.
+* Changed: Improved performance with optimized database indexes, lazy loading etc.
+* Changed: Improved settings management.
+* Fixed: Frontend display of summaries and quizzes.
 
 = 1.1 – 2025-06-13 =
 * Changed: Architecture refactoring.
