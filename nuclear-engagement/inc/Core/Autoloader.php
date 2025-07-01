@@ -38,6 +38,8 @@ final class Autoloader {
 			$paths[]     = NUCLEN_PLUGIN_DIR . implode( '/', $segments ) . '.php';
 
 			if ( isset( $segments[1] ) ) {
+				// Try both uppercase and lowercase for traits directory
+				$paths[] = NUCLEN_PLUGIN_DIR . $segments[0] . '/Traits/' . $segments[1] . '.php';
 				$paths[] = NUCLEN_PLUGIN_DIR . $segments[0] . '/traits/' . $segments[1] . '.php';
 			}
 		}

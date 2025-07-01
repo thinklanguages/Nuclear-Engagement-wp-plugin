@@ -20,59 +20,59 @@ window.NuclenLazyLoadComponent = function (
 
 	const observer = new IntersectionObserver(
 		(entries) => {
-		entries.forEach((entry) => {
-			if (entry.isIntersecting) {
-			const win = window as unknown as Record<string, unknown>;
-			if (initFunctionName && typeof win[initFunctionName] === 'function') {
-				(win[initFunctionName] as () => void)();
-			}
-			observer.disconnect();
-			}
-		});
+			entries.forEach((entry) => {
+				if (entry.isIntersecting) {
+					const win = window as unknown as Record<string, unknown>;
+					if (initFunctionName && typeof win[initFunctionName] === 'function') {
+						(win[initFunctionName] as () => void)();
+					}
+					observer.disconnect();
+				}
+			});
 		},
 		{
-		rootMargin: '0px 0px -200px 0px',
-		threshold: 0.1
+			rootMargin: '0px 0px -200px 0px',
+			threshold: 0.1
 		}
 	);
 
 	observer.observe(component);
-	};
+};
 
-	/**
+/**
 	 * 2b) Fire a GA event when a specific element is fully in view (threshold=1.0).
 	 */
-	function nuclenInitIntersectionObserver(selector: string, gtagEventName: string) {
+function nuclenInitIntersectionObserver(selector: string, gtagEventName: string) {
 	const target = document.querySelector(selector);
 	if (!target) return;
 
 	const observer = new IntersectionObserver(
 		(entries, obs) => {
-		entries.forEach((entry) => {
+			entries.forEach((entry) => {
 			// intersectionRatio === 1 means the element is fully in view
-			if (entry.isIntersecting && entry.intersectionRatio === 1) {
-			if (typeof gtag === 'function') {
-				gtag('event', gtagEventName);
-			}
-			// Stop observing after first event
-			obs.unobserve(entry.target);
-			}
-		});
+				if (entry.isIntersecting && entry.intersectionRatio === 1) {
+					if (typeof gtag === 'function') {
+						gtag('event', gtagEventName);
+					}
+					// Stop observing after first event
+					obs.unobserve(entry.target);
+				}
+			});
 		},
 		{
-		root: null,
-		rootMargin: '0px',
-		threshold: 1.0 // require 100% of the element to be visible
+			root: null,
+			rootMargin: '0px',
+			threshold: 1.0 // require 100% of the element to be visible
 		}
 	);
 
 	observer.observe(target);
-	}
+}
 
-	/**
+/**
 	 * 2c) Wait for #nuclen-quiz-container and #nuclen-summary-container in DOM, then attach GA observers.
 	 */
-	const mutationObs = new MutationObserver((_mutations, obs) => {
+const mutationObs = new MutationObserver((_mutations, obs) => {
 	const quizEl = document.getElementById('nuclen-quiz-container');
 	const summaryEl = document.getElementById('nuclen-summary-container');
 	if (quizEl && summaryEl) {
@@ -80,10 +80,10 @@ window.NuclenLazyLoadComponent = function (
 		nuclenInitIntersectionObserver('#nuclen-quiz-container', 'nuclen_quiz_view');
 		obs.disconnect(); // stop once attached
 	}
-	});
-	mutationObs.observe(document.body, { childList: true, subtree: true });
+});
+mutationObs.observe(document.body, { childList: true, subtree: true });
 
-	/**
+/**
 	 * 2d) Immediately call lazy-loading for the quiz container, telling it to run nuclearEngagementInitQuiz() once in view.
 	 */
-	window.NuclenLazyLoadComponent('nuclen-quiz-container', 'nuclearEngagementInitQuiz');
+window.NuclenLazyLoadComponent('nuclen-quiz-container', 'nuclearEngagementInitQuiz');

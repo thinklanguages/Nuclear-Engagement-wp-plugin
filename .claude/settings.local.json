@@ -22,7 +22,13 @@
       "Bash(php -l:*)",
       "Bash(mv:*)",
       "Bash(composer:*)",
-      "Bash(php:*)"
+      "Bash(php:*)",
+      "Bash(node:*)",
+      "Bash(touch:*)",
+      "Bash(cp:*)",
+      "Bash(vendor/bin/phpunit:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npx eslint:*)"
     ],
     "deny": []
   }

@@ -23,16 +23,16 @@ export function nuclenCollectFilters(): NuclenFilterValues {
 	const summaryLengthEl = document.getElementById('nuclen_summary_length') as HTMLSelectElement | null;
 	const summaryNumberEl = document.getElementById('nuclen_summary_number_of_items') as HTMLSelectElement | null;
 	return {
-	postStatus: postStatusEl ? postStatusEl.value : '',
-	category: categoryEl ? categoryEl.value : '',
-	author: authorEl ? authorEl.value : '',
-	postType: postTypeEl ? postTypeEl.value : '',
-	workflow: workflowEl ? workflowEl.value : '',
-	allowRegenerate: !!allowRegenEl && allowRegenEl.checked,
-	regenerateProtected: !!protectRegenEl && protectRegenEl.checked,
-	summaryFormat: summaryFormatEl ? summaryFormatEl.value : '',
-	summaryLength: summaryLengthEl ? summaryLengthEl.value : '',
-	summaryNumberOfItems: summaryNumberEl ? summaryNumberEl.value : '',
+		postStatus: postStatusEl ? postStatusEl.value : '',
+		category: categoryEl ? categoryEl.value : '',
+		author: authorEl ? authorEl.value : '',
+		postType: postTypeEl ? postTypeEl.value : '',
+		workflow: workflowEl ? workflowEl.value : '',
+		allowRegenerate: !!allowRegenEl && allowRegenEl.checked,
+		regenerateProtected: !!protectRegenEl && protectRegenEl.checked,
+		summaryFormat: summaryFormatEl ? summaryFormatEl.value : '',
+		summaryLength: summaryLengthEl ? summaryLengthEl.value : '',
+		summaryNumberOfItems: summaryNumberEl ? summaryNumberEl.value : '',
 	};
 }
 
@@ -58,22 +58,22 @@ export function nuclenStoreFilters(filters: NuclenFilterValues): void {
 	const selectedPostTypeEl = document.getElementById('nuclen_selected_post_type') as HTMLInputElement | null;
 
 	if (selectedWorkflowEl) {
-	selectedWorkflowEl.value = filters.workflow;
+		selectedWorkflowEl.value = filters.workflow;
 	}
 	if (selectedSummaryFormatEl) {
-	selectedSummaryFormatEl.value = filters.summaryFormat;
+		selectedSummaryFormatEl.value = filters.summaryFormat;
 	}
 	if (selectedSummaryLengthEl) {
-	selectedSummaryLengthEl.value = filters.summaryLength;
+		selectedSummaryLengthEl.value = filters.summaryLength;
 	}
 	if (selectedSummaryNumberEl) {
-	selectedSummaryNumberEl.value = filters.summaryNumberOfItems;
+		selectedSummaryNumberEl.value = filters.summaryNumberOfItems;
 	}
 	if (selectedPostStatusEl) {
-	selectedPostStatusEl.value = filters.postStatus;
+		selectedPostStatusEl.value = filters.postStatus;
 	}
 	if (selectedPostTypeEl) {
-	selectedPostTypeEl.value = filters.postType;
+		selectedPostTypeEl.value = filters.postType;
 	}
 }
 

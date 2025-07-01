@@ -1,9 +1,9 @@
-export function log(...args: unknown[]): void {
-	console.log(...args);
+export function log(..._args: unknown[]): void {
+	// Production logging disabled
 }
 
-export function warn(...args: unknown[]): void {
-	console.warn(...args);
+export function warn(..._args: unknown[]): void {
+	// Production warning disabled
 }
 
 export function error(...args: unknown[]): void {

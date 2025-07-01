@@ -1,1 +1,1 @@
-function n(...o){}function r(...o){}function e(...o){}export{e,n as l,r as w};
+function n(...o){console.log(...o)}function r(...o){console.warn(...o)}function e(...o){console.error(...o)}export{e,n as l,r as w};

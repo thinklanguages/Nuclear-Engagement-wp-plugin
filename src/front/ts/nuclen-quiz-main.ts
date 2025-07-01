@@ -24,23 +24,23 @@ import {
 import * as logger from './logger';
 import { renderQuestion } from './nuclen-quiz-question';
 
-	/* Globals injected by wp_localize_script */
-	declare const postQuizData: QuizQuestion[];
-	declare const NuclenSettings: NuclenSettingsType;
+/* Globals injected by wp_localize_script */
+declare const postQuizData: QuizQuestion[];
+declare const NuclenSettings: NuclenSettingsType;
 
-	declare const NuclenOptinPosition: string;
-	declare const NuclenOptinMandatory: boolean;
-	declare const NuclenOptinPromptText: string;
-	declare const NuclenOptinButtonText: string;
+declare const NuclenOptinPosition: string;
+declare const NuclenOptinMandatory: boolean;
+declare const NuclenOptinPromptText: string;
+declare const NuclenOptinButtonText: string;
 
-	declare const NuclenOptinAjax: { url: string; nonce: string };
+declare const NuclenOptinAjax: { url: string; nonce: string };
 
 	declare function gtag(...args: unknown[]): void;
 
-	/* ─────────────────────────────────────────────────────────────
+/* ─────────────────────────────────────────────────────────────
 	 Entry
 	────────────────────────────────────────────────────────────── */
-	export function initQuiz(): void {
+export function initQuiz(): void {
 	/* DOM refs (fail-fast if markup missing) */
 	const quizContainer  = document.getElementById('nuclen-quiz-container');
 	const qContainer     = document.getElementById('nuclen-quiz-question-container');
@@ -104,45 +104,45 @@ import { renderQuestion } from './nuclen-quiz-question';
 
 		const btns = aContainer!.getElementsByTagName('button');
 		for (let i = 0; i < btns.length; i++) {
-		btns[i].classList.remove('nuclen-quiz-possible-answer');
-		if (i === correctIdx) {
-			btns[i].classList.add('nuclen-quiz-answer-correct', 'nuclen-quiz-pulse');
-		} else if (i === shuffledIdx) {
-			btns[i].classList.add('nuclen-quiz-answer-wrong');
-		} else {
-			btns[i].classList.add('nuclen-quiz-answer-not-selected');
-		}
-		btns[i].disabled = true;
+			btns[i].classList.remove('nuclen-quiz-possible-answer');
+			if (i === correctIdx) {
+				btns[i].classList.add('nuclen-quiz-answer-correct', 'nuclen-quiz-pulse');
+			} else if (i === shuffledIdx) {
+				btns[i].classList.add('nuclen-quiz-answer-wrong');
+			} else {
+				btns[i].classList.add('nuclen-quiz-answer-not-selected');
+			}
+			btns[i].disabled = true;
 		}
 
 		explContainer!.innerHTML = `<p>${escapeHtml(
-		questions[state.currIdx].explanation,
+			questions[state.currIdx].explanation,
 		)}</p>`;
 		explContainer!.classList.remove('nuclen-quiz-hidden');
 		nextBtn!.classList.remove('nuclen-quiz-hidden');
 
 		if (typeof gtag === 'function') {
-		if (state.currIdx === 0) gtag('event', 'nuclen_quiz_start');
-		gtag('event', 'nuclen_quiz_answer');
+			if (state.currIdx === 0) gtag('event', 'nuclen_quiz_start');
+			gtag('event', 'nuclen_quiz_answer');
 		}
 	}
 
 	function showNext(): void {
 		state.currIdx++;
 		if (state.currIdx < questions.length) {
-		renderQuestion(questions, state, ui, checkAnswer);
-		return quizContainer!.scrollIntoView();
+			renderQuestion(questions, state, ui, checkAnswer);
+			return quizContainer!.scrollIntoView();
 		}
 
 		const finalCb = () =>
-		renderFinal(ui, optin, questions, state, () =>
-			renderQuestion(questions, state, ui, checkAnswer),
-		);
+			renderFinal(ui, optin, questions, state, () =>
+				renderQuestion(questions, state, ui, checkAnswer),
+			);
 
 		if (optin.enabled && optin.position === 'before_results') {
-		return renderOptinBeforeResultsFlow(ui, optin, finalCb);
+			return renderOptinBeforeResultsFlow(ui, optin, finalCb);
 		}
 		finalCb();
 	}
 
-	}
+}

@@ -6,16 +6,16 @@ afterEach(() => {
 });
 
 describe('logger functions', () => {
-  it('forwards to console.log', () => {
+  it('log function is disabled in production', () => {
 	const spy = vi.spyOn(console, 'log').mockImplementation(() => {});
 	log('a', 1);
-	expect(spy).toHaveBeenCalledWith('a', 1);
+	expect(spy).not.toHaveBeenCalled();
   });
 
-  it('forwards to console.warn', () => {
+  it('warn function is disabled in production', () => {
 	const spy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 	warn('b', 2);
-	expect(spy).toHaveBeenCalledWith('b', 2);
+	expect(spy).not.toHaveBeenCalled();
   });
 
   it('forwards to console.error', () => {

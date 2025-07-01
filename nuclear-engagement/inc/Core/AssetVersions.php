@@ -36,7 +36,7 @@ final class AssetVersions {
 	 */
 	public static function get( string $key ): string {
 		$versions = get_option( self::OPTION, array() );
-		return isset( $versions[ $key ] ) ? $versions[ $key ] : NUCLEN_ASSET_VERSION;
+		return isset( $versions[ $key ] ) ? $versions[ $key ] : '';
 	}
 
 	/**

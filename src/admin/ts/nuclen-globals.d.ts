@@ -17,5 +17,19 @@ declare global {
 	};
 	tinymce?: Record<string, unknown>;
 	wp?: Record<string, unknown>;
+	nePointerData?: {
+		pointers: Array<{
+			id: string;
+			target: string;
+			title: string;
+			content: string;
+			position: {
+				edge: 'top' | 'bottom' | 'left' | 'right';
+				align: 'center' | 'left' | 'right' | 'top' | 'bottom';
+			};
+		}>;
+		ajaxurl: string;
+		nonce?: string;
+	};
 	}
 }

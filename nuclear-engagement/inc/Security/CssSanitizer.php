@@ -280,7 +280,7 @@ class CssSanitizer {
 		
 		foreach ( $settings as $key => $value ) {
 			if ( isset( $sanitization_rules[ $key ] ) ) {
-				$sanitized[ $key ] = self::sanitize_css_value( $value, $sanitization_rules[ $key ] );
+				$sanitized[ $key ] = self::sanitize_css_value( (string) $value, $sanitization_rules[ $key ] );
 			} else {
 				// For unknown settings, apply general sanitization
 				$sanitized[ $key ] = self::sanitize_general_css_value( (string) $value );

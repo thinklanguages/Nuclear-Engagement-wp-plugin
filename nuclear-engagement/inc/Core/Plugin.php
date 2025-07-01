@@ -64,11 +64,17 @@ class Plugin {
 		$this->nuclen_load_dependencies();
 		$this->container = ServiceContainer::getInstance();
 		ContainerRegistrar::register( $this->container, $this->settings_repository );
-		// Register hooks for auto-generation on every request
-		$auto_generation_service = $this->container->get( 'auto_generation_service' );
-		$auto_generation_service->register_hooks();
+		
+		// Define hooks immediately, before any service initialization
 		$this->nuclen_define_admin_hooks();
 		$this->nuclen_define_public_hooks();
+		
+		// Run the loader immediately to register all hooks
+		$this->loader->nuclen_run();
+		
+		// Register hooks for auto-generation after admin/public hooks are defined
+		$auto_generation_service = $this->container->get( 'auto_generation_service' );
+		$auto_generation_service->register_hooks();
 	}
 
 	/*
@@ -89,7 +95,6 @@ class Plugin {
 		Admin-side hooks
 	──────────────────────────────────────────── */
 	private function nuclen_define_admin_hooks() {
-
 		$plugin_admin = new Admin( $this->nuclen_get_plugin_name(), $this->nuclen_get_version(), $this->settings_repository, $this->container );
 
 		// Scripts registration
@@ -101,8 +106,8 @@ class Plugin {
 		$this->loader->nuclen_add_action( 'admin_enqueue_scripts', $plugin_admin, 'nuclen_enqueue_dashboard_styles' );
 		$this->loader->nuclen_add_action( 'admin_enqueue_scripts', $plugin_admin, 'nuclen_enqueue_generate_page_scripts' );
 
-		// Admin Menu
-		$this->loader->nuclen_add_action( 'admin_menu', $plugin_admin, 'nuclen_add_admin_menu' );
+		// Admin Menu - Register immediately to ensure it's not missed
+		add_action( 'admin_menu', array( $plugin_admin, 'nuclen_add_admin_menu' ) );
 		
 
 		// AJAX - now using controllers
@@ -175,7 +180,8 @@ class Plugin {
 		Boilerplate
 	──────────────────────────────────────────── */
 	public function nuclen_run() {
-		$this->loader->nuclen_run();
+		// The loader has already been run in the constructor
+		// This method is kept for compatibility but does nothing
 	}
 
 	public function nuclen_get_plugin_name() {

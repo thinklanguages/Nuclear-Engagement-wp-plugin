@@ -52,15 +52,6 @@ trait AdminMenu {
 			array( $this, 'nuclen_display_generate_page' )
 		);
 
-		add_submenu_page(
-			'nuclear-engagement',
-			esc_html__( 'Nuclear Engagement – Setup', 'nuclear-engagement' ),
-			esc_html__( 'Setup', 'nuclear-engagement' ),
-			'manage_options',
-			'nuclear-engagement-setup',
-			array( $this, 'nuclen_display_setup_page' )
-		);
-
 		$settings = new Settings( $this->nuclen_get_settings_repository() );
 		add_submenu_page(
 			'nuclear-engagement',
@@ -69,6 +60,15 @@ trait AdminMenu {
 			'manage_options',
 			'nuclear-engagement-settings',
 			array( $settings, 'nuclen_display_settings_page' )
+		);
+
+		add_submenu_page(
+			'nuclear-engagement',
+			esc_html__( 'Nuclear Engagement – Setup', 'nuclear-engagement' ),
+			esc_html__( 'Setup', 'nuclear-engagement' ),
+			'manage_options',
+			'nuclear-engagement-setup',
+			array( $this, 'nuclen_display_setup_page' )
 		);
 	}
 

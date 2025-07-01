@@ -89,8 +89,8 @@ wp_enqueue_script( 'wp-pointer' );
 wp_enqueue_script(
 'nuclen-onboarding',
 NUCLEN_PLUGIN_URL . 'admin/js/onboarding-pointers.js',
-array( 'jquery', 'wp-pointer', 'wp-util' ),
-AssetVersions::get( 'onboarding_js' ),
+array( 'jquery', 'wp-pointer' ),
+time(), // Force new version
 true
 );
 

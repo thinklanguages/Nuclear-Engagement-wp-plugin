@@ -21,20 +21,20 @@ export function renderQuestion(
 	<div class="nuclen-quiz-title" role="heading" aria-level="2">${escapeHtml(q.question)}</div>`;
 
 	const shuffled = shuffle(
-	q.answers.map((ans, idx) => ({ ans, idx })).filter((a) => a.ans.trim()),
+		q.answers.map((ans, idx) => ({ ans, idx })).filter((a) => a.ans.trim()),
 	);
 
 	aContainer.innerHTML = shuffled
-	.map(
-		(a, i) => `
+		.map(
+			(a, i) => `
 		<button
 			class="nuclen-quiz-answer-button nuclen-quiz-possible-answer"
 			data-orig-idx="${a.idx}"
 			tabindex="0"
 			aria-label="Answer ${i + 1}: ${escapeHtml(a.ans)}"
 		>${escapeHtml(a.ans)}</button>`,
-	)
-	.join('');
+		)
+		.join('');
 
 	const correctIdx = shuffled.findIndex((a) => a.idx === 0);
 
@@ -46,24 +46,24 @@ export function renderQuestion(
 
 	/* one-shot answer handler */
 	const handler = (el: HTMLElement) => {
-	const origIdx = parseInt(el.getAttribute('data-orig-idx') || '0', 10);
-	checkAnswer(origIdx, shuffled.findIndex((a) => a.idx === origIdx), correctIdx);
-	aContainer.removeEventListener('click', clickListener);
-	aContainer.removeEventListener('keydown', keyListener);
+		const origIdx = parseInt(el.getAttribute('data-orig-idx') || '0', 10);
+		checkAnswer(origIdx, shuffled.findIndex((a) => a.idx === origIdx), correctIdx);
+		aContainer.removeEventListener('click', clickListener);
+		aContainer.removeEventListener('keydown', keyListener);
 	};
 
 	const clickListener = (e: Event) => {
-	const el = e.target as HTMLElement;
-	if (!el.matches('button.nuclen-quiz-answer-button')) return;
-	handler(el);
+		const el = e.target as HTMLElement;
+		if (!el.matches('button.nuclen-quiz-answer-button')) return;
+		handler(el);
 	};
 	const keyListener = (e: KeyboardEvent) => {
-	const el = e.target as HTMLElement;
-	if (!el.matches('button.nuclen-quiz-answer-button')) return;
-	if (e.key === 'Enter' || e.key === ' ') {
-		e.preventDefault();
-		handler(el);
-	}
+		const el = e.target as HTMLElement;
+		if (!el.matches('button.nuclen-quiz-answer-button')) return;
+		if (e.key === 'Enter' || e.key === ' ') {
+			e.preventDefault();
+			handler(el);
+		}
 	};
 
 	aContainer.addEventListener('click', clickListener);

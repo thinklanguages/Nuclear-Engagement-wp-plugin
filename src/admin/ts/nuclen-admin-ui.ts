@@ -8,22 +8,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
 	tabs.forEach((tab) => {
 		tab.addEventListener("click", (e) => {
-		e.preventDefault();
-		const target = tab.getAttribute("href");
-		if (!target) return; // If href is missing, bail
+			e.preventDefault();
+			const target = tab.getAttribute("href");
+			if (!target) return; // If href is missing, bail
 
-		// Remove active class from all tabs, then add to the one that was clicked
-		tabs.forEach((t) => t.classList.remove("nav-tab-active"));
-		tab.classList.add("nav-tab-active");
+			// Remove active class from all tabs, then add to the one that was clicked
+			tabs.forEach((t) => t.classList.remove("nav-tab-active"));
+			tab.classList.add("nav-tab-active");
 
-		// Hide all tab contents, then show only the targeted one
-		contents.forEach((c) => {
-			c.style.display = "none";
-		});
-		const targetContent = document.querySelector<HTMLElement>(target);
-		if (targetContent) {
-			targetContent.style.display = "block";
-		}
+			// Hide all tab contents, then show only the targeted one
+			contents.forEach((c) => {
+				c.style.display = "none";
+			});
+			const targetContent = document.querySelector<HTMLElement>(target);
+			if (targetContent) {
+				targetContent.style.display = "block";
+			}
 		});
 	});
 
@@ -37,14 +37,14 @@ document.addEventListener("DOMContentLoaded", () => {
 		const checkedInput = document.querySelector<HTMLInputElement>("input[name='nuclen_theme']:checked");
 		// If either the input or the section is missing, do nothing
 		if (!checkedInput || !customThemeSection) {
-		return;
+			return;
 		}
 
 		const selectedTheme = checkedInput.value;
 		if (selectedTheme === "custom") {
-		customThemeSection.classList.remove("nuclen-hidden");
+			customThemeSection.classList.remove("nuclen-hidden");
 		} else {
-		customThemeSection.classList.add("nuclen-hidden");
+			customThemeSection.classList.add("nuclen-hidden");
 		}
 	}
 
@@ -55,4 +55,4 @@ document.addEventListener("DOMContentLoaded", () => {
 
 	// Initial run on page load
 	nuclenUpdateCustomThemeVisibility();
-	});
+});

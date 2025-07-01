@@ -222,7 +222,8 @@ return false;
 			array(),
 			AssetVersions::get( 'front_js' ),
 			true
-			);
+		);
+		wp_script_add_data( $this->plugin_name . '-front', 'type', 'module' );
 
 		$settings_repo = $this->nuclen_get_settings_repository();
 		

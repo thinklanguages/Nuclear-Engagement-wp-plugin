@@ -7,12 +7,12 @@ export interface QuizQuestion {
 	explanation: string;
 	}
 
-	export interface NuclenSettings {
+export interface NuclenSettings {
 	questions_per_quiz: number;
 	answers_per_question: number;
 	}
 
-	export interface OptinContext {
+export interface OptinContext {
 	position: 'with_results' | 'before_results';
 	mandatory: boolean;
 	promptText: string;

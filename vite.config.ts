@@ -23,10 +23,6 @@ export default defineConfig({
         tocFront: path.resolve(
           __dirname,
           'src/modules/toc/ts/nuclen-toc-front.ts',
-        ),
-        onboarding: path.resolve(
-          __dirname,
-          'src/admin/ts/onboarding-pointers.ts',
         )
       },
       output: {
@@ -43,9 +39,6 @@ export default defineConfig({
           }
           if (chunkInfo.name === 'tocFront') {
             return 'modules/toc/assets/js/nuclen-toc-front.js';
-          }
-          if (chunkInfo.name === 'onboarding') {
-            return 'admin/js/onboarding-pointers.js';
           }
           // fallback for any other entry (if you had more)
           return '[name].js';

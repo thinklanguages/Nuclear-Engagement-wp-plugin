@@ -190,7 +190,11 @@ private static function register_autoloaders(): void {
 		self::register_activation_hooks();
 		self::register_admin_hooks();
 		
-		add_action( 'plugins_loaded', array( self::class, 'init_plugin' ) );
+		// Initialize plugin services early
+		self::register_services();
+		
+		// Run the plugin immediately to ensure hooks are registered
+		self::run_plugin();
 	}
 	
 	/**

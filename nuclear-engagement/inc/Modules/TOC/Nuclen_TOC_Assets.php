@@ -91,6 +91,7 @@ final class Nuclen_TOC_Assets {
 			$js_v,
 			true
 		);
+		wp_script_add_data( 'nuclen-toc-front', 'type', 'module' );
 
 		wp_localize_script(
 			'nuclen-toc-front',

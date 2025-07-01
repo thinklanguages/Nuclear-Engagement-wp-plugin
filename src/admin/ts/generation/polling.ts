@@ -16,41 +16,41 @@ export function NuclenPollAndPullUpdates({
 	onError?: (errMsg: string) => void;
 }) {
 	const pollInterval = setInterval(async () => {
-	try {
-		const pollResults: PollingUpdateResponse = await nuclenFetchUpdates(generationId);
-		if (!pollResults.success) {
-		const errMsg = pollResults.message || 'Polling error';
-		throw new Error(errMsg);
+		try {
+			const pollResults: PollingUpdateResponse = await nuclenFetchUpdates(generationId);
+			if (!pollResults.success) {
+				const errMsg = pollResults.message || 'Polling error';
+				throw new Error(errMsg);
+			}
+
+			const {
+				processed,
+				total,
+				successCount = processed,
+				failCount,
+				finalReport,
+				results,
+				workflow,
+			} = pollResults.data;
+
+			onProgress(processed, total);
+
+			if (processed >= total) {
+				clearInterval(pollInterval);
+				onComplete({
+					processed,
+					total,
+					successCount,
+					failCount,
+					finalReport,
+					results,
+					workflow,
+				});
+			}
+		} catch (err: unknown) {
+			clearInterval(pollInterval);
+			const message = err instanceof Error ? err.message : 'Unknown error';
+			onError(message);
 		}
-
-		const {
-		processed,
-		total,
-		successCount = processed,
-		failCount,
-		finalReport,
-		results,
-		workflow,
-		} = pollResults.data;
-
-		onProgress(processed, total);
-
-		if (processed >= total) {
-		clearInterval(pollInterval);
-		onComplete({
-			processed,
-			total,
-			successCount,
-			failCount,
-			finalReport,
-			results,
-			workflow,
-		});
-		}
-	} catch (err: unknown) {
-		clearInterval(pollInterval);
-		const message = err instanceof Error ? err.message : 'Unknown error';
-		onError(message);
-	}
 	}, intervalMs);
 }

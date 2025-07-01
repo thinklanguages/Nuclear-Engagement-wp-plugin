@@ -9,6 +9,10 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @package NuclearEngagement\Admin
  */
+
+// Display the admin header
+$utils = new \NuclearEngagement\Utils\Utils();
+$utils->display_nuclen_page_header();
 ?>
 <div class="wrap nuclen-container">
 	<h1><?php esc_html_e( 'Nuclear Engagement Settings', 'nuclear-engagement' ); ?></h1>

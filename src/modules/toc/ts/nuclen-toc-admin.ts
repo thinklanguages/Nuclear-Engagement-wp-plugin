@@ -10,7 +10,7 @@ declare const nuclenTocAdmin: { copy: string; done: string };
 const $ = (id: string): HTMLElement => {
 	const el = document.getElementById(id);
 	if (!el) {
-	throw new Error(`Missing element: ${id}`);
+		throw new Error(`Missing element: ${id}`);
 	}
 	return el;
 };
@@ -34,34 +34,34 @@ function build(): void {
 	let sc = '[simple_toc';
 
 	if (f.min.value !== '2') {
-	sc += ` min_level="${f.min.value}"`;
+		sc += ` min_level="${f.min.value}"`;
 	}
 	if (f.max.value !== '6') {
-	sc += ` max_level="${f.max.value}"`;
+		sc += ` max_level="${f.max.value}"`;
 	}
 	if (f.list.value !== 'ul') {
-	sc += ` list="${f.list.value}"`;
+		sc += ` list="${f.list.value}"`;
 	}
 
 	const t = f.title.value.trim();
 	if (t) {
-	sc += ` title="${t.replace(/"/g, '&quot;')}"`;
+		sc += ` title="${t.replace(/"/g, '&quot;')}"`;
 	}
 
 	if (!f.tog.checked) {
-	sc += ' toggle="false"';
+		sc += ' toggle="false"';
 	}
 	if (f.col.checked) {
-	sc += ' collapsed="true"';
+		sc += ' collapsed="true"';
 	}
 	if (!f.smo.checked) {
-	sc += ' smooth="false"';
+		sc += ' smooth="false"';
 	}
 	if (!f.hil.checked) {
-	sc += ' highlight="false"';
+		sc += ' highlight="false"';
 	}
 	if (f.off.value !== '72') {
-	sc += ` offset="${f.off.value}"`;
+		sc += ` offset="${f.off.value}"`;
 	}
 
 	sc += ']';
@@ -75,9 +75,9 @@ build();
 
 btn.addEventListener('click', () => {
 	navigator.clipboard.writeText(out.textContent || '').then(() => {
-	btn.textContent = nuclenTocAdmin.done;
-	setTimeout(() => {
-		btn.textContent = nuclenTocAdmin.copy;
-	}, 2000);
+		btn.textContent = nuclenTocAdmin.done;
+		setTimeout(() => {
+			btn.textContent = nuclenTocAdmin.copy;
+		}, 2000);
 	});
 });

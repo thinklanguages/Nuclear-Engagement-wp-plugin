@@ -84,6 +84,7 @@ final class Nuclen_TOC_Admin {
 			$js_v,
 			true
 		);
+		wp_script_add_data( 'nuclen-toc-admin', 'type', 'module' );
 
 		wp_localize_script(
 			'nuclen-toc-admin',

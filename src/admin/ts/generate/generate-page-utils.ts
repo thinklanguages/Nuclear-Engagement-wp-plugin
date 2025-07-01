@@ -11,10 +11,10 @@ export function nuclenHideElement(el: HTMLElement | null): void {
 export function nuclenUpdateProgressBarStep(stepEl: HTMLElement | null, state: string): void {
 	if (!stepEl) return;
 	stepEl.classList.remove(
-	'ne-step-bar__step--todo',
-	'ne-step-bar__step--current',
-	'ne-step-bar__step--done',
-	'ne-step-bar__step--failed'
+		'ne-step-bar__step--todo',
+		'ne-step-bar__step--current',
+		'ne-step-bar__step--done',
+		'ne-step-bar__step--failed'
 	);
 	stepEl.classList.add(`ne-step-bar__step--${state}`);
 }
@@ -34,33 +34,33 @@ interface CreditsResponse {
 
 export async function nuclenCheckCreditsAjax(): Promise<number> {
 	if (!window.nuclenAjax || !window.nuclenAjax.ajax_url) {
-	throw new Error('Missing nuclenAjax configuration (ajax_url).');
+		throw new Error('Missing nuclenAjax configuration (ajax_url).');
 	}
 	if (!window.nuclenAjax.fetch_action) {
-	throw new Error('Missing fetch_action in nuclenAjax configuration.');
+		throw new Error('Missing fetch_action in nuclenAjax configuration.');
 	}
 	const formData = new FormData();
 	formData.append('action', window.nuclenAjax.fetch_action);
 	if (window.nuclenAjax.nonce) {
-	formData.append('security', window.nuclenAjax.nonce);
+		formData.append('security', window.nuclenAjax.nonce);
 	}
 	const result = await nuclenFetchWithRetry<CreditsResponse>(
-	window.nuclenAjax.ajax_url,
-	{
-		method: 'POST',
-		body: formData,
-		credentials: 'same-origin',
-	}
+		window.nuclenAjax.ajax_url,
+		{
+			method: 'POST',
+			body: formData,
+			credentials: 'same-origin',
+		}
 	);
 	if (!result.ok) {
-	throw new Error(result.error || `HTTP ${result.status}`);
+		throw new Error(result.error || `HTTP ${result.status}`);
 	}
 	const data = result.data as CreditsResponse;
 	if (!data.success) {
-	throw new Error(data.message || data.data?.message || 'Failed to fetch credits from SaaS');
+		throw new Error(data.message || data.data?.message || 'Failed to fetch credits from SaaS');
 	}
 	if (typeof data.data.remaining_credits === 'number') {
-	return data.data.remaining_credits;
+		return data.data.remaining_credits;
 	}
 	throw new Error("No 'remaining_credits' in response");
 }
@@ -76,21 +76,21 @@ export function nuclenToggleSummaryFields(): void {
 	const summaryFormatEl = document.getElementById('nuclen_summary_format') as HTMLSelectElement | null;
 
 	if (!generateTypeEl || !summarySettingsEl || !summaryParagraphOptions || !summaryBulletOptions || !summaryFormatEl) {
-	return;
+		return;
 	}
 	if (generateTypeEl.value === 'summary') {
-	summarySettingsEl.classList.remove('nuclen-hidden');
-	if (summaryFormatEl.value === 'paragraph') {
-		summaryParagraphOptions.classList.remove('nuclen-hidden');
-		summaryBulletOptions.classList.add('nuclen-hidden');
+		summarySettingsEl.classList.remove('nuclen-hidden');
+		if (summaryFormatEl.value === 'paragraph') {
+			summaryParagraphOptions.classList.remove('nuclen-hidden');
+			summaryBulletOptions.classList.add('nuclen-hidden');
+		} else {
+			summaryParagraphOptions.classList.add('nuclen-hidden');
+			summaryBulletOptions.classList.remove('nuclen-hidden');
+		}
 	} else {
+		summarySettingsEl.classList.add('nuclen-hidden');
 		summaryParagraphOptions.classList.add('nuclen-hidden');
-		summaryBulletOptions.classList.remove('nuclen-hidden');
-	}
-	} else {
-	summarySettingsEl.classList.add('nuclen-hidden');
-	summaryParagraphOptions.classList.add('nuclen-hidden');
-	summaryBulletOptions.classList.add('nuclen-hidden');
+		summaryBulletOptions.classList.add('nuclen-hidden');
 	}
 }
 

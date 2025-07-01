@@ -32,42 +32,42 @@ export function mountOptinBeforeResults(
 		<button type="button" id="nuclen-optin-submit">${ctx.submitLabel}</button>
 		</div>
 		${
-		ctx.mandatory
-			? ''
-			: '<div class="nuclen-optin-skip"><a href="#" id="nuclen-optin-skip">Skip &amp; view results</a></div>'
-		}
+	ctx.mandatory
+		? ''
+		: '<div class="nuclen-optin-skip"><a href="#" id="nuclen-optin-skip">Skip &amp; view results</a></div>'
+}
 	</div>`;
 
 	document.getElementById('nuclen-optin-submit')?.addEventListener('click', async () => {
-	const name  = (document.getElementById('nuclen-optin-name')  as HTMLInputElement).value.trim();
-	const email = (document.getElementById('nuclen-optin-email') as HTMLInputElement).value.trim();
-	if (!isValidEmail(email)) return alert('Please enter a valid email');
-	await storeOptinLocally(name, email, window.location.href, ctx);
-	try {
-		await submitToWebhook(name, email, ctx);
-		onComplete();
-	} catch {
-		alert('Network error – please try again later.');
-	}
+		const name  = (document.getElementById('nuclen-optin-name')  as HTMLInputElement).value.trim();
+		const email = (document.getElementById('nuclen-optin-email') as HTMLInputElement).value.trim();
+		if (!isValidEmail(email)) return alert('Please enter a valid email');
+		await storeOptinLocally(name, email, window.location.href, ctx);
+		try {
+			await submitToWebhook(name, email, ctx);
+			onComplete();
+		} catch {
+			alert('Network error – please try again later.');
+		}
 	});
 
 	document.getElementById('nuclen-optin-skip')?.addEventListener('click', (e) => {
-	e.preventDefault();
-	onSkip();
+		e.preventDefault();
+		onSkip();
 	});
 }
 
 export function attachInlineOptinHandlers(ctx: OptinContext): void {
 	document.getElementById('nuclen-optin-submit')?.addEventListener('click', async () => {
-	const name  = (document.getElementById('nuclen-optin-name')  as HTMLInputElement).value.trim();
-	const email = (document.getElementById('nuclen-optin-email') as HTMLInputElement).value.trim();
-	if (!isValidEmail(email)) return alert('Please enter a valid email');
-	await storeOptinLocally(name, email, window.location.href, ctx);
-	try {
-		await submitToWebhook(name, email, ctx);
-	} catch {
-		alert('Unable to submit. Please try later.');
-	}
+		const name  = (document.getElementById('nuclen-optin-name')  as HTMLInputElement).value.trim();
+		const email = (document.getElementById('nuclen-optin-email') as HTMLInputElement).value.trim();
+		if (!isValidEmail(email)) return alert('Please enter a valid email');
+		await storeOptinLocally(name, email, window.location.href, ctx);
+		try {
+			await submitToWebhook(name, email, ctx);
+		} catch {
+			alert('Unable to submit. Please try later.');
+		}
 	});
 }
 

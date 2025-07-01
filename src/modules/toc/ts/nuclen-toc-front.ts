@@ -13,8 +13,8 @@ export { initStickyToc, initTocInteractions };
 // Boot
 if (document.readyState === 'loading') {
 	document.addEventListener('DOMContentLoaded', () => {
-	initStickyToc();
-	initTocInteractions();
+		initStickyToc();
+		initTocInteractions();
 	});
 } else {
 	initStickyToc();

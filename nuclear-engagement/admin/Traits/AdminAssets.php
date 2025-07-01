@@ -21,14 +21,31 @@ trait AdminAssets {
 	 * Register the admin script for later use.
 	 */
 	public function nuclen_register_admin_scripts() {
+	// First register the logger module
+	wp_register_script(
+	'nuclen-logger',
+	NUCLEN_PLUGIN_URL . 'logger-CX9s0JXb.js',
+	array(),
+	AssetVersions::get( 'admin_js' ),
+	true
+	);
+	
+	// Then register the admin script with logger as dependency
 	wp_register_script(
 	'nuclen-admin',
 	NUCLEN_PLUGIN_URL . 'admin/js/nuclen-admin.js',
-	array(),
+	array( 'nuclen-logger' ),
 	AssetVersions::get( 'admin_js' ),
-	array( 'strategy' => 'defer', 'in_footer' => true )
+	true
 	);
-	wp_script_add_data( 'nuclen-admin', 'type', 'module' );
+	
+	// Add filter to make both scripts modules
+	add_filter( 'script_loader_tag', function( $tag, $handle ) {
+		if ( in_array( $handle, array( 'nuclen-logger', 'nuclen-admin' ), true ) ) {
+			return str_replace( '<script ', '<script type="module" ', $tag );
+		}
+		return $tag;
+	}, 10, 2 );
 	}
 
 	/**
@@ -65,16 +82,39 @@ trait AdminAssets {
 			return;
 		}
 
+				// Enqueue the logger module first
+				wp_enqueue_script(
+				'nuclen-logger',
+				NUCLEN_PLUGIN_URL . 'logger-CX9s0JXb.js',
+				array(),
+				AssetVersions::get( 'admin_js' ),
+				true
+				);
+				// Add module type using script loader tag filter
+				add_filter( 'script_loader_tag', function( $tag, $handle ) {
+					if ( 'nuclen-logger' === $handle ) {
+						return str_replace( '<script ', '<script type="module" ', $tag );
+					}
+					return $tag;
+				}, 10, 2 );
+				
+				
 				// Enqueue the admin bundle. Onboarding handles pointer styles
 				// separately, so no wp-pointer or jQuery dependencies here.
 	wp_enqueue_script(
 	'nuclen-admin',
 	NUCLEN_PLUGIN_URL . 'admin/js/nuclen-admin.js',
-	array(),
+	array( 'nuclen-logger' ),
 	AssetVersions::get( 'admin_js' ),
-	array( 'strategy' => 'defer', 'in_footer' => true )
+	true
 	);
-	wp_script_add_data( 'nuclen-admin', 'type', 'module' );
+	// Add module type using script loader tag filter
+	add_filter( 'script_loader_tag', function( $tag, $handle ) {
+		if ( 'nuclen-admin' === $handle ) {
+			return str_replace( '<script ', '<script type="module" ', $tag );
+		}
+		return $tag;
+	}, 10, 2 );
 	
 		// Provide two objects:
 		// 1) "security" => wp_create_nonce('nuclen_admin_ajax_nonce') for your admin-ajax calls
@@ -126,9 +166,9 @@ trait AdminAssets {
 		if ( $hook === 'toplevel_page_nuclear-engagement' ) {
 			wp_enqueue_style(
 					$this->nuclen_get_plugin_name() . '-dashboard',
-					NUCLEN_PLUGIN_URL . 'admin/css/nuclen-admin-dashboard.css?v=' . NUCLEN_ASSET_VERSION,
+					NUCLEN_PLUGIN_URL . 'admin/css/nuclen-admin-dashboard.css',
 					array(),
-					$this->nuclen_get_version(),
+					AssetVersions::get( 'admin_dashboard' ),
 					'all'
 				);
 			}
