@@ -1,0 +1,467 @@
+/**
+ * Performance Optimizations - Nuclear Engagement Plugin
+ * 
+ * CSS performance optimizations and loading strategies.
+ * Includes critical CSS, lazy loading, and optimization utilities.
+ */
+
+/* === CRITICAL CSS === */
+
+/* Inline these styles for above-the-fold content */
+
+.ne-critical {
+  /* Core layout properties for immediate rendering */
+  --ne-text-primary: #212121;
+  --ne-bg-primary: #fff;
+  --ne-border-primary: #e0e0e0;
+  --ne-color-primary-500: #2196f3;
+  --ne-space-4: 1rem;
+  --ne-radius-md: 0.375rem;
+  --ne-font-family-sans: system-ui, -apple-system, sans-serif;
+  --ne-font-size-base: 1rem;
+  --ne-line-height-normal: 1.5;
+}
+
+/* Critical quiz styles */
+.ne-critical .c-quiz {
+  background: var(--ne-bg-primary);
+  border: 1px solid var(--ne-border-primary);
+  border-radius: var(--ne-radius-md);
+  color: var(--ne-text-primary);
+  font-family: var(--ne-font-family-sans);
+  font-size: var(--ne-font-size-base);
+  line-height: var(--ne-line-height-normal);
+  margin: var(--ne-space-4) auto;
+  max-width: 600px;
+  padding: var(--ne-space-4);
+}
+
+/* Critical button styles */
+.ne-critical .c-quiz-button,
+.ne-critical .c-quiz-answer {
+  align-items: center;
+  background: var(--ne-color-primary-500);
+  border: none;
+  border-radius: var(--ne-radius-md);
+  color: white;
+  cursor: pointer;
+  display: flex;
+  font-family: inherit;
+  font-size: inherit;
+  justify-content: center;
+  min-height: 44px;
+  padding: var(--ne-space-4);
+}
+
+/* === LOADING OPTIMIZATIONS === */
+
+/* Prevent layout shift with aspect ratios */
+.ne-aspect-preserved {
+  aspect-ratio: var(--aspect-ratio, auto);
+}
+
+/* Skeleton loading states */
+.ne-skeleton {
+  animation: ne-skeleton-loading 1.5s infinite;
+  background: linear-gradient(90deg, var(--ne-color-neutral-200) 25%, var(--ne-color-neutral-100) 50%, var(--ne-color-neutral-200) 75%);
+  background-size: 200% 100%;
+  border-radius: var(--ne-radius-md);
+}
+
+@keyframes ne-skeleton-loading {
+  0% { background-position: 200% 0; }
+
+  100% { background-position: -200% 0; }
+}
+
+.ne-skeleton--text {
+  height: 1em;
+  margin-bottom: 0.5em;
+}
+
+.ne-skeleton--text:last-child {
+  width: 75%;
+}
+
+.ne-skeleton--button {
+  height: 2.5rem;
+  width: 8rem;
+}
+
+.ne-skeleton--quiz {
+  height: 300px;
+  width: 100%;
+}
+
+/* === PERFORMANCE UTILITIES === */
+
+/* Hardware acceleration triggers */
+.ne-hw-accel {
+  backface-visibility: hidden;
+  perspective: 1000px;
+  transform: translateZ(0);
+}
+
+/* Content visibility optimization */
+.ne-auto-visibility {
+  contain-intrinsic-size: 0 500px;
+  content-visibility: auto;
+}
+
+/* Rendering optimizations */
+.ne-optimize-text {
+  -webkit-font-smoothing: subpixel-antialiased;
+  -moz-osx-font-smoothing: auto;
+  text-rendering: optimizespeed;
+}
+
+.ne-optimize-quality {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizelegibility;
+}
+
+/* GPU layer creation */
+.ne-gpu-layer {
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+/* Disable GPU layer when not needed */
+.ne-gpu-layer-off {
+  transform: none;
+  will-change: auto;
+}
+
+/* === LAZY LOADING === */
+
+/* Lazy loaded content */
+.ne-lazy {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.ne-lazy--loaded {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Intersection observer targets */
+.ne-observe {
+  /* Placeholder for intersection observer API */
+}
+
+/* Preload hints */
+.ne-preload-critical {
+  /* Mark for critical resource preloading */
+}
+
+/* === CONTAINMENT === */
+
+/* CSS containment for performance */
+.ne-contain-layout {
+  contain: layout;
+}
+
+.ne-contain-style {
+  contain: style;
+}
+
+.ne-contain-paint {
+  contain: paint;
+}
+
+.ne-contain-strict {
+  contain: layout style paint;
+}
+
+/* Size containment for dynamic content */
+.ne-contain-size {
+  contain: size;
+  overflow: hidden;
+}
+
+/* === FONT LOADING OPTIMIZATIONS === */
+
+/* Font display swap for better performance */
+@supports (font-display: swap) {
+  .ne-font-swap {
+    font-display: swap;
+  }
+}
+
+/* Preload web fonts */
+.ne-font-preload {
+  /* Mark fonts for preloading */
+}
+
+/* Fallback font system */
+.ne-font-fallback {
+  font-family: Inter,
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    Roboto,
+    "Helvetica Neue",
+    Arial,
+    sans-serif,
+    "Apple Color Emoji",
+    "Segoe UI Emoji",
+    "Segoe UI Symbol";
+}
+
+/* === IMAGE OPTIMIZATIONS === */
+
+/* Responsive images */
+.ne-img-responsive {
+  display: block;
+  height: auto;
+  max-width: 100%;
+}
+
+/* Lazy loaded images */
+.ne-img-lazy {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.ne-img-lazy--loaded {
+  opacity: 1;
+}
+
+/* Image placeholders */
+.ne-img-placeholder {
+  background-color: var(--ne-color-neutral-200);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='%239CA3AF' viewBox='0 0 24 24'%3E%3Cpath d='M4 4h16v16H4z'/%3E%3C/svg%3E");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 2rem 2rem;
+}
+
+/* === ANIMATION PERFORMANCE === */
+
+/* Efficient animations using transform and opacity */
+.ne-animate-fadeIn {
+  animation: ne-fadeIn 0.3s ease-out forwards;
+}
+
+.ne-animate-slideUp {
+  animation: ne-slideUp 0.3s ease-out forwards;
+}
+
+.ne-animate-scaleIn {
+  animation: ne-scaleIn 0.2s ease-out forwards;
+}
+
+@keyframes ne-fadeIn {
+  from { opacity: 0; }
+
+  to { opacity: 1; }
+}
+
+@keyframes ne-slideUp {
+  from { 
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to { 
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes ne-scaleIn {
+  from { 
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
+  to { 
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Pause animations for reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .ne-animate-fadeIn,
+  .ne-animate-slideUp,
+  .ne-animate-scaleIn {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* === MEMORY OPTIMIZATIONS === */
+
+/* Efficient gradients */
+.ne-gradient-optimized {
+  background: linear-gradient(135deg, var(--ne-color-primary-500) 0%, var(--ne-color-primary-600) 100%);
+  background-attachment: local;
+}
+
+/* Avoid expensive properties */
+.ne-avoid-expensive {
+  /* Avoid these properties for better performance:
+     - box-shadow with blur
+     - border-radius on large elements
+     - complex gradients
+     - filter effects
+     - multiple transforms
+  */
+}
+
+/* Efficient shadows */
+.ne-shadow-efficient {
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 10%);
+}
+
+.ne-shadow-efficient-lg {
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 10%);
+}
+
+/* === CRITICAL PATH CSS === */
+
+/* Styles that must be inline for first paint */
+.ne-critical-path {
+  /* Background */
+  background-color: #fff;
+  color: #212121;
+
+  /* Basic layout */
+  display: block;
+  
+  /* Typography */
+  font-family: system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  margin: 0;
+  padding: 0;
+}
+
+/* === BUNDLE SPLITTING HINTS === */
+
+/* Mark components for code splitting */
+.ne-split-admin {
+  /* Admin-only styles - can be loaded separately */
+}
+
+.ne-split-quiz {
+  /* Quiz-specific styles - load on demand */
+}
+
+.ne-split-toc {
+  /* TOC styles - load when needed */
+}
+
+/* === PREFETCH/PRELOAD UTILITIES === */
+
+.ne-prefetch {
+  /* Mark for resource prefetching */
+}
+
+.ne-preload {
+  /* Mark for resource preloading */
+}
+
+.ne-dns-prefetch {
+  /* Mark for DNS prefetching */
+}
+
+/* === LOADING STATES === */
+
+/* Content loading states */
+.ne-loading {
+  opacity: 0.7;
+  pointer-events: none;
+  position: relative;
+}
+
+.ne-loading::after {
+  animation: ne-spin 1s linear infinite;
+  border: 2px solid var(--ne-color-primary-200);
+  border-radius: 50%;
+  border-top: 2px solid var(--ne-color-primary-500);
+  content: "";
+  height: 20px;
+  left: 50%;
+  margin: -10px 0 0 -10px;
+  position: absolute;
+  top: 50%;
+  width: 20px;
+}
+
+@keyframes ne-spin {
+  0% { transform: rotate(0deg); }
+
+  100% { transform: rotate(360deg); }
+}
+
+/* Loaded state */
+.ne-loaded {
+  opacity: 1;
+  pointer-events: auto;
+  transition: opacity 0.3s ease;
+}
+
+/* === MEASUREMENT HELPERS === */
+
+/* Performance measurement points */
+.ne-perf-start {
+  /* Mark performance measurement start */
+}
+
+.ne-perf-end {
+  /* Mark performance measurement end */
+}
+
+/* Layout debugging (development only) */
+.ne-debug-layout {
+  outline: 1px solid red;
+}
+
+.ne-debug-layout * {
+  outline: 1px solid blue;
+}
+
+/* === CONNECTION-AWARE LOADING === */
+
+/* Styles for slow connections */
+@media (prefers-reduced-data: reduce) {
+  .ne-expensive-styles {
+    background-image: none !important;
+    border-radius: 0 !important;
+
+    /* Disable expensive styles on slow connections */
+    box-shadow: none !important;
+  }
+  
+  .ne-skeleton {
+    animation: none;
+    background: var(--ne-color-neutral-200);
+  }
+}
+
+/* === PRINT PERFORMANCE === */
+
+@media print {
+  /* Optimize for printing */
+  .ne-no-print {
+    display: none !important;
+  }
+  
+  .ne-print-optimize {
+    break-inside: avoid;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  /* Remove animations and transitions for print */
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+}

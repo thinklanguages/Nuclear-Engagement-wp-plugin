@@ -47,7 +47,17 @@
       "Bash(dos2unix:*)",
       "Bash(sudo npx playwright:*)",
       "Bash(docker:*)",
-      "Bash(./run-all-tests.sh)"
+      "Bash(./run-all-tests.sh)",
+      "Bash(mkdir:*)",
+      "Bash(timeout 10s npx postcss:*)",
+      "Bash(./docker-test-runner.sh:*)",
+      "Bash(for:*)",
+      "Bash(do)",
+      "Bash(echo \"Processing: $file\")",
+      "Bash(done)",
+      "Bash(npx stylelint:*)",
+      "Bash(cat:*)",
+      "Bash(wp-env run cli wp post create:*)"
     ],
     "deny": []
   }

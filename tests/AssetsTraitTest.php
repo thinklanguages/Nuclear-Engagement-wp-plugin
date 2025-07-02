@@ -19,7 +19,6 @@
 	return $GLOBALS['current_post_id'] ?? 0;
 	}
 	}
-	}
 	
 	class DummyAssetsHost {
 	use AssetsTrait;
@@ -85,3 +84,4 @@
 	$this->assertStringContainsString( 'var NuclenOptinEnabled  = true', $result );
 	}
 	}
+}

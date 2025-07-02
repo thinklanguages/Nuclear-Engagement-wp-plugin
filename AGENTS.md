@@ -1,52 +1,51 @@
-# Developer Guide
+Maintainable-by-design structure for a complex WordPress plugin
+Slice by concern, not by type
 
-This repository contains the **Nuclear Engagement** WordPress plugin and its source files.
-Follow the guidelines below when making changes.
+```
+plugin-root/
+├── inc/
+│   ├── Modules/
+│   │   ├── Quiz/          # 1 feature = 1 folder
+│   │   │   ├── Quiz_Service.php
+│   │   │   ├── Quiz_Admin.php
+│   │   │   └── assets/
+│   │   └── Summary/
+│   ├── Core/              # shared kernel (loader, i18n, settings API)
+│   └── Utils/             # truly generic helpers
+├── templates/             # view partials only—no logic
+├── assets/                # compiled JS/CSS
+├── languages/
+└── tests/
+```
+Central bootloader (plugin.php) stays 50 LOC max
+Register autoloader → instantiate Core\\Plugin → add_action hooks—nothing else.
 
-## Code Style
+One class = one responsibility
+Quiz_Service deals with data; Quiz_Admin registers settings/UI; Quiz_Ajax handles endpoints.
 
-### PHP
-- Use tabs for indentation. Spaces are not allowed.
-- Follow WordPress Coding Standards. Run `composer lint` to check.
+Never mix HTML with PHP logic
+Use small Twig/Blade-like partials (or include locate_template) and pass data only.
 
--### TypeScript
-- Use tabs for indentation. Spaces are not allowed.
-- Source files live under `src/` and are built into the `nuclear-engagement` plugin directory.
-- Do not use jQuery.
+Hard limits trigger refactors
+File > 300 LOC or class > 15 methods ⇒ split. Enforce with PHP-CS-Fixer + PHPMD rules.
 
-## WordPress Plugin Best Practices
-- Sanitize all user input and escape output.
-- Keep code translation-ready using i18n functions.
-- Use nonces to secure forms and actions.
-- Document custom hooks and filters.
+Store options via a repository wrapper
+Settings_Repo::get( 'api_key' ) isolates get_option() calls and makes unit testing easy.
 
-## Build & Test
+Load assets via handles, not paths
+Register all scripts/styles once in Core\\Assets and enqueue by handle from modules to avoid duplicates.
 
-1. Install PHP dependencies with `composer install` if not already done.
-2. Install Node dependencies with `npm install` if needed.
-3. Run **lint** and **tests** before committing:
-   ```bash
-   composer lint
-   composer test
-   ```
-4. If you modify TypeScript, rebuild JavaScript with:
-   ```bash
-   npm run build
-   ```
+Namespace everything
+namespace NuclearEngagement\\Modules\\Quiz; prevents collisions and autoloads cleanly with Composer PSR-4.
 
-## Pull Requests
+Composer autoload, even if shipping as a single file
+composer dump-autoload -o keeps class maps fast; for WP.org, the build script can prefix vendor deps with PHPCS “dealers-choice”.
 
-- Keep commits focused and descriptive.
-- Ensure `composer lint` and `composer test` pass before submitting.
+Automate quality gates
+PHPUnit, WP-Mock, PHPCS with WordPress rules, PHPStan level 6, and GitHub Actions CI on every PR.
 
-## Development Notes
+Document decisions
+Keep a /docs/ARCHITECTURE.md and changelog; note why each module exists and any major refactor rationale.
 
-- When files grow too large, refactor them into multiple files for maintainability.
-- Always edit the TypeScript source under `src/` rather than the built JavaScript in `nuclear-engagement`.
-- Do not remove existing functionality unless explicitly requested or approved by the user.
-
-## Documentation
-
-- Record changes to plugin behavior in `nuclear-engagement/README.txt`.
-- Add each item under the latest version heading in the `== Changelog ==` section.
-
+Keep activation/deactivation idempotent
+Activation hooks create tables/options if not present; deactivation leaves data unless a user-triggered uninstall runs a separate cleanup class.

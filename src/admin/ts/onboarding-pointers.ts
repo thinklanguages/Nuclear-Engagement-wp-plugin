@@ -5,13 +5,7 @@
  * Handles per-screen WP Pointer display & dismissal.
  */
 
-function nuclenWarn(..._args: unknown[]): void {
-	// Production warning disabled
-}
-
-function nuclenError(...args: unknown[]): void {
-	console.error(...args);
-}
+import { warn as nuclenWarn, error as nuclenError } from '../../shared/logger';
 
 interface NuclenFetchResult<T = unknown> {
   ok: boolean;
@@ -82,7 +76,7 @@ function displayError(message: string): void {
 	toast.textContent = message;
 	document.body.appendChild(toast);
 	setTimeout(() => toast.remove(), 5000);
-	console.error(message);
+	nuclenError(message);
 }
 
 interface NuclenPointer {

@@ -55,4 +55,3 @@ $this->assertSame( 1, $res['quiz']['News']['with'] );
 }
 }
 }
-}

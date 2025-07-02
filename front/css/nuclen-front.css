@@ -1,0 +1,368 @@
+/*
+ * nuclen-front.css
+ * Base styles applied regardless of the theme. Bright palette is
+ * set as defaults and can be overridden via the `data-theme` attribute
+ * on the `.nuclen-root` wrapper.
+ */
+
+/* Default (bright) theme variables */
+.nuclen-root {
+	--nuclen-fg-color: #333333;
+	--nuclen-bg-color: #ffffff;
+
+	--nuclen-quiz-font-size: 16px;
+	--nuclen-quiz-font-color: var(--nuclen-fg-color);
+	--nuclen-quiz-bg-color: var(--nuclen-bg-color);
+	--nuclen-summary-font-size: 16px;
+	--nuclen-summary-font-color: var(--nuclen-fg-color);
+	--nuclen-summary-bg-color: var(--nuclen-bg-color);
+
+	--nuclen-quiz-border-color: #000000;
+	--nuclen-quiz-border-style: solid;
+	--nuclen-quiz-border-width: 1px;
+	--nuclen-quiz-border-radius: 6px;
+	--nuclen-quiz-shadow-color: rgba(0,0,0,0.05);
+	--nuclen-quiz-shadow-blur: 8px;
+
+	--nuclen-quiz-button-bg: #94544A;
+	--nuclen-quiz-button-border-color: #94544A;
+	--nuclen-quiz-button-border-width: 2px;
+	--nuclen-quiz-button-border-radius: 4px;
+
+	--nuclen-quiz-progress-fg: #1B977D;
+	--nuclen-quiz-progress-bg: #e0e0e0;
+	--nuclen-quiz-progress-height: 10px;
+
+	--nuclen-summary-border-color: #000000;
+	--nuclen-summary-border-style: solid;
+	--nuclen-summary-border-width: 1px;
+	--nuclen-summary-border-radius: 6px;
+	--nuclen-summary-shadow-color: rgba(0,0,0,0.05);
+	--nuclen-summary-shadow-blur: 8px;
+
+	--nuclen-toc-font-color: #333333;
+	--nuclen-toc-bg-color: #ffffff;
+	--nuclen-toc-font-size: 0.9em;
+	--nuclen-toc-border-color: #000000;
+	--nuclen-toc-border-style: solid;
+	--nuclen-toc-border-width: 1px;
+	--nuclen-toc-border-radius: 6px;
+	--nuclen-toc-shadow-color: rgba(0,0,0,0.05);
+	--nuclen-toc-shadow-blur: 8px;
+}
+
+/* Dark theme overrides */
+.nuclen-root[data-theme="dark"] {
+	--nuclen-fg-color: #ffffff;
+	--nuclen-bg-color: #333333;
+
+	--nuclen-quiz-border-color: #ffffff;
+	--nuclen-quiz-shadow-color: rgba(255,255,255,0.1);
+	--nuclen-quiz-progress-bg: #4a4a4a;
+
+	--nuclen-summary-border-color: #ffffff;
+	--nuclen-summary-shadow-color: rgba(255,255,255,0.1);
+
+	--nuclen-toc-font-color: #ffffff;
+	--nuclen-toc-bg-color: #333333;
+	--nuclen-toc-border-color: #ffffff;
+	--nuclen-toc-shadow-color: rgba(255,255,255,0.1);
+}
+
+/* Apply variable-based styles */
+.nuclen-root .nuclen-quiz {
+	font-size: var(--nuclen-quiz-font-size, 16px);
+	color: var(--nuclen-quiz-font-color, var(--nuclen-fg-color, #000));
+	background-color: var(--nuclen-quiz-bg-color, var(--nuclen-bg-color));
+	border: var(--nuclen-quiz-border-width) var(--nuclen-quiz-border-style) var(--nuclen-quiz-border-color);
+	border-radius: var(--nuclen-quiz-border-radius);
+	box-shadow: 0 0 var(--nuclen-quiz-shadow-blur) var(--nuclen-quiz-shadow-color);
+	padding: var(--nuclen-spacing-md);
+	text-align: center;
+	width: 100%;
+	margin: var(--nuclen-spacing-md) 0;
+}
+
+.nuclen-root .nuclen-summary {
+	font-size: var(--nuclen-summary-font-size, 16px);
+	color: var(--nuclen-summary-font-color, var(--nuclen-fg-color, #000));
+	background-color: var(--nuclen-summary-bg-color, var(--nuclen-bg-color));
+	border: var(--nuclen-summary-border-width) var(--nuclen-summary-border-style) var(--nuclen-summary-border-color);
+	border-radius: var(--nuclen-summary-border-radius);
+	box-shadow: 0 0 var(--nuclen-summary-shadow-blur) var(--nuclen-summary-shadow-color);
+	padding: var(--nuclen-spacing-md);
+	margin: var(--nuclen-spacing-md) 0;
+}
+
+
+:root {
+	--nuclen-spacing-xs: 0.25rem;
+	--nuclen-spacing-sm: 0.5rem;
+	--nuclen-spacing-md: 1rem;
+	--nuclen-spacing-lg: 1.5rem;
+	--nuclen-spacing-xl: 2.5rem;
+}
+
+
+
+.nuclen-root .nuclen-quiz-title {
+		font-size: 1.5em;
+		margin-bottom: var(--nuclen-spacing-md);
+}
+
+.nuclen-root #nuclen-quiz-question-number {
+	font-weight: bold;
+}
+
+/* Layout & Grid */
+.nuclen-root #nuclen-quiz-answers-container {
+	display: flex;
+	flex-direction: column;
+	gap: var(--nuclen-spacing-lg);
+}
+
+/* Progress bar container */
+.nuclen-root #nuclen-quiz-progress-bar-container {
+	background-color: var(--nuclen-quiz-progress-bg, #e0e0e0);
+	border-radius: calc(var(--nuclen-quiz-progress-height, 10px) / 2);
+	overflow: hidden;
+	margin-bottom: var(--nuclen-spacing-lg);
+	height: var(--nuclen-quiz-progress-height, 10px);
+}
+
+.nuclen-root #nuclen-quiz-progress-bar {
+	height: var(--nuclen-quiz-progress-height, 10px);
+	background-color: var(--nuclen-quiz-progress-fg, #1B977D);
+	width: 0%;
+	transition: width 0.3s;
+}
+
+/* Buttons & interactions */
+.nuclen-root #nuclen-quiz-next-button,
+.nuclen-root #nuclen-quiz-retake-button,
+.nuclen-root .nuclen-quiz-result-tab {
+	color: var(--nuclen-quiz-font-color, var(--nuclen-fg-color, #000));
+	background-color: var(--nuclen-quiz-bg-color, var(--nuclen-bg-color, #fff));
+	background-image: none;
+	padding: 0.5em 1em;
+	border-radius: var(--nuclen-quiz-button-border-radius, 4px);
+	font-weight: bold;
+}
+
+.nuclen-root #nuclen-quiz-next-button,
+.nuclen-root #nuclen-quiz-retake-button {
+	border: 2px solid var(--nuclen-quiz-border-color, var(--nuclen-fg-color, #000));
+}
+
+.nuclen-root .nuclen-quiz-result-tab {
+	border: 2px solid var(--nuclen-quiz-border-color, #666);
+	border-bottom: 0;
+}
+.nuclen-root .nuclen-quiz-result-tab:hover {
+	background-color: #dcdcdc;
+}
+
+/* Answer button (now uses theme-based vars) */
+.nuclen-root .nuclen-quiz-answer-button {
+	color: #fff;
+	background-color: var(--nuclen-quiz-button-bg, #94544A);
+	display: block;
+	width: 100%;
+	padding: var(--nuclen-spacing-sm);
+	margin: 0;
+	border: var(--nuclen-quiz-button-border-width, 2px) solid var(--nuclen-quiz-button-border-color, #94544A);
+	border-radius: var(--nuclen-quiz-button-border-radius, 4px);
+	font-size: inherit;
+	font-weight: bold;
+	cursor: pointer;
+	transition: background-color 0.3s;
+	background-image: none;
+}
+
+.nuclen-root .nuclen-quiz-answer-button:hover {
+	background-color: #dcdcdc;
+	color: #000;
+}
+
+.nuclen-root .nuclen-quiz-answer-button:disabled {
+	cursor: not-allowed;
+}
+
+/* Answer states */
+.nuclen-root .nuclen-quiz-answer-correct,
+.nuclen-root .nuclen-quiz-answer-correct:hover,
+.nuclen-root .nuclen-quiz-answer-correct:active,
+.nuclen-root .nuclen-quiz-answer-correct:focus {
+	background-color: #1EA896;
+	color: #fff;
+}
+
+.nuclen-root .nuclen-quiz-answer-wrong,
+.nuclen-root .nuclen-quiz-answer-wrong:hover {
+	background-color: #FF715B;
+	color: #fff;
+}
+
+.nuclen-root .nuclen-quiz-answer-not-selected,
+.nuclen-root .nuclen-quiz-answer-not-selected:hover {
+	background-color: #dcdcdc;
+	opacity: 0.5;
+}
+
+/* Final result & details */
+.nuclen-root #nuclen-quiz-final-result-container h2 {
+	font-size: 1.5em;
+	margin-bottom: var(--nuclen-spacing-sm);
+}
+
+.nuclen-root #nuclen-quiz-final-result-container p {
+	margin: 5px 0;
+}
+
+
+.nuclen-root #nuclen-quiz-final-result-container .nuclen-quiz-question-result:last-child {
+	border-bottom: none;
+}
+
+.nuclen-root .nuclen-quiz-detail-question {
+	font-weight: bold;
+}
+
+.nuclen-root .nuclen-quiz-detail-answer {
+	color: #1EA896;
+	font-weight: bold;
+}
+
+
+
+.nuclen-root #nuclen-quiz-final-result-container input[type="submit"] {
+	margin-top: var(--nuclen-spacing-lg);
+	background-color: #4B6542;
+	color: white;
+	border: none;
+	cursor: pointer;
+	padding: var(--nuclen-spacing-sm);
+	border-radius: var(--nuclen-quiz-button-border-radius);
+	width: 100%;
+}
+
+.nuclen-root #nuclen-quiz-final-result-container button:hover,
+.nuclen-root #nuclen-quiz-final-result-container input[type="submit"]:hover {
+	background-color: #0e2506;
+}
+
+.nuclen-root #nuclen-quiz-final-result-container input[type="text"],
+.nuclen-root #nuclen-quiz-final-result-container input[type="email"] {
+	width: calc(100% - var(--nuclen-spacing-lg));
+	padding: var(--nuclen-spacing-sm);
+	margin: var(--nuclen-spacing-sm) 0;
+	border: var(--nuclen-quiz-border-width) solid var(--nuclen-quiz-border-color, #e0e0e0);
+	border-radius: var(--nuclen-quiz-button-border-radius);
+}
+
+/* Score area */
+.nuclen-root #nuclen-quiz-results-title {
+	font-size: 1.5em;
+}
+
+.nuclen-root #nuclen-quiz-results-score {
+	font-size: 2em;
+}
+
+.nuclen-root #nuclen-quiz-score-comment {
+	margin-bottom: var(--nuclen-spacing-md);
+}
+
+.nuclen-root #nuclen-quiz-explanation-container {
+	margin: var(--nuclen-spacing-md) 0;
+}
+
+
+/* Tabs container for results */
+.nuclen-root #nuclen-quiz-result-tabs-container {
+	display: flex;
+	justify-content: center;
+	gap: var(--nuclen-spacing-xs);
+}
+
+.nuclen-root .nuclen-quiz-result-active-tab {
+	background-color: #1B977D;
+	color: white;
+}
+
+.nuclen-root #nuclen-optin-container,
+.nuclen-root #nuclen-quiz-result-details-container,
+.nuclen-root #nuclen-quiz-end-message,
+.nuclen-root #nuclen-quiz-start-message {
+	padding: var(--nuclen-spacing-lg);
+	text-align: left;
+	margin-bottom: var(--nuclen-spacing-xl);
+	border: var(--nuclen-quiz-border-width) var(--nuclen-quiz-border-style) var(--nuclen-quiz-border-color);
+	border-radius: var(--nuclen-quiz-border-radius);
+	background-color: var(--nuclen-quiz-bg-color, transparent);
+}
+
+/* email optin */
+.nuclen-root #nuclen-optin-container {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-self: center;
+	margin: 0 0 var(--nuclen-spacing-lg) 0;
+	width: 300px;
+}
+.nuclen-root #nuclen-optin-submit {
+	width: 100%;
+}
+
+/* Utility classes */
+.nuclen-root .nuclen-quiz-hidden {
+	display: none;
+}
+
+.nuclen-root .nuclen-optin-btn-row {
+	margin-top: var(--nuclen-spacing-md);
+	display: flex;
+	gap: var(--nuclen-spacing-sm);
+}
+
+.nuclen-root .nuclen-optin-skip {
+	margin-top: var(--nuclen-spacing-sm);
+	font-size: 0.85em;
+}
+
+.nuclen-root .nuclen-quiz-pulse {
+	animation: nuclen-quiz-pulse-grow 1s;
+}
+
+@keyframes nuclen-quiz-pulse-grow {
+	0% {
+		transform: scale(1);
+	}
+	50% {
+		transform: scale(1.1);
+	}
+	100% {
+		transform: scale(1);
+	}
+}
+
+.nuclen-root .nuclen-quiz-checkmark {
+	color: #4caf50;
+	font-weight: bold;
+	margin-left: var(--nuclen-spacing-sm);
+}
+
+.nuclen-root .nuclen-attribution {
+	margin: 0 0 2em 2em;
+	font-size: 0.75em;
+}
+
+
+/* Spacing utilities */
+.u-mt-sm { margin-top: var(--nuclen-spacing-sm); }
+.u-mt-md { margin-top: var(--nuclen-spacing-md); }
+.u-mt-lg { margin-top: var(--nuclen-spacing-lg); }
+.u-mb-sm { margin-bottom: var(--nuclen-spacing-sm); }
+.u-mb-md { margin-bottom: var(--nuclen-spacing-md); }
+.u-mb-lg { margin-bottom: var(--nuclen-spacing-lg); }

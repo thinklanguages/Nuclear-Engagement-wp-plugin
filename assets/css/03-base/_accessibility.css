@@ -1,0 +1,456 @@
+/**
+ * Accessibility-First CSS Framework - Nuclear Engagement Plugin
+ * 
+ * WCAG 2.1 compliant styles for inclusive design.
+ * Includes focus management, screen reader support, and motion preferences.
+ */
+
+/* === FOCUS MANAGEMENT === */
+
+/* Remove default outline and add custom focus styles */
+*:focus {
+  outline: none;
+}
+
+/* High-visibility focus indicators */
+*:focus-visible {
+  border-radius: var(--ne-radius-sm);
+  outline: 3px solid var(--ne-color-primary-500);
+  outline-offset: 2px;
+}
+
+/* Enhanced focus for interactive elements */
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+a:focus-visible,
+[tabindex]:focus-visible {
+  box-shadow: 0 0 0 6px rgb(33 150 243 / 20%);
+  outline: 3px solid var(--ne-color-primary-500);
+  outline-offset: 2px;
+}
+
+/* Focus within for containers */
+.ne-quiz:focus-within,
+.ne-form-group:focus-within {
+  border-color: var(--ne-color-primary-300);
+  box-shadow: 0 0 0 3px rgb(33 150 243 / 10%);
+}
+
+/* Skip focus for decorative elements */
+.ne-decorative {
+  focus: none;
+  user-select: none;
+}
+
+/* === SCREEN READER SUPPORT === */
+
+/* Screen reader only text */
+.sr-only,
+.ne-sr-only {
+  border: 0;
+  clip: rect(0, 0, 0, 0);
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}
+
+/* Show on focus for skip links */
+.sr-only-focusable:focus,
+.ne-sr-only:focus {
+  background: var(--ne-color-primary-500);
+  border-radius: var(--ne-radius-md);
+  clip: auto;
+  color: white;
+  height: auto;
+  margin: 0;
+  overflow: visible;
+  padding: var(--ne-space-2) var(--ne-space-4);
+  position: static;
+  white-space: normal;
+  width: auto;
+  z-index: var(--ne-z-index-skiplink);
+}
+
+/* === SKIP LINKS === */
+
+.ne-skip-links {
+  left: var(--ne-space-4);
+  position: absolute;
+  top: var(--ne-space-4);
+  z-index: var(--ne-z-index-skiplink);
+}
+
+.ne-skip-link {
+  background: var(--ne-color-primary-900);
+  border-radius: var(--ne-radius-md);
+  color: white;
+  font-weight: var(--ne-font-weight-semibold);
+  left: -100px;
+  padding: var(--ne-space-2) var(--ne-space-4);
+  position: absolute;
+  text-decoration: none;
+  top: -100px;
+  transition: all var(--ne-duration-200) var(--ne-ease-out);
+}
+
+.ne-skip-link:focus {
+  left: auto;
+  position: static;
+  top: auto;
+  transform: none;
+}
+
+/* === COLOR CONTRAST === */
+
+/* Ensure sufficient contrast ratios */
+.ne-text-contrast-aa {
+  /* 4.5:1 contrast ratio for normal text */
+  color: var(--ne-color-neutral-800);
+}
+
+.ne-text-contrast-aaa {
+  /* 7:1 contrast ratio for enhanced accessibility */
+  color: var(--ne-color-neutral-900);
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .ne-quiz,
+  .ne-admin,
+  .ne-form-group {
+    border-color: currentcolor;
+    border-width: 2px;
+  }
+  
+  .ne-button {
+    border: 2px solid currentcolor;
+  }
+  
+  .ne-text-muted {
+    color: var(--ne-color-neutral-800);
+  }
+}
+
+/* === MOTION PREFERENCES === */
+
+/* Respect reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Safe animations for reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .ne-quiz__reveal {
+    opacity: 1;
+    transform: none;
+  }
+  
+  .ne-loading-spinner {
+    animation: none;
+  }
+  
+  .ne-loading-spinner::after {
+    content: "Loading...";
+  }
+}
+
+/* === KEYBOARD NAVIGATION === */
+
+/* Visible focus indicators for keyboard users */
+.ne-quiz__answer:focus-visible {
+  background: var(--ne-color-primary-050);
+  border-color: var(--ne-color-primary-500);
+}
+
+.ne-button:focus-visible {
+  box-shadow: 0 0 0 3px var(--ne-color-primary-500),
+    0 0 0 6px rgb(33 150 243 / 20%);
+}
+
+/* Tab navigation order helpers */
+.ne-tab-group {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.ne-tab-group > * {
+  position: relative;
+}
+
+/* === ARIA LIVE REGIONS === */
+
+.ne-live-region {
+  height: 1px;
+  left: -10000px;
+  overflow: hidden;
+  position: absolute;
+  width: 1px;
+}
+
+.ne-live-region[aria-live="polite"] {
+  /* Announced when user is idle */
+}
+
+.ne-live-region[aria-live="assertive"] {
+  /* Announced immediately */
+}
+
+/* Status indicators */
+.ne-status {
+  border-radius: var(--ne-radius-md);
+  font-weight: var(--ne-font-weight-medium);
+  padding: var(--ne-space-2) var(--ne-space-3);
+}
+
+.ne-status--success {
+  background: var(--ne-color-success-050);
+  border: 1px solid var(--ne-color-success-200);
+  color: var(--ne-color-success-900);
+}
+
+.ne-status--error {
+  background: var(--ne-color-error-050);
+  border: 1px solid var(--ne-color-error-200);
+  color: var(--ne-color-error-900);
+}
+
+.ne-status--warning {
+  background: var(--ne-color-warning-050);
+  border: 1px solid var(--ne-color-warning-200);
+  color: var(--ne-color-warning-900);
+}
+
+.ne-status--info {
+  background: var(--ne-color-info-050);
+  border: 1px solid var(--ne-color-info-200);
+  color: var(--ne-color-info-900);
+}
+
+/* === FORM ACCESSIBILITY === */
+
+/* Required field indicators */
+.ne-form-field--required .ne-form-label::after {
+  color: var(--ne-color-error-500);
+  content: " *";
+  font-weight: var(--ne-font-weight-bold);
+}
+
+/* Error states */
+.ne-form-field--error .ne-form-input {
+  background: var(--ne-color-error-050);
+  border-color: var(--ne-color-error-500);
+}
+
+.ne-form-field--error .ne-form-input:focus {
+  box-shadow: 0 0 0 3px rgb(244 67 54 / 20%);
+  outline-color: var(--ne-color-error-500);
+}
+
+/* Success states */
+.ne-form-field--valid .ne-form-input {
+  border-color: var(--ne-color-success-500);
+}
+
+/* Field descriptions */
+.ne-form-description {
+  color: var(--ne-text-secondary);
+  font-size: var(--ne-font-size-sm);
+  margin-top: var(--ne-space-1);
+}
+
+.ne-form-error {
+  align-items: center;
+  color: var(--ne-color-error-700);
+  display: flex;
+  font-size: var(--ne-font-size-sm);
+  gap: var(--ne-space-2);
+  margin-top: var(--ne-space-1);
+}
+
+.ne-form-error::before {
+  content: "⚠";
+  font-size: var(--ne-font-size-base);
+}
+
+/* === TOUCH TARGETS === */
+
+/* Minimum 44px touch targets */
+.ne-touch-target {
+  align-items: center;
+  display: inline-flex;
+  justify-content: center;
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Quiz answer buttons */
+.ne-quiz__answer {
+  min-height: 48px;
+  padding: var(--ne-space-3) var(--ne-space-4);
+  touch-action: manipulation;
+}
+
+/* === TEXT SCALING === */
+
+/* Support for 200% text scaling */
+@media (resolution >= 192dpi) {
+  body {
+    font-size: calc(var(--ne-font-size-base) * 1.1);
+  }
+}
+
+/* Large text mode */
+.ne-large-text {
+  font-size: 1.25em;
+  line-height: 1.6;
+}
+
+.ne-large-text .ne-button {
+  font-size: 1.1em;
+  padding: var(--ne-space-4) var(--ne-space-6);
+}
+
+/* === SEMANTIC COLORS === */
+
+/* Ensure colors convey meaning beyond just visual appearance */
+.ne-success::before {
+  color: var(--ne-color-success-600);
+  content: "✓";
+  margin-right: var(--ne-space-2);
+}
+
+.ne-error::before {
+  color: var(--ne-color-error-600);
+  content: "✗";
+  margin-right: var(--ne-space-2);
+}
+
+.ne-warning::before {
+  color: var(--ne-color-warning-600);
+  content: "⚠";
+  margin-right: var(--ne-space-2);
+}
+
+.ne-info::before {
+  color: var(--ne-color-info-600);
+  content: "ℹ";
+  margin-right: var(--ne-space-2);
+}
+
+/* === DARK MODE ACCESSIBILITY === */
+
+@media (prefers-color-scheme: dark) {
+  /* Ensure focus indicators are visible in dark mode */
+  *:focus-visible {
+    outline-color: var(--ne-color-primary-300);
+  }
+  
+  /* Adjust status colors for dark mode */
+  .ne-status--success {
+    background: var(--ne-color-success-900);
+    color: var(--ne-color-success-100);
+  }
+  
+  .ne-status--error {
+    background: var(--ne-color-error-900);
+    color: var(--ne-color-error-100);
+  }
+  
+  .ne-status--warning {
+    background: var(--ne-color-warning-900);
+    color: var(--ne-color-warning-100);
+  }
+  
+  .ne-status--info {
+    background: var(--ne-color-info-900);
+    color: var(--ne-color-info-100);
+  }
+}
+
+/* === LOADING STATES === */
+
+/* Accessible loading indicators */
+.ne-loading {
+  position: relative;
+}
+
+.ne-loading::after {
+  animation: ne-spin 1s linear infinite;
+  border: 2px solid var(--ne-color-primary-200);
+  border-radius: 50%;
+  border-top-color: var(--ne-color-primary-500);
+  content: "";
+  height: 20px;
+  left: 50%;
+  margin: -10px 0 0 -10px;
+  position: absolute;
+  top: 50%;
+  width: 20px;
+}
+
+@keyframes ne-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Screen reader loading text */
+.ne-loading-text {
+  height: 1px;
+  left: -10000px;
+  overflow: hidden;
+  position: absolute;
+  width: 1px;
+}
+
+/* === INTERACTIVE STATES === */
+
+/* Hover states that don't interfere with touch */
+@media (hover: hover) and (pointer: fine) {
+  .ne-button:hover {
+    background: var(--ne-color-primary-600);
+  }
+  
+  .ne-quiz__answer:hover {
+    background: var(--ne-color-primary-050);
+    border-color: var(--ne-color-primary-300);
+  }
+}
+
+/* Active states for all devices */
+.ne-button:active {
+  transform: translateY(1px);
+}
+
+.ne-quiz__answer:active {
+  background: var(--ne-color-primary-100);
+  border-color: var(--ne-color-primary-400);
+}
+
+/* Disabled states */
+.ne-button:disabled,
+.ne-quiz__answer:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.ne-button:disabled,
+.ne-quiz__answer:disabled {
+  background: var(--ne-color-neutral-200);
+  border-color: var(--ne-color-neutral-300);
+  color: var(--ne-color-neutral-500);
+}

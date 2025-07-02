@@ -3,15 +3,18 @@ namespace NuclearEngagement\Services;
 
 use NuclearEngagement\Models\Theme;
 use NuclearEngagement\Repositories\ThemeRepository;
+use NuclearEngagement\Services\Styles\StyleGeneratorFactory;
 use WP_Filesystem_Base;
 
 class ThemeCssGenerator {
     private $repository;
     private $upload_base_path;
     private $cache_manifest_path;
+    private $event_manager;
 
-    public function __construct(ThemeRepository $repository = null) {
+    public function __construct(ThemeRepository $repository = null, ThemeEventManager $event_manager = null) {
         $this->repository = $repository ?: new ThemeRepository();
+        $this->event_manager = $event_manager ?: ThemeEventManager::instance();
         
         $upload_dir = wp_upload_dir();
         $this->upload_base_path = $upload_dir['basedir'] . '/nuclear-engagement/themes/';
@@ -25,7 +28,13 @@ class ThemeCssGenerator {
             return true;
         }
 
-        $css = $this->build_css_from_config($theme->config);
+        // Apply pre-generation filters
+        $filtered_config = $this->event_manager->apply_css_before_generation_filters($theme->config, $theme);
+        
+        $css = $this->build_css_from_config($filtered_config);
+        
+        // Apply post-generation filters
+        $css = $this->event_manager->apply_css_after_generation_filters($css, $theme);
         
         $filename = $this->generate_filename($theme, $new_hash);
         $filepath = $this->upload_base_path . $filename;
@@ -39,6 +48,7 @@ class ThemeCssGenerator {
             $theme->css_hash = $new_hash;
             
             $this->update_manifest($theme);
+            $this->event_manager->trigger_css_generated($theme, $css);
             
             return true;
         }
@@ -49,9 +59,19 @@ class ThemeCssGenerator {
     private function build_css_from_config($config) {
         $css = ":root {\n";
         
-        $css_vars = $this->flatten_config_to_css_vars($config);
+        // Generate CSS variables using style generators
+        $all_variables = [];
+        $generators = StyleGeneratorFactory::get_all_generators();
         
-        foreach ($css_vars as $var_name => $value) {
+        foreach ($config as $component => $component_config) {
+            if (isset($generators[$component])) {
+                $generator = $generators[$component];
+                $variables = $generator->get_css_variables($component_config);
+                $all_variables = array_merge($all_variables, $variables);
+            }
+        }
+        
+        foreach ($all_variables as $var_name => $value) {
             $css .= "    {$var_name}: {$value};\n";
         }
         
@@ -62,49 +82,19 @@ class ThemeCssGenerator {
         return $css;
     }
 
-    private function flatten_config_to_css_vars($config, $prefix = '--nuclen') {
-        $vars = [];
-        
-        foreach ($config as $key => $value) {
-            $var_name = $prefix . '-' . str_replace('_', '-', $key);
-            
-            if (is_array($value) && !isset($value[0])) {
-                $nested_vars = $this->flatten_config_to_css_vars($value, $var_name);
-                $vars = array_merge($vars, $nested_vars);
-            } else {
-                if (is_array($value)) {
-                    $value = implode(' ', $value);
-                }
-                $vars[$var_name] = $value;
-            }
-        }
-        
-        return $vars;
-    }
 
     private function generate_component_styles($config) {
         $css = "";
         
         $css .= "@layer nuclen.theme {\n";
         
-        if (!empty($config['quiz_container'])) {
-            $css .= $this->generate_quiz_container_styles($config['quiz_container']);
-        }
+        $generators = StyleGeneratorFactory::get_all_generators();
         
-        if (!empty($config['quiz_button'])) {
-            $css .= $this->generate_quiz_button_styles($config['quiz_button']);
-        }
-        
-        if (!empty($config['progress_bar'])) {
-            $css .= $this->generate_progress_bar_styles($config['progress_bar']);
-        }
-        
-        if (!empty($config['summary_container'])) {
-            $css .= $this->generate_summary_container_styles($config['summary_container']);
-        }
-        
-        if (!empty($config['table_of_contents'])) {
-            $css .= $this->generate_toc_styles($config['table_of_contents']);
+        foreach ($config as $component => $component_config) {
+            if (!empty($component_config) && isset($generators[$component])) {
+                $generator = $generators[$component];
+                $css .= $generator->generate_styles($component_config);
+            }
         }
         
         $css .= "}\n";
@@ -112,90 +102,6 @@ class ThemeCssGenerator {
         return $css;
     }
 
-    private function generate_quiz_container_styles($config) {
-        $css = "    .nuclen-quiz-container {\n";
-        
-        if (!empty($config['background_color'])) {
-            $css .= "        background-color: var(--nuclen-quiz-container-background-color);\n";
-        }
-        
-        if (!empty($config['border_width']) || !empty($config['border_color'])) {
-            $css .= "        border: var(--nuclen-quiz-container-border-width, 1px) solid var(--nuclen-quiz-container-border-color, #e5e7eb);\n";
-        }
-        
-        if (!empty($config['border_radius'])) {
-            $css .= "        border-radius: var(--nuclen-quiz-container-border-radius);\n";
-        }
-        
-        if (!empty($config['padding'])) {
-            $css .= "        padding: var(--nuclen-quiz-container-padding);\n";
-        }
-        
-        $css .= "    }\n\n";
-        
-        return $css;
-    }
-
-    private function generate_quiz_button_styles($config) {
-        $css = "    .nuclen-quiz-button {\n";
-        $css .= "        background-color: var(--nuclen-quiz-button-background-color);\n";
-        $css .= "        color: var(--nuclen-quiz-button-text-color);\n";
-        $css .= "        border-radius: var(--nuclen-quiz-button-border-radius);\n";
-        $css .= "        padding: var(--nuclen-quiz-button-padding);\n";
-        $css .= "        font-size: var(--nuclen-quiz-button-font-size);\n";
-        $css .= "        font-weight: var(--nuclen-quiz-button-font-weight);\n";
-        $css .= "    }\n\n";
-        
-        $css .= "    .nuclen-quiz-button:hover {\n";
-        $css .= "        background-color: var(--nuclen-quiz-button-hover-background-color);\n";
-        $css .= "        color: var(--nuclen-quiz-button-hover-text-color);\n";
-        $css .= "    }\n\n";
-        
-        return $css;
-    }
-
-    private function generate_progress_bar_styles($config) {
-        $css = "    .nuclen-progress-bar {\n";
-        $css .= "        background-color: var(--nuclen-progress-bar-background-color);\n";
-        $css .= "        height: var(--nuclen-progress-bar-height);\n";
-        $css .= "    }\n\n";
-        
-        $css .= "    .nuclen-progress-bar-fill {\n";
-        $css .= "        background-color: var(--nuclen-progress-bar-fill-color);\n";
-        $css .= "    }\n\n";
-        
-        return $css;
-    }
-
-    private function generate_summary_container_styles($config) {
-        $css = "    .nuclen-summary-container {\n";
-        $css .= "        background-color: var(--nuclen-summary-container-background-color);\n";
-        $css .= "        border: var(--nuclen-summary-container-border-width) solid var(--nuclen-summary-container-border-color);\n";
-        $css .= "        border-radius: var(--nuclen-summary-container-border-radius);\n";
-        $css .= "        padding: var(--nuclen-summary-container-padding);\n";
-        $css .= "    }\n\n";
-        
-        return $css;
-    }
-
-    private function generate_toc_styles($config) {
-        $css = "    .nuclen-toc {\n";
-        $css .= "        background-color: var(--nuclen-table-of-contents-background-color);\n";
-        $css .= "        border: var(--nuclen-table-of-contents-border-width) solid var(--nuclen-table-of-contents-border-color);\n";
-        $css .= "        border-radius: var(--nuclen-table-of-contents-border-radius);\n";
-        $css .= "        padding: var(--nuclen-table-of-contents-padding);\n";
-        $css .= "    }\n\n";
-        
-        $css .= "    .nuclen-toc-item {\n";
-        $css .= "        color: var(--nuclen-table-of-contents-link-color);\n";
-        $css .= "    }\n\n";
-        
-        $css .= "    .nuclen-toc-item:hover {\n";
-        $css .= "        color: var(--nuclen-table-of-contents-link-hover-color);\n";
-        $css .= "    }\n\n";
-        
-        return $css;
-    }
 
     private function generate_filename(Theme $theme, $hash) {
         $safe_name = sanitize_file_name($theme->name);

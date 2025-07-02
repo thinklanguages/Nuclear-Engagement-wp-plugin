@@ -49,12 +49,12 @@ export default defineConfig({
     }
   ],
 
-  webServer: {
+  webServer: process.env.CI ? {
     command: 'docker-compose -f docker-compose.test.yml up',
     port: 8080,
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: false,
     timeout: 120000
-  },
+  } : undefined,
 
   expect: {
     timeout: 5000

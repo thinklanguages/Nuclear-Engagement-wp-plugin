@@ -1,0 +1,299 @@
+/**
+ * Nuclear Engagement Plugin - Main CSS Entry Point
+ * 
+ * Modern CSS architecture following ITCSS methodology with BEM naming.
+ * Imports all layers in the correct order for optimal cascade.
+ */
+
+/* === 1. SETTINGS === */
+
+/* Design tokens and global variables */
+@import "01-settings/_design-tokens.css";
+@import "01-settings/_theme-variants.css";
+
+/* === 2. TOOLS === */
+
+/* Mixins and functions (CSS custom properties used as mixins) */
+@import "02-tools/_responsive-mixins.css";
+@import "02-tools/_performance-optimizations.css";
+@import "02-tools/_modern-css-features.css";
+
+/* === 3. BASE === */
+
+/* Basic element styling and accessibility framework */
+@import "03-base/_accessibility.css";
+
+/* === 4. ELEMENTS === */
+
+/* Styling for HTML elements without classes */
+@import "04-elements/_base-elements.css";
+
+/* === 5. OBJECTS === */
+
+/* Layout patterns and structural components */
+@import "05-objects/_layout-objects.css";
+
+/* === 6. COMPONENTS === */
+
+/* Styled components using BEM methodology */
+@import "06-components/_quiz-components.css";
+@import "06-components/_admin-components.css";
+@import "06-components/_toc-components.css";
+
+/* === 7. UTILITIES === */
+
+/* Single-purpose utility classes */
+@import "07-utilities/_utility-classes.css";
+
+/* === LEGACY SUPPORT === */
+
+/* Ensure backward compatibility with existing class names */
+
+/* Map legacy quiz classes to new BEM components */
+.nuclen-quiz {
+  /* Extend the new quiz component */
+  @extend .c-quiz;
+}
+
+.nuclen-quiz-question {
+  @extend .c-quiz__question;
+}
+
+.nuclen-quiz-answers {
+  @extend .c-quiz__answers;
+}
+
+.nuclen-quiz-answer {
+  @extend .c-quiz-answer;
+}
+
+.nuclen-quiz-button {
+  @extend .c-quiz-button;
+}
+
+.nuclen-summary {
+  @extend .c-quiz-result;
+}
+
+/* Map legacy admin classes */
+.nuclen-admin {
+  @extend .c-admin;
+}
+
+.nuclen-form {
+  @extend .c-admin-form;
+}
+
+.nuclen-input {
+  @extend .c-form-field__input;
+}
+
+.nuclen-label {
+  @extend .c-form-field__label;
+}
+
+.nuclen-button {
+  @extend .c-admin-button;
+}
+
+/* Map legacy TOC classes */
+.nuclen-toc-wrapper {
+  @extend .c-toc;
+}
+
+.nuclen-toc {
+  @extend .c-toc__content;
+}
+
+.nuclen-toc-list {
+  @extend .c-toc__list;
+}
+
+.nuclen-toc-item {
+  @extend .c-toc__item;
+}
+
+.nuclen-toc-link {
+  @extend .c-toc__link;
+}
+
+/* === ROOT SCOPE === */
+
+/* Ensure all Nuclear Engagement styles are scoped */
+.nuclen-root {
+  /* Apply design tokens to scoped context */
+  color: var(--ne-text-primary);
+  font-family: var(--ne-font-family-sans);
+  line-height: var(--ne-line-height-normal);
+}
+
+/* Make sure custom CSS variables are available globally within plugin scope */
+.nuclen-root,
+.nuclen-root * {
+  /* Inherit custom properties from the existing system */
+  --ne-quiz-bg: var(--nuclen-quiz-bg-color, var(--ne-bg-primary));
+  --ne-quiz-border: var(--nuclen-quiz-border-color, var(--ne-border-primary));
+  --ne-quiz-text: var(--nuclen-quiz-font-color, var(--ne-text-primary));
+  --ne-toc-bg: var(--nuclen-toc-bg-color, var(--ne-bg-primary));
+  --ne-toc-border: var(--nuclen-toc-border-color, var(--ne-border-primary));
+  --ne-toc-text: var(--nuclen-toc-font-color, var(--ne-text-primary));
+  --ne-summary-bg: var(--nuclen-summary-bg-color, var(--ne-bg-secondary));
+  --ne-summary-border: var(--nuclen-summary-border-color, var(--ne-border-primary));
+  --ne-summary-text: var(--nuclen-summary-font-color, var(--ne-text-primary));
+}
+
+/* === COMPONENT INTEGRATION === */
+
+/* Ensure new components work with existing markup */
+
+/* Quiz integration */
+.nuclen-root .nuclen-quiz {
+  /* Apply new component styling while maintaining existing CSS variables */
+  background: var(--ne-quiz-bg);
+  border-color: var(--ne-quiz-border);
+  color: var(--ne-quiz-text);
+}
+
+.nuclen-root .nuclen-quiz .nuclen-quiz-answer {
+  /* Answer button styling */
+  background: var(--nuclen-quiz-button-bg, var(--ne-bg-secondary));
+  border-color: var(--nuclen-quiz-button-border-color, var(--ne-border-primary));
+  color: var(--ne-quiz-text);
+}
+
+/* TOC integration */
+.nuclen-root .nuclen-toc-wrapper {
+  background: var(--ne-toc-bg);
+  border-color: var(--ne-toc-border);
+  color: var(--ne-toc-text);
+}
+
+.nuclen-root .nuclen-toc-wrapper a {
+  color: var(--nuclen-toc-link, var(--ne-color-primary-600));
+}
+
+/* Summary integration */
+.nuclen-root .nuclen-summary {
+  background: var(--ne-summary-bg);
+  border-color: var(--ne-summary-border);
+  color: var(--ne-summary-text);
+}
+
+/* Progress bar integration */
+.nuclen-root #nuclen-quiz-progress-bar-container {
+  background: var(--nuclen-quiz-progress-bg, var(--ne-color-neutral-200));
+  height: var(--nuclen-quiz-progress-height, 8px);
+}
+
+.nuclen-root #nuclen-quiz-progress-bar {
+  background: var(--nuclen-quiz-progress-fg, var(--ne-color-primary-500));
+}
+
+/* === PERFORMANCE OPTIMIZATIONS === */
+
+/* Use CSS containment for better performance */
+.c-quiz,
+.c-admin,
+.c-toc {
+  contain: layout style;
+}
+
+/* Enable hardware acceleration for animations */
+.c-quiz-answer,
+.c-quiz-button,
+.c-admin-button,
+.c-toc__link {
+  will-change: transform;
+}
+
+/* Optimize font loading */
+@supports (font-display: swap) {
+  * {
+    font-display: swap;
+  }
+}
+
+/* === PRINT OPTIMIZATIONS === */
+
+@media print {
+  /* Hide non-essential components when printing */
+  .c-admin,
+  .c-toc--floating,
+  .c-quiz-actions,
+  .u-no-print {
+    display: none !important;
+  }
+  
+  /* Optimize quiz layout for print */
+  .c-quiz {
+    border: var(--ne-border-width-1) solid var(--ne-text-primary);
+    box-shadow: none;
+    break-inside: avoid;
+  }
+  
+  /* Ensure good contrast in print */
+  .c-quiz,
+  .c-toc {
+    background: white !important;
+    color: black !important;
+  }
+}
+
+/* === REDUCED MOTION SUPPORT === */
+
+@media (prefers-reduced-motion: reduce) {
+  /* Disable complex animations */
+  .c-quiz-answer,
+  .c-quiz-button,
+  .c-admin-button,
+  .c-toc__link {
+    transition: none;
+    will-change: auto;
+  }
+  
+  /* Keep essential focus indicators */
+  *:focus-visible {
+    transition: outline 0.1s ease;
+  }
+}
+
+/* === HIGH CONTRAST MODE === */
+
+@media (prefers-contrast: high) {
+  /* Increase border visibility */
+  .c-quiz,
+  .c-admin-form,
+  .c-toc,
+  .c-quiz-answer,
+  .c-form-field__input {
+    border-width: 2px;
+  }
+  
+  /* Ensure button contrast */
+  .c-quiz-button,
+  .c-admin-button {
+    border: 2px solid currentcolor;
+  }
+}
+
+/* === DARK MODE SUPPORT === */
+
+@media (prefers-color-scheme: dark) {
+  /* Adjust component styling for dark mode */
+  .c-quiz,
+  .c-admin-form,
+  .c-toc {
+    box-shadow: var(--ne-shadow-lg);
+  }
+  
+  /* Ensure readability of text on dark backgrounds */
+  .c-quiz-result--success {
+    background: var(--ne-color-success-900);
+    color: var(--ne-color-success-100);
+  }
+  
+  .c-quiz-result--error {
+    background: var(--ne-color-error-900);
+    color: var(--ne-color-error-100);
+  }
+}
