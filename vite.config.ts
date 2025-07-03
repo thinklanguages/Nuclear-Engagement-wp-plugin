@@ -52,6 +52,14 @@ export default defineConfig({
         chunkFileNames: (chunkInfo) => {
           // Place chunks at the root level for easier resolution
           return '[name]-[hash].js';
+        },
+        
+        // Inline small modules like logger to avoid extra files
+        manualChunks(id) {
+          // Don't create separate chunks for logger modules
+          if (id.includes('logger.ts')) {
+            return undefined; // This will inline the module
+          }
         }
       }
     }

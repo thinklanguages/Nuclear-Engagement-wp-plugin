@@ -8,7 +8,7 @@ Tags: AI writer, quiz, summary, table of contents, email optin
 Requires at least: 6.1
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 1.2
+Stable tag: 2.0
 License: GPL-2.0+
 License URI: http://www.gnu.org/licenses/gpl-2.0.txt
 Donate link: https://buy.stripe.com/3csg1Tdn0a9h3ss288
@@ -250,15 +250,16 @@ The tiny codebase and lazy loading assure fast loading, both in admin and on fro
 
 == Changelog ==
 
-= 1.2 – 2025-07-01 =
+= 2.0 – 2025-07-03 =
 * Added: Gutenberg blocks for summaries, quizzes and TOC.
 * Added: Improved theme system.
 * Added: Dashboard section showing scheduled content generation tasks.
 * Added: Inventory data caching with manual refresh and persistent transients.
 * Added: Test infrastructure for improved code quality.
+* Added: TOC analytics events.
 * Changed: Improve background processing.
 * Changed: Expanded cache invalidation to cover more post and term events.
-* Changed: Architecture refactoring.
+* Changed: Total architecture refactoring.
 * Changed: Improved security.
 * Changed: Improved performance with optimized database indexes, lazy loading etc.
 * Changed: Improved settings management.

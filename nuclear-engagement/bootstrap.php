@@ -17,16 +17,31 @@ require_once __DIR__ . '/inc/Core/CompatibilityAutoloader.php';
 \NuclearEngagement\Core\CompatibilityAutoloader::register();
 
 try {
-	// IMPORTANT: Using the old Bootloader system instead of PluginBootstrap
-	// The new PluginBootstrap system has a critical timing issue where admin services
-	// are loaded on 'admin_init' hook, which fires AFTER 'admin_menu' hook.
-	// This causes the admin menu items to not appear in WordPress admin.
-	// DO NOT switch to PluginBootstrap until this timing issue is resolved.
-	Bootloader::init();
+	// CRITICAL: DO NOT CHANGE THIS SECTION WITHOUT EXTENSIVE TESTING!
+	// The PluginBootstrap system is now working correctly after fixing these issues:
+	// 
+	// 1. Constants Definition Order:
+	//    - NUCLEN_PLUGIN_FILE must be defined in nuclear-engagement.php
+	//    - defineEssentialConstants() MUST be called first in init()
+	//    - This defines NUCLEN_PLUGIN_DIR which is used by the Autoloader
+	// 
+	// 2. Autoloader Path:
+	//    - The Autoloader.php is in inc/Core/ (same directory as PluginBootstrap.php)
+	//    - MUST use __DIR__ . '/Autoloader.php' (NOT dirname(__DIR__))
+	// 
+	// 3. Admin Menu Registration:
+	//    - Admin services MUST be loaded immediately when is_admin() is true
+	//    - This happens BEFORE WordPress fires the 'admin_menu' hook
+	//    - Otherwise, admin menu items will NOT appear
+	// 
+	// If you need to modify the bootstrap process, ensure ALL three conditions above are met!
 	
-	// The new optimized bootstrap system is commented out due to timing issues
-	// $bootstrap = \NuclearEngagement\Core\PluginBootstrap::getInstance();
-	// $bootstrap->init();
+	$bootstrap = \NuclearEngagement\Core\PluginBootstrap::getInstance();
+	$bootstrap->init();
+	
+	// The old Bootloader system is kept as a fallback option
+	// Uncomment ONLY if PluginBootstrap fails and you need a quick fix:
+	// Bootloader::init();
 } catch ( \Throwable $e ) {
 	// Log the error for debugging
 	error_log( 'Nuclear Engagement Bootstrap Error: ' . $e->getMessage() );
