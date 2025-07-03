@@ -68,8 +68,12 @@ describe('mountOptinBeforeResults', () => {
 	(document.getElementById('nuclen-optin-name') as HTMLInputElement).value = 'n';
 	(document.getElementById('nuclen-optin-email') as HTMLInputElement).value = 'e@b.com';
 	(document.getElementById('nuclen-optin-submit') as HTMLElement).click();
+	
+	// Wait for all async operations to complete
+	await new Promise(resolve => setTimeout(resolve, 0));
 	await Promise.resolve();
 	await Promise.resolve();
+	
 	expect(utils.storeOptinLocally).toHaveBeenCalled();
 	expect(utils.submitToWebhook).toHaveBeenCalled();
 	expect(complete).toHaveBeenCalled();

@@ -68,6 +68,9 @@ describe('nuclen-admin-single-generation', () => {
 
 	const btn = document.querySelector<HTMLButtonElement>('.nuclen-generate-single')!;
 	btn.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+	
+	// Wait for all promises to resolve
+	await new Promise(resolve => setTimeout(resolve, 0));
 	await Promise.resolve();
 	await Promise.resolve();
 
@@ -95,6 +98,9 @@ describe('nuclen-admin-single-generation', () => {
 
 	const btn = document.querySelector<HTMLButtonElement>('.nuclen-generate-single')!;
 	btn.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+	
+	// Wait for all promises to resolve
+	await new Promise(resolve => setTimeout(resolve, 0));
 	await Promise.resolve();
 	await Promise.resolve();
 

@@ -5,7 +5,7 @@ use NuclearEngagement\Admin\Traits\AdminMenu;
 use NuclearEngagement\Admin\Setup;
 use NuclearEngagement\Admin\Settings;
 use NuclearEngagement\Core\SettingsRepository;
-use NuclearEngagement\Core\Container;
+use NuclearEngagement\Core\ServiceContainer;
 use NuclearEngagement\Core\InventoryCache;
 
 require_once dirname(__DIR__) . '/nuclear-engagement/admin/Setup.php';
@@ -13,7 +13,7 @@ require_once dirname(__DIR__) . '/nuclear-engagement/admin/Settings.php';
 require_once dirname(__DIR__) . '/nuclear-engagement/admin/Traits/AdminMenu.php';
 require_once dirname(__DIR__) . '/nuclear-engagement/admin/Traits/AdminAssets.php';
 require_once dirname(__DIR__) . '/nuclear-engagement/inc/Core/SettingsRepository.php';
-require_once dirname(__DIR__) . '/nuclear-engagement/inc/Core/Container.php';
+require_once dirname(__DIR__) . '/nuclear-engagement/inc/Core/ServiceContainer.php';
 require_once dirname(__DIR__) . '/nuclear-engagement/inc/Core/InventoryCache.php';
 require_once dirname(__DIR__) . '/nuclear-engagement/inc/Core/AssetVersions.php';
 
@@ -59,14 +59,14 @@ public function nuclen_get_settings_repository(){ return $this->repo; }
 protected function get_container(){ return $this->container; }
 }
 
-class AdminPageDisplayTest extends TestCase {
+class AdminPageDisplayTest extends PHPUnit\Framework\TestCase {
 protected function setUp(): void {
 global $wp_options, $wp_cache, $transients, $enqueued_scripts, $enqueued_styles, $localized;
 $wp_options = $wp_cache = $transients = [];
 $enqueued_scripts = $enqueued_styles = $localized = [];
 
 SettingsRepository::reset_for_tests();
-Container::getInstance()->reset();
+ServiceContainer::getInstance()->reset();
 if (!defined('NUCLEN_PLUGIN_DIR')) {
 define('NUCLEN_PLUGIN_DIR', dirname(__DIR__) . '/nuclear-engagement/');
 }
@@ -93,7 +93,7 @@ $this->assertStringContainsString('nuclen-setup-step-2', $html);
 
 public function test_display_generate_page_shows_notice_when_not_setup(): void {
 $repo = SettingsRepository::get_instance();
-$container = Container::getInstance();
+$container = ServiceContainer::getInstance();
 $container->register('dashboard_data_service', static function(){ return new class { public function get_scheduled_generations(){ return []; } }; });
 $admin = new DummyAdmin($repo, $container);
 ob_start();
@@ -114,7 +114,7 @@ InventoryCache::set([
 'by_category_summary'=>[],
 ]);
 $repo = SettingsRepository::get_instance();
-$container = Container::getInstance();
+$container = ServiceContainer::getInstance();
 $container->register('dashboard_data_service', static function(){ return new class { public function get_scheduled_generations(){ return []; } }; });
 $admin = new DummyAdmin($repo, $container);
 ob_start();

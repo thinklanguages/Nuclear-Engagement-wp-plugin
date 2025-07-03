@@ -11,6 +11,9 @@ export default defineConfig({
     outDir: path.resolve(__dirname, 'nuclear-engagement'),
     emptyOutDir: false,
     
+    // Generate source maps for debugging
+    sourcemap: true,
+    
     // Inline small chunks to avoid module loading issues
     rollupOptions: {
       // Entry points for admin, front and the TOC module

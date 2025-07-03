@@ -5,6 +5,9 @@ import js from '@eslint/js';
 export default [
   js.configs.recommended,
   {
+    ignores: ['**/node_modules/**', '**/vendor/**', '**/logger-*.js', '**/dist/**', '**/build/**']
+  },
+  {
     files: ['**/*.ts'],
     languageOptions: {
       parser: tsParser,
@@ -66,7 +69,34 @@ export default [
       globals: {
         window: 'readonly',
         document: 'readonly',
-        console: 'readonly'
+        console: 'readonly',
+        fetch: 'readonly',
+        setTimeout: 'readonly',
+        clearTimeout: 'readonly',
+        setInterval: 'readonly',
+        clearInterval: 'readonly',
+        FormData: 'readonly',
+        URLSearchParams: 'readonly',
+        HTMLElement: 'readonly',
+        IntersectionObserver: 'readonly',
+        MutationObserver: 'readonly',
+        jQuery: 'readonly',
+        $: 'readonly',
+        gtag: 'readonly',
+        alert: 'readonly',
+        jest: 'readonly',
+        global: 'readonly',
+        process: 'readonly',
+        require: 'readonly',
+        module: 'readonly',
+        __dirname: 'readonly',
+        __filename: 'readonly',
+        exports: 'readonly',
+        navigator: 'readonly',
+        NuclenStrings: 'readonly',
+        NuclenSettings: 'readonly',
+        NuclenOptinAjax: 'readonly',
+        postQuizData: 'readonly'
       }
     }
   }

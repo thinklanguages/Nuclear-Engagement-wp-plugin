@@ -100,11 +100,8 @@ export interface StartGenerationResponse {
 export async function nuclenFetchUpdates(
 	generationId?: string
 ): Promise<PollingUpdateResponse> {
-	if (!window.nuclenAjax || !window.nuclenAjax.ajax_url) {
-		throw new Error('Missing nuclenAjax configuration (ajax_url).');
-	}
-	if (!window.nuclenAjax.fetch_action) {
-		throw new Error('Missing fetch_action in nuclenAjax configuration.');
+	if (!window.nuclenAjax || !window.nuclenAjax.ajax_url || !window.nuclenAjax.fetch_action) {
+		throw new Error('Missing nuclenAjax configuration (ajax_url or fetch_action).');
 	}
 
 	const formData = new FormData();
@@ -162,12 +159,29 @@ export async function NuclenStartGeneration(
 		throw new Error(result.error || `HTTP ${result.status}`);
 	}
 
-	const data = result.data as StartGenerationResponse;
-	if (!data?.success) {
-		const errMsg =
-		(data?.message as string) ||
-		(data?.data?.message as string) ||
-		'Generation start failed (unknown error).';
+	// Validate response structure before casting
+	const rawData = result.data;
+	if (!rawData || typeof rawData !== 'object') {
+		throw new Error('Invalid response format: expected object');
+	}
+	
+	const data = rawData as StartGenerationResponse;
+	
+	// Runtime validation of required properties
+	if (typeof data.success !== 'boolean') {
+		throw new Error('Invalid response format: missing or invalid success field');
+	}
+	
+	if (!data.success) {
+		let errMsg = 'Generation start failed (unknown error).';
+		
+		if (typeof data.message === 'string' && data.message) {
+			errMsg = data.message;
+		} else if (data.data && typeof data.data === 'object' && 
+				   typeof (data.data as any).message === 'string') {
+			errMsg = (data.data as any).message;
+		}
+		
 		throw new Error(errMsg);
 	}
 

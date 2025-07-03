@@ -57,7 +57,10 @@
       "Bash(done)",
       "Bash(npx stylelint:*)",
       "Bash(cat:*)",
-      "Bash(wp-env run cli wp post create:*)"
+      "Bash(wp-env run cli wp post create:*)",
+      "Bash(npm install:*)",
+      "Bash(npx vite:*)",
+      "Bash(true)"
     ],
     "deny": []
   }

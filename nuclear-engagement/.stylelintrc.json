@@ -1,0 +1,142 @@
+{
+  "extends": [
+    "stylelint-config-standard",
+    "stylelint-config-recommended"
+  ],
+  "plugins": [
+    "stylelint-order"
+  ],
+  "rules": {
+    "order/properties-alphabetical-order": true,
+    "at-rule-no-unknown": [
+      true,
+      {
+        "ignoreAtRules": [
+          "apply",
+          "variants",
+          "responsive",
+          "screen",
+          "layer",
+          "container",
+          "extend"
+        ]
+      }
+    ],
+    "declaration-block-no-duplicate-properties": [
+      true,
+      {
+        "ignore": ["consecutive-duplicates-with-different-values"]
+      }
+    ],
+    "declaration-block-no-shorthand-property-overrides": true,
+    "font-family-no-duplicate-names": true,
+    "font-family-no-missing-generic-family-keyword": true,
+    "function-linear-gradient-no-nonstandard-direction": true,
+    "media-feature-name-no-unknown": true,
+    "no-duplicate-at-import-rules": true,
+    "no-duplicate-selectors": true,
+    "no-empty-source": true,
+    "no-invalid-double-slash-comments": true,
+    "property-no-unknown": [
+      true,
+      {
+        "ignoreProperties": [
+          "position-anchor",
+          "anchor-name",
+          "inset-area",
+          "position-area",
+          "focus"
+        ]
+      }
+    ],
+    "selector-pseudo-class-no-unknown": true,
+    "selector-pseudo-element-no-unknown": true,
+    "selector-type-no-unknown": [
+      true,
+      {
+        "ignore": ["custom-elements"],
+        "ignoreTypes": ["slide", "@media"]
+      }
+    ],
+    "string-no-newline": true,
+    "unit-no-unknown": [
+      true,
+      {
+        "ignoreUnits": ["cqw", "cqh", "cqi", "cqb", "cqmin", "cqmax", "lvh", "lvw", "svh", "svw", "dvh", "dvw"]
+      }
+    ],
+    "value-no-vendor-prefix": true,
+    "property-no-vendor-prefix": true,
+    "selector-no-vendor-prefix": true,
+    "media-feature-name-no-vendor-prefix": true,
+    "at-rule-no-vendor-prefix": true,
+    "color-no-invalid-hex": true,
+    "comment-no-empty": true,
+    "custom-property-empty-line-before": "never",
+    "declaration-empty-line-before": "never",
+    "rule-empty-line-before": [
+      "always",
+      {
+        "except": ["first-nested"],
+        "ignore": ["after-comment"]
+      }
+    ],
+    "at-rule-empty-line-before": [
+      "always",
+      {
+        "except": ["first-nested", "blockless-after-blockless"],
+        "ignore": ["after-comment"]
+      }
+    ],
+    "comment-empty-line-before": [
+      "always",
+      {
+        "except": ["first-nested"],
+        "ignore": ["stylelint-commands"]
+      }
+    ],
+    "block-closing-brace-newline-after": [
+      "always",
+      {
+        "ignoreAtRules": ["if", "else"]
+      }
+    ],
+    "selector-class-pattern": null,
+    "custom-property-pattern": null,
+    "max-nesting-depth": 3,
+    "declaration-property-unit-allowed-list": {
+      "font-size": ["px", "rem", "em", "%", "vw", "vh", "cqw", "cqh", "cqi", "cqb"],
+      "line-height": ["", "px", "rem", "em"],
+      "margin": ["px", "rem", "em", "%", "vw", "vh", "auto", "cqw", "cqh", "cqi", "cqb", "lvh", "lvw", "svh", "svw", "dvh", "dvw"],
+      "padding": ["px", "rem", "em", "%", "vw", "vh", "cqw", "cqh", "cqi", "cqb", "lvh", "lvw", "svh", "svw", "dvh", "dvw"]
+    },
+    "length-zero-no-unit": true,
+    "color-hex-length": "short",
+    "color-hex-case": "lower",
+    "number-leading-zero": "always",
+    "string-quotes": "double",
+    "function-comma-space-after": "always",
+    "function-comma-space-before": "never",
+    "function-parentheses-space-inside": "never",
+    "declaration-colon-space-after": "always",
+    "declaration-colon-space-before": "never",
+    "declaration-block-semicolon-space-before": "never",
+    "block-opening-brace-space-before": "always",
+    "selector-combinator-space-after": "always",
+    "selector-combinator-space-before": "always",
+    "media-query-list-comma-space-after": "always",
+    "media-query-list-comma-space-before": "never",
+    "import-notation": "string",
+    "keyframes-name-pattern": null,
+    "no-descending-specificity": null,
+    "function-url-quotes": null,
+    "no-duplicate-selectors": null,
+    "number-max-precision": null
+  },
+  "ignoreFiles": [
+    "node_modules/**",
+    "vendor/**",
+    "**/*.min.css",
+    "**/custom-theme.css"
+  ]
+}
