@@ -1,4 +1,10 @@
 <?php
+/**
+ * AdminNoticeService.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package NuclearEngagement_Services
+ */
+
 declare(strict_types=1);
 /**
 	* Handles admin notices for the plugin.
@@ -23,14 +29,14 @@ class AdminNoticeService {
 		}
 	}
 
-		public function render(): void {
-				foreach ( $this->messages as $msg ) {
-						load_template(
-								NUCLEN_PLUGIN_DIR . 'templates/admin/notice.php',
-								true,
-								array( 'msg' => $msg )
-						);
-				}
-				$this->messages = array();
+	public function render(): void {
+		foreach ( $this->messages as $msg ) {
+				load_template(
+					NUCLEN_PLUGIN_DIR . 'templates/admin/notice.php',
+					true,
+					array( 'msg' => $msg )
+				);
 		}
+			$this->messages = array();
+	}
 }

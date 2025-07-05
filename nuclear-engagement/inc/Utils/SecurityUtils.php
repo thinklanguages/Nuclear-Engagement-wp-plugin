@@ -1,4 +1,10 @@
 <?php
+/**
+ * SecurityUtils.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package NuclearEngagement_Utils
+ */
+
 declare(strict_types=1);
 
 namespace NuclearEngagement\Utils;
@@ -36,27 +42,27 @@ class SecurityUtils {
 		if ( is_string( $input ) ) {
 			return sanitize_text_field( $input );
 		}
-		
+
 		if ( is_array( $input ) ) {
-			return array_map( [ self::class, 'sanitize_input' ], $input );
+			return array_map( array( self::class, 'sanitize_input' ), $input );
 		}
-		
+
 		return $input;
 	}
 
 	public static function rate_limit_check( string $key, int $limit = 10, int $window = 300 ): bool {
 		$transient_key = 'nuclen_rate_limit_' . md5( $key );
-		$attempts = get_transient( $transient_key );
-		
+		$attempts      = get_transient( $transient_key );
+
 		if ( $attempts === false ) {
 			set_transient( $transient_key, 1, $window );
 			return true;
 		}
-		
+
 		if ( $attempts >= $limit ) {
 			return false;
 		}
-		
+
 		set_transient( $transient_key, $attempts + 1, $window );
 		return true;
 	}

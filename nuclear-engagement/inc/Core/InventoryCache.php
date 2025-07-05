@@ -1,4 +1,10 @@
 <?php
+/**
+ * InventoryCache.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package NuclearEngagement_Core
+ */
+
 declare(strict_types=1);
 /**
  * File: includes/InventoryCache.php
@@ -18,6 +24,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 final class InventoryCache {
 	use CacheInvalidationTrait;
+
 	/** Cache key base for inventory data. */
 	public const CACHE_KEY = 'nuclen_inventory_data';
 

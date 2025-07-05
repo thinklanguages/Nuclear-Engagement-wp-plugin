@@ -8,12 +8,6 @@ namespace NuclearEngagement\Modules\Quiz {
 }
 
 namespace NuclearEngagement\Services {
-	class LoggingService {
-		public static array $logs = [];
-		public static array $notices = [];
-		public static function log(string $msg): void { self::$logs[] = $msg; }
-		public static function notify_admin(string $msg): void { self::$notices[] = $msg; }
-	}
 }
 
 namespace {

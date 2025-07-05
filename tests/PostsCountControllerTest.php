@@ -1,9 +1,5 @@
 <?php
 namespace NuclearEngagement\Services {
-	class LoggingService {
-		public static array $exceptions = [];
-		public static function log_exception(\Throwable $e): void { self::$exceptions[] = $e->getMessage(); }
-	}
 }
 
 namespace {

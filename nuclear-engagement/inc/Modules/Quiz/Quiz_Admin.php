@@ -1,4 +1,10 @@
 <?php
+/**
+ * Quiz_Admin.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package NuclearEngagement_Modules_Quiz
+ */
+
 declare(strict_types=1);
 /**
  * Quiz admin UI and meta box handling.
@@ -110,6 +116,8 @@ final class Quiz_Admin {
 
 			add_action( 'save_post', array( $this, 'save_meta' ), 10 );
 		}
+
+		// phpcs:ignore WordPress.Security.NonceVerification
 
 		if ( isset( $_POST['nuclen_quiz_protected'] ) && $_POST['nuclen_quiz_protected'] === '1' ) {
 			$this->service->set_protected( $post_id, true );

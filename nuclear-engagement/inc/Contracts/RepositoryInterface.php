@@ -1,4 +1,10 @@
 <?php
+/**
+ * RepositoryInterface.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package NuclearEngagement_Contracts
+ */
+
 declare(strict_types=1);
 /**
  * File: inc/Contracts/RepositoryInterface.php
@@ -18,7 +24,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Defines repository pattern contract for data access.
  */
 interface RepositoryInterface {
-	
+
 	/**
 	 * Find entity by ID.
 	 *
@@ -26,7 +32,7 @@ interface RepositoryInterface {
 	 * @return mixed|null Entity or null if not found.
 	 */
 	public function find( $id );
-	
+
 	/**
 	 * Find all entities matching criteria.
 	 *
@@ -37,7 +43,7 @@ interface RepositoryInterface {
 	 * @return array Found entities.
 	 */
 	public function find_by( array $criteria = array(), array $order_by = array(), int $limit = 0, int $offset = 0 ): array;
-	
+
 	/**
 	 * Find one entity matching criteria.
 	 *
@@ -45,7 +51,7 @@ interface RepositoryInterface {
 	 * @return mixed|null Entity or null if not found.
 	 */
 	public function find_one_by( array $criteria ): ?object;
-	
+
 	/**
 	 * Count entities matching criteria.
 	 *
@@ -53,7 +59,7 @@ interface RepositoryInterface {
 	 * @return int Count of entities.
 	 */
 	public function count( array $criteria = array() ): int;
-	
+
 	/**
 	 * Save entity.
 	 *
@@ -61,7 +67,7 @@ interface RepositoryInterface {
 	 * @return mixed Saved entity.
 	 */
 	public function save( $entity );
-	
+
 	/**
 	 * Delete entity.
 	 *
@@ -69,7 +75,7 @@ interface RepositoryInterface {
 	 * @return bool Success status.
 	 */
 	public function delete( $entity ): bool;
-	
+
 	/**
 	 * Delete entities matching criteria.
 	 *

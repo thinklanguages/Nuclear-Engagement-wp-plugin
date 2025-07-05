@@ -91,7 +91,12 @@ describe('Post Selection UI Tests', () => {
 			stepBar1: document.createElement('div'),
 			stepBar2: document.createElement('div'),
 			stepBar3: document.createElement('div'),
-			stepBar4: document.createElement('div')
+			stepBar4: document.createElement('div'),
+			updatesSection: document.createElement('div'),
+			updatesContent: document.createElement('div'),
+			restartBtn: document.createElement('button'),
+			goBackBtn: document.createElement('button'),
+			generateForm: document.createElement('form')
 		};
 
 		// Setup window.nuclenAjax
@@ -127,6 +132,7 @@ describe('Post Selection UI Tests', () => {
 	it('should handle successful post count request', async () => {
 		const mockResponse = {
 			ok: true,
+			status: 200,
 			data: {
 				success: true,
 				data: {
@@ -172,6 +178,7 @@ describe('Post Selection UI Tests', () => {
 	it('should handle post count request with no posts found', async () => {
 		const mockResponse = {
 			ok: true,
+			status: 200,
 			data: {
 				success: true,
 				data: {
@@ -197,6 +204,7 @@ describe('Post Selection UI Tests', () => {
 	it('should handle error response for invalid post type', async () => {
 		const mockResponse = {
 			ok: true,
+			status: 200,
 			data: {
 				success: false,
 				message: 'Selected post type is not allowed for generation.'
@@ -216,6 +224,7 @@ describe('Post Selection UI Tests', () => {
 	it('should handle invalid API key error', async () => {
 		const mockResponse = {
 			ok: true,
+			status: 200,
 			data: {
 				success: false,
 				data: {
@@ -237,7 +246,7 @@ describe('Post Selection UI Tests', () => {
 	});
 
 	it('should handle network error', async () => {
-		vi.mocked(nuclenFetchWithRetry).mockResolvedValue({ ok: false, data: null });
+		vi.mocked(nuclenFetchWithRetry).mockResolvedValue({ ok: false, status: 500, data: null });
 
 		initStep1(mockElements);
 		mockButton.click();
@@ -261,6 +270,7 @@ describe('Post Selection UI Tests', () => {
 	it('should disable submit button when not enough credits', async () => {
 		const mockResponse = {
 			ok: true,
+			status: 200,
 			data: {
 				success: true,
 				data: {
@@ -290,6 +300,7 @@ describe('Post Selection UI Tests', () => {
 	it('should store post IDs in hidden field', async () => {
 		const mockResponse = {
 			ok: true,
+			status: 200,
 			data: {
 				success: true,
 				data: {

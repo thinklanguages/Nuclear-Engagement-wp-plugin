@@ -1,4 +1,10 @@
 <?php
+/**
+ * PointerController.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package NuclearEngagement_Admin_Controller_Ajax
+ */
+
 declare(strict_types=1);
 /**
  * File: admin/Controller/Ajax/PointerController.php
@@ -39,22 +45,22 @@ class PointerController extends BaseController {
 	 */
 	public function dismiss(): void {
 		try {
-			if ( ! $this->verifyRequest( 'nuclen_dismiss_pointer_nonce', 'nonce' ) ) {
+			if ( ! $this->verify_request( 'nuclen_dismiss_pointer_nonce', 'nonce' ) ) {
 				return;
 			}
 
 			$pointerId = isset( $_POST['pointer'] ) ? sanitize_text_field( wp_unslash( $_POST['pointer'] ) ) : '';
-			$userId    = get_current_user_id();
+			$user_id   = get_current_user_id();
 
-			$this->service->dismissPointer( $pointerId, $userId );
+			$this->service->dismissPointer( $pointerId, $user_id );
 
 			wp_send_json_success( array( 'message' => __( 'Pointer dismissed.', 'nuclear-engagement' ) ) );
 
 		} catch ( \InvalidArgumentException $e ) {
-			$this->sendError( $e->getMessage() );
+			$this->send_error( $e->getMessage() );
 		} catch ( \Throwable $e ) {
 			\NuclearEngagement\Services\LoggingService::log_exception( $e );
-			$this->sendError( __( 'An error occurred', 'nuclear-engagement' ) );
+			$this->send_error( __( 'An error occurred', 'nuclear-engagement' ) );
 		}
 	}
 }

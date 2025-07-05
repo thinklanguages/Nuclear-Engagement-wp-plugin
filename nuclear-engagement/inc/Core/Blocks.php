@@ -1,4 +1,10 @@
 <?php
+/**
+ * Blocks.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package NuclearEngagement_Core
+ */
+
 declare(strict_types=1);
 namespace NuclearEngagement\Core;
 
@@ -41,40 +47,40 @@ final class Blocks {
 			)
 		);
 
-                register_block_type(
-                        'nuclear-engagement/summary',
-                        array(
-                                'api_version'     => 2,
-                                'title'           => __( 'Summary', 'nuclear-engagement' ),
-				'category'        => 'widgets',
-				'icon'            => 'excerpt-view',
-				'render_callback' => static function (): string {
-					$out = do_shortcode( '[nuclear_engagement_summary]' );
-					if ( ! is_string( $out ) || trim( $out ) === '' ) {
-						return '<p>' . esc_html__( 'Summary unavailable.', 'nuclear-engagement' ) . '</p>';
-					}
-					return $out;
-				},
-                                'editor_script'   => 'nuclen-admin',
-                        )
-                );
+				register_block_type(
+					'nuclear-engagement/summary',
+					array(
+						'api_version'     => 2,
+						'title'           => __( 'Summary', 'nuclear-engagement' ),
+						'category'        => 'widgets',
+						'icon'            => 'excerpt-view',
+						'render_callback' => static function (): string {
+								$out = do_shortcode( '[nuclear_engagement_summary]' );
+							if ( ! is_string( $out ) || trim( $out ) === '' ) {
+								return '<p>' . esc_html__( 'Summary unavailable.', 'nuclear-engagement' ) . '</p>';
+							}
+								return $out;
+						},
+						'editor_script'   => 'nuclen-admin',
+					)
+				);
 
-               register_block_type(
-                       'nuclear-engagement/toc',
-                       array(
-                               'api_version'     => 2,
-                               'title'           => __( 'TOC', 'nuclear-engagement' ),
-                               'category'        => 'widgets',
-                               'icon'            => 'list-view',
-                               'render_callback' => static function (): string {
-                                       $out = do_shortcode( '[nuclear_engagement_toc]' );
-                                       if ( ! is_string( $out ) || trim( $out ) === '' ) {
-                                               return '<p>' . esc_html__( 'TOC unavailable.', 'nuclear-engagement' ) . '</p>';
-                                       }
-                                       return $out;
-                               },
-                               'editor_script'   => 'nuclen-admin',
-                       )
-               );
-        }
+				register_block_type(
+					'nuclear-engagement/toc',
+					array(
+						'api_version'     => 2,
+						'title'           => __( 'TOC', 'nuclear-engagement' ),
+						'category'        => 'widgets',
+						'icon'            => 'list-view',
+						'render_callback' => static function (): string {
+										$out = do_shortcode( '[nuclear_engagement_toc]' );
+							if ( ! is_string( $out ) || trim( $out ) === '' ) {
+								return '<p>' . esc_html__( 'TOC unavailable.', 'nuclear-engagement' ) . '</p>';
+							}
+										return $out;
+						},
+						'editor_script'   => 'nuclen-admin',
+					)
+				);
+	}
 }

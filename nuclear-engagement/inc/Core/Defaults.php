@@ -1,4 +1,10 @@
 <?php
+/**
+ * Defaults.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package NuclearEngagement_Core
+ */
+
 declare(strict_types=1);
 /**
  * File: includes/Defaults.php
@@ -28,12 +34,10 @@ class Defaults {
 			'quiz_border_radius'                    => '6',
 			'quiz_shadow_color'                     => 'rgba(0,0,0,0.15)',
 			'quiz_shadow_blur'                      => '8',
-
 			'quiz_answer_button_bg_color'           => '#94544A',
 			'quiz_answer_button_border_color'       => '#94544A',
 			'quiz_answer_button_border_width'       => '2',
 			'quiz_answer_button_border_radius'      => '4',
-
 			'quiz_progress_bar_fg_color'            => '#1B977D',
 			'quiz_progress_bar_bg_color'            => '#e0e0e0',
 			'quiz_progress_bar_height'              => '10',
@@ -70,13 +74,13 @@ class Defaults {
 			'display_summary'                       => 'before',
 			'display_quiz'                          => 'after',
 			'display_toc'                           => 'manual',
-			'toc_sticky'                            => false, // Whether to make TOC sticky when scrolling
-			'toc_sticky_offset_x'                   => '20',   // X offset (left) for sticky TOC in pixels
-			'toc_sticky_offset_y'                   => '20',   // Y offset (top) for sticky TOC in pixels
-			'toc_sticky_max_width'                  => '300',  // Max width for sticky TOC in pixels
-			'toc_show_toggle'                       => true,   // Whether to show the TOC toggle button
-			'toc_show_content'                      => true,   // Whether to show TOC content by default (only used if toggle is enabled)
-			'toc_heading_levels'                    => array( 2, 3, 4, 5, 6 ), // Which heading levels to include in TOC (H2-H6)
+			'toc_sticky'                            => false, // Whether to make TOC sticky when scrolling.
+			'toc_sticky_offset_x'                   => '20',   // X offset (left) for sticky TOC in pixels.
+			'toc_sticky_offset_y'                   => '20',   // Y offset (top) for sticky TOC in pixels.
+			'toc_sticky_max_width'                  => '300',  // Max width for sticky TOC in pixels.
+			'toc_show_toggle'                       => true,   // Whether to show the TOC toggle button.
+			'toc_show_content'                      => true,   // Whether to show TOC content by default (only used if toggle is enabled).
+			'toc_heading_levels'                    => array( 2, 3, 4, 5, 6 ), // Which heading levels to include in TOC (H2-H6).
 			'custom_quiz_html_before'               => '',
 			'custom_quiz_html_after'                => '',
 			'quiz_title'                            => 'Test your knowledge',

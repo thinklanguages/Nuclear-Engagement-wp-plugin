@@ -1,4 +1,10 @@
 <?php
+/**
+ * page-header.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package Nuclear_Engagement
+ */
+
 declare(strict_types=1);
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -17,7 +23,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 $image_url = isset( $image_url ) ? (string) $image_url : '';
 
-// Fallback: Try to construct the URL using plugins_url if image_url is empty
+// Fallback: Try to construct the URL using plugins_url if image_url is empty.
 if ( empty( $image_url ) ) {
 	$image_url = plugins_url( 'assets/images/nuclear-engagement-logo.webp', dirname( dirname( __DIR__ ) ) . '/nuclear-engagement.php' );
 }

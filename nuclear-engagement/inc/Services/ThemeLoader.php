@@ -1,187 +1,203 @@
 <?php
+/**
+ * ThemeLoader.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package NuclearEngagement_Services
+ */
+
 namespace NuclearEngagement\Services;
 
 use NuclearEngagement\Repositories\ThemeRepository;
 use NuclearEngagement\Models\Theme;
 
 class ThemeLoader {
-    private $repository;
-    private $loaded_themes = [];
-    private $enqueued_scripts = false;
+	private $repository;
+	private $loaded_themes    = array();
+	private $enqueued_scripts = false;
 
-    public function __construct(ThemeRepository $repository = null) {
-        $this->repository = $repository ?: new ThemeRepository();
-    }
+	public function __construct( ThemeRepository $repository = null ) {
+		$this->repository = $repository ?: new ThemeRepository();
+	}
 
-    public function init() {
-        add_action('wp_enqueue_scripts', [$this, 'enqueue_lazy_loader']);
-        add_action('wp_ajax_nuclen_get_theme_urls', [$this, 'ajax_get_theme_urls']);
-        add_action('wp_ajax_nopriv_nuclen_get_theme_urls', [$this, 'ajax_get_theme_urls']);
-    }
+	public function init() {
+		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_lazy_loader' ) );
+		add_action( 'wp_ajax_nuclen_get_theme_urls', array( $this, 'ajax_get_theme_urls' ) );
+		add_action( 'wp_ajax_nopriv_nuclen_get_theme_urls', array( $this, 'ajax_get_theme_urls' ) );
+	}
 
-    public function enqueue_lazy_loader() {
-        if ($this->enqueued_scripts) {
-            return;
-        }
+	public function enqueue_lazy_loader() {
+		if ( $this->enqueued_scripts ) {
+			return;
+		}
 
-        $active_theme = $this->repository->get_active();
-        
-        if (!$active_theme || $active_theme->type === Theme::TYPE_PRESET) {
-            return;
-        }
+		$active_theme = $this->repository->get_active();
 
-        wp_enqueue_script(
-            'nuclen-theme-loader',
-            NUCLEN_PLUGIN_URL . 'assets/js/theme-loader.js',
-            [],
-            NUCLEN_PLUGIN_VERSION,
-            true
-        );
+		if ( ! $active_theme || $active_theme->type === Theme::TYPE_PRESET ) {
+			return;
+		}
 
-        wp_localize_script('nuclen-theme-loader', 'nuclenThemeLoader', [
-            'ajaxUrl' => admin_url('admin-ajax.php'),
-            'nonce' => wp_create_nonce('nuclen_theme_loader'),
-            'activeThemeId' => $active_theme->id,
-            'offset' => apply_filters('nuclen_theme_loader_offset', 200),
-            'components' => $this->get_component_selectors(),
-        ]);
+		wp_enqueue_script(
+			'nuclen-theme-loader',
+			NUCLEN_PLUGIN_URL . 'assets/js/theme-loader.js',
+			array(),
+			NUCLEN_PLUGIN_VERSION,
+			true
+		);
 
-        $this->enqueued_scripts = true;
-    }
+		wp_localize_script(
+			'nuclen-theme-loader',
+			'nuclenThemeLoader',
+			array(
+				'ajaxUrl'       => admin_url( 'admin-ajax.php' ),
+				'nonce'         => wp_create_nonce( 'nuclen_theme_loader' ),
+				'activeThemeId' => $active_theme->id,
+				'offset'        => apply_filters( 'nuclen_theme_loader_offset', 200 ),
+				'components'    => $this->get_component_selectors(),
+			)
+		);
 
-    public function load_theme_css($theme_id = null) {
-        if ($theme_id === null) {
-            $theme = $this->repository->get_active();
-        } else {
-            $theme = $this->repository->find($theme_id);
-        }
+		$this->enqueued_scripts = true;
+	}
 
-        if (!$theme || isset($this->loaded_themes[$theme->id])) {
-            return;
-        }
+	public function load_theme_css( $theme_id = null ) {
+		if ( $theme_id === null ) {
+			$theme = $this->repository->get_active();
+		} else {
+			$theme = $this->repository->find( $theme_id );
+		}
 
-        if ($theme->type === Theme::TYPE_PRESET) {
-            $this->load_preset_theme($theme);
-        } else {
-            $this->load_custom_theme($theme);
-        }
+		if ( ! $theme || isset( $this->loaded_themes[ $theme->id ] ) ) {
+			return;
+		}
 
-        $this->loaded_themes[$theme->id] = true;
-    }
+		if ( $theme->type === Theme::TYPE_PRESET ) {
+			$this->load_preset_theme( $theme );
+		} else {
+			$this->load_custom_theme( $theme );
+		}
 
-    private function load_preset_theme(Theme $theme) {
-        $preset_file = NUCLEN_PLUGIN_URL . 'assets/css/themes/' . $theme->name . '.css';
-        
-        wp_enqueue_style(
-            'nuclen-theme-' . $theme->name,
-            $preset_file,
-            ['nuclen-front'],
-            NUCLEN_VERSION
-        );
+		$this->loaded_themes[ $theme->id ] = true;
+	}
 
-        if ($theme->name === 'dark') {
-            add_filter('nuclen_root_attributes', function($attrs) {
-                $attrs['data-theme'] = 'dark';
-                return $attrs;
-            });
-        }
-    }
+	private function load_preset_theme( Theme $theme ) {
+		$preset_file = NUCLEN_PLUGIN_URL . 'assets/css/themes/' . $theme->name . '.css';
 
-    private function load_custom_theme(Theme $theme) {
-        if (!$theme->css_path) {
-            $generator = new ThemeCssGenerator($this->repository);
-            $generator->generate_css($theme);
-            $this->repository->save($theme);
-        }
+		wp_enqueue_style(
+			'nuclen-theme-' . $theme->name,
+			$preset_file,
+			array( 'nuclen-front' ),
+			NUCLEN_VERSION
+		);
 
-        if ($theme->css_path && file_exists($theme->get_css_file_path())) {
-            wp_enqueue_style(
-                'nuclen-theme-custom-' . $theme->id,
-                $theme->get_css_url(),
-                ['nuclen-front'],
-                $theme->css_hash
-            );
-        }
-    }
+		if ( $theme->name === 'dark' ) {
+			add_filter(
+				'nuclen_root_attributes',
+				function ( $attrs ) {
+					$attrs['data-theme'] = 'dark';
+					return $attrs;
+				}
+			);
+		}
+	}
 
-    public function ajax_get_theme_urls() {
-        check_ajax_referer('nuclen_theme_loader', 'nonce');
+	private function load_custom_theme( Theme $theme ) {
+		if ( ! $theme->css_path ) {
+			$generator = new ThemeCssGenerator( $this->repository );
+			$generator->generate_css( $theme );
+			$this->repository->save( $theme );
+		}
 
-        $theme_ids = isset($_POST['theme_ids']) ? array_map('intval', $_POST['theme_ids']) : [];
-        
-        $urls = [];
-        
-        foreach ($theme_ids as $theme_id) {
-            $theme = $this->repository->find($theme_id);
-            
-            if ($theme) {
-                if ($theme->type === Theme::TYPE_PRESET) {
-                    $urls[$theme_id] = NUCLEN_PLUGIN_URL . 'assets/css/themes/' . $theme->name . '.css';
-                } elseif ($theme->css_path) {
-                    $urls[$theme_id] = $theme->get_css_url();
-                }
-            }
-        }
+		if ( $theme->css_path && file_exists( $theme->get_css_file_path() ) ) {
+			wp_enqueue_style(
+				'nuclen-theme-custom-' . $theme->id,
+				$theme->get_css_url(),
+				array( 'nuclen-front' ),
+				$theme->css_hash
+			);
+		}
+	}
 
-        wp_send_json_success($urls);
-    }
+	public function ajax_get_theme_urls() {
+		check_ajax_referer( 'nuclen_theme_loader', 'nonce' );
 
-    private function get_component_selectors() {
-        return apply_filters('nuclen_theme_component_selectors', [
-            'quiz' => '.nuclen-quiz-container',
-            'progress' => '.nuclen-progress-bar',
-            'summary' => '.nuclen-summary-container',
-            'toc' => '.nuclen-toc',
-            'button' => '.nuclen-quiz-button',
-        ]);
-    }
+		$theme_ids = isset( $_POST['theme_ids'] ) ? array_map( 'intval', $_POST['theme_ids'] ) : array();
 
-    public function get_inline_critical_css() {
-        $active_theme = $this->repository->get_active();
-        
-        if (!$active_theme) {
-            return '';
-        }
+		$urls = array();
 
-        $critical_vars = $this->extract_critical_vars($active_theme->config);
-        
-        if (empty($critical_vars)) {
-            return '';
-        }
+		foreach ( $theme_ids as $theme_id ) {
+			$theme = $this->repository->find( $theme_id );
 
-        $css = "<style id='nuclen-theme-critical'>\n";
-        $css .= ":root {\n";
-        
-        foreach ($critical_vars as $var => $value) {
-            $css .= "    {$var}: {$value};\n";
-        }
-        
-        $css .= "}\n";
-        $css .= "</style>\n";
+			if ( $theme ) {
+				if ( $theme->type === Theme::TYPE_PRESET ) {
+					$urls[ $theme_id ] = NUCLEN_PLUGIN_URL . 'assets/css/themes/' . $theme->name . '.css';
+				} elseif ( $theme->css_path ) {
+					$urls[ $theme_id ] = $theme->get_css_url();
+				}
+			}
+		}
 
-        return $css;
-    }
+		wp_send_json_success( $urls );
+	}
 
-    private function extract_critical_vars($config) {
-        $critical = [];
-        
-        $critical_keys = [
-            'quiz_container' => ['background_color', 'border_color'],
-            'quiz_button' => ['background_color', 'text_color'],
-            'progress_bar' => ['background_color', 'fill_color'],
-        ];
+	private function get_component_selectors() {
+		return apply_filters(
+			'nuclen_theme_component_selectors',
+			array(
+				'quiz'     => '.nuclen-quiz-container',
+				'progress' => '.nuclen-progress-bar',
+				'summary'  => '.nuclen-summary-container',
+				'toc'      => '.nuclen-toc',
+				'button'   => '.nuclen-quiz-button',
+			)
+		);
+	}
 
-        foreach ($critical_keys as $component => $props) {
-            if (isset($config[$component])) {
-                foreach ($props as $prop) {
-                    if (isset($config[$component][$prop])) {
-                        $var_name = "--nuclen-{$component}-" . str_replace('_', '-', $prop);
-                        $critical[$var_name] = $config[$component][$prop];
-                    }
-                }
-            }
-        }
+	public function get_inline_critical_css() {
+		$active_theme = $this->repository->get_active();
 
-        return $critical;
-    }
+		if ( ! $active_theme ) {
+			return '';
+		}
+
+		$critical_vars = $this->extract_critical_vars( $active_theme->config );
+
+		if ( empty( $critical_vars ) ) {
+			return '';
+		}
+
+		$css  = "<style id='nuclen-theme-critical'>\n";
+		$css .= ":root {\n";
+
+		foreach ( $critical_vars as $var => $value ) {
+			$css .= "    {$var}: {$value};\n";
+		}
+
+		$css .= "}\n";
+		$css .= "</style>\n";
+
+		return $css;
+	}
+
+	private function extract_critical_vars( $config ) {
+		$critical = array();
+
+		$critical_keys = array(
+			'quiz_container' => array( 'background_color', 'border_color' ),
+			'quiz_button'    => array( 'background_color', 'text_color' ),
+			'progress_bar'   => array( 'background_color', 'fill_color' ),
+		);
+
+		foreach ( $critical_keys as $component => $props ) {
+			if ( isset( $config[ $component ] ) ) {
+				foreach ( $props as $prop ) {
+					if ( isset( $config[ $component ][ $prop ] ) ) {
+						$var_name              = "--nuclen-{$component}-" . str_replace( '_', '-', $prop );
+						$critical[ $var_name ] = $config[ $component ][ $prop ];
+					}
+				}
+			}
+		}
+
+		return $critical;
+	}
 }

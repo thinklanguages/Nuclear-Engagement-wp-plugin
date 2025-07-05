@@ -16,7 +16,6 @@ vi.mock('../../src/admin/ts/generation/api', async () => {
 // nuclenFetchWithRetry above.
 vi.mock('../../src/admin/ts/nuclen-admin-generate', async () => {
   const api = await import('../../src/admin/ts/generation/api');
-  const { NuclenPollAndPullUpdates } = await vi.importActual('../../src/admin/ts/generation/polling');
   return {
 	...api,
 	NuclenPollAndPullUpdates: vi.fn(),
@@ -48,19 +47,17 @@ describe('nuclen-admin-single-generation', () => {
   afterEach(() => {
 	vi.clearAllMocks();
 	document.body.innerHTML = '';
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	delete (window as any).nuclenAdminVars;
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	delete (window as any).nuclenAjax;
   });
 
   it('starts generation and updates progress', async () => {
 	let pollOpts: any;
-	(NuclenPollAndPullUpdates as unknown as vi.Mock).mockImplementation((opts) => {
+	(NuclenPollAndPullUpdates as unknown as ReturnType<typeof vi.fn>).mockImplementation((opts: any) => {
 	  pollOpts = opts;
 	});
 
-	(api.nuclenFetchWithRetry as vi.Mock).mockResolvedValueOnce({
+	(api.nuclenFetchWithRetry as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
 		ok: true,
 		status: 200,
 		data: { success: true, generation_id: 'gid' },
@@ -89,7 +86,7 @@ describe('nuclen-admin-single-generation', () => {
   });
 
   it('displays error when generation fails', async () => {
-	(api.nuclenFetchWithRetry as vi.Mock).mockResolvedValueOnce({
+	(api.nuclenFetchWithRetry as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
 		ok: false,
 		status: 500,
 		data: null,

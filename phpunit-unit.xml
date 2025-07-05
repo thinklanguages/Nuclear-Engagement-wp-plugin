@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit bootstrap="tests/bootstrap.php" colors="true" verbose="true" stopOnError="false" stopOnFailure="false">
+    <testsuites>
+        <testsuite name="Unit Tests">
+            <directory>tests</directory>
+            <exclude>tests/integration</exclude>
+            <exclude>tests/performance</exclude>
+            <exclude>tests/security</exclude>
+            <exclude>tests/mocks</exclude>
+        </testsuite>
+    </testsuites>
+</phpunit>

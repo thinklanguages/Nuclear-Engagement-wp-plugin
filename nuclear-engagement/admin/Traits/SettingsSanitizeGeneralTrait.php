@@ -1,4 +1,10 @@
 <?php
+/**
+ * SettingsSanitizeGeneralTrait.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package NuclearEngagement_Admin_Traits
+ */
+
 declare(strict_types=1);
 /**
  * File: admin/Traits/SettingsSanitizeGeneralTrait.php
@@ -22,11 +28,11 @@ trait SettingsSanitizeGeneralTrait {
 
 		/* Theme */
 		$themes = array( 'light', 'dark', 'custom', 'bright', 'none' );
-		// Convert 'bright' to 'light' for backward compatibility
-		if (isset($in['theme']) && $in['theme'] === 'bright') {
+		// Convert 'bright' to 'light' for backward compatibility.
+		if ( isset( $in['theme'] ) && $in['theme'] === 'bright' ) {
 			$in['theme'] = 'light';
 		}
-		$theme  = in_array( $in['theme'] ?? 'light', $themes, true ) ? $in['theme'] : 'light';
+		$theme = in_array( $in['theme'] ?? 'light', $themes, true ) ? $in['theme'] : 'light';
 
 		/* Counts */
 		$q_per_quiz = max( 3, min( 10, (int) ( $in['questions_per_quiz'] ?? 3 ) ) );
@@ -42,12 +48,12 @@ trait SettingsSanitizeGeneralTrait {
 		$toc_show_toggle  = ! empty( $in['toc_show_toggle'] ) ? '1' : '0';
 		$toc_show_content = ! empty( $in['toc_show_content'] ) ? '1' : '0';
 
-		// Sticky TOC offsets & width
+		// Sticky TOC offsets & width.
 		$off_x = isset( $in['toc_sticky_offset_x'] ) ? max( 0, min( 1000, (int) $in['toc_sticky_offset_x'] ) ) : 20;
 		$off_y = isset( $in['toc_sticky_offset_y'] ) ? max( 0, min( 1000, (int) $in['toc_sticky_offset_y'] ) ) : 20;
 		$max_w = isset( $in['toc_sticky_max_width'] ) ? max( 200, min( 800, (int) $in['toc_sticky_max_width'] ) ) : 300;
 
-		// Heading levels
+		// Heading levels.
 		$toc_heading_levels = array();
 		if ( isset( $in['toc_heading_levels'] ) && is_array( $in['toc_heading_levels'] ) ) {
 			$toc_heading_levels = array_map( 'intval', $in['toc_heading_levels'] );
@@ -115,7 +121,7 @@ trait SettingsSanitizeGeneralTrait {
 			'toc_show_content'                      => $toc_show_content,
 			'toc_heading_levels'                    => $toc_heading_levels,
 
-			// ► NEW – sticky offsets & max-width ◄
+			// ► NEW – sticky offsets & max-width ◄.
 			'toc_sticky_offset_x'                   => $off_x,
 			'toc_sticky_offset_y'                   => $off_y,
 			'toc_sticky_max_width'                  => $max_w,

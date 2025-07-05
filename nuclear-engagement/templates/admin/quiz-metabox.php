@@ -1,4 +1,10 @@
 <?php
+/**
+ * quiz-metabox.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package Nuclear_Engagement
+ */
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -34,6 +40,7 @@ for ( $q_index = 0; $q_index < 10; $q_index++ ) :
 	$answers = array_pad( $answers, 4, '' );
 	?>
 	<div class="nuclen-quiz-metabox-question">
+		/* translators: %s: placeholder description */
 		<h4><?php printf( esc_html__( 'Question %d', 'nuclear-engagement' ), $q_index + 1 ); ?></h4>
 		<input type="text" name="nuclen_quiz_data[questions][<?php echo esc_attr( $q_index ); ?>][question]" value="<?php echo esc_attr( $q_text ); ?>" class="nuclen-width-full" />
 		<p><strong><?php esc_html_e( 'Answers', 'nuclear-engagement' ); ?></strong></p>
@@ -41,6 +48,7 @@ for ( $q_index = 0; $q_index < 10; $q_index++ ) :
 		foreach ( $answers as $a_index => $answer ) :
 			$class = $a_index === 0 ? 'nuclen-answer-correct' : '';
 			?>
+			/* translators: %s: placeholder description */
 			<p class="nuclen-answer-label <?php echo esc_attr( $class ); ?>"><?php printf( esc_html__( 'Answer %d', 'nuclear-engagement' ), $a_index + 1 ); ?><br>
 				<input type="text" name="nuclen_quiz_data[questions][<?php echo esc_attr( $q_index ); ?>][answers][<?php echo esc_attr( $a_index ); ?>]" value="<?php echo esc_attr( $answer ); ?>" class="nuclen-width-full" />
 			</p>

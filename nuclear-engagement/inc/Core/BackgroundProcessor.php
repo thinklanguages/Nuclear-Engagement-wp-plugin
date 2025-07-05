@@ -1,4 +1,10 @@
 <?php
+/**
+ * BackgroundProcessor.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package NuclearEngagement_Core
+ */
+
 declare(strict_types=1);
 
 namespace NuclearEngagement\Core;
@@ -23,27 +29,30 @@ final class BackgroundProcessor {
 	 * Initialize background processor.
 	 */
 	public static function init(): void {
-		// Register default job handlers
+		// Register default job handlers.
 		JobHandler::register_default_handlers();
 
-		// Set up cron for job processing
+		// Set up cron for job processing.
 		if ( ! wp_next_scheduled( 'nuclen_process_background_jobs' ) ) {
 			wp_schedule_event( time(), 'nuclen_every_minute', 'nuclen_process_background_jobs' );
 		}
 
-		// Add custom cron interval
-		add_filter( 'cron_schedules', function( $schedules ) {
-			$schedules['nuclen_every_minute'] = [
-				'interval' => 60,
-				'display'  => __( 'Every Minute', 'nuclear-engagement' ),
-			];
-			return $schedules;
-		} );
+		// Add custom cron interval.
+		add_filter(
+			'cron_schedules',
+			function ( $schedules ) {
+				$schedules['nuclen_every_minute'] = array(
+					'interval' => 60,
+					'display'  => __( 'Every Minute', 'nuclear-engagement' ),
+				);
+				return $schedules;
+			}
+		);
 
-		add_action( 'nuclen_process_background_jobs', [ self::class, 'process_jobs' ] );
-		
-		// Clean up completed jobs
-		add_action( 'nuclen_cleanup_completed_jobs', [ JobQueue::class, 'cleanup_completed_jobs' ] );
+		add_action( 'nuclen_process_background_jobs', array( self::class, 'process_jobs' ) );
+
+		// Clean up completed jobs.
+		add_action( 'nuclen_cleanup_completed_jobs', array( JobQueue::class, 'cleanup_completed_jobs' ) );
 		if ( ! wp_next_scheduled( 'nuclen_cleanup_completed_jobs' ) ) {
 			wp_schedule_event( time(), 'hourly', 'nuclen_cleanup_completed_jobs' );
 		}
@@ -58,7 +67,7 @@ final class BackgroundProcessor {
 	 * @param int    $delay    Delay in seconds before processing.
 	 * @return string Job ID.
 	 */
-	public static function queue_job( string $type, array $data = [], int $priority = 10, int $delay = 0 ): string {
+	public static function queue_job( string $type, array $data = array(), int $priority = 10, int $delay = 0 ): string {
 		return JobQueue::queue_job( $type, $data, $priority, $delay );
 	}
 
@@ -96,16 +105,16 @@ final class BackgroundProcessor {
 	 * Process queued jobs.
 	 */
 	public static function process_jobs(): void {
-		// Prevent overlapping job processing
-		$lock_key = 'nuclen_job_processing_lock';
+		// Prevent overlapping job processing.
+		$lock_key   = 'nuclen_job_processing_lock';
 		$lock_value = time();
-		
+
 		if ( ! self::acquire_lock( $lock_key, $lock_value ) ) {
 			return;
 		}
 
 		try {
-			$jobs = JobQueue::get_ready_jobs();
+			$jobs      = JobQueue::get_ready_jobs();
 			$processed = 0;
 
 			foreach ( $jobs as $job ) {
@@ -114,7 +123,7 @@ final class BackgroundProcessor {
 				}
 
 				JobHandler::process_job( $job );
-				$processed++;
+				++$processed;
 			}
 		} finally {
 			self::release_lock( $lock_key, $lock_value );
@@ -150,8 +159,8 @@ final class BackgroundProcessor {
 	 */
 	private static function acquire_lock( string $key, $value ): bool {
 		$existing = get_transient( $key );
-		
-		if ( $existing && ( time() - $existing ) < 300 ) { // 5 minute lock
+
+		if ( $existing && ( time() - $existing ) < 300 ) { // 5 minute lock.
 			return false;
 		}
 
@@ -166,7 +175,7 @@ final class BackgroundProcessor {
 	 */
 	private static function release_lock( string $key, $value ): void {
 		$existing = get_transient( $key );
-		
+
 		if ( $existing === $value ) {
 			delete_transient( $key );
 		}
@@ -182,7 +191,7 @@ class BackgroundJobContext {
 
 	public function __construct( string $job_id, array $data ) {
 		$this->job_id = $job_id;
-		$this->data = $data;
+		$this->data   = $data;
 	}
 
 	public function get_job_id(): string {

@@ -37,7 +37,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @since 1.0.0
  */
 class Installer {
-	
+
 	/**
 	 * Handle plugin activation.
 	 *
@@ -49,16 +49,16 @@ class Installer {
 	 * @return void
 	 */
 	public function activate(): void {
-		// Load default plugin settings
+		// Load default plugin settings.
 		$defaults = Defaults::nuclen_get_default_settings();
-		
-		// Get or create settings repository instance with defaults
+
+		// Get or create settings repository instance with defaults.
 		$settings = SettingsRepository::get_instance( $defaults );
-		
-		// Initialize secure API user management system
+
+		// Initialize secure API user management system.
 		ApiUserManager::init();
-		
-		// Delegate activation to the Activator class
+
+		// Delegate activation to the Activator class.
 		Activator::nuclen_activate( $settings );
 	}
 
@@ -72,13 +72,13 @@ class Installer {
 	 * @return void
 	 */
 	public function deactivate(): void {
-		// Get current settings instance
+		// Get current settings instance.
 		$settings = SettingsRepository::get_instance();
-		
-		// Clean up API user management system
+
+		// Clean up API user management system.
 		ApiUserManager::cleanup();
-		
-		// Delegate deactivation to the Deactivator class
+
+		// Delegate deactivation to the Deactivator class.
 		Deactivator::nuclen_deactivate( $settings );
 	}
 
@@ -97,7 +97,7 @@ class Installer {
 	 * @return void
 	 */
 	public function migrate_post_meta(): void {
-		// Check if migration has already been completed
+		// Check if migration has already been completed.
 		if ( get_option( 'nuclen_meta_migration_done' ) ) {
 			return;
 		}
@@ -111,18 +111,21 @@ class Installer {
 		 */
 		$check_error = static function () use ( $wpdb ) {
 			if ( ! empty( $wpdb->last_error ) ) {
-				// Log the error for debugging
+				// Log the error for debugging.
 				LoggingService::log( 'Meta migration error: ' . $wpdb->last_error );
-				
-				// Store error details for admin review
+
+				// Store error details for admin review.
 				update_option( 'nuclen_meta_migration_error', $wpdb->last_error );
 				return false;
 			}
 			return true;
 		};
 
-		// Migrate summary meta keys from old to new format
-		// Old: 'ne-summary-data' -> New: Summary_Service::META_KEY
+		// Migrate summary meta keys from old to new format.
+		// Old: 'ne-summary-data' -> New: Summary_Service::META_KEY.
+       // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+   // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+
 		$wpdb->query(
 			$wpdb->prepare(
 				"UPDATE {$wpdb->postmeta} SET meta_key = %s WHERE meta_key = %s",
@@ -130,14 +133,17 @@ class Installer {
 				'ne-summary-data'
 			)
 		);
-		
-		// Check for database errors after summary migration
+
+		// Check for database errors after summary migration.
 		if ( ! $check_error() ) {
 			return;
 		}
 
-		// Migrate quiz meta keys from old to new format
-		// Old: 'ne-quiz-data' -> New: 'nuclen-quiz-data'
+		// Migrate quiz meta keys from old to new format.
+		// Old: 'ne-quiz-data' -> New: 'nuclen-quiz-data'.
+     // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+   // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+
 		$wpdb->query(
 			$wpdb->prepare(
 				"UPDATE {$wpdb->postmeta} SET meta_key = %s WHERE meta_key = %s",
@@ -145,13 +151,13 @@ class Installer {
 				'ne-quiz-data'
 			)
 		);
-		
-		// Check for database errors after quiz migration
+
+		// Check for database errors after quiz migration.
 		if ( ! $check_error() ) {
 			return;
 		}
 
-		// Migration completed successfully - clean up and mark as done
+		// Migration completed successfully - clean up and mark as done.
 		delete_option( 'nuclen_meta_migration_error' );
 		update_option( 'nuclen_meta_migration_done', true );
 	}

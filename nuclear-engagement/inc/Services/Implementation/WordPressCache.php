@@ -1,4 +1,10 @@
 <?php
+/**
+ * WordPressCache.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package NuclearEngagement_Services_Implementation
+ */
+
 declare(strict_types=1);
 /**
  * File: inc/Services/Implementation/WordPressCache.php
@@ -21,18 +27,18 @@ if ( ! defined( 'ABSPATH' ) ) {
  * WordPress cache implementation with object cache and transients.
  */
 class WordPressCache implements CacheInterface {
-	
+
 	/** @var string */
 	private string $cache_group;
-	
+
 	/** @var string */
 	private string $cache_prefix;
-	
+
 	public function __construct( string $cache_group = 'nuclen' ) {
-		$this->cache_group = $cache_group;
+		$this->cache_group  = $cache_group;
 		$this->cache_prefix = Environment::get_cache_prefix();
 	}
-	
+
 	/**
 	 * Get cached value.
 	 *
@@ -42,26 +48,26 @@ class WordPressCache implements CacheInterface {
 	 */
 	public function get( string $key, $default = null ) {
 		$prefixed_key = $this->prefix_key( $key );
-		
-		// Try object cache first
+
+		// Try object cache first.
 		$found = false;
 		$value = wp_cache_get( $prefixed_key, $this->cache_group, false, $found );
-		
+
 		if ( $found ) {
 			return $this->unserialize_value( $value );
 		}
-		
-		// Fallback to transients
+
+		// Fallback to transients.
 		$transient_value = get_transient( $prefixed_key );
 		if ( $transient_value !== false ) {
-			// Store in object cache for faster access
+			// Store in object cache for faster access.
 			wp_cache_set( $prefixed_key, $transient_value, $this->cache_group );
 			return $this->unserialize_value( $transient_value );
 		}
-		
+
 		return $default;
 	}
-	
+
 	/**
 	 * Set cached value.
 	 *
@@ -71,18 +77,18 @@ class WordPressCache implements CacheInterface {
 	 * @return bool Success status.
 	 */
 	public function set( string $key, $value, int $expiration = 3600 ): bool {
-		$prefixed_key = $this->prefix_key( $key );
+		$prefixed_key     = $this->prefix_key( $key );
 		$serialized_value = $this->serialize_value( $value );
-		
-		// Set in object cache
+
+		// Set in object cache.
 		$object_cache_result = wp_cache_set( $prefixed_key, $serialized_value, $this->cache_group, $expiration );
-		
-		// Set in transients as backup
+
+		// Set in transients as backup.
 		$transient_result = set_transient( $prefixed_key, $serialized_value, $expiration );
-		
+
 		return $object_cache_result || $transient_result;
 	}
-	
+
 	/**
 	 * Delete cached value.
 	 *
@@ -91,16 +97,16 @@ class WordPressCache implements CacheInterface {
 	 */
 	public function delete( string $key ): bool {
 		$prefixed_key = $this->prefix_key( $key );
-		
-		// Delete from object cache
+
+		// Delete from object cache.
 		$object_cache_result = wp_cache_delete( $prefixed_key, $this->cache_group );
-		
-		// Delete from transients
+
+		// Delete from transients.
 		$transient_result = delete_transient( $prefixed_key );
-		
+
 		return $object_cache_result || $transient_result;
 	}
-	
+
 	/**
 	 * Clear all cached values in group.
 	 *
@@ -111,13 +117,13 @@ class WordPressCache implements CacheInterface {
 		if ( function_exists( 'wp_cache_flush_group' ) ) {
 			return wp_cache_flush_group( $group );
 		}
-		
-		// Fallback: increment cache version
-		$version_key = "cache_version_{$group}";
+
+		// Fallback: increment cache version.
+		$version_key     = "cache_version_{$group}";
 		$current_version = (int) get_option( $version_key, 1 );
 		return update_option( $version_key, $current_version + 1, false );
 	}
-	
+
 	/**
 	 * Clear all cached values.
 	 *
@@ -126,7 +132,7 @@ class WordPressCache implements CacheInterface {
 	public function flush(): bool {
 		return wp_cache_flush();
 	}
-	
+
 	/**
 	 * Check if key exists in cache.
 	 *
@@ -135,19 +141,19 @@ class WordPressCache implements CacheInterface {
 	 */
 	public function exists( string $key ): bool {
 		$prefixed_key = $this->prefix_key( $key );
-		
-		// Check object cache
+
+		// Check object cache.
 		$found = false;
 		wp_cache_get( $prefixed_key, $this->cache_group, false, $found );
-		
+
 		if ( $found ) {
 			return true;
 		}
-		
-		// Check transients
+
+		// Check transients.
 		return get_transient( $prefixed_key ) !== false;
 	}
-	
+
 	/**
 	 * Get multiple cached values.
 	 *
@@ -156,14 +162,14 @@ class WordPressCache implements CacheInterface {
 	 */
 	public function get_multiple( array $keys ): array {
 		$result = array();
-		
+
 		foreach ( $keys as $key ) {
 			$result[ $key ] = $this->get( $key );
 		}
-		
+
 		return $result;
 	}
-	
+
 	/**
 	 * Set multiple cached values.
 	 *
@@ -173,16 +179,16 @@ class WordPressCache implements CacheInterface {
 	 */
 	public function set_multiple( array $values, int $expiration = 3600 ): bool {
 		$success = true;
-		
+
 		foreach ( $values as $key => $value ) {
 			if ( ! $this->set( $key, $value, $expiration ) ) {
 				$success = false;
 			}
 		}
-		
+
 		return $success;
 	}
-	
+
 	/**
 	 * Delete multiple cached values.
 	 *
@@ -191,16 +197,16 @@ class WordPressCache implements CacheInterface {
 	 */
 	public function delete_multiple( array $keys ): bool {
 		$success = true;
-		
+
 		foreach ( $keys as $key ) {
 			if ( ! $this->delete( $key ) ) {
 				$success = false;
 			}
 		}
-		
+
 		return $success;
 	}
-	
+
 	/**
 	 * Increment cached value.
 	 *
@@ -210,12 +216,12 @@ class WordPressCache implements CacheInterface {
 	 * @return int|false New value or false on failure.
 	 */
 	public function increment( string $key, int $step = 1, $group = null ) {
-		$group = $group ?: $this->cache_group;
+		$group        = $group ?: $this->cache_group;
 		$prefixed_key = $this->prefix_key( $key );
-		
+
 		return wp_cache_incr( $prefixed_key, $step, $group );
 	}
-	
+
 	/**
 	 * Decrement cached value.
 	 *
@@ -225,12 +231,12 @@ class WordPressCache implements CacheInterface {
 	 * @return int|false New value or false on failure.
 	 */
 	public function decrement( string $key, int $step = 1, $group = null ) {
-		$group = $group ?: $this->cache_group;
+		$group        = $group ?: $this->cache_group;
 		$prefixed_key = $this->prefix_key( $key );
-		
+
 		return wp_cache_decr( $prefixed_key, $step, $group );
 	}
-	
+
 	/**
 	 * Add cache prefix to key.
 	 *
@@ -240,7 +246,7 @@ class WordPressCache implements CacheInterface {
 	private function prefix_key( string $key ): string {
 		return $this->cache_prefix . $key;
 	}
-	
+
 	/**
 	 * Serialize value for storage.
 	 *
@@ -248,10 +254,10 @@ class WordPressCache implements CacheInterface {
 	 * @return mixed Serialized value.
 	 */
 	private function serialize_value( $value ) {
-		// WordPress cache handles serialization automatically for objects/arrays
+		// WordPress cache handles serialization automatically for objects/arrays.
 		return $value;
 	}
-	
+
 	/**
 	 * Unserialize value from storage.
 	 *
@@ -259,7 +265,7 @@ class WordPressCache implements CacheInterface {
 	 * @return mixed Unserialized value.
 	 */
 	private function unserialize_value( $value ) {
-		// WordPress cache handles unserialization automatically
+		// WordPress cache handles unserialization automatically.
 		return $value;
 	}
 }

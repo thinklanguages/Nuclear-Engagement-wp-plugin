@@ -1,4 +1,10 @@
 <?php
+/**
+ * AutoGenerationScheduler.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package NuclearEngagement_Services
+ */
+
 declare(strict_types=1);
 /**
  * File: includes/Services/AutoGenerationScheduler.php

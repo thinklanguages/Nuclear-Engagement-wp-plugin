@@ -32,7 +32,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @since 1.1.0
  */
 class ApiUserManager {
-	
+
 	/**
 	 * API user role name.
 	 *
@@ -40,7 +40,7 @@ class ApiUserManager {
 	 * @var string
 	 */
 	public const API_ROLE = 'nuclear_engagement_api';
-	
+
 	/**
 	 * API service account username.
 	 *
@@ -48,7 +48,7 @@ class ApiUserManager {
 	 * @var string
 	 */
 	public const SERVICE_ACCOUNT_USERNAME = 'nuclear_engagement_api_service';
-	
+
 	/**
 	 * Option key for storing service account user ID.
 	 *
@@ -56,7 +56,7 @@ class ApiUserManager {
 	 * @var string
 	 */
 	public const SERVICE_ACCOUNT_OPTION = 'nuclear_engagement_api_user_id';
-	
+
 	/**
 	 * Initialize API user management.
 	 *
@@ -66,15 +66,15 @@ class ApiUserManager {
 	 * @return void
 	 */
 	public static function init(): void {
-		// Create API role if it doesn't exist
+		// Create API role if it doesn't exist.
 		if ( ! get_role( self::API_ROLE ) ) {
 			self::create_api_role();
 		}
-		
-		// Ensure service account exists
+
+		// Ensure service account exists.
 		self::ensure_service_account();
 	}
-	
+
 	/**
 	 * Create the API user role with minimal required capabilities.
 	 *
@@ -88,18 +88,18 @@ class ApiUserManager {
 			'edit_published_posts'              => true,
 			'publish_posts'                     => true,
 			'upload_files'                      => true,
-			'manage_nuclear_engagement_content' => true, // Custom capability
+			'manage_nuclear_engagement_content' => true, // Custom capability.
 		);
-		
+
 		add_role(
 			self::API_ROLE,
 			__( 'Nuclear Engagement API', 'nuclear-engagement' ),
 			$capabilities
 		);
-		
+
 		LoggingService::log( 'Created Nuclear Engagement API user role with limited capabilities' );
 	}
-	
+
 	/**
 	 * Ensure the API service account exists.
 	 *
@@ -108,16 +108,16 @@ class ApiUserManager {
 	 */
 	public static function ensure_service_account() {
 		$service_user_id = get_option( self::SERVICE_ACCOUNT_OPTION );
-		
-		// Check if stored user ID is valid
+
+		// Check if stored user ID is valid.
 		if ( $service_user_id && get_user_by( 'id', $service_user_id ) ) {
 			return (int) $service_user_id;
 		}
-		
-		// Create new service account
+
+		// Create new service account.
 		return self::create_service_account();
 	}
-	
+
 	/**
 	 * Create a new API service account.
 	 *
@@ -128,27 +128,27 @@ class ApiUserManager {
 		$username = self::SERVICE_ACCOUNT_USERNAME;
 		$email    = 'api@' . parse_url( home_url(), PHP_URL_HOST );
 		$password = wp_generate_password( 32, true, true );
-		
-		// Create user with API role
+
+		// Create user with API role.
 		$user_id = wp_create_user( $username, $password, $email );
-		
+
 		if ( is_wp_error( $user_id ) ) {
 			LoggingService::log( 'Failed to create API service account: ' . $user_id->get_error_message() );
 			return false;
 		}
-		
-		// Assign API role
+
+		// Assign API role.
 		$user = new \WP_User( $user_id );
 		$user->set_role( self::API_ROLE );
-		
-		// Store service account ID
+
+		// Store service account ID.
 		update_option( self::SERVICE_ACCOUNT_OPTION, $user_id );
-		
+
 		LoggingService::log( "Created API service account (User ID: {$user_id})" );
-		
+
 		return $user_id;
 	}
-	
+
 	/**
 	 * Get the API service account user.
 	 *
@@ -157,14 +157,14 @@ class ApiUserManager {
 	 */
 	public static function get_service_account() {
 		$user_id = self::ensure_service_account();
-		
+
 		if ( ! $user_id ) {
 			return false;
 		}
-		
+
 		return get_user_by( 'id', $user_id );
 	}
-	
+
 	/**
 	 * Check if a user has the required API capabilities.
 	 *
@@ -176,14 +176,14 @@ class ApiUserManager {
 	 */
 	public static function user_can_api( int $user_id, string $capability ): bool {
 		$user = get_user_by( 'id', $user_id );
-		
+
 		if ( ! $user ) {
 			return false;
 		}
-		
+
 		return $user->has_cap( $capability );
 	}
-	
+
 	/**
 	 * Log API operation for audit trail.
 	 *
@@ -193,21 +193,21 @@ class ApiUserManager {
 	 * @param array  $context   Additional context data.
 	 * @return void
 	 */
-	public static function log_api_operation( string $operation, array $context = [] ): void {
+	public static function log_api_operation( string $operation, array $context = array() ): void {
 		$log_data = array_merge(
-			[
-				'operation'    => $operation,
-				'user_id'      => get_current_user_id(),
-				'user_ip'      => ServerUtils::get_client_ip(),
-				'user_agent'   => ServerUtils::get_user_agent(),
-				'timestamp'    => current_time( 'mysql', true ),
-			],
+			array(
+				'operation'  => $operation,
+				'user_id'    => get_current_user_id(),
+				'user_ip'    => ServerUtils::get_client_ip(),
+				'user_agent' => ServerUtils::get_user_agent(),
+				'timestamp'  => current_time( 'mysql', true ),
+			),
 			$context
 		);
-		
+
 		LoggingService::log( 'API Operation: ' . wp_json_encode( $log_data ) );
 	}
-	
+
 	/**
 	 * Sanitize and validate IP address for logging
 	 *
@@ -218,19 +218,19 @@ class ApiUserManager {
 		if ( $ip === 'unknown' ) {
 			return 'unknown';
 		}
-		
-		// Remove any non-IP characters
+
+		// Remove any non-IP characters.
 		$ip = preg_replace( '/[^0-9a-fA-F:.]/', '', $ip );
-		
-		// Validate IPv4 or IPv6
+
+		// Validate IPv4 or IPv6.
 		if ( filter_var( $ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 | FILTER_FLAG_IPV6 ) ) {
-			// Hash IP for privacy while maintaining uniqueness for rate limiting
+			// Hash IP for privacy while maintaining uniqueness for rate limiting.
 			return 'ip_' . substr( hash( 'sha256', $ip . wp_salt() ), 0, 12 );
 		}
-		
+
 		return 'unknown';
 	}
-	
+
 	/**
 	 * Sanitize user agent string for logging
 	 *
@@ -241,19 +241,19 @@ class ApiUserManager {
 		if ( $user_agent === 'unknown' ) {
 			return 'unknown';
 		}
-		
-		// Remove potentially sensitive information and limit length
+
+		// Remove potentially sensitive information and limit length.
 		$user_agent = sanitize_text_field( $user_agent );
-		$user_agent = substr( $user_agent, 0, 200 ); // Limit length
-		
-		// Extract only browser/OS info, remove specific version details
+		$user_agent = substr( $user_agent, 0, 200 ); // Limit length.
+
+		// Extract only browser/OS info, remove specific version details.
 		if ( preg_match( '/^(\w+)/', $user_agent, $matches ) ) {
 			return $matches[1] . '_browser';
 		}
-		
+
 		return 'generic_browser';
 	}
-	
+
 	/**
 	 * Clean up API user role and service account on plugin deactivation.
 	 *
@@ -261,18 +261,18 @@ class ApiUserManager {
 	 * @return void
 	 */
 	public static function cleanup(): void {
-		// Get service account before cleanup
+		// Get service account before cleanup.
 		$service_user_id = get_option( self::SERVICE_ACCOUNT_OPTION );
-		
-		// Remove service account user
+
+		// Remove service account user.
 		if ( $service_user_id ) {
 			wp_delete_user( $service_user_id );
 			delete_option( self::SERVICE_ACCOUNT_OPTION );
 		}
-		
-		// Remove API role
+
+		// Remove API role.
 		remove_role( self::API_ROLE );
-		
+
 		LoggingService::log( 'Cleaned up API user role and service account' );
 	}
 }

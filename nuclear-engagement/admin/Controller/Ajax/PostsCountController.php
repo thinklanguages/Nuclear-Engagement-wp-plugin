@@ -1,4 +1,10 @@
 <?php
+/**
+ * PostsCountController.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package NuclearEngagement_Admin_Controller_Ajax
+ */
+
 declare(strict_types=1);
 /**
  * File: admin/Controller/Ajax/PostsCountController.php
@@ -41,34 +47,34 @@ class PostsCountController extends BaseController {
 	 */
 	public function handle(): void {
 		try {
-			if ( ! $this->verifyRequest( 'nuclen_admin_ajax_nonce' ) ) {
+			if ( ! $this->verify_request( 'nuclen_admin_ajax_nonce' ) ) {
 				return;
 			}
 
-			// Parse request
+			// Parse request.
 			$request = PostsCountRequest::fromPost( $_POST );
 
-			// Validate post type against allowed post types
-			$settings = get_option( 'nuclear_engagement_settings', array() );
+			// Validate post type against allowed post types.
+			$settings           = get_option( 'nuclear_engagement_settings', array() );
 			$allowed_post_types = $settings['generation_post_types'] ?? array( 'post' );
-			
-			// Debug logging (commented out temporarily to isolate 500 error)
+
+			// Debug logging (commented out temporarily to isolate 500 error).
 			// LoggingService::log( 'PostsCountController: Allowed post types: ' . implode( ', ', $allowed_post_types ) );
 			// LoggingService::log( 'PostsCountController: Requested post type: ' . $request->postType );
-			
+
 			if ( ! empty( $request->postType ) && ! in_array( $request->postType, $allowed_post_types, true ) ) {
-				$this->sendError( 'Selected post type is not allowed for generation.' );
+				$this->send_error( 'Selected post type is not allowed for generation.' );
 				return;
 			}
 
-			// Get posts
+			// Get posts.
 			$result = $this->service->getPostsCount( $request );
 
 			wp_send_json_success( $result );
 
 		} catch ( \Throwable $e ) {
 			LoggingService::log_exception( $e );
-			$this->sendError( $e->getMessage() );
+			$this->send_error( $e->getMessage() );
 		}
 	}
 }

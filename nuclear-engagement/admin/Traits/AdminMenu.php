@@ -1,4 +1,10 @@
 <?php
+/**
+ * AdminMenu.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package NuclearEngagement_Admin_Traits
+ */
+
 declare(strict_types=1);
 /**
 	* File: admin/Traits/AdminMenu.php
@@ -73,12 +79,12 @@ trait AdminMenu {
 	}
 
 	/** Dashboard page callback */
-		public function nuclen_display_dashboard() {
-				$settings_repo = $this->nuclen_get_settings_repository();
-				$data_service  = $this->get_container()->get( 'dashboard_data_service' );
-				$dashboard     = new Dashboard( $settings_repo, $data_service );
-				$dashboard->render();
-		}
+	public function nuclen_display_dashboard() {
+			$settings_repo = $this->nuclen_get_settings_repository();
+			$data_service  = $this->get_container()->get( 'dashboard_data_service' );
+			$dashboard     = new Dashboard( $settings_repo, $data_service );
+			$dashboard->render();
+	}
 
 	/**
 	 * “Generate” page callback.

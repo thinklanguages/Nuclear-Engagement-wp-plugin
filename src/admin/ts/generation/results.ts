@@ -41,7 +41,7 @@ export async function nuclenStoreGenerationResults(workflow: string, results: un
 	if (resp.ok) {
 		try {
 			data = await resp.json();
-		} catch (err) {
+		} catch {
 			return { ok: false, data: { message: 'Invalid JSON' } };
 		}
 	}

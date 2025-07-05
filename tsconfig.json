@@ -35,6 +35,7 @@
     "src/front/ts/**/*",
     "src/front/ts/nuclen-globals.d.ts",
     "src/modules/toc/ts/**/*",
-    "src/shared/**/*"
+    "src/shared/**/*",
+    "tests/**/*"
   ]
 }

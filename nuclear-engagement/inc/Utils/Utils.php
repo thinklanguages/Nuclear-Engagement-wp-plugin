@@ -1,15 +1,15 @@
 <?php
 /**
-	* File: includes/Utils.php
-	*
-	* Utility helpers used throughout the plugin.
-	*
-	* Implementation of changes required by WordPress.org guidelines.
-	* - Store log files and custom CSS in the standard uploads folder.
-	* - No new style expansions needed here.
-	*
-	* @package NuclearEngagement
-	*/
+ * File: includes/Utils.php
+ *
+ * Utility helpers used throughout the plugin.
+ *
+ * Implementation of changes required by WordPress.org guidelines.
+ * - Store log files and custom CSS in the standard uploads folder.
+ * - No new style expansions needed here.
+ *
+ * @package NuclearEngagement
+ */
 declare(strict_types=1);
 
 namespace NuclearEngagement\Utils;
@@ -19,8 +19,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
-	* Generic helper utilities for the plugin.
-	*/
+ * Generic helper utilities for the plugin.
+ */
 class Utils {
 
 	/**
@@ -28,35 +28,34 @@ class Utils {
 	 *
 	 * @return void
 	 */
-
-       public function display_nuclen_page_header(): void {
-		// Validate plugin constants to prevent path traversal
+	public function display_nuclen_page_header(): void {
+		// Validate plugin constants to prevent path traversal.
 		if ( ! defined( 'NUCLEN_PLUGIN_URL' ) || ! defined( 'NUCLEN_PLUGIN_DIR' ) ) {
 			return;
 		}
-		
-		// Construct and validate image URL
+
+		// Construct and validate image URL.
 		$image_url = NUCLEN_PLUGIN_URL . 'assets/images/nuclear-engagement-logo.webp';
-		
-		// Validate that the image URL starts with the plugin URL (no path traversal)
+
+		// Validate that the image URL starts with the plugin URL (no path traversal).
 		if ( strpos( $image_url, NUCLEN_PLUGIN_URL ) !== 0 ) {
 			return;
 		}
-		
-		// Validate template path to prevent directory traversal
-		$template_path = NUCLEN_PLUGIN_DIR . 'templates/admin/page-header.php';
-		$real_plugin_dir = realpath( NUCLEN_PLUGIN_DIR );
+
+		// Validate template path to prevent directory traversal.
+		$template_path      = NUCLEN_PLUGIN_DIR . 'templates/admin/page-header.php';
+		$real_plugin_dir    = realpath( NUCLEN_PLUGIN_DIR );
 		$real_template_path = realpath( $template_path );
-		
-		// Ensure template is within plugin directory and exists
-		if ( ! $real_template_path || 
-			 ! $real_plugin_dir || 
-			 strpos( $real_template_path, $real_plugin_dir ) !== 0 ||
-			 ! file_exists( $real_template_path ) ) {
+
+		// Ensure template is within plugin directory and exists.
+		if ( ! $real_template_path ||
+			! $real_plugin_dir ||
+			strpos( $real_template_path, $real_plugin_dir ) !== 0 ||
+			! file_exists( $real_template_path ) ) {
 			return;
 		}
-		
-		// Load template safely
+
+		// Load template safely.
 		load_template(
 			$real_template_path,
 			true,

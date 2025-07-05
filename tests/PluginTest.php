@@ -1,73 +1,91 @@
 <?php
 namespace NuclearEngagement\Core {
-	function register_activation_hook($file, $callback) {
-		$GLOBALS['ph_activation'][] = [$file, $callback];
+	if (!function_exists('NuclearEngagement\\Core\\register_activation_hook')) {
+		function register_activation_hook($file, $callback) {
+			$GLOBALS['ph_activation'][] = [$file, $callback];
+		}
 	}
-	function add_action(...$args) { $GLOBALS['ph_actions'][] = $args; }
-	function add_filter(...$args) { $GLOBALS['ph_filters'][] = $args; }
-	function remove_action(...$args) { $GLOBALS['ph_removed'][] = $args; }
+	if (!function_exists('NuclearEngagement\\Core\\add_action')) {
+		function add_action(...$args) { $GLOBALS['ph_actions'][] = $args; }
+	}
+	if (!function_exists('NuclearEngagement\\Core\\add_filter')) {
+		function add_filter(...$args) { $GLOBALS['ph_filters'][] = $args; }
+	}
+	if (!function_exists('NuclearEngagement\\Core\\remove_action')) {
+		function remove_action(...$args) { $GLOBALS['ph_removed'][] = $args; }
+	}
 
-	class ModuleLoader {
-		public static int $calls = 0;
-		public function __construct(string $base_dir = NUCLEN_PLUGIN_DIR) {}
-		public function load_all(): void { self::$calls++; }
+	if (!class_exists('NuclearEngagement\\Core\\ModuleLoader')) {
+		class ModuleLoader {
+			public static int $calls = 0;
+			public function __construct(string $base_dir = NUCLEN_PLUGIN_DIR) {}
+			public function load_all(): void { self::$calls++; }
+		}
 	}
 }
 
 namespace NuclearEngagement\Services {
-	function add_action(...$args) { $GLOBALS['ph_actions'][] = $args; }
-	class LoggingService {
-		public static array $notices = [];
-		public static function notify_admin(string $msg): void { self::$notices[] = $msg; }
-		public static function log(string $msg): void {}
-		public static function log_exception($e): void {}
+	if (!function_exists('NuclearEngagement\\Services\\add_action')) {
+		function add_action(...$args) { $GLOBALS['ph_actions'][] = $args; }
 	}
 }
 
 namespace NuclearEngagement {
-	class OptinData {
-		public static int $table_exists_calls = 0;
-		public static int $create_table_calls = 0;
-		public static bool $table_exists = false;
-		public static bool $create_result = true;
-		public static function init(): void {}
-		public static function table_exists(): bool {
-			self::$table_exists_calls++;
-			return self::$table_exists;
-		}
-		public static function maybe_create_table(): bool {
-			self::$create_table_calls++;
-			return self::$create_result;
+	if (!class_exists('NuclearEngagement\\OptinData')) {
+		class OptinData {
+			public static int $table_exists_calls = 0;
+			public static int $create_table_calls = 0;
+			public static bool $table_exists = false;
+			public static bool $create_result = true;
+			public static function init(): void {}
+			public static function table_exists(): bool {
+				self::$table_exists_calls++;
+				return self::$table_exists;
+			}
+			public static function maybe_create_table(): bool {
+				self::$create_table_calls++;
+				return self::$create_result;
+			}
 		}
 	}
 }
 
 namespace NuclearEngagement\Admin {
-	class Admin { public function __construct(...$args) {} }
-	class Onboarding { public function nuclen_register_hooks() {} }
-	class Setup {
-		public function __construct(...$args) {}
-		public function nuclen_add_setup_page() {}
-		public function nuclen_handle_connect_app() {}
-		public function nuclen_handle_generate_app_password() {}
-		public function nuclen_handle_reset_api_key() {}
-		public function nuclen_handle_reset_wp_app_connection() {}
+	if (!class_exists('NuclearEngagement\\Admin\\Admin')) {
+		class Admin { public function __construct(...$args) {} }
+	}
+	if (!class_exists('NuclearEngagement\\Admin\\Onboarding')) {
+		class Onboarding { public function nuclen_register_hooks() {} }
+	}
+	if (!class_exists('NuclearEngagement\\Admin\\Setup')) {
+		class Setup {
+			public function __construct(...$args) {}
+			public function nuclen_add_setup_page() {}
+			public function nuclen_handle_connect_app() {}
+			public function nuclen_handle_generate_app_password() {}
+			public function nuclen_handle_reset_api_key() {}
+			public function nuclen_handle_reset_wp_app_connection() {}
+		}
 	}
 }
 
 namespace NuclearEngagement\Front {
-	class FrontClass {
-		public function __construct(...$args) {}
-		public function wp_enqueue_styles() {}
-		public function wp_enqueue_scripts() {}
-		public function nuclen_register_quiz_shortcode() {}
-		public function nuclen_register_summary_shortcode() {}
-		public function nuclen_auto_insert_shortcodes() {}
+	if (!class_exists('NuclearEngagement\\Front\\FrontClass')) {
+		class FrontClass {
+			public function __construct(...$args) {}
+			public function wp_enqueue_styles() {}
+			public function wp_enqueue_scripts() {}
+			public function nuclen_register_quiz_shortcode() {}
+			public function nuclen_register_summary_shortcode() {}
+			public function nuclen_auto_insert_shortcodes() {}
+		}
 	}
 }
 
 namespace NuclearEngagement {
-	class Blocks { public static function register() {} }
+	if (!class_exists('NuclearEngagement\\Blocks')) {
+		class Blocks { public static function register() {} }
+	}
 }
 
 namespace {
@@ -106,7 +124,7 @@ namespace {
 		}
 	});
 
-	require_once dirname(__DIR__) . '/nuclear-engagement/inc/Core/Container.php';
+	require_once dirname(__DIR__) . '/nuclear-engagement/inc/Core/ServiceContainer.php';
 	require_once dirname(__DIR__) . '/nuclear-engagement/inc/Core/SettingsRepository.php';
 	require_once dirname(__DIR__) . '/nuclear-engagement/inc/Core/Defaults.php';
 	require_once dirname(__DIR__) . '/nuclear-engagement/inc/Core/ContainerRegistrar.php';

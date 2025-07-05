@@ -1,4 +1,10 @@
 <?php
+/**
+ * SettingsPageCustomCSSTrait.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package NuclearEngagement_Admin_Traits
+ */
+
 declare(strict_types=1);
 /**
  * File: admin/Traits/SettingsPageCustomCSSTrait.php
@@ -18,37 +24,37 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 trait SettingsPageCustomCSSTrait {
 
-	   /**
-	* Write (or overwrite) the custom-theme CSS file.
-	*
-	* @param array $s Sanitised settings array.
-	*/
-	   protected function nuclen_write_custom_css( array $s ): void {
-	       $css = $this->nuclen_build_custom_css( $s );
-	       $this->nuclen_save_custom_css_file( $css );
-	   }
+		/**
+		 * Write (or overwrite) the custom-theme CSS file.
+		 *
+		 * @param array $s Sanitised settings array.
+		 */
+	protected function nuclen_write_custom_css( array $s ): void {
+		$css = $this->nuclen_build_custom_css( $s );
+		$this->nuclen_save_custom_css_file( $css );
+	}
 
-	   /**
-	* Generate the CSS string for the custom theme with security sanitization.
-	*
-	* Security fix: All CSS values are sanitized to prevent code injection attacks.
-	*
-	* @param array $s Sanitised settings array.
-	*/
-	   private function nuclen_build_custom_css( array $s ): string {
-	       /* ── Fill any missing values so we never output empty CSS vars ── */
-	       $s = wp_parse_args( $s, \NuclearEngagement\Core\Defaults::nuclen_get_default_settings() );
-	       
-	       /* ── Debug: Log the settings before sanitization ── */
-	       \NuclearEngagement\Services\LoggingService::log( 'CSS Generation - Settings before sanitization: ' . wp_json_encode( array_slice( $s, 0, 10 ) ) );
-	       
-	       /* ── Security fix: Sanitize all CSS values to prevent injection attacks ── */
-	       $s = CssSanitizer::sanitize_css_settings( $s );
-	       
-	       /* ── Debug: Log the settings after sanitization ── */
-	       \NuclearEngagement\Services\LoggingService::log( 'CSS Generation - Settings after sanitization: ' . wp_json_encode( array_slice( $s, 0, 10 ) ) );
+		/**
+		 * Generate the CSS string for the custom theme with security sanitization.
+		 *
+		 * Security fix: All CSS values are sanitized to prevent code injection attacks.
+		 *
+		 * @param array $s Sanitised settings array.
+		 */
+	private function nuclen_build_custom_css( array $s ): string {
+		/* ── Fill any missing values so we never output empty CSS vars ── */
+		$s = wp_parse_args( $s, \NuclearEngagement\Core\Defaults::nuclen_get_default_settings() );
 
-	       $css = <<<CSS
+		/* ── Debug: Log the settings before sanitization ── */
+		\NuclearEngagement\Services\LoggingService::log( 'CSS Generation - Settings before sanitization: ' . wp_wp_json_encode( array_slice( $s, 0, 10 ) ) );
+
+		/* ── Security fix: Sanitize all CSS values to prevent injection attacks ── */
+		$s = CssSanitizer::sanitize_css_settings( $s );
+
+		/* ── Debug: Log the settings after sanitization ── */
+		\NuclearEngagement\Services\LoggingService::log( 'CSS Generation - Settings after sanitization: ' . wp_wp_json_encode( array_slice( $s, 0, 10 ) ) );
+
+		$css = <<<CSS
 :root{
 /* ───── Modern Design System Integration ───── */
 /* Map user settings to design tokens while maintaining backward compatibility */
@@ -156,69 +162,69 @@ trait SettingsPageCustomCSSTrait {
 width: 0;
 }
 CSS;
-	       return $css;
-	   }
+		return $css;
+	}
 
-	   /**
-	* Save the generated CSS string to disk and update the version option.
-	*
-	* Security: CSS content has already been sanitized by CssSanitizer before reaching this method.
-	* All user inputs are validated and dangerous patterns removed to prevent injection attacks.
-	*/
-	   private function nuclen_save_custom_css_file( string $css ): void {
-	       $css_info = \NuclearEngagement\Utils\Utils::nuclen_get_custom_css_info();
-	       if ( empty( $css_info ) ) {
-	               \NuclearEngagement\Services\LoggingService::notify_admin( __( 'Could not create custom CSS directory.', 'nuclear-engagement' ) );
-	               return;
-	       }
+		/**
+		 * Save the generated CSS string to disk and update the version option.
+		 *
+		 * Security: CSS content has already been sanitized by CssSanitizer before reaching this method.
+		 * All user inputs are validated and dangerous patterns removed to prevent injection attacks.
+		 */
+	private function nuclen_save_custom_css_file( string $css ): void {
+		$css_info = \NuclearEngagement\Utils\Utils::nuclen_get_custom_css_info();
+		if ( empty( $css_info ) ) {
+				\NuclearEngagement\Services\LoggingService::notify_admin( __( 'Could not create custom CSS directory.', 'nuclear-engagement' ) );
+				return;
+		}
 
-	       $custom_dir      = $css_info['dir'];
-	       $custom_css_path = $css_info['path'];
+		$custom_dir      = $css_info['dir'];
+		$custom_css_path = $css_info['path'];
 
-	       if ( ! function_exists( 'WP_Filesystem' ) ) {
-	               require_once ABSPATH . 'wp-admin/includes/file.php';
-	       }
-	       WP_Filesystem();
-	       global $wp_filesystem;
+		if ( ! function_exists( 'WP_Filesystem' ) ) {
+				require_once ABSPATH . 'wp-admin/includes/file.php';
+		}
+		WP_Filesystem();
+		global $wp_filesystem;
 
-	       $success = false;
-	       if ( is_object( $wp_filesystem ) ) {
-	               if ( ! $wp_filesystem->exists( $custom_dir ) && ! wp_mkdir_p( $custom_dir ) ) {
-	                       echo '<div class="notice notice-error"><p>' .
-	                               esc_html__( 'Could not create custom CSS directory.', 'nuclear-engagement' ) .
-	                               '</p></div>';
-	                       \NuclearEngagement\Services\LoggingService::log( 'Failed to create custom CSS directory: ' . $custom_dir );
-	                       return;
-	               }
-	               if ( ! $wp_filesystem->is_writable( $custom_dir ) ) {
-	                       echo '<div class="notice notice-error"><p>' .
-	                               esc_html__( 'Custom CSS directory not writable.', 'nuclear-engagement' ) .
-	                               '</p></div>';
-	                       \NuclearEngagement\Services\LoggingService::log( 'Custom CSS directory not writable: ' . $custom_dir );
-	                       return;
-	               }
-	               $success = $wp_filesystem->put_contents( $custom_css_path, $css ) !== false;
-	       } else {
-	               if ( ! file_exists( $custom_dir ) && ! wp_mkdir_p( $custom_dir ) ) {
-	                       echo '<div class="notice notice-error"><p>' .
-	                               esc_html__( 'Could not create custom CSS directory.', 'nuclear-engagement' ) .
-	                               '</p></div>';
-	                       \NuclearEngagement\Services\LoggingService::log( 'Failed to create custom CSS directory: ' . $custom_dir );
-	                       return;
-	               }
-	               $success = file_put_contents( $custom_css_path, $css, LOCK_EX ) !== false;
-	       }
+		$success = false;
+		if ( is_object( $wp_filesystem ) ) {
+			if ( ! $wp_filesystem->exists( $custom_dir ) && ! wp_mkdir_p( $custom_dir ) ) {
+					echo '<div class="notice notice-error"><p>' .
+							esc_html__( 'Could not create custom CSS directory.', 'nuclear-engagement' ) .
+							'</p></div>';
+					\NuclearEngagement\Services\LoggingService::log( 'Failed to create custom CSS directory: ' . $custom_dir );
+					return;
+			}
+			if ( ! $wp_filesystem->is_writable( $custom_dir ) ) {
+						echo '<div class="notice notice-error"><p>' .
+								esc_html__( 'Custom CSS directory not writable.', 'nuclear-engagement' ) .
+								'</p></div>';
+						\NuclearEngagement\Services\LoggingService::log( 'Custom CSS directory not writable: ' . $custom_dir );
+						return;
+			}
+				$success = $wp_filesystem->put_contents( $custom_css_path, $css ) !== false;
+		} else {
+			if ( ! file_exists( $custom_dir ) && ! wp_mkdir_p( $custom_dir ) ) {
+					echo '<div class="notice notice-error"><p>' .
+							esc_html__( 'Could not create custom CSS directory.', 'nuclear-engagement' ) .
+							'</p></div>';
+					\NuclearEngagement\Services\LoggingService::log( 'Failed to create custom CSS directory: ' . $custom_dir );
+					return;
+			}
+				$success = file_put_contents( $custom_css_path, $css, LOCK_EX ) !== false;
+		}
 
-	       if ( $success ) {
-	               $file_mtime = time();
-	               $file_hash  = md5( $css );
-	               $version    = $file_mtime . '-' . substr( $file_hash, 0, 8 );
-	               update_option( 'nuclen_custom_css_version', $version );
-	       } else {
-	               echo '<div class="notice notice-error"><p>' .
-	                       esc_html__( 'Could not write custom CSS file.', 'nuclear-engagement' ) .
-	                       '</p></div>';
-	               \NuclearEngagement\Services\LoggingService::log( 'Failed to write custom CSS file: ' . $custom_css_path );
-	       }
-	   }
+		if ( $success ) {
+				$file_mtime = time();
+				$file_hash  = md5( $css );
+				$version    = $file_mtime . '-' . substr( $file_hash, 0, 8 );
+				update_option( 'nuclen_custom_css_version', $version );
+		} else {
+				echo '<div class="notice notice-error"><p>' .
+						esc_html__( 'Could not write custom CSS file.', 'nuclear-engagement' ) .
+						'</p></div>';
+				\NuclearEngagement\Services\LoggingService::log( 'Failed to write custom CSS file: ' . $custom_css_path );
+		}
+	}
 }

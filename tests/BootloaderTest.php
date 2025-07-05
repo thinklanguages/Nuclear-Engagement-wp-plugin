@@ -1,13 +1,19 @@
 <?php
 namespace NuclearEngagement\Core {
-	function add_action(...$args) {
-		$GLOBALS['bl_actions'][] = $args;
+	if (!function_exists('NuclearEngagement\\Core\\add_action')) {
+		function add_action(...$args) {
+			$GLOBALS['bl_actions'][] = $args;
+		}
 	}
-	function register_activation_hook(...$args) {
-		$GLOBALS['bl_activation'][] = $args;
+	if (!function_exists('NuclearEngagement\\Core\\register_activation_hook')) {
+		function register_activation_hook(...$args) {
+			$GLOBALS['bl_activation'][] = $args;
+		}
 	}
-	function register_deactivation_hook(...$args) {
-		$GLOBALS['bl_deactivation'][] = $args;
+	if (!function_exists('NuclearEngagement\\Core\\register_deactivation_hook')) {
+		function register_deactivation_hook(...$args) {
+			$GLOBALS['bl_deactivation'][] = $args;
+		}
 	}
 	if ( ! function_exists('__') ) {
 		function __( $t, $d = null ) { return $t; }

@@ -1,15 +1,24 @@
 <?php
 namespace NuclearEngagement\Services {
+	// Override update_post_meta for failure testing
+	if (function_exists(__NAMESPACE__ . '\update_post_meta')) {
+		// Remove existing function if running tests individually
+		if (extension_loaded('runkit7') || extension_loaded('runkit')) {
+			runkit_function_remove(__NAMESPACE__ . '\update_post_meta');
+		}
+	}
+	
 	function update_post_meta($postId, $key, $value) {
 		if ( ! empty( $GLOBALS['test_update_meta_set'] ) ) {
 			$GLOBALS['wp_meta'][$postId][$key] = $value;
 		}
 		return false;
 	}
-	if ( ! function_exists( 'sanitize_text_field' ) ) {
+	
+	if ( ! function_exists(__NAMESPACE__ . '\sanitize_text_field' ) ) {
 		function sanitize_text_field( $text ) { return trim( $text ); }
 	}
-	if ( ! function_exists( 'wp_kses' ) ) {
+	if ( ! function_exists(__NAMESPACE__ . '\wp_kses' ) ) {
 		function wp_kses( $text, $allowed_html ) {
 			$allowed = '<' . implode( '><', array_keys( $allowed_html ) ) . '>';
 			return strip_tags( $text, $allowed );

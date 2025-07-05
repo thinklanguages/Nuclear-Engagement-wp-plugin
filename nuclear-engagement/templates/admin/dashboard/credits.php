@@ -1,4 +1,10 @@
 <?php
+/**
+ * credits.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package Nuclear_Engagement
+ */
+
 declare(strict_types=1);
 // File: admin/partials/dashboard/credits.php
 if ( ! defined( 'ABSPATH' ) ) {
@@ -14,11 +20,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 		const msgEl = document.getElementById('nuclen-credits-dashboard-msg');
 		if (!msgEl) return;
 		try {
-		// We'll reuse the same "nuclen_fetch_app_updates" action with no generation_id
+		// We'll reuse the same "nuclen_fetch_app_updates" action with no generation_id.
 		const formData = new FormData();
 		formData.append('action', 'nuclen_fetch_app_updates');
 		formData.append('security', '<?php echo esc_js( wp_create_nonce( 'nuclen_admin_ajax_nonce' ) ); ?>');
-		// We do not append generation_id => let the SaaS interpret it as "just return credits"
+		// We do not append generation_id => let the SaaS interpret it as "just return credits".
 		const resp = await fetch("<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>", {
 			method: 'POST',
 			body: formData

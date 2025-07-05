@@ -1,4 +1,10 @@
 <?php
+/**
+ * EventDispatcher.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package NuclearEngagement_Events
+ */
+
 declare(strict_types=1);
 /**
  * File: inc/Events/EventDispatcher.php
@@ -20,20 +26,20 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Event dispatcher for handling plugin events.
  */
 class EventDispatcher {
-	
+
 	/** @var array */
 	private array $listeners = array();
-	
+
 	/** @var LoggerInterface */
 	private LoggerInterface $logger;
-	
+
 	/** @var EventDispatcher */
 	private static ?EventDispatcher $instance = null;
-	
+
 	public function __construct( LoggerInterface $logger ) {
 		$this->logger = $logger;
 	}
-	
+
 	/**
 	 * Get singleton instance.
 	 *
@@ -47,10 +53,10 @@ class EventDispatcher {
 			}
 			self::$instance = new self( $logger );
 		}
-		
+
 		return self::$instance;
 	}
-	
+
 	/**
 	 * Add event listener.
 	 *
@@ -62,14 +68,14 @@ class EventDispatcher {
 		if ( ! isset( $this->listeners[ $event_name ] ) ) {
 			$this->listeners[ $event_name ] = array();
 		}
-		
+
 		if ( ! isset( $this->listeners[ $event_name ][ $priority ] ) ) {
 			$this->listeners[ $event_name ][ $priority ] = array();
 		}
-		
+
 		$this->listeners[ $event_name ][ $priority ][] = $listener;
 	}
-	
+
 	/**
 	 * Remove event listener.
 	 *
@@ -80,27 +86,27 @@ class EventDispatcher {
 		if ( ! isset( $this->listeners[ $event_name ] ) ) {
 			return;
 		}
-		
+
 		foreach ( $this->listeners[ $event_name ] as $priority => $listeners ) {
 			foreach ( $listeners as $index => $registered_listener ) {
 				if ( $registered_listener === $listener ) {
 					unset( $this->listeners[ $event_name ][ $priority ][ $index ] );
-					
-					// Clean up empty arrays
+
+					// Clean up empty arrays.
 					if ( empty( $this->listeners[ $event_name ][ $priority ] ) ) {
 						unset( $this->listeners[ $event_name ][ $priority ] );
 					}
-					
+
 					if ( empty( $this->listeners[ $event_name ] ) ) {
 						unset( $this->listeners[ $event_name ] );
 					}
-					
+
 					return;
 				}
 			}
 		}
 	}
-	
+
 	/**
 	 * Dispatch event to listeners.
 	 *
@@ -109,42 +115,48 @@ class EventDispatcher {
 	 */
 	public function dispatch( Event $event ): Event {
 		$event_name = $event->get_name();
-		
+
 		if ( ! isset( $this->listeners[ $event_name ] ) ) {
 			return $event;
 		}
-		
-		// Sort by priority (lower numbers = higher priority)
+
+		// Sort by priority (lower numbers = higher priority).
 		$listeners = $this->listeners[ $event_name ];
 		ksort( $listeners );
-		
-		$this->logger->debug( "Dispatching event: {$event_name}", array(
-			'event_data' => $event->get_data(),
-			'listener_count' => $this->count_listeners( $event_name ),
-		) );
-		
+
+		$this->logger->debug(
+			"Dispatching event: {$event_name}",
+			array(
+				'event_data'     => $event->get_data(),
+				'listener_count' => $this->count_listeners( $event_name ),
+			)
+		);
+
 		foreach ( $listeners as $priority_listeners ) {
 			foreach ( $priority_listeners as $listener ) {
 				if ( $event->is_propagation_stopped() ) {
 					break 2;
 				}
-				
+
 				try {
 					$listener( $event );
 				} catch ( \Throwable $e ) {
-					$this->logger->error( 'Event listener error', array(
-						'event_name' => $event_name,
-						'listener' => $this->get_listener_info( $listener ),
-						'error' => $e->getMessage(),
-						'trace' => $e->getTraceAsString(),
-					) );
+					$this->logger->error(
+						'Event listener error',
+						array(
+							'event_name' => $event_name,
+							'listener'   => $this->get_listener_info( $listener ),
+							'error'      => $e->getMessage(),
+							'trace'      => $e->getTraceAsString(),
+						)
+					);
 				}
 			}
 		}
-		
+
 		return $event;
 	}
-	
+
 	/**
 	 * Check if event has listeners.
 	 *
@@ -154,7 +166,7 @@ class EventDispatcher {
 	public function has_listeners( string $event_name ): bool {
 		return isset( $this->listeners[ $event_name ] ) && ! empty( $this->listeners[ $event_name ] );
 	}
-	
+
 	/**
 	 * Get listener count for event.
 	 *
@@ -165,15 +177,15 @@ class EventDispatcher {
 		if ( ! isset( $this->listeners[ $event_name ] ) ) {
 			return 0;
 		}
-		
+
 		$count = 0;
 		foreach ( $this->listeners[ $event_name ] as $priority_listeners ) {
 			$count += count( $priority_listeners );
 		}
-		
+
 		return $count;
 	}
-	
+
 	/**
 	 * Get all registered events.
 	 *
@@ -182,7 +194,7 @@ class EventDispatcher {
 	public function get_registered_events(): array {
 		return array_keys( $this->listeners );
 	}
-	
+
 	/**
 	 * Clear all listeners for event.
 	 *
@@ -191,14 +203,14 @@ class EventDispatcher {
 	public function clear_listeners( string $event_name ): void {
 		unset( $this->listeners[ $event_name ] );
 	}
-	
+
 	/**
 	 * Clear all listeners.
 	 */
 	public function clear_all_listeners(): void {
 		$this->listeners = array();
 	}
-	
+
 	/**
 	 * Get listener information for debugging.
 	 *
@@ -209,22 +221,22 @@ class EventDispatcher {
 		if ( is_string( $listener ) ) {
 			return $listener;
 		}
-		
+
 		if ( is_array( $listener ) ) {
 			if ( is_object( $listener[0] ) ) {
 				return get_class( $listener[0] ) . '::' . $listener[1];
 			}
 			return $listener[0] . '::' . $listener[1];
 		}
-		
+
 		if ( $listener instanceof \Closure ) {
 			return 'Closure';
 		}
-		
+
 		if ( is_object( $listener ) ) {
 			return get_class( $listener ) . '::__invoke';
 		}
-		
+
 		return 'Unknown';
 	}
 }

@@ -1,4 +1,10 @@
 <?php
+/**
+ * ConnectHandler.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package NuclearEngagement_Admin_Setup
+ */
+
 namespace NuclearEngagement\Admin\Setup;
 
 use NuclearEngagement\Services\SetupService;
@@ -14,7 +20,7 @@ class ConnectHandler extends BaseSetupHandler {
 
 	public function handle_connect_app(): void {
 		$this->validate_nonce_and_permissions( 'nuclen_connect_app_nonce', 'nuclen_connect_app_action' );
-		
+
 		if ( ! isset( $_POST['nuclen_api_key'] ) ) {
 			$this->redirect_with_error( 'Missing API key field.' );
 		}
@@ -57,6 +63,4 @@ class ConnectHandler extends BaseSetupHandler {
 		$token_manager = new TokenManager( $this->settings_repository );
 		return new AppPasswordHandler( $this->setup_service, $this->settings_repository, $token_manager );
 	}
-
-
 }

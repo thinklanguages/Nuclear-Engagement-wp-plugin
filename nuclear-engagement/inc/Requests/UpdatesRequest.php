@@ -1,4 +1,10 @@
 <?php
+/**
+ * UpdatesRequest.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package NuclearEngagement_Requests
+ */
+
 declare(strict_types=1);
 /**
  * File: includes/Requests/UpdatesRequest.php

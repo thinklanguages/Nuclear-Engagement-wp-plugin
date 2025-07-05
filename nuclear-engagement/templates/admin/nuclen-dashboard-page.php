@@ -1,4 +1,10 @@
 <?php
+/**
+ * nuclen-dashboard-page.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package Nuclear_Engagement
+ */
+
 declare(strict_types=1);
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -12,7 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 use NuclearEngagement\Helpers\SettingsFunctions;
 
-// Fetch plugin setup info to decide if we show credits
+// Fetch plugin setup info to decide if we show credits.
 $fully_setup = ( SettingsFunctions::get_bool( 'connected', false ) && SettingsFunctions::get_bool( 'wp_app_pass_created', false ) );
 
 $utils = new \NuclearEngagement\Utils\Utils();

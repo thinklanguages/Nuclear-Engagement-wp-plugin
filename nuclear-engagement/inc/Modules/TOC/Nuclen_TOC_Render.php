@@ -175,22 +175,22 @@ final class Nuclen_TOC_Render {
 	 */
 	public function nuclen_toc_shortcode( array $atts ): string {
 			$post_id = get_the_ID();
-		
-		// Validate post ID before proceeding
+
+		// Validate post ID before proceeding.
 		if ( ! $post_id || ! is_int( $post_id ) ) {
 			return '';
 		}
-		
+
 		$post = get_post( $post_id );
-		if ( null === $post ) {
+		if ( $post === null ) {
 				return '';
 		}
 
 			$settings = $this->settings;
 			$atts     = $this->prepare_shortcode_attributes( $atts, $settings );
 
-$list  = ( strtolower( $atts['list'] ) === 'ol' ) ? 'ol' : 'ul';
-$heads = HeadingExtractor::extract( $post->post_content, $atts['heading_levels'], $post->ID );
+		$list  = ( strtolower( $atts['list'] ) === 'ol' ) ? 'ol' : 'ul';
+		$heads = HeadingExtractor::extract( $post->post_content, $atts['heading_levels'], $post->ID );
 		if ( ! $heads ) {
 			return '';
 		}

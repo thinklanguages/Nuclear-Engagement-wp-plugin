@@ -92,28 +92,8 @@ if (!function_exists('wp_json_encode')) {
 	} 
 }
 
-// Mock logging
-namespace NuclearEngagement\Services {
-	class LoggingService {
-		public static array $exceptions = [];
-		public static array $logs = [];
-		public static function log_exception(\Throwable $e): void { 
-			self::$exceptions[] = $e->getMessage(); 
-		}
-		public static function log(string $msg): void { 
-			self::$logs[] = $msg; 
-		}
-	}
-}
-
-namespace NuclearEngagement\Tests\Integration {
-	
-	use PHPUnit\Framework\TestCase;
-	use NuclearEngagement\Admin\Controller\Ajax\PostsCountController;
-	use NuclearEngagement\Services\PostsQueryService;
-	
-	// Mock WPDB for integration tests
-	class MockWPDB {
+// Mock WPDB for integration tests
+class MockWPDB {
 		public $posts = 'wp_posts';
 		public $postmeta = 'wp_postmeta';
 		public $term_relationships = 'wp_term_relationships';
@@ -368,4 +348,3 @@ namespace NuclearEngagement\Tests\Integration {
 			$this->assertContains('Posts query error: Connection timeout', \NuclearEngagement\Services\LoggingService::$logs);
 		}
 	}
-}

@@ -1,4 +1,10 @@
 <?php
+/**
+ * Activator.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package NuclearEngagement_Core
+ */
+
 declare(strict_types=1);
 // Activator.php
 
@@ -20,27 +26,27 @@ class Activator {
 	 * @param SettingsRepository|null $settings Optional settings repository instance
 	 */
 	public static function nuclen_activate( ?SettingsRepository $settings = null ) {
-		// Set transient for activation redirect
+		// Set transient for activation redirect.
 		set_transient( 'nuclen_plugin_activation_redirect', true, NUCLEN_ACTIVATION_REDIRECT_TTL );
 
-		// Get default settings
+		// Get default settings.
 		$default_settings = Defaults::nuclen_get_default_settings();
 
-		// Initialize or update settings repository with defaults
+		// Initialize or update settings repository with defaults.
 		$settings = $settings ?: SettingsRepository::get_instance( $default_settings );
 
-		// Only set the setup option if it doesn't already exist
+		// Only set the setup option if it doesn't already exist.
 		if ( false === get_option( 'nuclear_engagement_setup' ) ) {
 			update_option( 'nuclear_engagement_setup', $default_settings );
 		}
 
-				// Ensure opt-in table exists on activation
+				// Ensure opt-in table exists on activation.
 				OptinData::maybe_create_table();
 
-				// Create indexes on wp_postmeta for faster lookups
+				// Create indexes on wp_postmeta for faster lookups.
 				self::maybe_create_postmeta_indexes();
 
-				// Generate asset version strings for cache busting
+				// Generate asset version strings for cache busting.
 				AssetVersions::update_versions();
 	}
 
@@ -59,18 +65,22 @@ class Activator {
 			);
 
 			foreach ( $indexes as $index => $meta_key ) {
-					$exists = $wpdb->get_var(
-						$wpdb->prepare(
-							"SHOW INDEX FROM {$table} WHERE Key_name = %s",
-							$index
-						)
-					);
+					$exists = // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+				$wpdb->get_var(
+					$wpdb->prepare(
+						"SHOW INDEX FROM {$table} WHERE Key_name = %s",
+						$index
+					)
+				);
 				if ( $exists ) {
 					continue;
 				}
 
 					$sql = "CREATE INDEX {$index} ON {$table} (post_id, meta_key(191))";
-					$wpdb->query( $sql );
+					// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+	// phpcs:ignore WordPress.DB.DirectDatabaseQuery
+
+				$wpdb->query( $sql );
 			}
 	}
 }

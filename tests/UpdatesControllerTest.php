@@ -1,10 +1,5 @@
 <?php
 namespace NuclearEngagement\Services {
-	class LoggingService {
-		public static array $logs = [];
-		public static function log(string $msg): void { self::$logs[] = $msg; }
-		public static function log_exception(\Throwable $e): void { self::$logs[] = $e->getMessage(); }
-	}
 }
 
 namespace {
@@ -36,7 +31,7 @@ namespace {
 		}
 	}
 
-	class DummyStorage {
+	class DummyStorageUpdates {
 		public array $stored = [];
 		public function storeResults(array $results, string $workflow): array {
 			$this->stored[] = [$results, $workflow];
@@ -65,7 +60,7 @@ namespace {
 					]
 				]
 			];
-			$storage = new DummyStorage();
+			$storage = new DummyStorageUpdates();
 			$c = new UpdatesController($api, $storage);
 			$c->handle();
 			$this->assertSame([['7'=>['questions'=>[['question'=>'Q1','answers'=>['A1']]],'date'=>'2024-01-01']], 'quiz'], $storage->stored[0]);
@@ -78,7 +73,7 @@ namespace {
 			$_POST = ['generation_id' => 'gid', 'security' => 'valid'];
 			$api = new DummyApi();
 			$api->exception = new ApiException('fail', 418);
-			$storage = new DummyStorage();
+			$storage = new DummyStorageUpdates();
 			$c = new UpdatesController($api, $storage);
 			$c->handle();
 			$this->assertSame('error', $GLOBALS['json_response'][0]);
@@ -90,7 +85,7 @@ namespace {
 			$_POST = ['generation_id' => 'gid', 'security' => 'valid'];
 			$api = new DummyApi();
 			$api->exception = new \RuntimeException('boom');
-			$storage = new DummyStorage();
+			$storage = new DummyStorageUpdates();
 			$c = new UpdatesController($api, $storage);
 			$c->handle();
 			$this->assertSame('error', $GLOBALS['json_response'][0]);

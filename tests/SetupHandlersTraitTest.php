@@ -51,7 +51,7 @@ namespace {
 		function wp_cache_delete($key, $group = '') { $GLOBALS['cache_deleted'][] = [$key,$group]; }
 	}
 
-	require_once dirname(__DIR__) . '/nuclear-engagement/inc/Core/Container.php';
+	require_once dirname(__DIR__) . '/nuclear-engagement/inc/Core/ServiceContainer.php';
 	require_once dirname(__DIR__) . '/nuclear-engagement/inc/Core/SettingsRepository.php';
 	require_once dirname(__DIR__) . '/nuclear-engagement/inc/Core/Defaults.php';
         require_once dirname(__DIR__) . '/nuclear-engagement/admin/Setup/ConnectHandler.php';

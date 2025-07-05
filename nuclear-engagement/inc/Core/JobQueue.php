@@ -1,4 +1,10 @@
 <?php
+/**
+ * JobQueue.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package NuclearEngagement_Core
+ */
+
 declare(strict_types=1);
 
 namespace NuclearEngagement\Core;
@@ -19,7 +25,7 @@ final class JobQueue {
 	 *
 	 * @var array<string, array{id: string, type: string, data: array, priority: int, attempts: int, scheduled: int, status: string}>
 	 */
-	private static array $job_queue = [];
+	private static array $job_queue = array();
 
 	/**
 	 * Maximum concurrent jobs.
@@ -35,10 +41,10 @@ final class JobQueue {
 	 * @param int    $delay    Delay in seconds before processing.
 	 * @return string Job ID.
 	 */
-	public static function queue_job( string $type, array $data = [], int $priority = 10, int $delay = 0 ): string {
+	public static function queue_job( string $type, array $data = array(), int $priority = 10, int $delay = 0 ): string {
 		$job_id = wp_generate_uuid4();
-		
-		$job = [
+
+		$job = array(
 			'id'        => $job_id,
 			'type'      => $type,
 			'data'      => $data,
@@ -47,13 +53,13 @@ final class JobQueue {
 			'scheduled' => time() + $delay,
 			'status'    => 'queued',
 			'created'   => time(),
-		];
+		);
 
-		// Store job in database for persistence
+		// Store job in database for persistence.
 		self::store_job( $job );
 
-		// Also keep in memory for current request
-		self::$job_queue[$job_id] = $job;
+		// Also keep in memory for current request.
+		self::$job_queue[ $job_id ] = $job;
 
 		return $job_id;
 	}
@@ -65,19 +71,19 @@ final class JobQueue {
 	 * @return bool Whether job was cancelled.
 	 */
 	public static function cancel_job( string $job_id ): bool {
-		// Update status in database
+		// Update status in database.
 		global $wpdb;
-		
+
 		$result = $wpdb->update(
 			$wpdb->prefix . 'nuclen_background_jobs',
-			[ 'status' => 'cancelled' ],
-			[ 'job_id' => $job_id ],
-			[ '%s' ],
-			[ '%s' ]
+			array( 'status' => 'cancelled' ),
+			array( 'job_id' => $job_id ),
+			array( '%s' ),
+			array( '%s' )
 		);
 
-		// Remove from memory queue
-		unset( self::$job_queue[$job_id] );
+		// Remove from memory queue.
+		unset( self::$job_queue[ $job_id ] );
 
 		return $result !== false;
 	}
@@ -90,14 +96,22 @@ final class JobQueue {
 	public static function get_ready_jobs(): array {
 		global $wpdb;
 
-		return $wpdb->get_results( $wpdb->prepare( "
+		return // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+		$wpdb->get_results(
+			$wpdb->prepare(
+				"
 			SELECT job_id, type, data, priority, attempts, scheduled, status
 			FROM {$wpdb->prefix}nuclen_background_jobs
 			WHERE status IN ('queued', 'retrying')
 			AND scheduled <= %d
 			ORDER BY priority ASC, scheduled ASC
 			LIMIT %d
-		", time(), self::MAX_CONCURRENT_JOBS ), ARRAY_A );
+		",
+				time(),
+				self::MAX_CONCURRENT_JOBS
+			),
+			ARRAY_A
+		);
 	}
 
 	/**
@@ -108,7 +122,9 @@ final class JobQueue {
 	public static function get_statistics(): array {
 		global $wpdb;
 
-		$stats = $wpdb->get_row( "
+		$stats = // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+		$wpdb->get_row(
+			"
 			SELECT 
 				COUNT(*) as total,
 				SUM(CASE WHEN status = 'queued' THEN 1 ELSE 0 END) as queued,
@@ -118,9 +134,11 @@ final class JobQueue {
 				SUM(CASE WHEN status = 'retrying' THEN 1 ELSE 0 END) as retrying
 			FROM {$wpdb->prefix}nuclen_background_jobs 
 			WHERE created > DATE_SUB(NOW(), INTERVAL 24 HOUR)
-		", ARRAY_A );
+		",
+			ARRAY_A
+		);
 
-		return $stats ?: [];
+		return $stats ?: array();
 	}
 
 	/**
@@ -131,15 +149,15 @@ final class JobQueue {
 	private static function store_job( array $job ): void {
 		global $wpdb;
 
-		// Create table if it doesn't exist
+		// Create table if it doesn't exist.
 		self::maybe_create_jobs_table();
 
 		$result = $wpdb->insert(
 			$wpdb->prefix . 'nuclen_background_jobs',
-			[
+			array(
 				'job_id'    => $job['id'],
 				'type'      => $job['type'],
-				'data'      => json_encode( $job['data'] ),
+				'data'      => wp_json_encode( $job['data'] ),
 				'priority'  => $job['priority'],
 				'attempts'  => $job['attempts'],
 				'scheduled' => $job['scheduled'],
@@ -147,13 +165,13 @@ final class JobQueue {
 				'created'   => $job['created'],
 				'progress'  => 0,
 				'message'   => '',
-			],
-			[ '%s', '%s', '%s', '%d', '%d', '%d', '%s', '%d', '%d', '%s' ]
+			),
+			array( '%s', '%s', '%s', '%d', '%d', '%d', '%s', '%d', '%d', '%s' )
 		);
 
 		if ( $result === false ) {
 			$error_msg = $wpdb->last_error ?: 'Unknown database error';
-			\NuclearEngagement\Services\LoggingService::log( 
+			\NuclearEngagement\Services\LoggingService::log(
 				"Failed to store background job {$job['id']}: {$error_msg}"
 			);
 			throw new \RuntimeException( "Failed to store background job: {$error_msg}" );
@@ -167,8 +185,9 @@ final class JobQueue {
 		global $wpdb;
 
 		$table_name = $wpdb->prefix . 'nuclen_background_jobs';
-		
-		if ( $wpdb->get_var( "SHOW TABLES LIKE '{$table_name}'" ) !== $table_name ) {
+
+		if ( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+		$wpdb->get_var( "SHOW TABLES LIKE '{$table_name}'" ) !== $table_name ) {
 			$charset_collate = $wpdb->get_charset_collate();
 
 			$sql = "CREATE TABLE {$table_name} (
@@ -201,11 +220,19 @@ final class JobQueue {
 	public static function cleanup_completed_jobs(): void {
 		global $wpdb;
 
-		// Delete completed jobs older than 7 days
-		$wpdb->query( $wpdb->prepare( "
+		// Delete completed jobs older than 7 days.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+	// phpcs:ignore WordPress.DB.DirectDatabaseQuery
+
+		$wpdb->query(
+			$wpdb->prepare(
+				"
 			DELETE FROM {$wpdb->prefix}nuclen_background_jobs 
 			WHERE status IN ('completed', 'failed', 'cancelled') 
 			AND created < %d
-		", time() - ( 7 * DAY_IN_SECONDS ) ) );
+		",
+				time() - ( 7 * DAY_IN_SECONDS )
+			)
+		);
 	}
 }

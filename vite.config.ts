@@ -49,7 +49,7 @@ export default defineConfig({
         },
 
         // If you have dynamic imports or code-splitting, place those chunks here:
-        chunkFileNames: (chunkInfo) => {
+        chunkFileNames: (_chunkInfo) => {
           // Place chunks at the root level for easier resolution
           return '[name]-[hash].js';
         },

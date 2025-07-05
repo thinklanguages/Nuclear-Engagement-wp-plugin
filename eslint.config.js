@@ -5,7 +5,26 @@ import js from '@eslint/js';
 export default [
   js.configs.recommended,
   {
-    ignores: ['**/node_modules/**', '**/vendor/**', '**/logger-*.js', '**/dist/**', '**/build/**']
+    ignores: [
+      '**/node_modules/**', 
+      '**/vendor/**', 
+      '**/logger-*.js', 
+      '**/dist/**', 
+      '**/build/**',
+      'nuclear-engagement/admin/js/*.js',
+      'nuclear-engagement/front/js/*.js',
+      'nuclear-engagement/inc/Modules/TOC/assets/js/*.js',
+      'nuclear-engagement/modules/toc/assets/js/*.js',
+      '*.min.js',
+      '*.min.css',
+      'tests/wp-stubs.php',
+      'tests/wp-admin/',
+      'postcss.config.cjs',
+      'vite.config.ts',
+      'vite.config.iife.ts',
+      'tests/accessibility/*.cjs',
+      'tests/e2e/*.js'
+    ]
   },
   {
     files: ['**/*.ts'],
@@ -48,7 +67,13 @@ export default [
         MutationObserver: 'readonly',
         Event: 'readonly',
         KeyboardEvent: 'readonly',
-        MouseEvent: 'readonly'
+        MouseEvent: 'readonly',
+        global: 'readonly',
+        process: 'readonly',
+        __dirname: 'readonly',
+        __filename: 'readonly',
+        performance: 'readonly',
+        jQuery: 'readonly'
       }
     },
     plugins: {
@@ -97,6 +122,22 @@ export default [
         NuclenSettings: 'readonly',
         NuclenOptinAjax: 'readonly',
         postQuizData: 'readonly'
+      }
+    }
+  },
+  {
+    files: ['**/*.test.ts', '**/*.spec.ts', '**/*.test.js', '**/*.spec.js', 'tests/**/*.ts', 'tests/**/*.js'],
+    languageOptions: {
+      globals: {
+        vi: 'readonly',
+        describe: 'readonly',
+        it: 'readonly',
+        expect: 'readonly',
+        beforeEach: 'readonly',
+        afterEach: 'readonly',
+        beforeAll: 'readonly',
+        afterAll: 'readonly',
+        test: 'readonly'
       }
     }
   }

@@ -1,4 +1,10 @@
 <?php
+/**
+ * ContentStorageService.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package NuclearEngagement_Services
+ */
+
 declare(strict_types=1);
 /**
  * File: includes/Services/ContentStorageService.php
@@ -45,62 +51,62 @@ class ContentStorageService {
 	/**
 	 * Store generation results
 	 *
-		 * @param array  $results
-		 * @param string $workflowType
-		 *
-		 * @return array<int, mixed> Status for each post ID
-		 */
-		public function storeResults( array $results, string $workflowType ): array {
-				$updateLastModified = $this->settings->get_bool( 'update_last_modified', false );
-				$dateNow            = current_time( 'mysql' );
+	 * @param array  $results
+	 * @param string $workflowType
+	 *
+	 * @return array<int, mixed> Status for each post ID
+	 */
+	public function storeResults( array $results, string $workflowType ): array {
+			$updateLastModified = $this->settings->get_bool( 'update_last_modified', false );
+			$dateNow            = current_time( 'mysql' );
 
-				$statuses = array();
+			$statuses = array();
 
-		foreach ( $results as $postIdString => $data ) {
-			$postId = (int) $postIdString;
+		foreach ( $results as $post_idString => $data ) {
+			$post_id = (int) $post_idString;
 
-			// Ensure date is set
+			// Ensure date is set.
 			if ( empty( $data['date'] ) ) {
 				$data['date'] = $dateNow;
 			}
 
-						try {
-								if ( $workflowType === 'quiz' ) {
-										$this->storeQuizData( $postId, $data );
-								} else {
-										$this->storeSummaryData( $postId, $data );
-								}
-
-								// Update post modified time if enabled
-								if ( $updateLastModified ) {
-										$this->updatePostModifiedTime( $postId );
-								} else {
-										clean_post_cache( $postId );
-								}
-
-								\NuclearEngagement\Services\LoggingService::log( "Stored {$workflowType} data for post {$postId}" );
-
-								$statuses[ $postId ] = true;
-
-						} catch ( \Throwable $e ) {
-								\NuclearEngagement\Services\LoggingService::log_exception( $e );
-								$statuses[ $postId ] = $e->getMessage();
-						}
+			try {
+				if ( $workflowType === 'quiz' ) {
+								$this->storeQuizData( $post_id, $data );
+				} else {
+									$this->storeSummaryData( $post_id, $data );
 				}
 
-				return $statuses;
+										// Update post modified time if enabled.
+				if ( $updateLastModified ) {
+						$this->updatePostModifiedTime( $post_id );
+				} else {
+						clean_post_cache( $post_id );
+				}
+
+										\NuclearEngagement\Services\LoggingService::log( "Stored {$workflowType} data for post {$post_id}" );
+
+										$statuses[ $post_id ] = true;
+
+			} catch ( \Throwable $e ) {
+					\NuclearEngagement\Services\LoggingService::log_exception( $e );
+					$statuses[ $post_id ] = $e->getMessage();
+			}
 		}
+
+			return $statuses;
+	}
 
 	/**
 	 * Store quiz data
 	 *
-	 * @param int   $postId
+	 * @param int   $post_id
 	 * @param array $data
 	 * @throws \InvalidArgumentException On invalid data
 	 */
-	public function storeQuizData( int $postId, array $data ): void {
+	public function storeQuizData( int $post_id, array $data ): void {
 		if ( empty( $data['questions'] ) || ! is_array( $data['questions'] ) ) {
-				throw new \InvalidArgumentException( "Invalid quiz data for post {$postId}" );
+				throw new \InvalidArgumentException( "Invalid quiz data for post {$post_id}" );
 		}
 
 			$maxAnswers = $this->settings->get_int( 'answers_per_question', 4 );
@@ -134,56 +140,60 @@ class ContentStorageService {
 		}
 
 		if ( empty( $questions ) ) {
-				throw new \InvalidArgumentException( "Invalid quiz data for post {$postId}" );
+				throw new \InvalidArgumentException( "Invalid quiz data for post {$post_id}" );
 		}
 
 				$formatted = array(
 					'date'      => $data['date'] ?? current_time( 'mysql' ),
 					'questions' => $questions,
-);
+				);
 
-			// Use WordPress database transactions for race condition prevention
-			global $wpdb;
-			
-			$wpdb->query( 'START TRANSACTION' );
-			
-			try {
-				$current = get_post_meta( $postId, 'nuclen-quiz-data', true );
-				if ( $current === $formatted ) {
-					$wpdb->query( 'COMMIT' );
-					return;
-				}
+				// Use WordPress database transactions for race condition prevention.
+				global $wpdb;
 
-				$updated = update_post_meta( $postId, 'nuclen-quiz-data', $formatted );
-				if ( $updated === false ) {
-					// Check if the update actually worked (WordPress quirk)
-					$check = get_post_meta( $postId, 'nuclen-quiz-data', true );
-					if ( $check !== $formatted ) {
-						throw new \RuntimeException( "Failed to update quiz data for post {$postId}" );
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+				$wpdb->query( 'START TRANSACTION' );
+
+				try {
+					$current = get_post_meta( $post_id, 'nuclen-quiz-data', true );
+					if ( $current === $formatted ) {
+						// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+						$wpdb->query( 'COMMIT' );
+						return;
 					}
+
+					$updated = update_post_meta( $post_id, 'nuclen-quiz-data', $formatted );
+					if ( $updated === false ) {
+						// Check if the update actually worked (WordPress quirk).
+						$check = get_post_meta( $post_id, 'nuclen-quiz-data', true );
+						if ( $check !== $formatted ) {
+							throw new \RuntimeException( "Failed to update quiz data for post {$post_id}" );
+						}
+					}
+
+					// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+					$wpdb->query( 'COMMIT' );
+				} catch ( \Throwable $e ) {
+					// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+					$wpdb->query( 'ROLLBACK' );
+					throw $e;
 				}
-				
-				$wpdb->query( 'COMMIT' );
-			} catch ( \Throwable $e ) {
-				$wpdb->query( 'ROLLBACK' );
-				throw $e;
-			}
 	}
 
 	/**
 	 * Store summary data
 	 *
-	 * @param int   $postId
+	 * @param int   $post_id
 	 * @param array $data
 	 * @throws \InvalidArgumentException On invalid data
 	 */
-	public function storeSummaryData( int $postId, array $data ): void {
+	public function storeSummaryData( int $post_id, array $data ): void {
 		if ( ! isset( $data['summary'] ) || ! is_string( $data['summary'] ) ) {
-			// Legacy support for 'content' key
+			// Legacy support for 'content' key.
 			if ( isset( $data['content'] ) && is_string( $data['content'] ) ) {
 				$data['summary'] = $data['content'];
 			} else {
-				throw new \InvalidArgumentException( "Invalid summary data for post {$postId}" );
+				throw new \InvalidArgumentException( "Invalid summary data for post {$post_id}" );
 			}
 		}
 
@@ -211,55 +221,59 @@ class ContentStorageService {
 				$formatted = array(
 					'date'    => $data['date'] ?? current_time( 'mysql' ),
 					'summary' => wp_kses( $data['summary'], $allowedHtml ),
-);
+				);
 
-			// Use WordPress database transactions for race condition prevention
-			global $wpdb;
-			
-			$wpdb->query( 'START TRANSACTION' );
-			
-			try {
-				$current = get_post_meta( $postId, Summary_Service::META_KEY, true );
-				if ( $current === $formatted ) {
-					$wpdb->query( 'COMMIT' );
-					return;
-				}
+				// Use WordPress database transactions for race condition prevention.
+				global $wpdb;
 
-				$updated = update_post_meta( $postId, Summary_Service::META_KEY, $formatted );
-				if ( $updated === false ) {
-					// Check if the update actually worked (WordPress quirk)
-					$check = get_post_meta( $postId, Summary_Service::META_KEY, true );
-					if ( $check !== $formatted ) {
-						throw new \RuntimeException( "Failed to update summary data for post {$postId}" );
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+				$wpdb->query( 'START TRANSACTION' );
+
+				try {
+					$current = get_post_meta( $post_id, Summary_Service::META_KEY, true );
+					if ( $current === $formatted ) {
+						// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+						$wpdb->query( 'COMMIT' );
+						return;
 					}
+
+					$updated = update_post_meta( $post_id, Summary_Service::META_KEY, $formatted );
+					if ( $updated === false ) {
+						// Check if the update actually worked (WordPress quirk).
+						$check = get_post_meta( $post_id, Summary_Service::META_KEY, true );
+						if ( $check !== $formatted ) {
+							throw new \RuntimeException( "Failed to update summary data for post {$post_id}" );
+						}
+					}
+
+					// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+					$wpdb->query( 'COMMIT' );
+				} catch ( \Throwable $e ) {
+					// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+					$wpdb->query( 'ROLLBACK' );
+					throw $e;
 				}
-				
-				$wpdb->query( 'COMMIT' );
-			} catch ( \Throwable $e ) {
-				$wpdb->query( 'ROLLBACK' );
-				throw $e;
-			}
 	}
 
 	/**
 	 * Update post modified time
 	 *
-	 * @param int $postId
+	 * @param int $post_id
 	 */
-	private function updatePostModifiedTime( int $postId ): void {
+	private function updatePostModifiedTime( int $post_id ): void {
 		$time   = current_time( 'mysql' );
 		$result = wp_update_post(
 			array(
-				'ID'                => $postId,
+				'ID'                => $post_id,
 				'post_modified'     => $time,
 				'post_modified_gmt' => get_gmt_from_date( $time ),
 			)
 		);
 
 		if ( is_wp_error( $result ) ) {
-			\NuclearEngagement\Services\LoggingService::log( "Failed to update modified time for post {$postId}: " . $result->get_error_message() );
+			\NuclearEngagement\Services\LoggingService::log( "Failed to update modified time for post {$post_id}: " . $result->get_error_message() );
 		}
 
-		clean_post_cache( $postId );
+		clean_post_cache( $post_id );
 	}
 }

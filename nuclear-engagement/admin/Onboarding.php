@@ -1,4 +1,10 @@
 <?php
+/**
+ * Onboarding.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package NuclearEngagement_Admin
+ */
+
 declare(strict_types=1);
 /**
  * File: admin/Onboarding.php
@@ -56,7 +62,7 @@ class Onboarding {
 		);
 
 		if ( ! in_array( $hook_suffix, $target_pages, true ) ) {
-			return; // nothing to do on this screen
+			return; // nothing to do on this screen.
 		}
 
 				/* ───── 2. Pointer definitions ───── */
@@ -79,20 +85,20 @@ class Onboarding {
 		}
 
 		if ( empty( $undismissed ) ) {
-			return; // nothing new to show
+			return; // nothing new to show.
 		}
 
 		/* ───── 4. Enqueue pointer assets ───── */
-wp_enqueue_style( 'wp-pointer' );
-wp_enqueue_script( 'wp-pointer' );
+		wp_enqueue_style( 'wp-pointer' );
+		wp_enqueue_script( 'wp-pointer' );
 
-wp_enqueue_script(
-'nuclen-onboarding',
-NUCLEN_PLUGIN_URL . 'admin/js/onboarding-pointers.js',
-array( 'jquery', 'wp-pointer' ),
-time(), // Force new version
-true
-);
+		wp_enqueue_script(
+			'nuclen-onboarding',
+			NUCLEN_PLUGIN_URL . 'admin/js/onboarding-pointers.js',
+			array( 'jquery', 'wp-pointer' ),
+			time(), // Force new version.
+			true
+		);
 
 		/* ───── 5. Inject payload via wp_add_inline_script() ───── */
 		$payload = array(
@@ -103,7 +109,7 @@ true
 
 		wp_add_inline_script(
 			'nuclen-onboarding',
-			'window.nePointerData = ' . wp_json_encode(
+			'window.nePointerData = ' . wp_wp_json_encode(
 				$payload,
 				JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP
 			) . ';',

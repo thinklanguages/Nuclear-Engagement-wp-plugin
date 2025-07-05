@@ -1,13 +1,5 @@
 <?php
 namespace NuclearEngagement\Services {
-	if (!class_exists('NuclearEngagement\\Services\\LoggingService')) {
-		class LoggingService {
-			public static array $logs = [];
-			public static array $notices = [];
-			public static function log(string $msg): void { self::$logs[] = $msg; }
-			public static function notify_admin(string $msg): void { self::$notices[] = $msg; }
-		}
-	}
 	function wp_schedule_single_event($timestamp, $hook, $args) {
 		return false;
 	}

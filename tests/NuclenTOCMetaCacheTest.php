@@ -14,10 +14,10 @@ use NuclearEngagement\Modules\TOC\Nuclen_TOC_Headings;
 	if (!defined('NUCLEN_TOC_DIR')) { define('NUCLEN_TOC_DIR', dirname(__DIR__).'/nuclear-engagement/inc/Modules/TOC/'); }
 	if (!defined('NUCLEN_TOC_URL')) { define('NUCLEN_TOC_URL', 'http://example.com/'); }
 	require_once NUCLEN_TOC_DIR.'includes/polyfills.php';
-require_once NUCLEN_TOC_DIR.'includes/SlugGenerator.php';
-require_once NUCLEN_TOC_DIR.'includes/TocCache.php';
-require_once NUCLEN_TOC_DIR.'includes/HeadingExtractor.php';
-	require_once NUCLEN_TOC_DIR.'includes/class-nuclen-toc-headings.php';
+require_once NUCLEN_TOC_DIR.'SlugGenerator.php';
+require_once NUCLEN_TOC_DIR.'TocCache.php';
+require_once NUCLEN_TOC_DIR.'HeadingExtractor.php';
+	require_once NUCLEN_TOC_DIR.'Nuclen_TOC_Headings.php';
 
 	class NuclenTOCMetaCacheTest extends TestCase {
 		protected function setUp(): void {

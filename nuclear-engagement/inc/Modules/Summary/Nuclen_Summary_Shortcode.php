@@ -1,4 +1,10 @@
 <?php
+/**
+ * Nuclen_Summary_Shortcode.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package NuclearEngagement_Modules_Summary
+ */
+
 declare(strict_types=1);
 
 namespace NuclearEngagement\Modules\Summary;
@@ -42,16 +48,16 @@ final class Nuclen_Summary_Shortcode {
 		return $html;
 	}
 
-		private function getSummaryData() {
-				$post_id = get_the_ID();
-				
-				// Validate post ID before proceeding
-				if ( ! $post_id || ! is_int( $post_id ) ) {
-					return false;
-				}
-				
-				return get_post_meta( $post_id, Summary_Service::META_KEY, true );
+	private function getSummaryData() {
+			$post_id = get_the_ID();
+
+			// Validate post ID before proceeding.
+		if ( ! $post_id || ! is_int( $post_id ) ) {
+			return false;
 		}
+
+			return get_post_meta( $post_id, Summary_Service::META_KEY, true );
+	}
 
 	private function isValidSummaryData( $summary_data ): bool {
 		return ! empty( $summary_data ) && ! empty( trim( $summary_data['summary'] ?? '' ) );

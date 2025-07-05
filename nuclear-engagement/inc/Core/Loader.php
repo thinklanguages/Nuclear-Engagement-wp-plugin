@@ -1,4 +1,10 @@
 <?php
+/**
+ * Loader.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package NuclearEngagement_Core
+ */
+
 declare(strict_types=1);
 namespace NuclearEngagement\Core;
 
@@ -31,12 +37,12 @@ class Loader {
 	}
 
 	public function nuclen_run() {
-		// Register all filters
+		// Register all filters.
 		foreach ( $this->filters as $hook ) {
 			add_filter( $hook['hook'], array( $hook['component'], $hook['callback'] ), $hook['priority'], $hook['accepted_args'] );
 		}
 
-		// Register all actions
+		// Register all actions.
 		foreach ( $this->actions as $hook ) {
 			add_action( $hook['hook'], array( $hook['component'], $hook['callback'] ), $hook['priority'], $hook['accepted_args'] );
 		}

@@ -33,13 +33,13 @@ const btn = $('nuclen-copy');
 function build(): void {
 	let sc = '[simple_toc';
 
-	if (f.min.value !== '2') {
+	if (f.min.value && f.min.value !== '2') {
 		sc += ` min_level="${f.min.value}"`;
 	}
-	if (f.max.value !== '6') {
+	if (f.max.value && f.max.value !== '6') {
 		sc += ` max_level="${f.max.value}"`;
 	}
-	if (f.list.value !== 'ul') {
+	if (f.list.value && f.list.value !== 'ul') {
 		sc += ` list="${f.list.value}"`;
 	}
 
@@ -60,7 +60,7 @@ function build(): void {
 	if (!f.hil.checked) {
 		sc += ' highlight="false"';
 	}
-	if (f.off.value !== '72') {
+	if (f.off.value && f.off.value !== '72') {
 		sc += ` offset="${f.off.value}"`;
 	}
 

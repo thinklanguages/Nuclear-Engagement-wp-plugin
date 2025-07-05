@@ -1,13 +1,13 @@
 <?php
 /**
-	* File: includes/Traits/SettingsPersistenceTrait.php
-	*
-	* Handles saving logic for SettingsRepository.
-	*
-	* @package NuclearEngagement
-	* @subpackage Traits
-	* @since 1.0.0
-	*/
+ * File: includes/Traits/SettingsPersistenceTrait.php
+ *
+ * Handles saving logic for SettingsRepository.
+ *
+ * @package NuclearEngagement
+ * @subpackage Traits
+ * @since 1.0.0
+ */
 
 declare( strict_types = 1 );
 
@@ -45,11 +45,11 @@ trait SettingsPersistenceTrait {
 
 		// Only update if settings have changed.
 		if ( $merged !== $current ) {
-			$autoload = $this->should_autoload( $merged );
-						$result   = update_option( self::OPTION, $merged, $autoload ? 'yes' : 'no' );
-						if ( $result ) {
-								\NuclearEngagement\Core\InventoryCache::clear();
-						}
+			$autoload           = $this->should_autoload( $merged );
+						$result = update_option( self::OPTION, $merged, $autoload ? 'yes' : 'no' );
+			if ( $result ) {
+					\NuclearEngagement\Core\InventoryCache::clear();
+			}
 
 						// Also update legacy option for backward compatibility.
 			if ( $result && false !== get_option( 'nuclear_engagement_setup' ) ) {

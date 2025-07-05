@@ -1,4 +1,10 @@
 <?php
+/**
+ * Autoloader.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package NuclearEngagement_Core
+ */
+
 declare(strict_types=1);
 
 namespace NuclearEngagement\Core;
@@ -38,7 +44,7 @@ final class Autoloader {
 			$paths[]     = NUCLEN_PLUGIN_DIR . implode( '/', $segments ) . '.php';
 
 			if ( isset( $segments[1] ) ) {
-				// Try both uppercase and lowercase for traits directory
+				// Try both uppercase and lowercase for traits directory.
 				$paths[] = NUCLEN_PLUGIN_DIR . $segments[0] . '/Traits/' . $segments[1] . '.php';
 				$paths[] = NUCLEN_PLUGIN_DIR . $segments[0] . '/traits/' . $segments[1] . '.php';
 			}

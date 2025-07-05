@@ -6,7 +6,9 @@ namespace {
 	use NuclearEngagement\Modules\Summary\Summary_Service;
 	use NuclearEngagement\Core\SettingsRepository;
 
-	function get_the_ID() { return $GLOBALS['current_post_id'] ?? 0; }
+	if (!function_exists('get_the_ID')) {
+		function get_the_ID() { return $GLOBALS['current_post_id'] ?? 0; }
+	}
 	if (!function_exists('esc_html')) {
 		function esc_html($t) { return $t; }
 	}
@@ -21,7 +23,7 @@ namespace {
 	}
 	if (!function_exists('esc_attr')) { function esc_attr($t){ return $t; } }
 
-	class DummyFront {
+	class DummyFrontSummary {
 		public int $calls = 0;
 		public function nuclen_force_enqueue_assets(): void { $this->calls++; }
 	}
@@ -33,7 +35,7 @@ namespace {
 			SettingsRepository::reset_for_tests();
 		}
 
-		private function makeShortcode(DummyFront $front): SummaryShortcode {
+		private function makeShortcode(DummyFrontSummary $front): SummaryShortcode {
 			$settings = SettingsRepository::get_instance();
 			return new SummaryShortcode($settings, $front);
 		}
@@ -46,7 +48,7 @@ namespace {
 			$settings = SettingsRepository::get_instance();
 			$settings->set_string('summary_title', 'Facts')->set_bool('show_attribution', true)->save();
 
-			$front = new DummyFront();
+			$front = new DummyFrontSummary();
 			$sc = $this->makeShortcode($front);
 			$html = $sc->render();
 
@@ -61,7 +63,7 @@ namespace {
 			$current_post_id = 2;
 			$wp_meta[2][Summary_Service::META_KEY] = ['summary' => ''];
 
-			$front = new DummyFront();
+			$front = new DummyFrontSummary();
 			$sc = $this->makeShortcode($front);
 			$this->assertSame('', $sc->render());
 		}

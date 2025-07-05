@@ -1,4 +1,10 @@
 <?php
+/**
+ * Summary_Service.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package NuclearEngagement_Modules_Summary
+ */
+
 declare(strict_types=1);
 /**
  * Summary data storage constants.

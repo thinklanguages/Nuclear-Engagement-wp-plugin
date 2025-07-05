@@ -32,7 +32,7 @@ class RemoteApiService {
 	private const CACHE_GROUP = 'nuclen_remote';
 
 	/** Short cache lifetime for update polling. */
-	private const CACHE_TTL = 60; // 60 seconds
+	private const CACHE_TTL = 60; // 60 seconds.
 
 	/**
 	 * @var SettingsRepository

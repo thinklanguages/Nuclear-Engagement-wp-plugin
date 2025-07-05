@@ -1,5 +1,9 @@
 import { describe, it, beforeEach, afterEach, expect, vi } from 'vitest';
 
+declare global {
+  var jQuery: any;
+}
+
 vi.mock('../../src/admin/ts/nuclen-admin-generate', () => ({
   nuclenFetchWithRetry: vi.fn().mockResolvedValue({ ok: true })
 }));
@@ -23,7 +27,7 @@ beforeEach(() => {
     if (typeof selector !== 'string') {
       return { 
         pointer: () => ({}),
-        ready: (fn: Function) => fn(),
+        ready: (fn: () => void) => fn(),
         length: 1
       };
     }
@@ -42,7 +46,7 @@ beforeEach(() => {
         }
         return api;
       },
-      ready(fn: Function) {
+      ready(fn: () => void) {
         fn();
         return api;
       },

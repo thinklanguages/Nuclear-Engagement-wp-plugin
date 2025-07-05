@@ -1,4 +1,10 @@
 <?php
+/**
+ * LoggerInterface.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package NuclearEngagement_Contracts
+ */
+
 declare(strict_types=1);
 /**
  * File: inc/Contracts/LoggerInterface.php
@@ -18,7 +24,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Defines logging contract for the plugin.
  */
 interface LoggerInterface {
-	
+
 	/**
 	 * Log a message.
 	 *
@@ -27,7 +33,7 @@ interface LoggerInterface {
 	 * @param array  $context Additional context data.
 	 */
 	public function log( string $level, string $message, array $context = array() ): void;
-	
+
 	/**
 	 * Log debug message.
 	 *
@@ -35,7 +41,7 @@ interface LoggerInterface {
 	 * @param array  $context Additional context data.
 	 */
 	public function debug( string $message, array $context = array() ): void;
-	
+
 	/**
 	 * Log info message.
 	 *
@@ -43,7 +49,7 @@ interface LoggerInterface {
 	 * @param array  $context Additional context data.
 	 */
 	public function info( string $message, array $context = array() ): void;
-	
+
 	/**
 	 * Log warning message.
 	 *
@@ -51,7 +57,7 @@ interface LoggerInterface {
 	 * @param array  $context Additional context data.
 	 */
 	public function warning( string $message, array $context = array() ): void;
-	
+
 	/**
 	 * Log error message.
 	 *
@@ -59,7 +65,7 @@ interface LoggerInterface {
 	 * @param array  $context Additional context data.
 	 */
 	public function error( string $message, array $context = array() ): void;
-	
+
 	/**
 	 * Log exception.
 	 *

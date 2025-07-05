@@ -1,4 +1,10 @@
 <?php
+/**
+ * GenerationPoller.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package NuclearEngagement_Services
+ */
+
 declare(strict_types=1);
 /**
  * File: includes/Services/GenerationPoller.php
@@ -51,7 +57,7 @@ class GenerationPoller {
 			'nuclen_poll_generation',
 			array( $this, 'poll_generation' ),
 			10,
-			4 // generation_id, workflow_type, post_ids, attempt
+			4 // generation_id, workflow_type, post_ids, attempt.
 		);
 	}
 
@@ -77,20 +83,20 @@ class GenerationPoller {
 			// fetch_updates() checks a short cache to avoid redundant requests.
 			$data = $this->remote_api->fetch_updates( $generation_id );
 
-						if ( ! empty( $data['results'] ) && is_array( $data['results'] ) ) {
-								$statuses = $this->content_storage->storeResults( $data['results'], $workflow_type );
-								if ( array_filter( $statuses, static fn( $s ) => $s !== true ) ) {
-										\NuclearEngagement\Services\LoggingService::notify_admin(
-												sprintf( 'Failed to store results for generation %s', $generation_id )
-										);
-								} else {
-										\NuclearEngagement\Services\LoggingService::log(
-												"Poll success for generation {$generation_id}"
-										);
-								}
-								$this->cleanup_generation( $generation_id );
-								return;
-						}
+			if ( ! empty( $data['results'] ) && is_array( $data['results'] ) ) {
+					$statuses = $this->content_storage->storeResults( $data['results'], $workflow_type );
+				if ( array_filter( $statuses, static fn( $s ) => $s !== true ) ) {
+								\NuclearEngagement\Services\LoggingService::notify_admin(
+									sprintf( 'Failed to store results for generation %s', $generation_id )
+								);
+				} else {
+									\NuclearEngagement\Services\LoggingService::log(
+										"Poll success for generation {$generation_id}"
+									);
+				}
+										$this->cleanup_generation( $generation_id );
+										return;
+			}
 
 			if ( isset( $data['success'] ) && $data['success'] === true ) {
 								\NuclearEngagement\Services\LoggingService::log(
@@ -122,7 +128,7 @@ class GenerationPoller {
 					'nuclen_poll_generation',
 					$event_args
 				);
-			if ( false === $scheduled ) {
+			if ( $scheduled === false ) {
 				\NuclearEngagement\Services\LoggingService::log(
 					'Failed to schedule event nuclen_poll_generation for generation ' . $generation_id
 				);

@@ -1,4 +1,10 @@
 <?php
+/**
+ * PerformanceMonitor.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package NuclearEngagement_Core
+ */
+
 declare(strict_types=1);
 
 namespace NuclearEngagement\Core;
@@ -19,14 +25,14 @@ final class PerformanceMonitor {
 	 *
 	 * @var array<string, array{start: float, end?: float, memory_start: int, memory_end?: int, queries_start: int, queries_end?: int}>
 	 */
-	private static array $metrics = [];
+	private static array $metrics = array();
 
 	/**
 	 * Current profiling stack.
 	 *
 	 * @var array<string>
 	 */
-	private static array $stack = [];
+	private static array $stack = array();
 
 	/**
 	 * Whether monitoring is enabled.
@@ -40,11 +46,11 @@ final class PerformanceMonitor {
 	 *
 	 * @var array{time: float, memory: int, queries: int}
 	 */
-	private static array $thresholds = [
-		'time'    => 1.0,    // 1 second
-		'memory'  => 5242880, // 5MB
-		'queries' => 50,     // 50 queries
-	];
+	private static array $thresholds = array(
+		'time'    => 1.0,    // 1 second.
+		'memory'  => 5242880, // 5MB.
+		'queries' => 50,     // 50 queries.
+	);
 
 	/**
 	 * Initialize the performance monitor.
@@ -56,12 +62,12 @@ final class PerformanceMonitor {
 			return;
 		}
 
-		// Hook into WordPress to track overall page performance
-		add_action( 'init', [ self::class, 'start_page_monitoring' ], 1 );
-		add_action( 'wp_footer', [ self::class, 'end_page_monitoring' ], 999 );
-		add_action( 'admin_footer', [ self::class, 'end_page_monitoring' ], 999 );
+		// Hook into WordPress to track overall page performance.
+		add_action( 'init', array( self::class, 'start_page_monitoring' ), 1 );
+		add_action( 'wp_footer', array( self::class, 'end_page_monitoring' ), 999 );
+		add_action( 'admin_footer', array( self::class, 'end_page_monitoring' ), 999 );
 
-		// Track WordPress hooks if in development mode
+		// Track WordPress hooks if in development mode.
 		if ( defined( 'NUCLEN_DEV_MODE' ) && NUCLEN_DEV_MODE ) {
 			self::trackWordPressHooks();
 		}
@@ -77,12 +83,12 @@ final class PerformanceMonitor {
 			return;
 		}
 
-		self::$stack[] = $operation;
-		self::$metrics[$operation] = [
+		self::$stack[]               = $operation;
+		self::$metrics[ $operation ] = array(
 			'start'         => microtime( true ),
 			'memory_start'  => memory_get_usage( true ),
 			'queries_start' => self::getQueryCount(),
-		];
+		);
 	}
 
 	/**
@@ -91,21 +97,21 @@ final class PerformanceMonitor {
 	 * @param string $operation Operation identifier.
 	 */
 	public static function stop( string $operation ): void {
-		if ( ! self::$enabled || ! isset( self::$metrics[$operation] ) ) {
+		if ( ! self::$enabled || ! isset( self::$metrics[ $operation ] ) ) {
 			return;
 		}
 
-		self::$metrics[$operation]['end'] = microtime( true );
-		self::$metrics[$operation]['memory_end'] = memory_get_usage( true );
-		self::$metrics[$operation]['queries_end'] = self::getQueryCount();
+		self::$metrics[ $operation ]['end']         = microtime( true );
+		self::$metrics[ $operation ]['memory_end']  = memory_get_usage( true );
+		self::$metrics[ $operation ]['queries_end'] = self::getQueryCount();
 
-		// Remove from stack
+		// Remove from stack.
 		$key = array_search( $operation, self::$stack, true );
 		if ( $key !== false ) {
-			unset( self::$stack[$key] );
+			unset( self::$stack[ $key ] );
 		}
 
-		// Check thresholds and log warnings
+		// Check thresholds and log warnings.
 		self::checkThresholds( $operation );
 	}
 
@@ -118,7 +124,7 @@ final class PerformanceMonitor {
 	 */
 	public static function profile( string $operation, callable $callback ) {
 		self::start( $operation );
-		
+
 		try {
 			return call_user_func( $callback );
 		} finally {
@@ -133,17 +139,17 @@ final class PerformanceMonitor {
 	 * @return array{duration: float, memory_usage: int, query_count: int}|null
 	 */
 	public static function getMetrics( string $operation ): ?array {
-		if ( ! isset( self::$metrics[$operation] ) || ! isset( self::$metrics[$operation]['end'] ) ) {
+		if ( ! isset( self::$metrics[ $operation ] ) || ! isset( self::$metrics[ $operation ]['end'] ) ) {
 			return null;
 		}
 
-		$metric = self::$metrics[$operation];
+		$metric = self::$metrics[ $operation ];
 
-		return [
+		return array(
 			'duration'     => $metric['end'] - $metric['start'],
 			'memory_usage' => $metric['memory_end'] - $metric['memory_start'],
 			'query_count'  => $metric['queries_end'] - $metric['queries_start'],
-		];
+		);
 	}
 
 	/**
@@ -152,15 +158,15 @@ final class PerformanceMonitor {
 	 * @return array<string, array{duration: float, memory_usage: int, query_count: int}>
 	 */
 	public static function getAllMetrics(): array {
-		$results = [];
+		$results = array();
 
 		foreach ( self::$metrics as $operation => $metric ) {
 			if ( isset( $metric['end'] ) ) {
-				$results[$operation] = [
+				$results[ $operation ] = array(
 					'duration'     => $metric['end'] - $metric['start'],
 					'memory_usage' => $metric['memory_end'] - $metric['memory_start'],
 					'query_count'  => $metric['queries_end'] - $metric['queries_start'],
-				];
+				);
 			}
 		}
 
@@ -173,11 +179,11 @@ final class PerformanceMonitor {
 	 * @return array{current: int, peak: int, limit: int}
 	 */
 	public static function getMemoryUsage(): array {
-		return [
+		return array(
 			'current' => memory_get_usage( true ),
 			'peak'    => memory_get_peak_usage( true ),
 			'limit'   => (int) ini_get( 'memory_limit' ) !== -1 ? self::parseMemoryLimit() : -1,
-		];
+		);
 	}
 
 	/**
@@ -189,24 +195,24 @@ final class PerformanceMonitor {
 		global $wpdb;
 
 		$slow_queries = 0;
-		$total_time = 0;
+		$total_time   = 0;
 
 		if ( defined( 'SAVEQUERIES' ) && SAVEQUERIES && isset( $wpdb->queries ) ) {
 			foreach ( $wpdb->queries as $query ) {
-				$query_time = $query[1] ?? 0;
+				$query_time  = $query[1] ?? 0;
 				$total_time += $query_time;
 
-				if ( $query_time > 0.05 ) { // Queries taking more than 50ms
-					$slow_queries++;
+				if ( $query_time > 0.05 ) { // Queries taking more than 50ms.
+					++$slow_queries;
 				}
 			}
 		}
 
-		return [
+		return array(
 			'count'        => self::getQueryCount(),
 			'time'         => $total_time,
 			'slow_queries' => $slow_queries,
-		];
+		);
 	}
 
 	/**
@@ -240,23 +246,31 @@ final class PerformanceMonitor {
 	 * Track WordPress hooks performance.
 	 */
 	private static function trackWordPressHooks(): void {
-		$hooks_to_track = [
+		$hooks_to_track = array(
 			'plugins_loaded',
 			'init',
 			'wp_loaded',
 			'template_redirect',
 			'wp_head',
 			'wp_footer',
-		];
+		);
 
 		foreach ( $hooks_to_track as $hook ) {
-			add_action( $hook, function() use ( $hook ) {
-				self::start( "hook_{$hook}" );
-			}, -999 );
+			add_action(
+				$hook,
+				function () use ( $hook ) {
+					self::start( "hook_{$hook}" );
+				},
+				-999
+			);
 
-			add_action( $hook, function() use ( $hook ) {
-				self::stop( "hook_{$hook}" );
-			}, 999 );
+			add_action(
+				$hook,
+				function () use ( $hook ) {
+					self::stop( "hook_{$hook}" );
+				},
+				999
+			);
 		}
 	}
 
@@ -271,16 +285,17 @@ final class PerformanceMonitor {
 			return;
 		}
 
-		$warnings = [];
+		$warnings = array();
 
 		if ( $metrics['duration'] > self::$thresholds['time'] ) {
 			$warnings[] = sprintf( 'Duration: %.2fs (threshold: %.2fs)', $metrics['duration'], self::$thresholds['time'] );
 		}
 
 		if ( $metrics['memory_usage'] > self::$thresholds['memory'] ) {
-			$warnings[] = sprintf( 'Memory: %s (threshold: %s)', 
-				size_format( $metrics['memory_usage'] ), 
-				size_format( self::$thresholds['memory'] ) 
+			$warnings[] = sprintf(
+				'Memory: %s (threshold: %s)',
+				size_format( $metrics['memory_usage'] ),
+				size_format( self::$thresholds['memory'] )
 			);
 		}
 
@@ -289,11 +304,14 @@ final class PerformanceMonitor {
 		}
 
 		if ( ! empty( $warnings ) ) {
-			error_log( sprintf( 
-				'Nuclear Engagement Performance Warning [%s]: %s', 
-				$operation, 
-				implode( ', ', $warnings ) 
-			) );
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+			error_log(
+				sprintf(
+					'Nuclear Engagement Performance Warning [%s]: %s',
+					$operation,
+					implode( ', ', $warnings )
+				)
+			);
 		}
 	}
 
@@ -302,7 +320,7 @@ final class PerformanceMonitor {
 	 */
 	private static function outputDebugInfo(): void {
 		$metrics = self::getAllMetrics();
-		$memory = self::getMemoryUsage();
+		$memory  = self::getMemoryUsage();
 		$queries = self::getQueryStats();
 
 		echo '<div style="background: #f1f1f1; padding: 20px; margin: 20px; font-family: monospace; font-size: 12px; border: 1px solid #ddd;">';
@@ -328,7 +346,7 @@ final class PerformanceMonitor {
 			echo '<h4>Operation Metrics:</h4>';
 			echo '<table style="width: 100%; border-collapse: collapse;">';
 			echo '<tr><th style="border: 1px solid #ddd; padding: 8px;">Operation</th><th style="border: 1px solid #ddd; padding: 8px;">Duration</th><th style="border: 1px solid #ddd; padding: 8px;">Memory</th><th style="border: 1px solid #ddd; padding: 8px;">Queries</th></tr>';
-			
+
 			foreach ( $metrics as $operation => $metric ) {
 				echo '<tr>';
 				echo '<td style="border: 1px solid #ddd; padding: 8px;">' . esc_html( $operation ) . '</td>';
@@ -337,7 +355,7 @@ final class PerformanceMonitor {
 				echo '<td style="border: 1px solid #ddd; padding: 8px;">' . $metric['query_count'] . '</td>';
 				echo '</tr>';
 			}
-			
+
 			echo '</table>';
 		}
 
@@ -361,7 +379,7 @@ final class PerformanceMonitor {
 	 */
 	private static function parseMemoryLimit(): int {
 		$limit = ini_get( 'memory_limit' );
-		
+
 		if ( $limit === '-1' ) {
 			return -1;
 		}

@@ -1,4 +1,10 @@
 <?php
+/**
+ * ValidationUtils.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package NuclearEngagement_Utils
+ */
+
 declare(strict_types=1);
 
 namespace NuclearEngagement\Utils;
@@ -17,15 +23,25 @@ final class ValidationUtils {
 
 	/**
 	 * Validate and sanitize integer input.
+	 *
+	 * @param mixed $value The value to validate.
+	 * @param int   $min   Minimum allowed value.
+	 * @param int   $max   Maximum allowed value.
+	 * @return int|null    The validated integer or null if invalid.
 	 */
 	public static function validate_int( $value, int $min = 0, int $max = PHP_INT_MAX ): ?int {
 		if ( is_null( $value ) ) {
 			return null;
 		}
 
+		// Explicitly reject boolean values
+		if ( is_bool( $value ) ) {
+			return null;
+		}
+
 		$int_value = filter_var( $value, FILTER_VALIDATE_INT );
-		
-		if ( $int_value === false || $int_value < $min || $int_value > $max ) {
+
+		if ( false === $int_value || $min > $int_value || $max < $int_value ) {
 			return null;
 		}
 
@@ -34,26 +50,32 @@ final class ValidationUtils {
 
 	/**
 	 * Validate and sanitize string input.
+	 *
+	 * @param mixed $value      The value to validate.
+	 * @param int   $max_length Maximum allowed length.
+	 * @param array $allowed    Array of allowed values.
+	 * @param bool  $allow_html Whether to allow HTML tags.
+	 * @return string|null      The validated string or null if invalid.
 	 */
-	public static function validate_string( 
-		$value, 
-		int $max_length = 255, 
-		array $allowed = [], 
-		bool $allow_html = false 
+	public static function validate_string(
+		$value,
+		int $max_length = 255,
+		array $allowed = array(),
+		bool $allow_html = false
 	): ?string {
 		if ( ! is_string( $value ) && ! is_numeric( $value ) ) {
 			return null;
 		}
 
 		$string_value = (string) $value;
-		
+
 		if ( $allow_html ) {
 			$string_value = wp_kses_post( $string_value );
 		} else {
 			$string_value = sanitize_text_field( $string_value );
 		}
-		
-		if ( strlen( $string_value ) > $max_length ) {
+
+		if ( $string_value === null || $max_length < strlen( $string_value ) ) {
 			return null;
 		}
 
@@ -66,61 +88,87 @@ final class ValidationUtils {
 
 	/**
 	 * Validate and sanitize array input.
+	 *
+	 * @param mixed  $value     The value to validate.
+	 * @param int    $max_items Maximum number of items.
+	 * @param string $item_type Type of items to validate.
+	 * @param array  $options   Additional validation options.
+	 * @return array|null       The validated array or null if invalid.
 	 */
-	public static function validate_array( 
-		$value, 
-		int $max_items = 100, 
+	public static function validate_array(
+		$value,
+		int $max_items = 100,
 		string $item_type = 'string',
-		array $options = []
+		array $options = array()
 	): ?array {
 		if ( ! is_array( $value ) ) {
 			return null;
 		}
 
-		if ( count( $value ) > $max_items ) {
+		if ( $max_items < count( $value ) ) {
 			return null;
 		}
 
-		$validated = [];
+		$validated = array();
 		foreach ( $value as $index => $item ) {
 			switch ( $item_type ) {
 				case 'int':
-					$validated_item = self::validate_int( 
-						$item, 
-						$options['min'] ?? 0, 
-						$options['max'] ?? PHP_INT_MAX 
+					$validated_item = self::validate_int(
+						$item,
+						$options['min'] ?? 0,
+						$options['max'] ?? PHP_INT_MAX
 					);
 					break;
 				case 'string':
-					$validated_item = self::validate_string( 
-						$item, 
+					$validated_item = self::validate_string(
+						$item,
 						$options['max_length'] ?? 255,
-						$options['allowed'] ?? [],
+						$options['allowed'] ?? array(),
 						$options['allow_html'] ?? false
 					);
 					break;
 				default:
 					return null;
 			}
-			
-			if ( $validated_item === null ) {
+
+			if ( null === $validated_item ) {
 				return null;
 			}
-			
-			$validated[$index] = $validated_item;
+
+			$validated[ $index ] = $validated_item;
 		}
 
 		return $validated;
 	}
 
+	/**
+	 * Validate nonce value.
+	 *
+	 * @param string $nonce_value  The nonce value to validate.
+	 * @param string $nonce_action The nonce action.
+	 * @return bool                True if valid, false otherwise.
+	 */
 	public static function validate_nonce( string $nonce_value, string $nonce_action ): bool {
 		return wp_verify_nonce( $nonce_value, $nonce_action ) !== false;
 	}
 
+	/**
+	 * Validate user capability.
+	 *
+	 * @param string $capability The capability to check.
+	 * @return bool              True if user has capability, false otherwise.
+	 */
 	public static function validate_capability( string $capability = 'manage_options' ): bool {
 		return current_user_can( $capability );
 	}
 
+	/**
+	 * Validate AJAX request with nonce and capability check.
+	 *
+	 * @param string $nonce_action The nonce action.
+	 * @param string $capability   The required capability.
+	 * @return bool                True if valid, false otherwise.
+	 */
 	public static function validate_ajax_request( string $nonce_action, string $capability = 'manage_options' ): bool {
 		if ( ! wp_doing_ajax() ) {
 			return false;
@@ -133,29 +181,56 @@ final class ValidationUtils {
 		return self::validate_capability( $capability );
 	}
 
+	/**
+	 * Sanitize API key.
+	 *
+	 * @param string $api_key The API key to sanitize.
+	 * @return string         The sanitized API key.
+	 */
 	public static function sanitize_api_key( string $api_key ): string {
 		return sanitize_text_field( trim( $api_key ) );
 	}
 
+	/**
+	 * Check if string is a valid UUID.
+	 *
+	 * @param string $uuid The UUID to validate.
+	 * @return bool        True if valid UUID, false otherwise.
+	 */
 	public static function is_valid_uuid( string $uuid ): bool {
 		return (bool) preg_match( '/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $uuid );
 	}
 
+	/**
+	 * Validate URL format.
+	 *
+	 * @param string $url The URL to validate.
+	 * @return bool       True if valid URL, false otherwise.
+	 */
 	public static function validate_url( string $url ): bool {
 		return filter_var( $url, FILTER_VALIDATE_URL ) !== false;
 	}
 
+	/**
+	 * Validate email address.
+	 *
+	 * @param string $email The email to validate.
+	 * @return bool         True if valid email, false otherwise.
+	 */
 	public static function validate_email( string $email ): bool {
 		return is_email( $email ) !== false;
 	}
 
 	/**
 	 * Validate WordPress post ID.
+	 *
+	 * @param mixed $value The value to validate.
+	 * @return int|null    Valid post ID or null if invalid.
 	 */
 	public static function validate_post_id( $value ): ?int {
 		$post_id = self::validate_int( $value, 1 );
-		
-		if ( $post_id === null ) {
+
+		if ( null === $post_id ) {
 			return null;
 		}
 
@@ -168,6 +243,9 @@ final class ValidationUtils {
 
 	/**
 	 * Validate boolean input.
+	 *
+	 * @param mixed $value The value to validate.
+	 * @return bool|null   The validated boolean or null if invalid.
 	 */
 	public static function validate_bool( $value ): ?bool {
 		if ( is_bool( $value ) ) {
@@ -176,10 +254,10 @@ final class ValidationUtils {
 
 		if ( is_string( $value ) ) {
 			$lower = strtolower( trim( $value ) );
-			if ( in_array( $lower, [ 'true', '1', 'yes', 'on' ], true ) ) {
+			if ( in_array( $lower, array( 'true', '1', 'yes', 'on' ), true ) ) {
 				return true;
 			}
-			if ( in_array( $lower, [ 'false', '0', 'no', 'off', '' ], true ) ) {
+			if ( in_array( $lower, array( 'false', '0', 'no', 'off', '' ), true ) ) {
 				return false;
 			}
 		}
@@ -193,39 +271,43 @@ final class ValidationUtils {
 
 	/**
 	 * Batch validate multiple inputs.
+	 *
+	 * @param array $inputs The input values to validate.
+	 * @param array $rules  The validation rules.
+	 * @return array|null   The validated values or null if validation fails.
 	 */
 	public static function validate_batch( array $inputs, array $rules ): ?array {
-		$validated = [];
-		
+		$validated = array();
+
 		foreach ( $rules as $field => $rule ) {
-			$value = $inputs[$field] ?? null;
-			$type = $rule['type'] ?? 'string';
+			$value    = $inputs[ $field ] ?? null;
+			$type     = $rule['type'] ?? 'string';
 			$required = $rule['required'] ?? false;
-			$options = $rule['options'] ?? [];
-			
-			if ( $required && ( $value === null || $value === '' ) ) {
+			$options  = $rule['options'] ?? array();
+
+			if ( $required && ( null === $value || '' === $value ) ) {
 				return null;
 			}
-			
-			if ( ! $required && ( $value === null || $value === '' ) ) {
-				$validated[$field] = $value;
+
+			if ( ! $required && ( null === $value || '' === $value ) ) {
+				$validated[ $field ] = $value;
 				continue;
 			}
-			
+
 			$validated_value = null;
 			switch ( $type ) {
 				case 'int':
-					$validated_value = self::validate_int( 
-						$value, 
-						$options['min'] ?? 0, 
-						$options['max'] ?? PHP_INT_MAX 
+					$validated_value = self::validate_int(
+						$value,
+						$options['min'] ?? 0,
+						$options['max'] ?? PHP_INT_MAX
 					);
 					break;
 				case 'string':
-					$validated_value = self::validate_string( 
-						$value, 
+					$validated_value = self::validate_string(
+						$value,
 						$options['max_length'] ?? 255,
-						$options['allowed'] ?? [],
+						$options['allowed'] ?? array(),
 						$options['allow_html'] ?? false
 					);
 					break;
@@ -233,8 +315,8 @@ final class ValidationUtils {
 					$validated_value = self::validate_bool( $value );
 					break;
 				case 'array':
-					$validated_value = self::validate_array( 
-						$value, 
+					$validated_value = self::validate_array(
+						$value,
 						$options['max_items'] ?? 100,
 						$options['item_type'] ?? 'string',
 						$options
@@ -243,14 +325,14 @@ final class ValidationUtils {
 				default:
 					return null;
 			}
-			
-			if ( $validated_value === null ) {
+
+			if ( null === $validated_value ) {
 				return null;
 			}
-			
-			$validated[$field] = $validated_value;
+
+			$validated[ $field ] = $validated_value;
 		}
-		
+
 		return $validated;
 	}
 }

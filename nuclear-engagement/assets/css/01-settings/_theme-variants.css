@@ -1,6 +1,6 @@
 /**
  * Theme Variants - Nuclear Engagement Plugin
- * 
+ *
  * Pre-built theme variations and advanced theming system.
  * Provides professional themes for different use cases.
  */
@@ -9,340 +9,340 @@
 
 /* Corporate Theme */
 .ne-theme--corporate {
-  --ne-color-primary-050: #f0f9ff;
-  --ne-color-primary-100: #e0f2fe;
-  --ne-color-primary-200: #bae6fd;
-  --ne-color-primary-300: #7dd3fc;
-  --ne-color-primary-400: #38bdf8;
-  --ne-color-primary-500: #0ea5e9;
-  --ne-color-primary-600: #0284c7;
-  --ne-color-primary-700: #0369a1;
-  --ne-color-primary-800: #075985;
-  --ne-color-primary-900: #0c4a6e;
-  --ne-font-family-sans: "Inter", system-ui, -apple-system, sans-serif;
-  --ne-radius-base: 0.375rem;
-  --ne-radius-md: 0.5rem;
-  --ne-radius-lg: 0.75rem;
-  --ne-shadow-base: 0 4px 6px -1px rgb(0 0 0 / 10%), 0 2px 4px -2px rgb(0 0 0 / 10%);
-  --ne-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 10%), 0 4px 6px -4px rgb(0 0 0 / 10%);
+	--ne-color-primary-050: #f0f9ff;
+	--ne-color-primary-100: #e0f2fe;
+	--ne-color-primary-200: #bae6fd;
+	--ne-color-primary-300: #7dd3fc;
+	--ne-color-primary-400: #38bdf8;
+	--ne-color-primary-500: #0ea5e9;
+	--ne-color-primary-600: #0284c7;
+	--ne-color-primary-700: #0369a1;
+	--ne-color-primary-800: #075985;
+	--ne-color-primary-900: #0c4a6e;
+	--ne-font-family-sans: "Inter", system-ui, -apple-system, sans-serif;
+	--ne-radius-base: 0.375rem;
+	--ne-radius-md: 0.5rem;
+	--ne-radius-lg: 0.75rem;
+	--ne-shadow-base: 0 4px 6px -1px rgb(0 0 0 / 10%), 0 2px 4px -2px rgb(0 0 0 / 10%);
+	--ne-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 10%), 0 4px 6px -4px rgb(0 0 0 / 10%);
 }
 
 /* Educational Theme */
 .ne-theme--educational {
-  --ne-color-primary-050: #fef3c7;
-  --ne-color-primary-100: #fde68a;
-  --ne-color-primary-200: #fcd34d;
-  --ne-color-primary-300: #fbbf24;
-  --ne-color-primary-400: #f59e0b;
-  --ne-color-primary-500: #d97706;
-  --ne-color-primary-600: #b45309;
-  --ne-color-primary-700: #92400e;
-  --ne-color-primary-800: #78350f;
-  --ne-color-primary-900: #451a03;
-  --ne-color-secondary-050: #ecfccb;
-  --ne-color-secondary-500: #65a30d;
-  --ne-color-secondary-600: #4d7c0f;
-  --ne-font-family-sans: "Nunito", system-ui, -apple-system, sans-serif;
-  --ne-radius-base: 0.5rem;
-  --ne-radius-md: 0.75rem;
-  --ne-radius-lg: 1rem;
-  --ne-space-4: 1.25rem;
-  --ne-space-6: 2rem;
+	--ne-color-primary-050: #fef3c7;
+	--ne-color-primary-100: #fde68a;
+	--ne-color-primary-200: #fcd34d;
+	--ne-color-primary-300: #fbbf24;
+	--ne-color-primary-400: #f59e0b;
+	--ne-color-primary-500: #d97706;
+	--ne-color-primary-600: #b45309;
+	--ne-color-primary-700: #92400e;
+	--ne-color-primary-800: #78350f;
+	--ne-color-primary-900: #451a03;
+	--ne-color-secondary-050: #ecfccb;
+	--ne-color-secondary-500: #65a30d;
+	--ne-color-secondary-600: #4d7c0f;
+	--ne-font-family-sans: "Nunito", system-ui, -apple-system, sans-serif;
+	--ne-radius-base: 0.5rem;
+	--ne-radius-md: 0.75rem;
+	--ne-radius-lg: 1rem;
+	--ne-space-4: 1.25rem;
+	--ne-space-6: 2rem;
 }
 
 /* Tech/Gaming Theme */
 .ne-theme--tech {
-  --ne-color-primary-050: #f0fdf4;
-  --ne-color-primary-100: #dcfce7;
-  --ne-color-primary-200: #bbf7d0;
-  --ne-color-primary-300: #86efac;
-  --ne-color-primary-400: #4ade80;
-  --ne-color-primary-500: #22c55e;
-  --ne-color-primary-600: #16a34a;
-  --ne-color-primary-700: #15803d;
-  --ne-color-primary-800: #166534;
-  --ne-color-primary-900: #14532d;
-  --ne-color-accent-050: #fdf4ff;
-  --ne-color-accent-500: #a855f7;
-  --ne-color-accent-600: #9333ea;
-  --ne-font-family-sans: "JetBrains Mono", "Fira Code", monospace;
-  --ne-font-family-mono: "JetBrains Mono", "Fira Code", consolas, monospace;
-  --ne-radius-base: 0.25rem;
-  --ne-radius-md: 0.375rem;
-  --ne-radius-lg: 0.5rem;
-  --ne-shadow-base: 0 0 0 1px rgb(34 197 94 / 20%), 0 4px 6px -1px rgb(0 0 0 / 10%);
-  --ne-shadow-lg: 0 0 0 1px rgb(34 197 94 / 30%), 0 10px 15px -3px rgb(0 0 0 / 10%);
+	--ne-color-primary-050: #f0fdf4;
+	--ne-color-primary-100: #dcfce7;
+	--ne-color-primary-200: #bbf7d0;
+	--ne-color-primary-300: #86efac;
+	--ne-color-primary-400: #4ade80;
+	--ne-color-primary-500: #22c55e;
+	--ne-color-primary-600: #16a34a;
+	--ne-color-primary-700: #15803d;
+	--ne-color-primary-800: #166534;
+	--ne-color-primary-900: #14532d;
+	--ne-color-accent-050: #fdf4ff;
+	--ne-color-accent-500: #a855f7;
+	--ne-color-accent-600: #9333ea;
+	--ne-font-family-sans: "JetBrains Mono", "Fira Code", monospace;
+	--ne-font-family-mono: "JetBrains Mono", "Fira Code", consolas, monospace;
+	--ne-radius-base: 0.25rem;
+	--ne-radius-md: 0.375rem;
+	--ne-radius-lg: 0.5rem;
+	--ne-shadow-base: 0 0 0 1px rgb(34 197 94 / 20%), 0 4px 6px -1px rgb(0 0 0 / 10%);
+	--ne-shadow-lg: 0 0 0 1px rgb(34 197 94 / 30%), 0 10px 15px -3px rgb(0 0 0 / 10%);
 }
 
 /* Medical/Healthcare Theme */
 .ne-theme--medical {
-  --ne-color-primary-050: #eff6ff;
-  --ne-color-primary-100: #dbeafe;
-  --ne-color-primary-200: #bfdbfe;
-  --ne-color-primary-300: #93c5fd;
-  --ne-color-primary-400: #60a5fa;
-  --ne-color-primary-500: #3b82f6;
-  --ne-color-primary-600: #2563eb;
-  --ne-color-primary-700: #1d4ed8;
-  --ne-color-primary-800: #1e40af;
-  --ne-color-primary-900: #1e3a8a;
-  --ne-color-error-050: #fef2f2;
-  --ne-color-error-500: #dc2626;
-  --ne-color-success-050: #f0fdf4;
-  --ne-color-success-500: #16a34a;
-  --ne-font-family-sans: "Source Sans Pro", system-ui, -apple-system, sans-serif;
-  --ne-radius-base: 0.375rem;
-  --ne-radius-md: 0.5rem;
-  --ne-radius-lg: 0.75rem;
-  --ne-space-4: 1rem;
-  --ne-space-6: 1.75rem;
-  --ne-space-8: 2.5rem;
+	--ne-color-primary-050: #eff6ff;
+	--ne-color-primary-100: #dbeafe;
+	--ne-color-primary-200: #bfdbfe;
+	--ne-color-primary-300: #93c5fd;
+	--ne-color-primary-400: #60a5fa;
+	--ne-color-primary-500: #3b82f6;
+	--ne-color-primary-600: #2563eb;
+	--ne-color-primary-700: #1d4ed8;
+	--ne-color-primary-800: #1e40af;
+	--ne-color-primary-900: #1e3a8a;
+	--ne-color-error-050: #fef2f2;
+	--ne-color-error-500: #dc2626;
+	--ne-color-success-050: #f0fdf4;
+	--ne-color-success-500: #16a34a;
+	--ne-font-family-sans: "Source Sans Pro", system-ui, -apple-system, sans-serif;
+	--ne-radius-base: 0.375rem;
+	--ne-radius-md: 0.5rem;
+	--ne-radius-lg: 0.75rem;
+	--ne-space-4: 1rem;
+	--ne-space-6: 1.75rem;
+	--ne-space-8: 2.5rem;
 }
 
 /* Minimalist Theme */
 .ne-theme--minimal {
-  --ne-color-primary-050: #f9fafb;
-  --ne-color-primary-100: #f3f4f6;
-  --ne-color-primary-200: #e5e7eb;
-  --ne-color-primary-300: #d1d5db;
-  --ne-color-primary-400: #9ca3af;
-  --ne-color-primary-500: #6b7280;
-  --ne-color-primary-600: #4b5563;
-  --ne-color-primary-700: #374151;
-  --ne-color-primary-800: #1f2937;
-  --ne-color-primary-900: #111827;
-  --ne-font-family-sans: "Inter", system-ui, -apple-system, sans-serif;
-  --ne-font-weight-normal: 300;
-  --ne-font-weight-medium: 400;
-  --ne-font-weight-semibold: 500;
-  --ne-font-weight-bold: 600;
-  --ne-radius-base: 0.125rem;
-  --ne-radius-md: 0.25rem;
-  --ne-radius-lg: 0.375rem;
-  --ne-shadow-base: 0 1px 3px 0 rgb(0 0 0 / 10%);
-  --ne-shadow-lg: 0 4px 6px -1px rgb(0 0 0 / 10%);
-  --ne-space-4: 0.75rem;
-  --ne-space-6: 1.25rem;
-  --ne-space-8: 2rem;
+	--ne-color-primary-050: #f9fafb;
+	--ne-color-primary-100: #f3f4f6;
+	--ne-color-primary-200: #e5e7eb;
+	--ne-color-primary-300: #d1d5db;
+	--ne-color-primary-400: #9ca3af;
+	--ne-color-primary-500: #6b7280;
+	--ne-color-primary-600: #4b5563;
+	--ne-color-primary-700: #374151;
+	--ne-color-primary-800: #1f2937;
+	--ne-color-primary-900: #111827;
+	--ne-font-family-sans: "Inter", system-ui, -apple-system, sans-serif;
+	--ne-font-weight-normal: 300;
+	--ne-font-weight-medium: 400;
+	--ne-font-weight-semibold: 500;
+	--ne-font-weight-bold: 600;
+	--ne-radius-base: 0.125rem;
+	--ne-radius-md: 0.25rem;
+	--ne-radius-lg: 0.375rem;
+	--ne-shadow-base: 0 1px 3px 0 rgb(0 0 0 / 10%);
+	--ne-shadow-lg: 0 4px 6px -1px rgb(0 0 0 / 10%);
+	--ne-space-4: 0.75rem;
+	--ne-space-6: 1.25rem;
+	--ne-space-8: 2rem;
 }
 
 /* Dark Theme Variations */
 .ne-theme--dark {
-  --ne-color-neutral-000: #030712;
-  --ne-color-neutral-050: #111827;
-  --ne-color-neutral-100: #1f2937;
-  --ne-color-neutral-200: #374151;
-  --ne-color-neutral-300: #4b5563;
-  --ne-color-neutral-400: #6b7280;
-  --ne-color-neutral-500: #9ca3af;
-  --ne-color-neutral-600: #d1d5db;
-  --ne-color-neutral-700: #e5e7eb;
-  --ne-color-neutral-800: #f3f4f6;
-  --ne-color-neutral-900: #f9fafb;
-  --ne-color-neutral-950: #fff;
-  --ne-text-primary: var(--ne-color-neutral-900);
-  --ne-text-secondary: var(--ne-color-neutral-600);
-  --ne-text-tertiary: var(--ne-color-neutral-500);
-  --ne-text-disabled: var(--ne-color-neutral-400);
-  --ne-text-inverse: var(--ne-color-neutral-100);
-  --ne-bg-primary: var(--ne-color-neutral-050);
-  --ne-bg-secondary: var(--ne-color-neutral-100);
-  --ne-bg-tertiary: var(--ne-color-neutral-200);
-  --ne-bg-inverse: var(--ne-color-neutral-800);
-  --ne-border-primary: var(--ne-color-neutral-200);
-  --ne-border-secondary: var(--ne-color-neutral-300);
-  --ne-shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 30%);
-  --ne-shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 40%), 0 1px 2px -1px rgb(0 0 0 / 40%);
-  --ne-shadow-base: 0 4px 6px -1px rgb(0 0 0 / 40%), 0 2px 4px -2px rgb(0 0 0 / 40%);
-  --ne-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 40%), 0 4px 6px -4px rgb(0 0 0 / 40%);
+	--ne-color-neutral-000: #030712;
+	--ne-color-neutral-050: #111827;
+	--ne-color-neutral-100: #1f2937;
+	--ne-color-neutral-200: #374151;
+	--ne-color-neutral-300: #4b5563;
+	--ne-color-neutral-400: #6b7280;
+	--ne-color-neutral-500: #9ca3af;
+	--ne-color-neutral-600: #d1d5db;
+	--ne-color-neutral-700: #e5e7eb;
+	--ne-color-neutral-800: #f3f4f6;
+	--ne-color-neutral-900: #f9fafb;
+	--ne-color-neutral-950: #fff;
+	--ne-text-primary: var(--ne-color-neutral-900);
+	--ne-text-secondary: var(--ne-color-neutral-600);
+	--ne-text-tertiary: var(--ne-color-neutral-500);
+	--ne-text-disabled: var(--ne-color-neutral-400);
+	--ne-text-inverse: var(--ne-color-neutral-100);
+	--ne-bg-primary: var(--ne-color-neutral-050);
+	--ne-bg-secondary: var(--ne-color-neutral-100);
+	--ne-bg-tertiary: var(--ne-color-neutral-200);
+	--ne-bg-inverse: var(--ne-color-neutral-800);
+	--ne-border-primary: var(--ne-color-neutral-200);
+	--ne-border-secondary: var(--ne-color-neutral-300);
+	--ne-shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 30%);
+	--ne-shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 40%), 0 1px 2px -1px rgb(0 0 0 / 40%);
+	--ne-shadow-base: 0 4px 6px -1px rgb(0 0 0 / 40%), 0 2px 4px -2px rgb(0 0 0 / 40%);
+	--ne-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 40%), 0 4px 6px -4px rgb(0 0 0 / 40%);
 }
 
 /* High Contrast Theme */
 .ne-theme--high-contrast {
-  --ne-color-primary-500: #00f;
-  --ne-color-primary-600: #000080;
-  --ne-color-primary-700: #006;
-  --ne-color-success-500: #008000;
-  --ne-color-error-500: #f00;
-  --ne-color-warning-500: #ff8c00;
-  --ne-text-primary: #000;
-  --ne-text-secondary: #333;
-  --ne-bg-primary: #fff;
-  --ne-bg-secondary: #f0f0f0;
-  --ne-border-width-1: 2px;
-  --ne-border-width-2: 3px;
-  --ne-border-primary: #000;
-  --ne-border-secondary: #333;
-  --ne-shadow-base: 0 0 0 2px #000;
-  --ne-shadow-lg: 0 0 0 3px #000;
+	--ne-color-primary-500: #00f;
+	--ne-color-primary-600: #000080;
+	--ne-color-primary-700: #006;
+	--ne-color-success-500: #008000;
+	--ne-color-error-500: #f00;
+	--ne-color-warning-500: #ff8c00;
+	--ne-text-primary: #000;
+	--ne-text-secondary: #333;
+	--ne-bg-primary: #fff;
+	--ne-bg-secondary: #f0f0f0;
+	--ne-border-width-1: 2px;
+	--ne-border-width-2: 3px;
+	--ne-border-primary: #000;
+	--ne-border-secondary: #333;
+	--ne-shadow-base: 0 0 0 2px #000;
+	--ne-shadow-lg: 0 0 0 3px #000;
 }
 
 /* === THEME MODIFIERS === */
 
 /* Rounded corners modifier */
 .ne-theme--rounded {
-  --ne-radius-base: 0.75rem;
-  --ne-radius-md: 1rem;
-  --ne-radius-lg: 1.5rem;
-  --ne-radius-xl: 2rem;
+	--ne-radius-base: 0.75rem;
+	--ne-radius-md: 1rem;
+	--ne-radius-lg: 1.5rem;
+	--ne-radius-xl: 2rem;
 }
 
 /* Sharp corners modifier */
 .ne-theme--sharp {
-  --ne-radius-base: 0;
-  --ne-radius-md: 0;
-  --ne-radius-lg: 0;
-  --ne-radius-xl: 0;
+	--ne-radius-base: 0;
+	--ne-radius-md: 0;
+	--ne-radius-lg: 0;
+	--ne-radius-xl: 0;
 }
 
 /* Compact spacing modifier */
 .ne-theme--compact {
-  --ne-space-1: 0.125rem;
-  --ne-space-2: 0.25rem;
-  --ne-space-3: 0.5rem;
-  --ne-space-4: 0.75rem;
-  --ne-space-5: 1rem;
-  --ne-space-6: 1.25rem;
-  --ne-space-8: 1.75rem;
-  --ne-font-size-xs: 0.6875rem;
-  --ne-font-size-sm: 0.8125rem;
-  --ne-font-size-base: 0.9375rem;
-  --ne-font-size-lg: 1.0625rem;
+	--ne-space-1: 0.125rem;
+	--ne-space-2: 0.25rem;
+	--ne-space-3: 0.5rem;
+	--ne-space-4: 0.75rem;
+	--ne-space-5: 1rem;
+	--ne-space-6: 1.25rem;
+	--ne-space-8: 1.75rem;
+	--ne-font-size-xs: 0.6875rem;
+	--ne-font-size-sm: 0.8125rem;
+	--ne-font-size-base: 0.9375rem;
+	--ne-font-size-lg: 1.0625rem;
 }
 
 /* Spacious modifier */
 .ne-theme--spacious {
-  --ne-space-1: 0.375rem;
-  --ne-space-2: 0.625rem;
-  --ne-space-3: 1rem;
-  --ne-space-4: 1.5rem;
-  --ne-space-5: 2rem;
-  --ne-space-6: 2.5rem;
-  --ne-space-8: 3.5rem;
-  --ne-font-size-xs: 0.8125rem;
-  --ne-font-size-sm: 0.9375rem;
-  --ne-font-size-base: 1.0625rem;
-  --ne-font-size-lg: 1.1875rem;
+	--ne-space-1: 0.375rem;
+	--ne-space-2: 0.625rem;
+	--ne-space-3: 1rem;
+	--ne-space-4: 1.5rem;
+	--ne-space-5: 2rem;
+	--ne-space-6: 2.5rem;
+	--ne-space-8: 3.5rem;
+	--ne-font-size-xs: 0.8125rem;
+	--ne-font-size-sm: 0.9375rem;
+	--ne-font-size-base: 1.0625rem;
+	--ne-font-size-lg: 1.1875rem;
 }
 
 /* Large text modifier */
 .ne-theme--large-text {
-  --ne-font-size-xs: 0.875rem;
-  --ne-font-size-sm: 1rem;
-  --ne-font-size-base: 1.125rem;
-  --ne-font-size-lg: 1.25rem;
-  --ne-font-size-xl: 1.5rem;
-  --ne-font-size-2xl: 1.75rem;
-  --ne-font-size-3xl: 2.25rem;
-  --ne-line-height-tight: 1.375;
-  --ne-line-height-snug: 1.5;
-  --ne-line-height-normal: 1.625;
-  --ne-line-height-relaxed: 1.75;
+	--ne-font-size-xs: 0.875rem;
+	--ne-font-size-sm: 1rem;
+	--ne-font-size-base: 1.125rem;
+	--ne-font-size-lg: 1.25rem;
+	--ne-font-size-xl: 1.5rem;
+	--ne-font-size-2xl: 1.75rem;
+	--ne-font-size-3xl: 2.25rem;
+	--ne-line-height-tight: 1.375;
+	--ne-line-height-snug: 1.5;
+	--ne-line-height-normal: 1.625;
+	--ne-line-height-relaxed: 1.75;
 }
 
 /* === COMPONENT-SPECIFIC THEME VARIANTS === */
 
 /* Quiz theme variants */
 .ne-quiz-theme--card {
-  --nuclen-quiz-bg-color: var(--ne-bg-primary);
-  --nuclen-quiz-border-radius: var(--ne-radius-xl);
-  --nuclen-quiz-shadow-blur: 20px;
-  --nuclen-quiz-shadow-color: rgb(0 0 0 / 10%);
+	--nuclen-quiz-bg-color: var(--ne-bg-primary);
+	--nuclen-quiz-border-radius: var(--ne-radius-xl);
+	--nuclen-quiz-shadow-blur: 20px;
+	--nuclen-quiz-shadow-color: rgb(0 0 0 / 10%);
 }
 
 .ne-quiz-theme--bordered {
-  --nuclen-quiz-border-width: 2px;
-  --nuclen-quiz-border-color: var(--ne-color-primary-500);
-  --nuclen-quiz-bg-color: var(--ne-color-primary-050);
+	--nuclen-quiz-border-width: 2px;
+	--nuclen-quiz-border-color: var(--ne-color-primary-500);
+	--nuclen-quiz-bg-color: var(--ne-color-primary-050);
 }
 
 .ne-quiz-theme--minimal {
-  --nuclen-quiz-border-width: 0;
-  --nuclen-quiz-shadow-blur: 0;
-  --nuclen-quiz-bg-color: transparent;
-  --nuclen-quiz-border-radius: 0;
+	--nuclen-quiz-border-width: 0;
+	--nuclen-quiz-shadow-blur: 0;
+	--nuclen-quiz-bg-color: transparent;
+	--nuclen-quiz-border-radius: 0;
 }
 
 .ne-quiz-theme--gradient {
-  --nuclen-quiz-bg-color: linear-gradient(135deg, var(--ne-color-primary-050) 0%, var(--ne-color-secondary-050) 100%);
-  --nuclen-quiz-border-width: 0;
-  --nuclen-quiz-shadow-blur: 15px;
+	--nuclen-quiz-bg-color: linear-gradient(135deg, var(--ne-color-primary-050) 0%, var(--ne-color-secondary-050) 100%);
+	--nuclen-quiz-border-width: 0;
+	--nuclen-quiz-shadow-blur: 15px;
 }
 
 /* TOC theme variants */
 .ne-toc-theme--sidebar {
-  --nuclen-toc-bg-color: var(--ne-bg-secondary);
-  --nuclen-toc-border-radius: 0;
-  --nuclen-toc-shadow-blur: 0;
-  --nuclen-toc-border-width: 0;
-  --nuclen-toc-border-right: 1px solid var(--ne-border-primary);
+	--nuclen-toc-bg-color: var(--ne-bg-secondary);
+	--nuclen-toc-border-radius: 0;
+	--nuclen-toc-shadow-blur: 0;
+	--nuclen-toc-border-width: 0;
+	--nuclen-toc-border-right: 1px solid var(--ne-border-primary);
 }
 
 .ne-toc-theme--floating {
-  --nuclen-toc-bg-color: var(--ne-bg-primary);
-  --nuclen-toc-border-radius: var(--ne-radius-lg);
-  --nuclen-toc-shadow-blur: 25px;
-  --nuclen-toc-shadow-color: rgb(0 0 0 / 15%);
-  --nuclen-toc-border-width: 1px;
+	--nuclen-toc-bg-color: var(--ne-bg-primary);
+	--nuclen-toc-border-radius: var(--ne-radius-lg);
+	--nuclen-toc-shadow-blur: 25px;
+	--nuclen-toc-shadow-color: rgb(0 0 0 / 15%);
+	--nuclen-toc-border-width: 1px;
 }
 
 .ne-toc-theme--minimal {
-  --nuclen-toc-bg-color: transparent;
-  --nuclen-toc-border-width: 0;
-  --nuclen-toc-shadow-blur: 0;
-  --nuclen-toc-border-left: 3px solid var(--ne-color-primary-500);
+	--nuclen-toc-bg-color: transparent;
+	--nuclen-toc-border-width: 0;
+	--nuclen-toc-shadow-blur: 0;
+	--nuclen-toc-border-left: 3px solid var(--ne-color-primary-500);
 }
 
 /* === ACCESSIBILITY THEME ADAPTATIONS === */
 
 /* High contrast adaptations */
 @media (prefers-contrast: high) {
-  .ne-theme--corporate,
-  .ne-theme--educational,
-  .ne-theme--tech,
-  .ne-theme--medical,
-  .ne-theme--minimal {
-    --ne-border-width-1: 2px;
-    --ne-border-width-2: 3px;
-    --ne-text-secondary: var(--ne-color-neutral-800);
-    --ne-border-primary: var(--ne-color-neutral-400);
-  }
+	.ne-theme--corporate,
+	.ne-theme--educational,
+	.ne-theme--tech,
+	.ne-theme--medical,
+	.ne-theme--minimal {
+	--ne-border-width-1: 2px;
+	--ne-border-width-2: 3px;
+	--ne-text-secondary: var(--ne-color-neutral-800);
+	--ne-border-primary: var(--ne-color-neutral-400);
+	}
 }
 
 /* Reduced motion adaptations */
 @media (prefers-reduced-motion: reduce) {
-  .ne-theme--tech,
-  .ne-quiz-theme--gradient {
-    --ne-duration-75: 0ms;
-    --ne-duration-100: 0ms;
-    --ne-duration-150: 0ms;
-    --ne-duration-200: 0ms;
-    --ne-duration-300: 0ms;
-  }
+	.ne-theme--tech,
+	.ne-quiz-theme--gradient {
+	--ne-duration-75: 0ms;
+	--ne-duration-100: 0ms;
+	--ne-duration-150: 0ms;
+	--ne-duration-200: 0ms;
+	--ne-duration-300: 0ms;
+	}
 }
 
 /* === THEME UTILITIES === */
 
 /* Apply theme to specific components */
 .ne-apply-theme {
-  /* Inherit all custom properties from theme classes */
+	/* Inherit all custom properties from theme classes */
 }
 
 /* Theme transition effects */
 .ne-theme-transition {
-  transition: color var(--ne-duration-300) var(--ne-ease-out),
-    background-color var(--ne-duration-300) var(--ne-ease-out),
-    border-color var(--ne-duration-300) var(--ne-ease-out),
-    box-shadow var(--ne-duration-300) var(--ne-ease-out);
+	transition: color var(--ne-duration-300) var(--ne-ease-out),
+	background-color var(--ne-duration-300) var(--ne-ease-out),
+	border-color var(--ne-duration-300) var(--ne-ease-out),
+	box-shadow var(--ne-duration-300) var(--ne-ease-out);
 }
 
 /* Reset theme variables */
 .ne-theme-reset {
-  /* Reset to default design tokens */
-  --ne-color-primary-500: #2196f3;
-  --ne-color-primary-600: #1e88e5;
-  --ne-font-family-sans: system-ui, -apple-system, sans-serif;
-  --ne-radius-base: 0.25rem;
-  --ne-radius-md: 0.375rem;
-  --ne-radius-lg: 0.5rem;
+	/* Reset to default design tokens */
+	--ne-color-primary-500: #2196f3;
+	--ne-color-primary-600: #1e88e5;
+	--ne-font-family-sans: system-ui, -apple-system, sans-serif;
+	--ne-radius-base: 0.25rem;
+	--ne-radius-md: 0.375rem;
+	--ne-radius-lg: 0.5rem;
 }

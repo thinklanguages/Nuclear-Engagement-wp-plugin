@@ -42,7 +42,7 @@ final class SettingsHelper {
 	 */
 	public static function get( ?string $key = null, $default = null ) {
 		$repository = self::repo();
-		if ( null === $key ) {
+		if ( $key === null ) {
 			return $repository->all();
 		}
 		return $repository->get( $key, $default );

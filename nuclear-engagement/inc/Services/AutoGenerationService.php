@@ -1,4 +1,10 @@
 <?php
+/**
+ * AutoGenerationService.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package NuclearEngagement_Services
+ */
+
 declare(strict_types=1);
 /**
  * File: includes/Services/AutoGenerationService.php
@@ -72,7 +78,7 @@ class AutoGenerationService {
 				self::START_HOOK,
 				array( $this, 'run_generation' ),
 				10,
-				2 // post_id, workflow_type
+				2 // post_id, workflow_type.
 			);
 
 			add_action( self::QUEUE_HOOK, array( $this, 'process_queue' ) );

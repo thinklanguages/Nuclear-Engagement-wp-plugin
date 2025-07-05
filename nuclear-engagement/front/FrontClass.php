@@ -1,4 +1,10 @@
 <?php
+/**
+ * FrontClass.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package NuclearEngagement_Front
+ */
+
 declare(strict_types=1);
 /**
  * File: front/FrontClass.php

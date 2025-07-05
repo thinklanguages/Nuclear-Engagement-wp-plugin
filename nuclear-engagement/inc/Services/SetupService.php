@@ -62,7 +62,7 @@ class SetupService {
 	 * @param RemoteRequest $remote_request Remote request instance.
 	 */
 	public function __construct( RemoteRequest $remote_request ) {
-		$this->utils = new Utils();
+		$this->utils          = new Utils();
 		$this->remote_request = $remote_request;
 	}
 

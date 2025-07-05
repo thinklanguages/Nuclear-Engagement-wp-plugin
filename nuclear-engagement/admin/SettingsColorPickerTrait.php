@@ -1,4 +1,10 @@
 <?php
+/**
+ * SettingsColorPickerTrait.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package NuclearEngagement_Admin
+ */
+
 declare(strict_types=1);
 /**
  * File: admin/SettingsColorPickerTrait.php

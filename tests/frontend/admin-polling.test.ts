@@ -18,8 +18,8 @@ describe('NuclenPollAndPullUpdates', () => {
   it('polls until processed >= total', async () => {
 	const fetchMock = vi
 	  .spyOn(api, 'nuclenFetchUpdates')
-	  .mockResolvedValueOnce({ success: true, data: { processed: 1, total: 2 } })
-	  .mockResolvedValueOnce({ success: true, data: { processed: 2, total: 2, finalReport: 'r' } });
+	  .mockResolvedValueOnce({ success: true, data: { processed: 1, total: 2, workflow: 'test' } })
+	  .mockResolvedValueOnce({ success: true, data: { processed: 2, total: 2, finalReport: { message: 'completed' }, workflow: 'test' } });
 
 	const progress = vi.fn();
 	const complete = vi.fn();
@@ -39,9 +39,9 @@ describe('NuclenPollAndPullUpdates', () => {
 	  total: 2,
 	  successCount: 2,
 	  failCount: undefined,
-	  finalReport: 'r',
+	  finalReport: { message: 'completed' },
 	  results: undefined,
-	  workflow: undefined,
+	  workflow: 'test',
 	});
 
 	expect(fetchMock).toHaveBeenCalledTimes(2);
@@ -55,6 +55,6 @@ describe('NuclenPollAndPullUpdates', () => {
 
 	await vi.runOnlyPendingTimersAsync();
 	await Promise.resolve();
-	expect(onError).toHaveBeenCalledWith('boom');
+	expect(onError).toHaveBeenCalledWith('Polling failed after 1 attempts: boom');
   });
 });

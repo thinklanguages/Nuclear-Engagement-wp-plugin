@@ -1,4 +1,10 @@
 <?php
+/**
+ * CacheUtils.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package NuclearEngagement_Utils
+ */
+
 declare(strict_types=1);
 
 namespace NuclearEngagement\Utils;
@@ -26,7 +32,7 @@ final class CacheUtils {
 	/**
 	 * Default cache TTL in seconds.
 	 */
-	private const DEFAULT_TTL = 3600; // 1 hour
+	private const DEFAULT_TTL = 3600; // 1 hour.
 
 	/**
 	 * Cache key prefix for the plugin.
@@ -48,27 +54,27 @@ final class CacheUtils {
 	 */
 	public static function get( string $key, string $group = self::DEFAULT_CACHE_GROUP, bool $use_transient = true ) {
 		$safe_key = self::sanitize_key( $key );
-		
-		// Try object cache first
+
+		// Try object cache first.
 		$found = false;
-		$data = wp_cache_get( $safe_key, $group, false, $found );
-		
+		$data  = wp_cache_get( $safe_key, $group, false, $found );
+
 		if ( $found ) {
 			return $data;
 		}
-		
-		// Fallback to transients if enabled
+
+		// Fallback to transients if enabled.
 		if ( $use_transient ) {
 			$transient_key = self::get_transient_key( $safe_key, $group );
-			$data = get_transient( $transient_key );
-			
+			$data          = get_transient( $transient_key );
+
 			if ( $data !== false ) {
-				// Store back in object cache for faster subsequent access
+				// Store back in object cache for faster subsequent access.
 				wp_cache_set( $safe_key, $data, $group, self::DEFAULT_TTL );
 				return $data;
 			}
 		}
-		
+
 		return false;
 	}
 
@@ -82,25 +88,25 @@ final class CacheUtils {
 	 * @param bool   $use_transient Whether to also store in transients.
 	 * @return bool True on success, false on failure.
 	 */
-	public static function set( 
-		string $key, 
-		$data, 
-		string $group = self::DEFAULT_CACHE_GROUP, 
+	public static function set(
+		string $key,
+		$data,
+		string $group = self::DEFAULT_CACHE_GROUP,
 		int $ttl = self::DEFAULT_TTL,
 		bool $use_transient = true
 	): bool {
 		$safe_key = self::sanitize_key( $key );
-		
-		// Store in object cache
+
+		// Store in object cache.
 		$object_cache_result = wp_cache_set( $safe_key, $data, $group, $ttl );
-		
-		// Store in transients for persistence
+
+		// Store in transients for persistence.
 		$transient_result = true;
 		if ( $use_transient ) {
-			$transient_key = self::get_transient_key( $safe_key, $group );
+			$transient_key    = self::get_transient_key( $safe_key, $group );
 			$transient_result = set_transient( $transient_key, $data, $ttl );
 		}
-		
+
 		return $object_cache_result && $transient_result;
 	}
 
@@ -113,14 +119,14 @@ final class CacheUtils {
 	 */
 	public static function delete( string $key, string $group = self::DEFAULT_CACHE_GROUP ): bool {
 		$safe_key = self::sanitize_key( $key );
-		
-		// Delete from object cache
+
+		// Delete from object cache.
 		$object_cache_result = wp_cache_delete( $safe_key, $group );
-		
-		// Delete from transients
-		$transient_key = self::get_transient_key( $safe_key, $group );
+
+		// Delete from transients.
+		$transient_key    = self::get_transient_key( $safe_key, $group );
 		$transient_result = delete_transient( $transient_key );
-		
+
 		return $object_cache_result && $transient_result;
 	}
 
@@ -131,17 +137,17 @@ final class CacheUtils {
 	 * @return bool True on success, false on failure.
 	 */
 	public static function flush_group( string $group = self::DEFAULT_CACHE_GROUP ): bool {
-		// Use WordPress function if available
+		// Use WordPress function if available.
 		if ( function_exists( 'wp_cache_flush_group' ) ) {
 			$result = wp_cache_flush_group( $group );
 		} else {
-			// Fallback to full cache flush
+			// Fallback to full cache flush.
 			$result = wp_cache_flush();
 		}
-		
-		// Also clean related transients
+
+		// Also clean related transients.
 		self::clean_group_transients( $group );
-		
+
 		return $result;
 	}
 
@@ -153,23 +159,28 @@ final class CacheUtils {
 	 * @return string Generated cache key.
 	 */
 	public static function generate_key( array $components, string $separator = '_' ): string {
-		// Filter and sanitize components
-		$clean_components = array_filter( array_map( function( $component ) {
-			if ( is_scalar( $component ) ) {
-				return sanitize_key( (string) $component );
-			} elseif ( is_array( $component ) || is_object( $component ) ) {
-				return md5( serialize( $component ) );
-			}
-			return '';
-		}, $components ) );
-		
+		// Filter and sanitize components.
+		$clean_components = array_filter(
+			array_map(
+				function ( $component ) {
+					if ( is_scalar( $component ) ) {
+							return sanitize_key( (string) $component );
+					} elseif ( is_array( $component ) || is_object( $component ) ) {
+						return md5( serialize( $component ) );
+					}
+					return '';
+				},
+				$components
+			)
+		);
+
 		$key = implode( $separator, $clean_components );
-		
-		// Hash if too long
+
+		// Hash if too long.
 		if ( strlen( $key ) > self::MAX_KEY_LENGTH ) {
 			$key = md5( $key );
 		}
-		
+
 		return $key;
 	}
 
@@ -182,23 +193,23 @@ final class CacheUtils {
 	 * @param int    $ttl   Time to live if creating new counter.
 	 * @return int New counter value.
 	 */
-	public static function increment( 
-		string $key, 
-		int $step = 1, 
+	public static function increment(
+		string $key,
+		int $step = 1,
 		string $group = self::DEFAULT_CACHE_GROUP,
 		int $ttl = self::DEFAULT_TTL
 	): int {
 		$safe_key = self::sanitize_key( $key );
-		
-		// Try to increment in object cache
+
+		// Try to increment in object cache.
 		$new_value = wp_cache_incr( $safe_key, $step, $group );
-		
+
 		if ( $new_value === false ) {
-			// Counter doesn't exist, create it
+			// Counter doesn't exist, create it.
 			$new_value = $step;
 			self::set( $safe_key, $new_value, $group, $ttl );
 		}
-		
+
 		return $new_value;
 	}
 
@@ -209,22 +220,22 @@ final class CacheUtils {
 	 */
 	public static function get_stats(): array {
 		global $wpdb;
-		
-		// Count transients related to our plugin
+
+		// Count transients related to our plugin.
 		$transient_count = $wpdb->get_var(
 			$wpdb->prepare(
 				"SELECT COUNT(*) FROM {$wpdb->options} WHERE option_name LIKE %s",
 				'_transient_' . self::KEY_PREFIX . '%'
 			)
 		);
-		
-		return [
+
+		return array(
 			'object_cache_enabled' => wp_using_ext_object_cache(),
-			'transient_count' => (int) $transient_count,
-			'default_ttl' => self::DEFAULT_TTL,
-			'default_group' => self::DEFAULT_CACHE_GROUP,
-			'key_prefix' => self::KEY_PREFIX,
-		];
+			'transient_count'      => (int) $transient_count,
+			'default_ttl'          => self::DEFAULT_TTL,
+			'default_group'        => self::DEFAULT_CACHE_GROUP,
+			'key_prefix'           => self::KEY_PREFIX,
+		);
 	}
 
 	/**
@@ -234,9 +245,10 @@ final class CacheUtils {
 	 */
 	public static function cleanup(): int {
 		global $wpdb;
-		
-		// Clean expired transients
-		$deleted = $wpdb->query(
+
+		// Clean expired transients.
+		$deleted = // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+		$wpdb->query(
 			$wpdb->prepare(
 				"DELETE a, b FROM {$wpdb->options} a, {$wpdb->options} b 
 				WHERE a.option_name LIKE %s 
@@ -248,7 +260,7 @@ final class CacheUtils {
 				time()
 			)
 		);
-		
+
 		return $deleted ?: 0;
 	}
 
@@ -259,20 +271,20 @@ final class CacheUtils {
 	 * @return string Sanitized key.
 	 */
 	private static function sanitize_key( string $key ): string {
-		// Add plugin prefix
+		// Add plugin prefix.
 		$prefixed_key = self::KEY_PREFIX . $key;
-		
-		// WordPress sanitize_key function
+
+		// WordPress sanitize_key function.
 		$sanitized = sanitize_key( $prefixed_key );
-		
-		// Additional sanitization for special characters
+
+		// Additional sanitization for special characters.
 		$sanitized = preg_replace( '/[^a-zA-Z0-9_\-]/', '_', $sanitized );
-		
-		// Limit length
+
+		// Limit length.
 		if ( strlen( $sanitized ) > self::MAX_KEY_LENGTH ) {
 			$sanitized = substr( $sanitized, 0, self::MAX_KEY_LENGTH - 32 ) . '_' . md5( $sanitized );
 		}
-		
+
 		return $sanitized;
 	}
 
@@ -285,12 +297,12 @@ final class CacheUtils {
 	 */
 	private static function get_transient_key( string $key, string $group ): string {
 		$transient_key = $group . '_' . $key;
-		
-		// WordPress transient keys have a 172 character limit
+
+		// WordPress transient keys have a 172 character limit.
 		if ( strlen( $transient_key ) > 172 ) {
 			$transient_key = substr( $transient_key, 0, 140 ) . '_' . md5( $transient_key );
 		}
-		
+
 		return $transient_key;
 	}
 
@@ -302,25 +314,27 @@ final class CacheUtils {
 	 */
 	private static function clean_group_transients( string $group ): int {
 		global $wpdb;
-		
+
 		$pattern = '_transient_' . $group . '_' . self::KEY_PREFIX . '%';
-		
-		$deleted = $wpdb->query(
+
+		$deleted = // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+		$wpdb->query(
 			$wpdb->prepare(
 				"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s",
 				$pattern
 			)
 		);
-		
-		// Also delete timeout transients
+
+		// Also delete timeout transients.
 		$timeout_pattern = '_transient_timeout_' . $group . '_' . self::KEY_PREFIX . '%';
-		$timeout_deleted = $wpdb->query(
+		$timeout_deleted = // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+		$wpdb->query(
 			$wpdb->prepare(
 				"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s",
 				$timeout_pattern
 			)
 		);
-		
+
 		return ( $deleted ?: 0 ) + ( $timeout_deleted ?: 0 );
 	}
 
@@ -332,18 +346,18 @@ final class CacheUtils {
 	 * @param int    $blog_id      Blog ID for multisite.
 	 * @return string Cache key.
 	 */
-	public static function query_cache_key( string $query_type, array $parameters = [], int $blog_id = 0 ): string {
+	public static function query_cache_key( string $query_type, array $parameters = array(), int $blog_id = 0 ): string {
 		if ( $blog_id === 0 ) {
 			$blog_id = get_current_blog_id();
 		}
-		
-		$components = [
+
+		$components = array(
 			'query',
 			$query_type,
 			$blog_id,
 			md5( serialize( $parameters ) ),
-		];
-		
+		);
+
 		return self::generate_key( $components );
 	}
 
@@ -358,46 +372,47 @@ final class CacheUtils {
 	 */
 	public static function remember( string $key, callable $callback, string $group = self::DEFAULT_CACHE_GROUP, int $ttl = self::DEFAULT_TTL ) {
 		$cached = self::get( $key, $group );
-		
+
 		if ( $cached !== false ) {
 			return $cached;
 		}
-		
+
 		$result = call_user_func( $callback );
-		
+
 		if ( $result !== null ) {
 			self::set( $key, $result, $group, $ttl );
 		}
-		
+
 		return $result;
 	}
 
 	/**
 	 * Invalidate cache based on patterns or tags.
 	 *
-	 * @param array $patterns Array of key patterns to invalidate.
+	 * @param array  $patterns Array of key patterns to invalidate.
 	 * @param string $group   Cache group.
 	 * @return int Number of items invalidated.
 	 */
 	public static function invalidate_by_pattern( array $patterns, string $group = self::DEFAULT_CACHE_GROUP ): int {
 		global $wpdb;
-		
+
 		$invalidated = 0;
-		
+
 		foreach ( $patterns as $pattern ) {
-			$safe_pattern = self::sanitize_key( $pattern );
+			$safe_pattern      = self::sanitize_key( $pattern );
 			$transient_pattern = '_transient_' . self::get_transient_key( $safe_pattern, $group );
-			
-			$deleted = $wpdb->query(
+
+			$deleted = // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+			$wpdb->query(
 				$wpdb->prepare(
 					"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s",
 					str_replace( '*', '%', $transient_pattern )
 				)
 			);
-			
+
 			$invalidated += $deleted ?: 0;
 		}
-		
+
 		return $invalidated;
 	}
 }

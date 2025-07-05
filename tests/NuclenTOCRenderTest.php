@@ -57,15 +57,15 @@ if (!function_exists('is_singular')) { function is_singular(){ return true; } }
 if (!function_exists('get_the_ID')) { function get_the_ID(){ return $GLOBALS['current_post_id'] ?? 0; } }
 
 	require_once NUCLEN_TOC_DIR . 'includes/polyfills.php';
-	require_once NUCLEN_TOC_DIR . 'includes/class-nuclen-toc-utils.php';
-	require_once NUCLEN_TOC_DIR . 'includes/class-nuclen-toc-view.php';
-	require_once NUCLEN_TOC_DIR . 'includes/class-nuclen-toc-assets.php';
-	require_once NUCLEN_TOC_DIR . 'includes/class-nuclen-toc-headings.php';
-	require_once NUCLEN_TOC_DIR . 'includes/class-nuclen-toc-render.php';
+	require_once NUCLEN_TOC_DIR . 'Nuclen_TOC_Utils.php';
+	require_once NUCLEN_TOC_DIR . 'Nuclen_TOC_View.php';
+	require_once NUCLEN_TOC_DIR . 'Nuclen_TOC_Assets.php';
+	require_once NUCLEN_TOC_DIR . 'Nuclen_TOC_Headings.php';
+	require_once NUCLEN_TOC_DIR . 'Nuclen_TOC_Render.php';
 	require_once dirname(__DIR__) . '/nuclear-engagement/inc/Core/SettingsCache.php';
 	require_once dirname(__DIR__) . '/nuclear-engagement/inc/Core/SettingsRepository.php';
 	require_once dirname(__DIR__) . '/nuclear-engagement/inc/Core/Defaults.php';
-	require_once dirname(__DIR__) . '/nuclear-engagement/inc/Core/Container.php';
+	require_once dirname(__DIR__) . '/nuclear-engagement/inc/Core/ServiceContainer.php';
 
 	class NuclenTOCRenderTest extends TestCase {
 		protected function setUp(): void {

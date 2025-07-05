@@ -1,4 +1,10 @@
 <?php
+/**
+ * RemoteRequest.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package NuclearEngagement_Services_Remote
+ */
+
 declare(strict_types=1);
 
 namespace NuclearEngagement\Services\Remote;
@@ -15,13 +21,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 class RemoteRequest {
 	/** Default API URL if none configured. */
 	private const DEFAULT_API_BASE = 'https://app.nuclearengagement.com/api';
-	
+
 	private SettingsRepository $settings_repository;
-	
+
 	public function __construct( SettingsRepository $settings_repository ) {
 		$this->settings_repository = $settings_repository;
 	}
-	
+
 	/**
 	 * Get the configured API base URL.
 	 *

@@ -1,4 +1,10 @@
 <?php
+/**
+ * ErrorHandler.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package NuclearEngagement_Core
+ */
+
 declare(strict_types=1);
 
 namespace NuclearEngagement\Core;
@@ -20,71 +26,83 @@ final class ErrorHandler {
 	 * Error severity levels.
 	 */
 	public const SEVERITY_CRITICAL = 'critical';
-	public const SEVERITY_HIGH = 'high';
-	public const SEVERITY_MEDIUM = 'medium';
-	public const SEVERITY_LOW = 'low';
+	public const SEVERITY_HIGH     = 'high';
+	public const SEVERITY_MEDIUM   = 'medium';
+	public const SEVERITY_LOW      = 'low';
 
 	/**
 	 * Error categories.
 	 */
 	public const CATEGORY_AUTHENTICATION = 'authentication';
-	public const CATEGORY_DATABASE = 'database';
-	public const CATEGORY_NETWORK = 'network';
-	public const CATEGORY_VALIDATION = 'validation';
-	public const CATEGORY_PERMISSIONS = 'permissions';
-	public const CATEGORY_RESOURCE = 'resource';
-	public const CATEGORY_SECURITY = 'security';
-	public const CATEGORY_CONFIGURATION = 'configuration';
-	public const CATEGORY_EXTERNAL_API = 'external_api';
-	public const CATEGORY_FILE_SYSTEM = 'file_system';
+	public const CATEGORY_DATABASE       = 'database';
+	public const CATEGORY_NETWORK        = 'network';
+	public const CATEGORY_VALIDATION     = 'validation';
+	public const CATEGORY_PERMISSIONS    = 'permissions';
+	public const CATEGORY_RESOURCE       = 'resource';
+	public const CATEGORY_SECURITY       = 'security';
+	public const CATEGORY_CONFIGURATION  = 'configuration';
+	public const CATEGORY_EXTERNAL_API   = 'external_api';
+	public const CATEGORY_FILE_SYSTEM    = 'file_system';
 
 	/**
 	 * Sensitive data patterns for redaction.
 	 *
 	 * @var array<string>
 	 */
-	private static array $sensitive_patterns = [
-		'/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/',  // Email
-		'/\b(?:\d{4}[-\s]?){3}\d{4}\b/',                          // Credit card
-		'/\b\d{3}-\d{2}-\d{4}\b/',                                // SSN
-		'/api[_-]?key["\']?\s*[:=]\s*["\']?[\w-]+/',             // API keys
-		'/password["\']?\s*[:=]\s*["\']?[^\s"\']+/',             // Passwords
-		'/token["\']?\s*[:=]\s*["\']?[\w-]+/',                   // Tokens
-		'/secret["\']?\s*[:=]\s*["\']?[\w-]+/',                  // Secrets
-	];
+	private static array $sensitive_patterns = array(
+		'/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/',  // Email.
+		'/\b(?:\d{4}[-\s]?){3}\d{4}\b/',                          // Credit card.
+		'/\b\d{3}-\d{2}-\d{4}\b/',                                // SSN.
+		'/api[_-]?key["\']?\s*[:=]\s*["\']?[\w-]+/',             // API keys.
+		'/password["\']?\s*[:=]\s*["\']?[^\s"\']+/',             // Passwords.
+		'/token["\']?\s*[:=]\s*["\']?[\w-]+/',                   // Tokens.
+		'/secret["\']?\s*[:=]\s*["\']?[\w-]+/',                  // Secrets.
+	);
 
 	/**
 	 * Error rate limits per category.
 	 *
 	 * @var array<string, array{limit: int, window: int}>
 	 */
-	private static array $rate_limits = [
-		self::CATEGORY_AUTHENTICATION => [ 'limit' => 5, 'window' => 300 ],   // 5 per 5 min
-		self::CATEGORY_DATABASE => [ 'limit' => 10, 'window' => 60 ],         // 10 per minute
-		self::CATEGORY_SECURITY => [ 'limit' => 3, 'window' => 600 ],         // 3 per 10 min
-		'default' => [ 'limit' => 20, 'window' => 300 ],                      // 20 per 5 min
-	];
+	private static array $rate_limits = array(
+		self::CATEGORY_AUTHENTICATION => array(
+			'limit'  => 5,
+			'window' => 300,
+		),   // 5 per 5 min.
+		self::CATEGORY_DATABASE       => array(
+			'limit'  => 10,
+			'window' => 60,
+		),         // 10 per minute.
+		self::CATEGORY_SECURITY       => array(
+			'limit'  => 3,
+			'window' => 600,
+		),         // 3 per 10 min.
+		'default'                     => array(
+			'limit'  => 20,
+			'window' => 300,
+		),                      // 20 per 5 min.
+	);
 
 	/**
 	 * Error tracking storage.
 	 *
 	 * @var array<string, array{count: int, first_seen: int, last_seen: int}>
 	 */
-	private static array $error_tracking = [];
+	private static array $error_tracking = array();
 
 	/**
 	 * Initialize error handler.
 	 */
 	public static function init(): void {
-		// Register PHP error handlers
-		set_error_handler( [ self::class, 'handle_php_error' ] );
-		set_exception_handler( [ self::class, 'handle_exception' ] );
-		register_shutdown_function( [ self::class, 'handle_fatal_error' ] );
+		// Register PHP error handlers.
+		set_error_handler( array( self::class, 'handle_php_error' ) );
+		set_exception_handler( array( self::class, 'handle_exception' ) );
+		register_shutdown_function( array( self::class, 'handle_fatal_error' ) );
 
-		// WordPress error hooks
-		add_action( 'wp_die_handler', [ self::class, 'handle_wp_die' ] );
-		add_filter( 'wp_die_ajax_handler', [ self::class, 'handle_wp_die' ] );
-		add_filter( 'wp_die_json_handler', [ self::class, 'handle_wp_die' ] );
+		// WordPress error hooks.
+		add_action( 'wp_die_handler', array( self::class, 'handle_wp_die' ) );
+		add_filter( 'wp_die_ajax_handler', array( self::class, 'handle_wp_die' ) );
+		add_filter( 'wp_die_json_handler', array( self::class, 'handle_wp_die' ) );
 	}
 
 	/**
@@ -93,38 +111,39 @@ final class ErrorHandler {
 	 * @param string $message Error message.
 	 * @param string $category Error category.
 	 * @param string $severity Error severity.
-	 * @param array $context Additional context.
+	 * @param array  $context Additional context.
 	 * @return bool Whether error was handled successfully.
 	 */
-	public static function handle_error( string $message, string $category = 'general', string $severity = self::SEVERITY_MEDIUM, array $context = [] ): bool {
+	public static function handle_error( string $message, string $category = 'general', string $severity = self::SEVERITY_MEDIUM, array $context = array() ): bool {
 		try {
-			// Check rate limiting
+			// Check rate limiting.
 			if ( self::should_rate_limit( $category ) ) {
 				return false;
 			}
 
-			// Create error context
+			// Create error context.
 			$error_context = self::create_error_context( $message, $category, $severity, $context );
 
-			// Track error
+			// Track error.
 			self::track_error( $error_context );
 
-			// Log error
+			// Log error.
 			self::log_error( $error_context );
 
-			// Handle security events
+			// Handle security events.
 			if ( $category === self::CATEGORY_SECURITY ) {
 				self::handle_security_event( $error_context );
 			}
 
-			// Attempt recovery if possible
+			// Attempt recovery if possible.
 			self::attempt_recovery( $error_context );
 
 			return true;
 
 		} catch ( \Throwable $e ) {
-			// Fallback logging
-			error_log( "Nuclear Engagement: Error handler failed: " . $e->getMessage() );
+			// Fallback logging.
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+			error_log( 'Nuclear Engagement: Error handler failed: ' . $e->getMessage() );
 			return false;
 		}
 	}
@@ -132,26 +151,26 @@ final class ErrorHandler {
 	/**
 	 * Handle PHP errors.
 	 *
-	 * @param int $errno Error number.
+	 * @param int    $errno Error number.
 	 * @param string $errstr Error message.
 	 * @param string $errfile Error file.
-	 * @param int $errline Error line.
+	 * @param int    $errline Error line.
 	 * @return bool Always returns false to continue with default error handling.
 	 */
 	public static function handle_php_error( int $errno, string $errstr, string $errfile = '', int $errline = 0 ): bool {
-		// Convert PHP error to our format
+		// Convert PHP error to our format.
 		$severity = self::map_php_error_severity( $errno );
 		$category = self::categorize_php_error( $errstr );
-		
-		$context = [
-			'file' => $errfile,
-			'line' => $errline,
+
+		$context = array(
+			'file'       => $errfile,
+			'line'       => $errline,
 			'error_type' => self::get_error_type_name( $errno ),
-		];
+		);
 
 		self::handle_error( $errstr, $category, $severity, $context );
-		
-		// Don't suppress default error handling
+
+		// Don't suppress default error handling.
 		return false;
 	}
 
@@ -163,13 +182,13 @@ final class ErrorHandler {
 	public static function handle_exception( \Throwable $exception ): void {
 		$severity = self::map_exception_severity( $exception );
 		$category = self::categorize_exception( $exception );
-		
-		$context = [
-			'file' => $exception->getFile(),
-			'line' => $exception->getLine(),
-			'trace' => self::redact_sensitive_data( $exception->getTraceAsString() ),
+
+		$context = array(
+			'file'            => $exception->getFile(),
+			'line'            => $exception->getLine(),
+			'trace'           => self::redact_sensitive_data( $exception->getTraceAsString() ),
 			'exception_class' => get_class( $exception ),
-		];
+		);
 
 		self::handle_error( $exception->getMessage(), $category, $severity, $context );
 	}
@@ -179,13 +198,13 @@ final class ErrorHandler {
 	 */
 	public static function handle_fatal_error(): void {
 		$error = error_get_last();
-		
-		if ( $error && in_array( $error['type'], [ E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR ] ) ) {
-			$context = [
-				'file' => $error['file'] ?? '',
-				'line' => $error['line'] ?? 0,
+
+		if ( $error && in_array( $error['type'], array( E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR ) ) ) {
+			$context = array(
+				'file'       => $error['file'] ?? '',
+				'line'       => $error['line'] ?? 0,
 				'error_type' => self::get_error_type_name( $error['type'] ),
-			];
+			);
 
 			self::handle_error( $error['message'], 'fatal', self::SEVERITY_CRITICAL, $context );
 		}
@@ -198,22 +217,22 @@ final class ErrorHandler {
 	 * @return callable Modified handler.
 	 */
 	public static function handle_wp_die( $handler ) {
-		return function( $message, $title = '', $args = [] ) use ( $handler ) {
-			// Log WordPress die event
-			$context = [
-				'title' => $title,
-				'args' => $args,
+		return function ( $message, $title = '', $args = array() ) use ( $handler ) {
+			// Log WordPress die event.
+			$context = array(
+				'title'  => $title,
+				'args'   => $args,
 				'wp_die' => true,
-			];
-			
-			self::handle_error( 
-				is_string( $message ) ? $message : 'WordPress die event', 
-				'wordpress', 
-				self::SEVERITY_HIGH, 
-				$context 
 			);
-			
-			// Call original handler
+
+			self::handle_error(
+				is_string( $message ) ? $message : 'WordPress die event',
+				'WordPress',
+				self::SEVERITY_HIGH,
+				$context
+			);
+
+			// Call original handler.
 			return $handler( $message, $title, $args );
 		};
 	}
@@ -224,24 +243,24 @@ final class ErrorHandler {
 	 * @param string $message Error message.
 	 * @param string $category Error category.
 	 * @param string $severity Error severity.
-	 * @param array $context Additional context.
+	 * @param array  $context Additional context.
 	 * @return ErrorContext Error context object.
 	 */
 	private static function create_error_context( string $message, string $category, string $severity, array $context ): ErrorContext {
-		// Redact sensitive data from message and context
+		// Redact sensitive data from message and context.
 		$safe_message = self::redact_sensitive_data( $message );
 		$safe_context = self::redact_context_data( $context );
-		
-		// Add system information using safe server utils
+
+		// Add system information using safe server utils.
 		$system_context = array_merge(
 			ServerUtils::get_safe_context(),
-			[
-				'user_id' => get_current_user_id(),
+			array(
+				'user_id'      => get_current_user_id(),
 				'memory_usage' => memory_get_usage( true ),
-				'memory_peak' => memory_get_peak_usage( true ),
-				'php_version' => PHP_VERSION,
-				'wp_version' => get_bloginfo( 'version' ),
-			]
+				'memory_peak'  => memory_get_peak_usage( true ),
+				'php_version'  => PHP_VERSION,
+				'wp_version'   => get_bloginfo( 'version' ),
+			)
 		);
 
 		return new ErrorContext(
@@ -260,20 +279,20 @@ final class ErrorHandler {
 	 */
 	private static function track_error( ErrorContext $error_context ): void {
 		$key = md5( $error_context->get_message() . $error_context->get_category() );
-		
-		// Clean up old entries to prevent memory leaks
+
+		// Clean up old entries to prevent memory leaks.
 		self::cleanup_old_error_tracking();
-		
-		if ( ! isset( self::$error_tracking[$key] ) ) {
-			self::$error_tracking[$key] = [
-				'count' => 0,
+
+		if ( ! isset( self::$error_tracking[ $key ] ) ) {
+			self::$error_tracking[ $key ] = array(
+				'count'      => 0,
 				'first_seen' => time(),
-				'last_seen' => time(),
-			];
+				'last_seen'  => time(),
+			);
 		}
-		
-		self::$error_tracking[$key]['count']++;
-		self::$error_tracking[$key]['last_seen'] = time();
+
+		++self::$error_tracking[ $key ]['count'];
+		self::$error_tracking[ $key ]['last_seen'] = time();
 	}
 
 	/**
@@ -281,32 +300,35 @@ final class ErrorHandler {
 	 */
 	private static function cleanup_old_error_tracking(): void {
 		static $last_cleanup = 0;
-		$now = time();
-		
-		// Only run cleanup every 5 minutes
+		$now                 = time();
+
+		// Only run cleanup every 5 minutes.
 		if ( $now - $last_cleanup < 300 ) {
 			return;
 		}
-		
+
 		$last_cleanup = $now;
-		$max_age = 3600; // 1 hour
-		$max_entries = 1000; // Maximum number of entries to keep
-		
-		// Remove entries older than max_age
+		$max_age      = 3600; // 1 hour.
+		$max_entries  = 1000; // Maximum number of entries to keep.
+
+		// Remove entries older than max_age.
 		foreach ( self::$error_tracking as $key => $data ) {
 			if ( $now - $data['last_seen'] > $max_age ) {
-				unset( self::$error_tracking[$key] );
+				unset( self::$error_tracking[ $key ] );
 			}
 		}
-		
-		// If still too many entries, keep only the most recent ones
+
+		// If still too many entries, keep only the most recent ones.
 		if ( count( self::$error_tracking ) > $max_entries ) {
-			// Sort by last_seen descending
-			uasort( self::$error_tracking, function( $a, $b ) {
-				return $b['last_seen'] - $a['last_seen'];
-			});
-			
-			// Keep only the most recent entries
+			// Sort by last_seen descending.
+			uasort(
+				self::$error_tracking,
+				function ( $a, $b ) {
+					return $b['last_seen'] - $a['last_seen'];
+				}
+			);
+
+			// Keep only the most recent entries.
 			self::$error_tracking = array_slice( self::$error_tracking, 0, $max_entries, true );
 		}
 	}
@@ -318,14 +340,14 @@ final class ErrorHandler {
 	 * @return bool Whether error should be rate limited.
 	 */
 	private static function should_rate_limit( string $category ): bool {
-		$limits = self::$rate_limits[$category] ?? self::$rate_limits['default'];
-		$key = "nuclen_error_limit_{$category}";
+		$limits        = self::$rate_limits[ $category ] ?? self::$rate_limits['default'];
+		$key           = "nuclen_error_limit_{$category}";
 		$current_count = (int) get_transient( $key );
-		
+
 		if ( $current_count >= $limits['limit'] ) {
 			return true;
 		}
-		
+
 		set_transient( $key, $current_count + 1, $limits['window'] );
 		return false;
 	}
@@ -342,13 +364,14 @@ final class ErrorHandler {
 			$error_context->get_message(),
 			$error_context->get_category(),
 			$error_context->get_severity(),
-			json_encode( $error_context->get_context() )
+			wp_json_encode( $error_context->get_context() )
 		);
 
-		// WordPress error log
+		// WordPress error log.
+		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 		error_log( "Nuclear Engagement: {$log_entry}" );
 
-		// Custom log file for critical errors
+		// Custom log file for critical errors.
 		if ( $error_context->get_severity() === self::SEVERITY_CRITICAL ) {
 			self::write_to_error_log( $log_entry );
 		}
@@ -360,13 +383,13 @@ final class ErrorHandler {
 	 * @param ErrorContext $error_context Error context.
 	 */
 	private static function handle_security_event( ErrorContext $error_context ): void {
-		// Notify monitoring systems
+		// Notify monitoring systems.
 		ErrorMonitor::track_security_event( $error_context );
-		
-		// Block suspicious IPs if needed
+
+		// Block suspicious IPs if needed.
 		$context = $error_context->get_context();
 		if ( isset( $context['user_ip'] ) && self::is_suspicious_activity( $error_context ) ) {
-			// Could implement IP blocking here
+			// Could implement IP blocking here.
 			do_action( 'nuclen_suspicious_activity', $context['user_ip'], $error_context );
 		}
 	}
@@ -377,7 +400,7 @@ final class ErrorHandler {
 	 * @param ErrorContext $error_context Error context.
 	 */
 	private static function attempt_recovery( ErrorContext $error_context ): void {
-		// Basic recovery based on category
+		// Basic recovery based on category.
 		switch ( $error_context->get_category() ) {
 			case self::CATEGORY_DATABASE:
 				self::attempt_database_recovery( $error_context );
@@ -411,11 +434,14 @@ final class ErrorHandler {
 	 * @return array Redacted context.
 	 */
 	private static function redact_context_data( array $context ): array {
-		array_walk_recursive( $context, function( &$value ) {
-			if ( is_string( $value ) ) {
-				$value = self::redact_sensitive_data( $value );
+		array_walk_recursive(
+			$context,
+			function ( &$value ) {
+				if ( is_string( $value ) ) {
+					$value = self::redact_sensitive_data( $value );
+				}
 			}
-		} );
+		);
 		return $context;
 	}
 
@@ -486,9 +512,9 @@ final class ErrorHandler {
 	 * @return string Category.
 	 */
 	private static function categorize_exception( \Throwable $exception ): string {
-		$class = get_class( $exception );
+		$class   = get_class( $exception );
 		$message = $exception->getMessage();
-		
+
 		if ( strpos( $class, 'Database' ) !== false || strpos( $message, 'database' ) !== false ) {
 			return self::CATEGORY_DATABASE;
 		}
@@ -501,27 +527,27 @@ final class ErrorHandler {
 		return 'general';
 	}
 
-	// Helper methods for recovery attempts
+	// Helper methods for recovery attempts.
 	private static function attempt_database_recovery( ErrorContext $context ): void {
-		// Database recovery logic
+		// Database recovery logic.
 	}
 
 	private static function attempt_network_recovery( ErrorContext $context ): void {
-		// Network recovery logic  
+		// Network recovery logic.
 	}
 
 	private static function attempt_resource_recovery( ErrorContext $context ): void {
-		// Resource recovery logic
+		// Resource recovery logic.
 	}
 
 	private static function get_error_type_name( int $type ): string {
-		$types = [
-			E_ERROR => 'E_ERROR',
+		$types = array(
+			E_ERROR   => 'E_ERROR',
 			E_WARNING => 'E_WARNING',
-			E_PARSE => 'E_PARSE',
-			E_NOTICE => 'E_NOTICE',
-		];
-		return $types[$type] ?? 'UNKNOWN';
+			E_PARSE   => 'E_PARSE',
+			E_NOTICE  => 'E_NOTICE',
+		);
+		return $types[ $type ] ?? 'UNKNOWN';
 	}
 
 	private static function get_client_ip(): string {
@@ -529,12 +555,13 @@ final class ErrorHandler {
 	}
 
 	private static function is_suspicious_activity( ErrorContext $context ): bool {
-		// Implement suspicious activity detection
+		// Implement suspicious activity detection.
 		return false;
 	}
 
 	private static function write_to_error_log( string $entry ): void {
 		$log_file = WP_CONTENT_DIR . '/nuclen-errors.log';
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents
 		file_put_contents( $log_file, $entry . PHP_EOL, FILE_APPEND | LOCK_EX );
 	}
 }

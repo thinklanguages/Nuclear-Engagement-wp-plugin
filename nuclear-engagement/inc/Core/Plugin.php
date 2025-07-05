@@ -1,4 +1,10 @@
 <?php
+/**
+ * Plugin.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package NuclearEngagement_Core
+ */
+
 declare(strict_types=1);
 /**
  * File: includes/Plugin.php
@@ -34,6 +40,7 @@ class Plugin {
 	protected SettingsRepository $settings_repository;
 
 	/**
+	 *
 	 * @var ServiceContainer
 	 */
 	private ServiceContainer $container;
@@ -42,7 +49,7 @@ class Plugin {
 		$this->version     = defined( 'NUCLEN_PLUGIN_VERSION' ) ? NUCLEN_PLUGIN_VERSION : '1.0.0';
 		$this->plugin_name = 'nuclear-engagement';
 
-		// Initialize settings repository with defaults
+		// Initialize settings repository with defaults.
 		$defaults                  = Defaults::nuclen_get_default_settings();
 		$this->settings_repository = SettingsRepository::get_instance( $defaults );
 
@@ -58,8 +65,8 @@ class Plugin {
 						);
 					}
 				}
-				
-				// Run theme migration
+
+				// Run theme migration.
 				$migration_service = new ThemeMigrationService();
 				$migration_service->migrate_legacy_settings();
 			}
@@ -68,18 +75,18 @@ class Plugin {
 		$this->nuclen_load_dependencies();
 		$this->container = ServiceContainer::getInstance();
 		ContainerRegistrar::register( $this->container, $this->settings_repository );
-		
-		// Define hooks immediately, before any service initialization
+
+		// Define hooks immediately, before any service initialization.
 		$this->nuclen_define_admin_hooks();
 		$this->nuclen_define_public_hooks();
-		
-		// Initialize theme system
+
+		// Initialize theme system.
 		$this->nuclen_init_theme_system();
-		
-		// Run the loader immediately to register all hooks
+
+		// Run the loader immediately to register all hooks.
 		$this->loader->nuclen_run();
-		
-		// Register hooks for auto-generation after admin/public hooks are defined
+
+		// Register hooks for auto-generation after admin/public hooks are defined.
 		$auto_generation_service = $this->container->get( 'auto_generation_service' );
 		$auto_generation_service->register_hooks();
 	}
@@ -105,26 +112,27 @@ class Plugin {
 		try {
 			$plugin_admin = new Admin( $this->nuclen_get_plugin_name(), $this->nuclen_get_version(), $this->settings_repository, $this->container );
 
-			// Scripts registration
+			// Scripts registration.
 			$this->loader->nuclen_add_action( 'init', $plugin_admin, 'nuclen_register_admin_scripts', 9 );
 
-			// Enqueue
+			// Enqueue.
 			$this->loader->nuclen_add_action( 'admin_enqueue_scripts', $plugin_admin, 'wp_enqueue_styles' );
 			$this->loader->nuclen_add_action( 'admin_enqueue_scripts', $plugin_admin, 'wp_enqueue_scripts' );
 			$this->loader->nuclen_add_action( 'admin_enqueue_scripts', $plugin_admin, 'nuclen_enqueue_dashboard_styles' );
 			$this->loader->nuclen_add_action( 'admin_enqueue_scripts', $plugin_admin, 'nuclen_enqueue_generate_page_scripts' );
 
-			// Admin Menu - Register immediately to ensure it's not missed
-			// IMPORTANT: Using add_action directly instead of the loader to ensure
-			// the menu hook is registered before WordPress fires the 'admin_menu' action
+			// Admin Menu - Register immediately to ensure it's not missed.
+			// IMPORTANT: Using add_action directly instead of the loader to ensure.
+			// the menu hook is registered before WordPress fires the 'admin_menu' action.
 			add_action( 'admin_menu', array( $plugin_admin, 'nuclen_add_admin_menu' ) );
 		} catch ( \Throwable $e ) {
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 			error_log( 'Nuclear Engagement: Failed to initialize admin hooks - ' . $e->getMessage() );
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 			error_log( 'Nuclear Engagement: Stack trace - ' . $e->getTraceAsString() );
 		}
-		
 
-		// AJAX - now using controllers
+		// AJAX - now using controllers.
 		$generate_controller    = $this->container->get( 'generate_controller' );
 		$updates_controller     = $this->container->get( 'updates_controller' );
 		$posts_count_controller = $this->container->get( 'posts_count_controller' );
@@ -133,19 +141,18 @@ class Plugin {
 		$this->loader->nuclen_add_action( 'wp_ajax_nuclen_fetch_app_updates', $updates_controller, 'handle' );
 		$this->loader->nuclen_add_action( 'wp_ajax_nuclen_get_posts_count', $posts_count_controller, 'handle' );
 
-		// Setup actions (menu registration is now handled in AdminMenu trait)
+		// Setup actions (menu registration is now handled in AdminMenu trait).
 		$setup = new \NuclearEngagement\Admin\Setup( $this->settings_repository );
 		$this->loader->nuclen_add_action( 'admin_post_nuclen_connect_app', $setup, 'nuclen_handle_connect_app' );
 		$this->loader->nuclen_add_action( 'admin_post_nuclen_generate_app_password', $setup, 'nuclen_handle_generate_app_password' );
 		$this->loader->nuclen_add_action( 'admin_post_nuclen_reset_api_key', $setup, 'nuclen_handle_reset_api_key' );
 		$this->loader->nuclen_add_action( 'admin_post_nuclen_reset_wp_app_connection', $setup, 'nuclen_handle_reset_wp_app_connection' );
 
-
-		// Onboarding pointers - use controller
+		// Onboarding pointers - use controller.
 		$onboarding = new Onboarding();
 		$onboarding->nuclen_register_hooks();
 
-		// Replace pointer dismiss with controller
+		// Replace pointer dismiss with controller.
 		$pointer_controller = $this->container->get( 'pointer_controller' );
 		remove_action( 'wp_ajax_nuclen_dismiss_pointer', array( $onboarding, 'nuclen_ajax_dismiss_pointer' ) );
 		$this->loader->nuclen_add_action( 'wp_ajax_nuclen_dismiss_pointer', $pointer_controller, 'dismiss' );
@@ -165,11 +172,11 @@ class Plugin {
 
 		$this->loader->nuclen_add_action( 'wp_enqueue_scripts', $plugin_public, 'wp_enqueue_styles' );
 		$this->loader->nuclen_add_action( 'wp_enqueue_scripts', $plugin_public, 'wp_enqueue_scripts' );
-		
-		// Add custom theme CSS variables to head
+
+		// Add custom theme CSS variables to head.
 		$this->loader->nuclen_add_action( 'wp_head', $plugin_public, 'wp_head_custom_theme_vars', 99 );
 
-		// REST API - use controller
+		// REST API - use controller.
 		add_action(
 			'rest_api_init',
 			function () {
@@ -197,14 +204,17 @@ class Plugin {
 		Theme System
 	──────────────────────────────────────────── */
 	private function nuclen_init_theme_system() {
-		// Run migration on init for existing installations
-		add_action('init', function() {
-			$migration_service = new \NuclearEngagement\Services\ThemeMigrationService();
-			if (!$migration_service->check_migration_status()) {
-				$migration_service->migrate_legacy_settings();
-			}
-		}, 5);
-
+		// Run migration on init for existing installations.
+		add_action(
+			'init',
+			function () {
+				$migration_service = new \NuclearEngagement\Services\ThemeMigrationService();
+				if ( ! $migration_service->check_migration_status() ) {
+					$migration_service->migrate_legacy_settings();
+				}
+			},
+			5
+		);
 	}
 
 	/*
@@ -212,8 +222,8 @@ class Plugin {
 		Boilerplate
 	──────────────────────────────────────────── */
 	public function nuclen_run() {
-		// The loader has already been run in the constructor
-		// This method is kept for compatibility but does nothing
+		// The loader has already been run in the constructor.
+		// This method is kept for compatibility but does nothing.
 	}
 
 	public function nuclen_get_plugin_name() {

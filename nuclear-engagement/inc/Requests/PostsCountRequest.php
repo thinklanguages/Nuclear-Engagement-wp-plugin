@@ -1,4 +1,10 @@
 <?php
+/**
+ * PostsCountRequest.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package NuclearEngagement_Requests
+ */
+
 declare(strict_types=1);
 /**
  * File: includes/Requests/PostsCountRequest.php
@@ -21,7 +27,7 @@ class PostsCountRequest {
 	public string $postStatus        = 'any';
 	public int $categoryId           = 0;
 	public int $authorId             = 0;
-	public string $postType          = '';
+	public string $post_type         = '';
 	public string $workflow          = '';
 	public bool $allowRegenerate     = false;
 	public bool $regenerateProtected = false;

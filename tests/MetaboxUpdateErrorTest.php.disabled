@@ -14,18 +14,12 @@ namespace NuclearEngagement\Admin {
 }
 
 namespace NuclearEngagement\Services {
-	class LoggingService {
-		public static array $logs = [];
-		public static array $notices = [];
-		public static function log(string $msg): void { self::$logs[] = $msg; }
-		public static function notify_admin(string $msg): void { self::$notices[] = $msg; }
-	}
 }
 
 namespace {
 	use PHPUnit\Framework\TestCase;
 	require_once dirname(__DIR__) . '/nuclear-engagement/admin/Traits/AdminQuizMetabox.php';
-	require_once dirname(__DIR__) . '/nuclear-engagement/admin/Traits/AdminSummaryMetabox.php';
+	require_once dirname(__DIR__) . '/nuclear-engagement/inc/Modules/Summary/Nuclen_Summary_Metabox.php';
 
 	class DummyRepo {
 		public function get($key, $default = 0) { return 1; }
@@ -37,8 +31,13 @@ namespace {
 	}
 
 	class SummaryBox {
-		use \NuclearEngagement\Admin\Traits\AdminSummaryMetabox;
-		public function nuclen_get_settings_repository() { return new DummyRepo(); }
+		private $settings;
+		public function __construct() { $this->settings = new DummyRepo(); }
+		public function nuclen_get_settings_repository() { return $this->settings; }
+		public function nuclen_save_summary_data_meta($post_id) {
+			$metabox = new \NuclearEngagement\Modules\Summary\Nuclen_Summary_Metabox($this->settings);
+			return $metabox->nuclen_save_summary_data_meta($post_id);
+		}
 	}
 
 	class MetaboxUpdateErrorTest extends TestCase {

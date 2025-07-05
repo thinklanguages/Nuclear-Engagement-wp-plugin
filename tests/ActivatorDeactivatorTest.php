@@ -1,4 +1,13 @@
 <?php
+namespace NuclearEngagement\Services {
+	if (!class_exists(__NAMESPACE__ . '\AutoGenerationService')) {
+		class AutoGenerationService {
+			const START_HOOK = 'nuclen_start_generation';
+			const QUEUE_HOOK = 'nuclen_queue_generation';
+		}
+	}
+}
+
 namespace {
 	use PHPUnit\Framework\TestCase;
 	use NuclearEngagement\Core\Activator;
@@ -12,26 +21,11 @@ namespace {
 	if (!defined('NUCLEN_ACTIVATION_REDIRECT_TTL')) { define('NUCLEN_ACTIVATION_REDIRECT_TTL', 30); }
 
 	// Globals used by stubs
-	$GLOBALS['transients'] = $GLOBALS['wp_options'] = $GLOBALS['wp_autoload'] = [];
+	$GLOBALS['wp_transients'] = $GLOBALS['wp_options'] = $GLOBALS['wp_autoload'] = [];
 	$GLOBALS['update_option_calls'] = [];
 	$GLOBALS['cleared_hooks'] = [];
 
-	// WordPress function stubs
-	if (!function_exists('set_transient')) {
-		function set_transient($key, $value, $ttl = 0) {
-			$GLOBALS['transients'][$key] = $value;
-		}
-	}
-	if (!function_exists('get_transient')) {
-		function get_transient($key) {
-			return $GLOBALS['transients'][$key] ?? false;
-		}
-	}
-	if (!function_exists('delete_transient')) {
-		function delete_transient($key) {
-			unset($GLOBALS['transients'][$key]);
-		}
-	}
+	// WordPress function stubs are loaded from wp-stubs.php via bootstrap.php
 	if (!function_exists('update_option')) {
 		function update_option($name, $value, $autoload = 'yes') {
 			$GLOBALS['update_option_calls'][$name] = ($GLOBALS['update_option_calls'][$name] ?? 0) + 1;
@@ -97,32 +91,42 @@ class ActivatorDeactivatorTest extends TestCase {
 		$wpdb = new AD_WPDB();
 		$wp_options = $wp_autoload = $transients = $update_option_calls = [];
 		$cleared_hooks = [];
+		// Make sure global transients is also reset
+		$GLOBALS['wp_transients'] = [];
+		$GLOBALS['wp_options'] = [];
+		$GLOBALS['wp_autoload'] = [];
+		$GLOBALS['update_option_calls'] = [];
+		$GLOBALS['cleared_hooks'] = [];
 		\NuclearEngagement\Core\SettingsRepository::reset_for_tests();
 	}
 
 	public function test_activation_creates_indexes_and_sets_options(): void {
 		global $wpdb, $wp_options, $transients, $update_option_calls;
 		\NuclearEngagement\Core\Activator::nuclen_activate();
-		$this->assertTrue($transients['nuclen_plugin_activation_redirect']);
-		$this->assertArrayHasKey('nuclear_engagement_setup', $wp_options);
-		$this->assertSame(1, $update_option_calls['nuclear_engagement_setup'] ?? 0);
+		// Check the global transients array
+		// Debug: print what's in transients
+		// var_dump($GLOBALS['transients']);
+		$this->assertArrayHasKey('nuclen_plugin_activation_redirect', $GLOBALS['wp_transients']);
+		$this->assertTrue($GLOBALS['wp_transients']['nuclen_plugin_activation_redirect']);
+		$this->assertArrayHasKey('nuclear_engagement_setup', $GLOBALS['wp_options']);
+		$this->assertSame(1, $GLOBALS['update_option_calls']['nuclear_engagement_setup'] ?? 0);
 		$this->assertCount(4, $wpdb->queries);
 		$this->assertStringContainsString('nuclen_quiz_data_idx', $wpdb->queries[0]);
 	}
 
 	public function test_deactivation_clears_hooks_and_options(): void {
 		global $wp_options, $transients, $cleared_hooks;
-		$wp_options['nuclen_active_generations'] = ['x'];
-		$transients['nuclen_plugin_activation_redirect'] = true;
+		$GLOBALS['wp_options']['nuclen_active_generations'] = ['x'];
+		$GLOBALS['wp_transients']['nuclen_plugin_activation_redirect'] = true;
 		\NuclearEngagement\Core\Deactivator::nuclen_deactivate();
-		$this->assertArrayNotHasKey('nuclen_active_generations', $wp_options);
-		$this->assertArrayNotHasKey('nuclen_plugin_activation_redirect', $transients);
+		$this->assertArrayNotHasKey('nuclen_active_generations', $GLOBALS['wp_options']);
+		$this->assertArrayNotHasKey('nuclen_plugin_activation_redirect', $GLOBALS['wp_transients']);
 		$expected = [
-			AutoGenerationService::START_HOOK,
-			AutoGenerationService::QUEUE_HOOK,
+			\NuclearEngagement\Services\AutoGenerationService::START_HOOK,
+			\NuclearEngagement\Services\AutoGenerationService::QUEUE_HOOK,
 			'nuclen_poll_generation',
 		];
-		$this->assertSame($expected, $cleared_hooks);
+		$this->assertSame($expected, $GLOBALS['cleared_hooks']);
 	}
 }
 }

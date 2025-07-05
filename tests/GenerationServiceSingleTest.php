@@ -1,15 +1,5 @@
 <?php
 namespace NuclearEngagement\Services {
-	// Stub LoggingService to avoid filesystem calls
-	class LoggingService {
-		public static array $logs = [];
-		public static function log(string $msg): void {
-			self::$logs[] = $msg;
-		}
-		public static function log_exception(\Throwable $e): void {
-			self::$logs[] = $e->getMessage();
-		}
-	}
 }
 
 namespace {
@@ -29,7 +19,7 @@ namespace {
 		public function fetch_updates(string $id): array { return []; }
 	}
 
-	class DummyStorage {
+	class DummyStorageGenerationSingle {
 		public array $stored = [];
 		public function storeResults(array $r, string $t): array {
 			$this->stored[] = [$r, $t];
@@ -44,10 +34,10 @@ namespace {
 			SettingsRepository::reset_for_tests();
 		}
 
-		private function makeService(?DummyGenApi $api = null, ?DummyStorage $store = null): GenerationService {
+		private function makeService(?DummyGenApi $api = null, ?DummyStorageGenerationSingle $store = null): GenerationService {
 			$settings = SettingsRepository::get_instance();
 			$api = $api ?: new DummyGenApi();
-			$store = $store ?: new DummyStorage();
+			$store = $store ?: new DummyStorageGenerationSingle();
 			return new GenerationService($settings, $api, $store);
 		}
 
@@ -62,7 +52,7 @@ namespace {
 			];
 			$api = new DummyGenApi();
 			$api->response = [];
-			$store = new DummyStorage();
+			$store = new DummyStorageGenerationSingle();
 			$service = $this->makeService($api, $store);
 			$service->generateSingle(1, 'quiz');
 			$this->assertEmpty($store->stored);

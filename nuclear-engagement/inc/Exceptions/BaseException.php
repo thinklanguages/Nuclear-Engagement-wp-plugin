@@ -1,4 +1,10 @@
 <?php
+/**
+ * BaseException.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package NuclearEngagement_Exceptions
+ */
+
 declare(strict_types=1);
 /**
  * File: inc/Exceptions/BaseException.php
@@ -18,18 +24,18 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Base exception class for Nuclear Engagement plugin.
  */
 abstract class BaseException extends \Exception {
-	
+
 	/** @var array */
 	protected array $context = array();
-	
+
 	/** @var string */
 	protected string $error_code = '';
-	
+
 	public function __construct( string $message = '', int $code = 0, ?\Throwable $previous = null, array $context = array() ) {
 		parent::__construct( $message, $code, $previous );
 		$this->context = $context;
 	}
-	
+
 	/**
 	 * Get exception context.
 	 *
@@ -38,7 +44,7 @@ abstract class BaseException extends \Exception {
 	public function get_context(): array {
 		return $this->context;
 	}
-	
+
 	/**
 	 * Set exception context.
 	 *
@@ -47,7 +53,7 @@ abstract class BaseException extends \Exception {
 	public function set_context( array $context ): void {
 		$this->context = $context;
 	}
-	
+
 	/**
 	 * Add context item.
 	 *
@@ -57,7 +63,7 @@ abstract class BaseException extends \Exception {
 	public function add_context( string $key, $value ): void {
 		$this->context[ $key ] = $value;
 	}
-	
+
 	/**
 	 * Get error code.
 	 *
@@ -66,7 +72,7 @@ abstract class BaseException extends \Exception {
 	public function get_error_code(): string {
 		return $this->error_code;
 	}
-	
+
 	/**
 	 * Set error code.
 	 *
@@ -75,7 +81,7 @@ abstract class BaseException extends \Exception {
 	public function set_error_code( string $error_code ): void {
 		$this->error_code = $error_code;
 	}
-	
+
 	/**
 	 * Get user-friendly message.
 	 *
@@ -84,7 +90,7 @@ abstract class BaseException extends \Exception {
 	public function get_user_message(): string {
 		return $this->getMessage();
 	}
-	
+
 	/**
 	 * Convert to array for logging.
 	 *
@@ -92,14 +98,14 @@ abstract class BaseException extends \Exception {
 	 */
 	public function to_array(): array {
 		return array(
-			'class' => get_class( $this ),
-			'message' => $this->getMessage(),
-			'code' => $this->getCode(),
+			'class'      => get_class( $this ),
+			'message'    => $this->getMessage(),
+			'code'       => $this->getCode(),
 			'error_code' => $this->error_code,
-			'file' => $this->getFile(),
-			'line' => $this->getLine(),
-			'context' => $this->context,
-			'trace' => $this->getTraceAsString(),
+			'file'       => $this->getFile(),
+			'line'       => $this->getLine(),
+			'context'    => $this->context,
+			'trace'      => $this->getTraceAsString(),
 		);
 	}
 }

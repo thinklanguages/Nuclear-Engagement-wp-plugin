@@ -1,10 +1,12 @@
 <?php
 namespace NuclearEngagement\Services {
-	function update_post_meta($postId, $key, $value) {
-		$GLOBALS['wp_meta'][$postId][$key] = $value;
-		return true;
+	if (!function_exists(__NAMESPACE__ . '\update_post_meta')) {
+		function update_post_meta($postId, $key, $value) {
+			$GLOBALS['wp_meta'][$postId][$key] = $value;
+			return true;
+		}
 	}
-	if (!function_exists('sanitize_text_field')) {
+	if (!function_exists(__NAMESPACE__ . '\sanitize_text_field')) {
 		function sanitize_text_field($text) { return trim($text); }
 	}
 }

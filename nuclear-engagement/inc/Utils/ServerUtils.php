@@ -1,4 +1,10 @@
 <?php
+/**
+ * ServerUtils.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package NuclearEngagement_Utils
+ */
+
 declare(strict_types=1);
 
 namespace NuclearEngagement\Utils;
@@ -24,31 +30,31 @@ final class ServerUtils {
 	 * @return string Sanitized IP address or 'unknown' if not available.
 	 */
 	public static function get_client_ip(): string {
-		$ip_headers = [
-			'HTTP_CF_CONNECTING_IP',     // Cloudflare
-			'HTTP_X_FORWARDED_FOR',      // Load balancers/proxies
-			'HTTP_X_FORWARDED',          // Proxies
-			'HTTP_X_CLUSTER_CLIENT_IP',  // Cluster
-			'HTTP_FORWARDED_FOR',        // Proxies
-			'HTTP_FORWARDED',            // Proxies
-			'REMOTE_ADDR'                // Standard
-		];
+		$ip_headers = array(
+			'HTTP_CF_CONNECTING_IP',     // Cloudflare.
+			'HTTP_X_FORWARDED_FOR',      // Load balancers/proxies.
+			'HTTP_X_FORWARDED',          // Proxies.
+			'HTTP_X_CLUSTER_CLIENT_IP',  // Cluster.
+			'HTTP_FORWARDED_FOR',        // Proxies.
+			'HTTP_FORWARDED',            // Proxies.
+			'REMOTE_ADDR',                // Standard.
+		);
 
 		foreach ( $ip_headers as $header ) {
-			if ( ! empty( $_SERVER[$header] ) ) {
-				$ip = sanitize_text_field( $_SERVER[$header] );
-				
-				// Handle comma-separated IPs (from proxies)
+			if ( ! empty( $_SERVER[ $header ] ) ) {
+				$ip = sanitize_text_field( $_SERVER[ $header ] );
+
+				// Handle comma-separated IPs (from proxies).
 				if ( strpos( $ip, ',' ) !== false ) {
 					$ip = trim( explode( ',', $ip )[0] );
 				}
-				
-				// Validate IP address
+
+				// Validate IP address.
 				if ( filter_var( $ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE ) ) {
 					return $ip;
 				}
-				
-				// Allow private IPs for development
+
+				// Allow private IPs for development.
 				if ( filter_var( $ip, FILTER_VALIDATE_IP ) ) {
 					return $ip;
 				}
@@ -69,13 +75,13 @@ final class ServerUtils {
 		}
 
 		$user_agent = sanitize_text_field( $_SERVER['HTTP_USER_AGENT'] );
-		
-		// Limit length to prevent DoS
+
+		// Limit length to prevent DoS.
 		$user_agent = substr( $user_agent, 0, 500 );
-		
-		// Remove potentially dangerous characters
+
+		// Remove potentially dangerous characters.
 		$user_agent = preg_replace( '/[<>"\']/', '', $user_agent );
-		
+
 		return $user_agent ?: 'unknown';
 	}
 
@@ -90,15 +96,15 @@ final class ServerUtils {
 		}
 
 		$uri = sanitize_text_field( $_SERVER['REQUEST_URI'] );
-		
-		// Validate URI format
+
+		// Validate URI format.
 		if ( ! filter_var( $uri, FILTER_VALIDATE_URL, FILTER_FLAG_PATH_REQUIRED ) && $uri[0] !== '/' ) {
 			return '/';
 		}
-		
-		// Limit length
+
+		// Limit length.
 		$uri = substr( $uri, 0, 2000 );
-		
+
 		return $uri;
 	}
 
@@ -113,10 +119,10 @@ final class ServerUtils {
 		}
 
 		$method = strtoupper( sanitize_text_field( $_SERVER['REQUEST_METHOD'] ) );
-		
-		// Validate against known HTTP methods
-		$valid_methods = [ 'GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS' ];
-		
+
+		// Validate against known HTTP methods.
+		$valid_methods = array( 'GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS' );
+
 		return in_array( $method, $valid_methods, true ) ? $method : 'GET';
 	}
 
@@ -131,18 +137,18 @@ final class ServerUtils {
 		}
 
 		$host = sanitize_text_field( $_SERVER['HTTP_HOST'] );
-		
-		// Remove port number for validation
+
+		// Remove port number for validation.
 		$host_without_port = preg_replace( '/:\d+$/', '', $host );
-		
-		// Validate hostname
+
+		// Validate hostname.
 		if ( ! filter_var( $host_without_port, FILTER_VALIDATE_DOMAIN, FILTER_FLAG_HOSTNAME ) ) {
 			return 'localhost';
 		}
-		
-		// Limit length
+
+		// Limit length.
 		$host = substr( $host, 0, 255 );
-		
+
 		return $host;
 	}
 
@@ -157,15 +163,15 @@ final class ServerUtils {
 		}
 
 		$referrer = sanitize_text_field( $_SERVER['HTTP_REFERER'] );
-		
-		// Validate URL
+
+		// Validate URL.
 		if ( ! filter_var( $referrer, FILTER_VALIDATE_URL ) ) {
 			return '';
 		}
-		
-		// Limit length
+
+		// Limit length.
 		$referrer = substr( $referrer, 0, 2000 );
-		
+
 		return $referrer;
 	}
 
@@ -175,13 +181,13 @@ final class ServerUtils {
 	 * @return bool True if HTTPS, false otherwise.
 	 */
 	public static function is_https(): bool {
-		// Check multiple possible indicators
-		$https_indicators = [
+		// Check multiple possible indicators.
+		$https_indicators = array(
 			! empty( $_SERVER['HTTPS'] ) && $_SERVER['HTTPS'] !== 'off',
 			! empty( $_SERVER['SERVER_PORT'] ) && (int) $_SERVER['SERVER_PORT'] === 443,
 			! empty( $_SERVER['HTTP_X_FORWARDED_PROTO'] ) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https',
 			! empty( $_SERVER['HTTP_X_FORWARDED_SSL'] ) && $_SERVER['HTTP_X_FORWARDED_SSL'] === 'on',
-		];
+		);
 
 		return in_array( true, $https_indicators, true );
 	}
@@ -197,12 +203,12 @@ final class ServerUtils {
 		}
 
 		$server = sanitize_text_field( $_SERVER['SERVER_SOFTWARE'] );
-		
-		// Extract only the main server name, remove version details for security
+
+		// Extract only the main server name, remove version details for security.
 		if ( preg_match( '/^(\w+)/', $server, $matches ) ) {
 			return strtolower( $matches[1] );
 		}
-		
+
 		return 'unknown';
 	}
 
@@ -212,12 +218,12 @@ final class ServerUtils {
 	 * @return string Anonymized client identifier.
 	 */
 	public static function get_client_identifier(): string {
-		$ip = self::get_client_ip();
+		$ip         = self::get_client_ip();
 		$user_agent = self::get_user_agent();
-		
-		// Create anonymous but unique identifier
+
+		// Create anonymous but unique identifier.
 		$identifier = hash( 'sha256', $ip . $user_agent . wp_salt() );
-		
+
 		return 'client_' . substr( $identifier, 0, 16 );
 	}
 
@@ -227,16 +233,16 @@ final class ServerUtils {
 	 * @return array Safe server context data.
 	 */
 	public static function get_safe_context(): array {
-		return [
-			'ip'           => self::get_client_ip(),
-			'user_agent'   => self::get_user_agent(),
-			'request_uri'  => self::get_request_uri(),
-			'method'       => self::get_request_method(),
-			'host'         => self::get_http_host(),
-			'referrer'     => self::get_referrer(),
-			'https'        => self::is_https(),
-			'server'       => self::get_server_software(),
-			'timestamp'    => time(),
-		];
+		return array(
+			'ip'          => self::get_client_ip(),
+			'user_agent'  => self::get_user_agent(),
+			'request_uri' => self::get_request_uri(),
+			'method'      => self::get_request_method(),
+			'host'        => self::get_http_host(),
+			'referrer'    => self::get_referrer(),
+			'https'       => self::is_https(),
+			'server'      => self::get_server_software(),
+			'timestamp'   => time(),
+		);
 	}
 }

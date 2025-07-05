@@ -1,4 +1,10 @@
 <?php
+/**
+ * LazyLoader.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package NuclearEngagement_Core
+ */
+
 declare(strict_types=1);
 
 namespace NuclearEngagement\Core;
@@ -19,46 +25,46 @@ final class LazyLoader {
 	 *
 	 * @var array<string, array{trigger: string, priority: int, condition: callable|null}>
 	 */
-	private static array $lazy_configs = [];
+	private static array $lazy_configs = array();
 
 	/**
 	 * Already loaded services.
 	 *
 	 * @var array<string, bool>
 	 */
-	private static array $loaded_services = [];
+	private static array $loaded_services = array();
 
 	/**
 	 * Deferred loading queue.
 	 *
 	 * @var array<string, array{service: string, callback: callable, priority: int}>
 	 */
-	private static array $deferred_queue = [];
+	private static array $deferred_queue = array();
 
 	/**
 	 * Loading conditions cache.
 	 *
 	 * @var array<string, bool>
 	 */
-	private static array $condition_cache = [];
+	private static array $condition_cache = array();
 
 	/**
 	 * Initialize lazy loader.
 	 */
 	public static function init(): void {
-		// Set up default lazy loading configurations
+		// Set up default lazy loading configurations.
 		self::setup_default_configs();
 
-		// Hook into WordPress lifecycle for lazy loading triggers
-		add_action( 'init', [ self::class, 'process_init_triggers' ], 5 );
-		add_action( 'wp', [ self::class, 'process_wp_triggers' ], 5 );
-		add_action( 'admin_init', [ self::class, 'process_admin_triggers' ], 5 );
-		add_action( 'wp_enqueue_scripts', [ self::class, 'process_frontend_triggers' ], 5 );
-		add_action( 'admin_enqueue_scripts', [ self::class, 'process_admin_asset_triggers' ], 5 );
+		// Hook into WordPress lifecycle for lazy loading triggers.
+		add_action( 'init', array( self::class, 'process_init_triggers' ), 5 );
+		add_action( 'wp', array( self::class, 'process_wp_triggers' ), 5 );
+		add_action( 'admin_init', array( self::class, 'process_admin_triggers' ), 5 );
+		add_action( 'wp_enqueue_scripts', array( self::class, 'process_frontend_triggers' ), 5 );
+		add_action( 'admin_enqueue_scripts', array( self::class, 'process_admin_asset_triggers' ), 5 );
 
-		// Process deferred queue
-		add_action( 'wp_footer', [ self::class, 'process_deferred_queue' ], 1 );
-		add_action( 'admin_footer', [ self::class, 'process_deferred_queue' ], 1 );
+		// Process deferred queue.
+		add_action( 'wp_footer', array( self::class, 'process_deferred_queue' ), 1 );
+		add_action( 'admin_footer', array( self::class, 'process_deferred_queue' ), 1 );
 	}
 
 	/**
@@ -71,12 +77,12 @@ final class LazyLoader {
 	 * @param int           $priority   Loading priority.
 	 */
 	public static function register( string $service_id, callable $loader, string $trigger = 'init', ?callable $condition = null, int $priority = 10 ): void {
-		self::$lazy_configs[$service_id] = [
+		self::$lazy_configs[ $service_id ] = array(
 			'loader'    => $loader,
 			'trigger'   => $trigger,
 			'condition' => $condition,
 			'priority'  => $priority,
-		];
+		);
 	}
 
 	/**
@@ -86,17 +92,17 @@ final class LazyLoader {
 	 * @return bool Whether service was loaded.
 	 */
 	public static function load_now( string $service_id ): bool {
-		if ( isset( self::$loaded_services[$service_id] ) ) {
+		if ( isset( self::$loaded_services[ $service_id ] ) ) {
 			return true;
 		}
 
-		if ( ! isset( self::$lazy_configs[$service_id] ) ) {
+		if ( ! isset( self::$lazy_configs[ $service_id ] ) ) {
 			return false;
 		}
 
-		$config = self::$lazy_configs[$service_id];
-		
-		// Check condition if specified
+		$config = self::$lazy_configs[ $service_id ];
+
+		// Check condition if specified.
 		if ( $config['condition'] && ! self::check_condition( $service_id, $config['condition'] ) ) {
 			return false;
 		}
@@ -105,24 +111,24 @@ final class LazyLoader {
 
 		try {
 			call_user_func( $config['loader'] );
-			self::$loaded_services[$service_id] = true;
-			
+			self::$loaded_services[ $service_id ] = true;
+
 			PerformanceMonitor::stop( "lazy_load_{$service_id}" );
 			return true;
 		} catch ( \Throwable $e ) {
 			PerformanceMonitor::stop( "lazy_load_{$service_id}" );
-			
+
 			ErrorRecovery::addErrorContext(
 				"Failed to lazy load service: {$service_id}",
-				[
+				array(
 					'service' => $service_id,
 					'error'   => $e->getMessage(),
 					'file'    => $e->getFile(),
 					'line'    => $e->getLine(),
-				],
+				),
 				'error'
 			);
-			
+
 			return false;
 		}
 	}
@@ -135,11 +141,11 @@ final class LazyLoader {
 	 * @param int      $priority   Priority in deferred queue.
 	 */
 	public static function defer( string $service_id, callable $loader, int $priority = 10 ): void {
-		self::$deferred_queue[] = [
+		self::$deferred_queue[] = array(
 			'service'  => $service_id,
 			'callback' => $loader,
 			'priority' => $priority,
-		];
+		);
 	}
 
 	/**
@@ -149,7 +155,7 @@ final class LazyLoader {
 	 * @return bool Whether service is loaded.
 	 */
 	public static function is_loaded( string $service_id ): bool {
-		return isset( self::$loaded_services[$service_id] );
+		return isset( self::$loaded_services[ $service_id ] );
 	}
 
 	/**
@@ -158,11 +164,11 @@ final class LazyLoader {
 	 * @return array{loaded: array, pending: array, deferred: int}
 	 */
 	public static function get_stats(): array {
-		return [
+		return array(
 			'loaded'   => array_keys( self::$loaded_services ),
 			'pending'  => array_keys( array_diff_key( self::$lazy_configs, self::$loaded_services ) ),
 			'deferred' => count( self::$deferred_queue ),
-		];
+		);
 	}
 
 	/**
@@ -214,122 +220,125 @@ final class LazyLoader {
 			return;
 		}
 
-		// Sort by priority
-		usort( self::$deferred_queue, function( $a, $b ) {
-			return $a['priority'] <=> $b['priority'];
-		} );
+		// Sort by priority.
+		usort(
+			self::$deferred_queue,
+			function ( $a, $b ) {
+				return $a['priority'] <=> $b['priority'];
+			}
+		);
 
 		foreach ( self::$deferred_queue as $item ) {
 			if ( ! isset( self::$loaded_services[ $item['service'] ] ) ) {
 				PerformanceMonitor::start( "deferred_load_{$item['service']}" );
-				
+
 				try {
 					call_user_func( $item['callback'] );
 					self::$loaded_services[ $item['service'] ] = true;
 				} catch ( \Throwable $e ) {
 					ErrorRecovery::addErrorContext(
 						"Failed to load deferred service: {$item['service']}",
-						[
+						array(
 							'service' => $item['service'],
 							'error'   => $e->getMessage(),
-						],
+						),
 						'error'
 					);
 				}
-				
+
 				PerformanceMonitor::stop( "deferred_load_{$item['service']}" );
 			}
 		}
 
-		self::$deferred_queue = [];
+		self::$deferred_queue = array();
 	}
 
 	/**
 	 * Setup default lazy loading configurations.
 	 */
 	private static function setup_default_configs(): void {
-		// Admin-only services
+		// Admin-only services.
 		self::register(
 			'dashboard_widgets',
-			function() {
-				// Load dashboard widgets only when needed
+			function () {
+				// Load dashboard widgets only when needed.
 				if ( class_exists( 'NuclearEngagement\\Admin\\DashboardWidgets' ) ) {
 					ServiceContainer::resolve( 'NuclearEngagement\\Admin\\DashboardWidgets' )->register();
 				}
 			},
 			'admin_init',
-			function() {
+			function () {
 				return is_admin() && self::is_dashboard_page();
 			}
 		);
 
-		// Frontend-only services
+		// Frontend-only services.
 		self::register(
 			'frontend_assets',
-			function() {
-				// Load frontend assets only when needed
+			function () {
+				// Load frontend assets only when needed.
 				if ( class_exists( 'NuclearEngagement\\Frontend\\Assets' ) ) {
 					ServiceContainer::resolve( 'NuclearEngagement\\Frontend\\Assets' )->enqueue();
 				}
 			},
 			'frontend_scripts',
-			function() {
+			function () {
 				return ! is_admin() && self::should_load_frontend_assets();
 			}
 		);
 
-		// Post editor services
+		// Post editor services.
 		self::register(
 			'post_editor',
-			function() {
+			function () {
 				if ( class_exists( 'NuclearEngagement\\Editor\\PostEditor' ) ) {
 					ServiceContainer::resolve( 'NuclearEngagement\\Editor\\PostEditor' )->init();
 				}
 			},
 			'admin_init',
-			function() {
+			function () {
 				return is_admin() && self::is_post_editor_page();
 			}
 		);
 
-		// API services (load only when needed)
+		// API services (load only when needed).
 		self::register(
 			'rest_api',
-			function() {
+			function () {
 				if ( class_exists( 'NuclearEngagement\\API\\RestEndpoints' ) ) {
 					ServiceContainer::resolve( 'NuclearEngagement\\API\\RestEndpoints' )->register();
 				}
 			},
 			'init',
-			function() {
+			function () {
 				return defined( 'REST_REQUEST' ) && REST_REQUEST;
 			}
 		);
 
-		// AJAX services
+		// AJAX services.
 		self::register(
 			'ajax_handlers',
-			function() {
+			function () {
 				if ( class_exists( 'NuclearEngagement\\Ajax\\Handlers' ) ) {
 					ServiceContainer::resolve( 'NuclearEngagement\\Ajax\\Handlers' )->register();
 				}
 			},
 			'init',
-			function() {
+			function () {
 				return defined( 'DOING_AJAX' ) && DOING_AJAX;
 			}
 		);
 
-		// Cron services
+		// Cron services.
 		self::register(
 			'cron_jobs',
-			function() {
+			function () {
 				if ( class_exists( 'NuclearEngagement\\Cron\\Jobs' ) ) {
 					ServiceContainer::resolve( 'NuclearEngagement\\Cron\\Jobs' )->schedule();
 				}
 			},
 			'init',
-			function() {
+			function () {
 				return defined( 'DOING_CRON' ) && DOING_CRON;
 			}
 		);
@@ -341,21 +350,24 @@ final class LazyLoader {
 	 * @param string $trigger Trigger name.
 	 */
 	private static function process_trigger( string $trigger ): void {
-		$services_to_load = [];
+		$services_to_load = array();
 
 		foreach ( self::$lazy_configs as $service_id => $config ) {
-			if ( $config['trigger'] === $trigger && ! isset( self::$loaded_services[$service_id] ) ) {
-				$services_to_load[] = [
+			if ( $config['trigger'] === $trigger && ! isset( self::$loaded_services[ $service_id ] ) ) {
+				$services_to_load[] = array(
 					'id'     => $service_id,
 					'config' => $config,
-				];
+				);
 			}
 		}
 
-		// Sort by priority
-		usort( $services_to_load, function( $a, $b ) {
-			return $a['config']['priority'] <=> $b['config']['priority'];
-		} );
+		// Sort by priority.
+		usort(
+			$services_to_load,
+			function ( $a, $b ) {
+				return $a['config']['priority'] <=> $b['config']['priority'];
+			}
+		);
 
 		foreach ( $services_to_load as $service ) {
 			self::load_now( $service['id'] );
@@ -370,13 +382,13 @@ final class LazyLoader {
 	 * @return bool Whether condition is met.
 	 */
 	private static function check_condition( string $service_id, callable $condition ): bool {
-		if ( isset( self::$condition_cache[$service_id] ) ) {
-			return self::$condition_cache[$service_id];
+		if ( isset( self::$condition_cache[ $service_id ] ) ) {
+			return self::$condition_cache[ $service_id ];
 		}
 
-		$result = call_user_func( $condition );
-		self::$condition_cache[$service_id] = $result;
-		
+		$result                               = call_user_func( $condition );
+		self::$condition_cache[ $service_id ] = $result;
+
 		return $result;
 	}
 
@@ -397,7 +409,7 @@ final class LazyLoader {
 	 */
 	private static function is_post_editor_page(): bool {
 		global $pagenow;
-		return in_array( $pagenow, [ 'post.php', 'post-new.php' ], true );
+		return in_array( $pagenow, array( 'post.php', 'post-new.php' ), true );
 	}
 
 	/**
@@ -406,33 +418,33 @@ final class LazyLoader {
 	 * @return bool Whether to load frontend assets.
 	 */
 	private static function should_load_frontend_assets(): bool {
-		// Cache the decision for this request
+		// Cache the decision for this request.
 		static $should_load = null;
-		
+
 		if ( $should_load === null ) {
-			$should_load = CacheManager::remember( 
+			$should_load = CacheManager::remember(
 				'should_load_assets_' . get_queried_object_id(),
-				function() {
-					// Check if current post/page has Nuclear Engagement content
+				function () {
+					// Check if current post/page has Nuclear Engagement content.
 					if ( is_singular() ) {
 						$post = get_queried_object();
 						if ( $post ) {
-							// Check for shortcodes or blocks
+							// Check for shortcodes or blocks.
 							return has_shortcode( $post->post_content, 'nuclen' ) ||
-								   strpos( $post->post_content, 'wp:nuclen/' ) !== false ||
-								   get_post_meta( $post->ID, 'nuclen-quiz-data', true ) ||
-								   get_post_meta( $post->ID, 'nuclen-summary-data', true );
+									strpos( $post->post_content, 'wp:nuclen/' ) !== false ||
+									get_post_meta( $post->ID, 'nuclen-quiz-data', true ) ||
+									get_post_meta( $post->ID, 'nuclen-summary-data', true );
 						}
 					}
-					
-					// Check for widgets or other global conditions
+
+					// Check for widgets or other global conditions.
 					return false;
 				},
 				'assets',
-				300 // 5 minutes cache
+				300 // 5 minutes cache.
 			);
 		}
-		
+
 		return $should_load;
 	}
 
@@ -454,9 +466,9 @@ final class LazyLoader {
 	 * @return bool Whether service was reloaded.
 	 */
 	public static function reload( string $service_id ): bool {
-		unset( self::$loaded_services[$service_id] );
-		unset( self::$condition_cache[$service_id] );
-		
+		unset( self::$loaded_services[ $service_id ] );
+		unset( self::$condition_cache[ $service_id ] );
+
 		return self::load_now( $service_id );
 	}
 
@@ -464,7 +476,7 @@ final class LazyLoader {
 	 * Clear all loading caches.
 	 */
 	public static function clear_cache(): void {
-		self::$condition_cache = [];
+		self::$condition_cache = array();
 		CacheManager::invalidate_group( 'assets', 'lazy_loader_clear' );
 	}
 }

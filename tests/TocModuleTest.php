@@ -1,7 +1,7 @@
 <?php
 use PHPUnit\Framework\TestCase;
 use NuclearEngagement\Core\SettingsRepository;
-use NuclearEngagement\Core\Container;
+use NuclearEngagement\Core\ServiceContainer as Container;
 
 // ------------------------------------------------------
 // WordPress function stubs
@@ -172,17 +172,17 @@ if ( ! function_exists( 'get_the_ID' ) ) {
 // Load plugin classes
 // ------------------------------------------------------
 require_once NUCLEN_TOC_DIR . 'includes/polyfills.php';
-require_once NUCLEN_TOC_DIR . 'includes/SlugGenerator.php';
-require_once NUCLEN_TOC_DIR . 'includes/TocCache.php';
-require_once NUCLEN_TOC_DIR . 'includes/HeadingExtractor.php';
-require_once NUCLEN_TOC_DIR . 'includes/class-nuclen-toc-view.php';
-require_once NUCLEN_TOC_DIR . 'includes/class-nuclen-toc-assets.php';
-require_once NUCLEN_TOC_DIR . 'includes/class-nuclen-toc-headings.php';
-require_once NUCLEN_TOC_DIR . 'includes/class-nuclen-toc-render.php';
+require_once NUCLEN_TOC_DIR . 'SlugGenerator.php';
+require_once NUCLEN_TOC_DIR . 'TocCache.php';
+require_once NUCLEN_TOC_DIR . 'HeadingExtractor.php';
+require_once NUCLEN_TOC_DIR . 'Nuclen_TOC_View.php';
+require_once NUCLEN_TOC_DIR . 'Nuclen_TOC_Assets.php';
+require_once NUCLEN_TOC_DIR . 'Nuclen_TOC_Headings.php';
+require_once NUCLEN_TOC_DIR . 'Nuclen_TOC_Render.php';
 require_once dirname(__DIR__) . '/nuclear-engagement/inc/Core/SettingsCache.php';
 require_once dirname(__DIR__) . '/nuclear-engagement/inc/Core/SettingsRepository.php';
 require_once dirname(__DIR__) . '/nuclear-engagement/inc/Core/Defaults.php';
-require_once dirname(__DIR__) . '/nuclear-engagement/inc/Core/Container.php';
+require_once dirname(__DIR__) . '/nuclear-engagement/inc/Core/ServiceContainer.php';
 
 class TocModuleTest extends TestCase {
 	protected function setUp(): void {

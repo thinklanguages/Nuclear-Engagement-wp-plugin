@@ -1,4 +1,10 @@
 <?php
+/**
+ * UpdatesResponse.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package NuclearEngagement_Responses
+ */
+
 declare(strict_types=1);
 /**
  * File: includes/Responses/UpdatesResponse.php
@@ -23,10 +29,10 @@ class UpdatesResponse {
 	public ?int $processed        = null;
 	public ?int $total            = null;
 	public ?array $results        = null;
-	public ?string $workflow      = null; // NEW
+	public ?string $workflow      = null; // NEW.
 	public ?int $remainingCredits = null;
 	public ?string $message       = null;
-	public ?int $statusCode       = null;
+	public ?int $status_code      = null;
 
 	/**
 	 * Convert to array for JSON response.
@@ -36,25 +42,25 @@ class UpdatesResponse {
 	public function toArray(): array {
 		$data = array( 'success' => $this->success );
 
-		if ( null !== $this->processed ) {
+		if ( $this !== null->processed ) {
 			$data['processed'] = $this->processed;
 		}
-		if ( null !== $this->total ) {
+		if ( $this !== null->total ) {
 			$data['total'] = $this->total;
 		}
-		if ( null !== $this->results ) {
+		if ( $this !== null->results ) {
 			$data['results'] = $this->results;
 		}
-		if ( null !== $this->workflow ) {
+		if ( $this !== null->workflow ) {
 			$data['workflow'] = $this->workflow;
 		}
-		if ( null !== $this->remainingCredits ) {
+		if ( $this !== null->remainingCredits ) {
 			$data['remaining_credits'] = $this->remainingCredits;
 		}
-		if ( null !== $this->message ) {
+		if ( $this !== null->message ) {
 			$data['message'] = $this->message;
 		}
-		if ( null !== $this->statusCode ) {
+		if ( $this !== null->statusCode ) {
 			$data['status_code'] = $this->statusCode;
 		}
 

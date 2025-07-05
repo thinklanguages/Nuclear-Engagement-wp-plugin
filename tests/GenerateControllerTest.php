@@ -4,11 +4,6 @@ namespace NuclearEngagement\Services {
 		public array $received = [];
 		public function generateContent(GenerateRequest $r) { $this->received[] = $r; return new \NuclearEngagement\Responses\GenerateResponse(); }
 	}
-	class LoggingService {
-		public static array $errors = [];
-		public static function log_exception(\Throwable $e): void { self::$errors[] = $e->getMessage(); }
-		public static function log(string $m): void { self::$errors[] = $m; }
-	}
 }
 
 namespace NuclearEngagement\Responses {

@@ -65,8 +65,8 @@ global $wp_options, $wp_cache, $transients, $enqueued_scripts, $enqueued_styles,
 $wp_options = $wp_cache = $transients = [];
 $enqueued_scripts = $enqueued_styles = $localized = [];
 
-SettingsRepository::reset_for_tests();
-ServiceContainer::getInstance()->reset();
+\NuclearEngagement\Core\SettingsRepository::reset_for_tests();
+\NuclearEngagement\Core\ServiceContainer::getInstance()->reset();
 if (!defined('NUCLEN_PLUGIN_DIR')) {
 define('NUCLEN_PLUGIN_DIR', dirname(__DIR__) . '/nuclear-engagement/');
 }

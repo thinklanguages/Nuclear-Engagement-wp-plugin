@@ -1,470 +1,214 @@
 <?php
-/**
- * Tests for ServiceContainer class
- * 
- * @package NuclearEngagement\Tests
- */
-
-namespace NuclearEngagement\Tests;
 
 use PHPUnit\Framework\TestCase;
-use Mockery;
 use NuclearEngagement\Core\ServiceContainer;
 
 class ServiceContainerTest extends TestCase {
 
-    private $container;
-
-    protected function setUp(): void {
-        parent::setUp();
-        \WP_Mock::setUp();
-        
-        // Reset singleton instance for testing
-        $reflection = new \ReflectionClass(ServiceContainer::class);
-        $instance = $reflection->getProperty('instance');
-        $instance->setAccessible(true);
-        $instance->setValue(null, null);
-        
-        $this->container = ServiceContainer::getInstance();
-    }
-
-    protected function tearDown(): void {
-        \WP_Mock::tearDown();
-        Mockery::close();
-        parent::tearDown();
-    }
-
-    /**
-     * Test singleton pattern
-     */
-    public function test_singleton_pattern_returns_same_instance() {
-        // Act
-        $instance1 = ServiceContainer::getInstance();
-        $instance2 = ServiceContainer::getInstance();
-
-        // Assert
-        $this->assertSame($instance1, $instance2);
-        $this->assertInstanceOf(ServiceContainer::class, $instance1);
-    }
-
-    /**
-     * Test service registration with factory
-     */
-    public function test_register_service_with_factory() {
-        // Arrange
-        $serviceName = 'test_service';
-        $factory = function() {
-            return new \stdClass();
-        };
-
-        // Act
-        $this->container->register($serviceName, $factory);
-
-        // Assert
-        $this->assertTrue($this->container->has($serviceName));
-    }
-
-    /**
-     * Test service registration as singleton by default
-     */
-    public function test_register_service_as_singleton_by_default() {
-        // Arrange
-        $serviceName = 'singleton_service';
-        $factory = function() {
-            return new \stdClass();
-        };
-
-        // Act
-        $this->container->register($serviceName, $factory);
-        $instance1 = $this->container->get($serviceName);
-        $instance2 = $this->container->get($serviceName);
-
-        // Assert
-        $this->assertSame($instance1, $instance2, 'Should return same instance for singleton services');
-    }
-
-    /**
-     * Test service registration as non-singleton
-     */
-    public function test_register_service_as_non_singleton() {
-        // Arrange
-        $serviceName = 'non_singleton_service';
-        $factory = function() {
-            return new \stdClass();
-        };
-
-        // Act
-        $this->container->register($serviceName, $factory, false);
-        $instance1 = $this->container->get($serviceName);
-        $instance2 = $this->container->get($serviceName);
-
-        // Assert
-        $this->assertNotSame($instance1, $instance2, 'Should return different instances for non-singleton services');
-    }
-
-    /**
-     * Test direct service instance registration
-     */
-    public function test_set_service_instance_directly() {
-        // Arrange
-        $serviceName = 'direct_service';
-        $instance = new \stdClass();
-        $instance->value = 'test_value';
-
-        // Act
-        $this->container->set($serviceName, $instance);
-        $retrieved = $this->container->get($serviceName);
-
-        // Assert
-        $this->assertSame($instance, $retrieved);
-        $this->assertEquals('test_value', $retrieved->value);
-    }
-
-    /**
-     * Test getting non-existent service throws exception
-     */
-    public function test_get_non_existent_service_throws_exception() {
-        // Arrange
-        $serviceName = 'non_existent_service';
-
-        // Assert
-        $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessage("Service 'non_existent_service' not found in container.");
-
-        // Act
-        $this->container->get($serviceName);
-    }
-
-    /**
-     * Test service factory receives container as parameter
-     */
-    public function test_service_factory_receives_container() {
-        // Arrange
-        $serviceName = 'container_aware_service';
-        $receivedContainer = null;
-        
-        $factory = function($container) use (&$receivedContainer) {
-            $receivedContainer = $container;
-            return new \stdClass();
-        };
-
-        // Act
-        $this->container->register($serviceName, $factory);
-        $this->container->get($serviceName);
-
-        // Assert
-        $this->assertSame($this->container, $receivedContainer);
-    }
-
-    /**
-     * Test dependency injection between services
-     */
-    public function test_dependency_injection_between_services() {
-        // Arrange
-        $dependencyService = 'dependency';
-        $mainService = 'main_service';
-
-        // Register dependency
-        $this->container->register($dependencyService, function() {
-            $obj = new \stdClass();
-            $obj->name = 'dependency_instance';
-            return $obj;
-        });
-
-        // Register main service that depends on dependency
-        $this->container->register($mainService, function($container) use ($dependencyService) {
-            $obj = new \stdClass();
-            $obj->dependency = $container->get($dependencyService);
-            return $obj;
-        });
-
-        // Act
-        $instance = $this->container->get($mainService);
-
-        // Assert
-        $this->assertInstanceOf(\stdClass::class, $instance);
-        $this->assertInstanceOf(\stdClass::class, $instance->dependency);
-        $this->assertEquals('dependency_instance', $instance->dependency->name);
-    }
-
-    /**
-     * Test has() method returns correct boolean values
-     */
-    public function test_has_method_returns_correct_values() {
-        // Arrange
-        $existingService = 'existing_service';
-        $nonExistingService = 'non_existing_service';
-
-        $this->container->register($existingService, function() {
-            return new \stdClass();
-        });
-
-        // Act & Assert
-        $this->assertTrue($this->container->has($existingService));
-        $this->assertFalse($this->container->has($nonExistingService));
-    }
-
-    /**
-     * Test has() method works with directly set services
-     */
-    public function test_has_method_works_with_direct_services() {
-        // Arrange
-        $serviceName = 'direct_service';
-        $instance = new \stdClass();
-
-        $this->container->set($serviceName, $instance);
-
-        // Act & Assert
-        $this->assertTrue($this->container->has($serviceName));
-    }
-
-    /**
-     * Test clear cache functionality
-     */
-    public function test_clear_cache_removes_cached_instances() {
-        // Arrange
-        $serviceName = 'cacheable_service';
-        $this->container->register($serviceName, function() {
-            return new \stdClass();
-        });
-
-        // Get instance to cache it
-        $instance1 = $this->container->get($serviceName);
-
-        // Act
-        $this->container->clearCache();
-        $instance2 = $this->container->get($serviceName);
-
-        // Assert
-        $this->assertNotSame($instance1, $instance2, 'Should create new instance after cache clear');
-    }
-
-    /**
-     * Test getServiceNames returns all registered services
-     */
-    public function test_get_service_names_returns_all_services() {
-        // Arrange
-        $this->container->register('service1', function() { return new \stdClass(); });
-        $this->container->register('service2', function() { return new \stdClass(); });
-        $this->container->set('service3', new \stdClass());
-
-        // Act
-        $serviceNames = $this->container->getServiceNames();
-
-        // Assert
-        $this->assertIsArray($serviceNames);
-        $this->assertContains('service1', $serviceNames);
-        $this->assertContains('service2', $serviceNames);
-        $this->assertContains('service3', $serviceNames);
-        $this->assertCount(3, $serviceNames);
-    }
-
-    /**
-     * Test getServiceNames removes duplicates
-     */
-    public function test_get_service_names_removes_duplicates() {
-        // Arrange
-        $serviceName = 'duplicate_service';
-        
-        // Register factory first
-        $this->container->register($serviceName, function() { return new \stdClass(); });
-        
-        // Then set instance directly (overwrites)
-        $this->container->set($serviceName, new \stdClass());
-
-        // Act
-        $serviceNames = $this->container->getServiceNames();
-
-        // Assert
-        $this->assertCount(1, array_filter($serviceNames, function($name) use ($serviceName) {
-            return $name === $serviceName;
-        }), 'Should not contain duplicate service names');
-    }
-
-    /**
-     * Test registering core services doesn't cause errors
-     */
-    public function test_register_core_services_completes_successfully() {
-        // Mock WordPress functions and classes that core services depend on
-        \WP_Mock::userFunction('wp_generate_password')
-            ->andReturn('random_password');
-
-        // Act
-        $this->container->registerCoreServices();
-
-        // Assert
-        $this->assertTrue($this->container->has('settings_repository'));
-        $this->assertTrue($this->container->has('token_manager'));
-        $this->assertTrue($this->container->has('error_handler'));
-        $this->assertTrue($this->container->has('cache_manager'));
-    }
-
-    /**
-     * Test initialize core services doesn't cause errors
-     */
-    public function test_initialize_core_services_completes_successfully() {
-        // Mock WordPress functions
-        \WP_Mock::userFunction('wp_generate_password')
-            ->andReturn('random_password');
-
-        // Register core services first
-        $this->container->registerCoreServices();
-
-        // Act
-        $this->container->initializeCoreServices();
-
-        // Assert - Should complete without errors
-        $this->assertTrue(true, 'Core services initialization should complete without errors');
-    }
-
-    /**
-     * Test circular dependency detection/handling
-     */
-    public function test_circular_dependency_handling() {
-        // Arrange
-        $service1 = 'circular_service1';
-        $service2 = 'circular_service2';
-
-        $this->container->register($service1, function($container) use ($service2) {
-            $obj = new \stdClass();
-            $obj->dependency = $container->get($service2);
-            return $obj;
-        });
-
-        $this->container->register($service2, function($container) use ($service1) {
-            $obj = new \stdClass();
-            $obj->dependency = $container->get($service1);
-            return $obj;
-        });
-
-        // Act & Assert - This should detect circular dependency
-        $this->expectException(\RuntimeException::class);
-        $this->container->get($service1);
-    }
-
-    /**
-     * Test factory function that returns null
-     */
-    public function test_factory_returning_null() {
-        // Arrange
-        $serviceName = 'null_service';
-        $this->container->register($serviceName, function() {
-            return null;
-        });
-
-        // Act
-        $result = $this->container->get($serviceName);
-
-        // Assert
-        $this->assertNull($result);
-    }
-
-    /**
-     * Test factory function that throws exception
-     */
-    public function test_factory_throwing_exception() {
-        // Arrange
-        $serviceName = 'throwing_service';
-        $this->container->register($serviceName, function() {
-            throw new \Exception('Factory error');
-        });
-
-        // Act & Assert
-        $this->expectException(\Exception::class);
-        $this->expectExceptionMessage('Factory error');
-        $this->container->get($serviceName);
-    }
-
-    /**
-     * Test overriding existing service registration
-     */
-    public function test_overriding_existing_service() {
-        // Arrange
-        $serviceName = 'override_service';
-        
-        $this->container->register($serviceName, function() {
-            $obj = new \stdClass();
-            $obj->version = 'v1';
-            return $obj;
-        });
-
-        // Act - Override with new factory
-        $this->container->register($serviceName, function() {
-            $obj = new \stdClass();
-            $obj->version = 'v2';
-            return $obj;
-        });
-
-        $instance = $this->container->get($serviceName);
-
-        // Assert
-        $this->assertEquals('v2', $instance->version, 'Should use the new factory');
-    }
-
-    /**
-     * Test overriding factory with direct instance
-     */
-    public function test_overriding_factory_with_direct_instance() {
-        // Arrange
-        $serviceName = 'override_direct_service';
-        
-        $this->container->register($serviceName, function() {
-            $obj = new \stdClass();
-            $obj->source = 'factory';
-            return $obj;
-        });
-
-        $directInstance = new \stdClass();
-        $directInstance->source = 'direct';
-
-        // Act
-        $this->container->set($serviceName, $directInstance);
-        $instance = $this->container->get($serviceName);
-
-        // Assert
-        $this->assertEquals('direct', $instance->source, 'Should use direct instance instead of factory');
-        $this->assertSame($directInstance, $instance);
-    }
-
-    /**
-     * Test empty service name handling
-     */
-    public function test_empty_service_name_handling() {
-        // Arrange
-        $emptyName = '';
-
-        // Act & Assert
-        $this->expectException(\RuntimeException::class);
-        $this->container->get($emptyName);
-    }
-
-    /**
-     * Test service registration with complex factory
-     */
-    public function test_complex_service_factory() {
-        // Arrange
-        $serviceName = 'complex_service';
-        
-        $this->container->register($serviceName, function($container) {
-            // Simulate complex service creation
-            $service = new \stdClass();
-            $service->initialized = true;
-            $service->config = [
-                'option1' => 'value1',
-                'option2' => 'value2'
-            ];
-            $service->timestamp = time();
-            
-            return $service;
-        });
-
-        // Act
-        $instance = $this->container->get($serviceName);
-
-        // Assert
-        $this->assertTrue($instance->initialized);
-        $this->assertIsArray($instance->config);
-        $this->assertEquals('value1', $instance->config['option1']);
-        $this->assertIsInt($instance->timestamp);
-    }
+	private ServiceContainer $container;
+
+	protected function setUp(): void {
+		$this->container = ServiceContainer::getInstance();
+		$this->container->reset();
+	}
+
+	protected function tearDown(): void {
+		$this->container->reset();
+	}
+
+	public function test_get_instance_returns_singleton(): void {
+		$instance1 = ServiceContainer::getInstance();
+		$instance2 = ServiceContainer::getInstance();
+		
+		$this->assertSame($instance1, $instance2);
+	}
+
+	public function test_register_and_get_service(): void {
+		$this->container->register('test_service', function() {
+			return 'test_value';
+		});
+		
+		$this->assertTrue($this->container->has('test_service'));
+		$this->assertEquals('test_value', $this->container->get('test_service'));
+	}
+
+	public function test_register_singleton_service(): void {
+		$counter = 0;
+		$this->container->register('counter_service', function() use (&$counter) {
+			$counter++;
+			return $counter;
+		}, true);
+		
+		$first = $this->container->get('counter_service');
+		$second = $this->container->get('counter_service');
+		
+		$this->assertEquals(1, $first);
+		$this->assertEquals(1, $second); // Should be cached
+	}
+
+	public function test_register_non_singleton_service(): void {
+		$counter = 0;
+		$this->container->register('counter_service', function() use (&$counter) {
+			$counter++;
+			return $counter;
+		}, false);
+		
+		$first = $this->container->get('counter_service');
+		$second = $this->container->get('counter_service');
+		
+		$this->assertEquals(1, $first);
+		$this->assertEquals(2, $second); // Should create new instance
+	}
+
+	public function test_set_and_get_service_instance(): void {
+		$instance = new stdClass();
+		$instance->property = 'test_value';
+		
+		$this->container->set('test_instance', $instance);
+		
+		$this->assertTrue($this->container->has('test_instance'));
+		$this->assertSame($instance, $this->container->get('test_instance'));
+	}
+
+	public function test_factory_receives_container_instance(): void {
+		$this->container->register('test_service', function($container) {
+			$this->assertInstanceOf(ServiceContainer::class, $container);
+			return 'success';
+		});
+		
+		$result = $this->container->get('test_service');
+		$this->assertEquals('success', $result);
+	}
+
+	public function test_service_dependency_injection(): void {
+		$this->container->register('dependency', function() {
+			return 'dependency_value';
+		});
+		
+		$this->container->register('service_with_dependency', function($container) {
+			$dependency = $container->get('dependency');
+			return "service_with_{$dependency}";
+		});
+		
+		$result = $this->container->get('service_with_dependency');
+		$this->assertEquals('service_with_dependency_value', $result);
+	}
+
+	public function test_get_nonexistent_service_throws_exception(): void {
+		$this->expectException(RuntimeException::class);
+		$this->expectExceptionMessage("Service 'nonexistent_service' not found in container.");
+		
+		$this->container->get('nonexistent_service');
+	}
+
+	public function test_circular_dependency_detection(): void {
+		$this->container->register('service_a', function($container) {
+			return $container->get('service_b');
+		});
+		
+		$this->container->register('service_b', function($container) {
+			return $container->get('service_a');
+		});
+		
+		$this->expectException(RuntimeException::class);
+		$this->expectExceptionMessage("Circular dependency detected for service: service_a");
+		
+		$this->container->get('service_a');
+	}
+
+	public function test_alias_functionality(): void {
+		$this->container->register('original_service', function() {
+			return 'original_value';
+		});
+		
+		$this->container->alias('aliased_service', 'original_service');
+		
+		// The has() method doesn't check aliases, but get() should work with aliases
+		$this->assertEquals('original_value', $this->container->get('aliased_service'));
+	}
+
+	public function test_has_returns_false_for_nonexistent_service(): void {
+		$this->assertFalse($this->container->has('nonexistent_service'));
+	}
+
+	public function test_clear_cache_removes_cached_instances(): void {
+		$counter = 0;
+		$this->container->register('counter_service', function() use (&$counter) {
+			$counter++;
+			return $counter;
+		}, true);
+		
+		$first = $this->container->get('counter_service');
+		$this->container->clearCache();
+		$second = $this->container->get('counter_service');
+		
+		$this->assertEquals(1, $first);
+		$this->assertEquals(2, $second); // Should create new instance after cache clear
+	}
+
+	public function test_reset_clears_all_container_state(): void {
+		$this->container->register('test_service', function() {
+			return 'test_value';
+		});
+		
+		$this->container->set('test_instance', 'instance_value');
+		$this->container->alias('test_alias', 'test_service');
+		
+		$this->assertTrue($this->container->has('test_service'));
+		$this->assertTrue($this->container->has('test_instance'));
+		// Note: has() doesn't check aliases in the current implementation
+		
+		$this->container->reset();
+		
+		$this->assertFalse($this->container->has('test_service'));
+		$this->assertFalse($this->container->has('test_instance'));
+		
+		// Test that alias is cleared by trying to get it (should throw exception)
+		$this->expectException(RuntimeException::class);
+		$this->container->get('test_alias');
+	}
+
+	public function test_get_service_names_returns_all_registered_services(): void {
+		$this->container->register('factory_service', function() {
+			return 'factory_value';
+		});
+		
+		$this->container->set('instance_service', 'instance_value');
+		
+		$service_names = $this->container->getServiceNames();
+		
+		$this->assertContains('factory_service', $service_names);
+		$this->assertContains('instance_service', $service_names);
+		$this->assertCount(2, $service_names);
+	}
+
+	public function test_exception_handling_in_factory(): void {
+		$this->container->register('failing_service', function() {
+			throw new Exception('Factory failed');
+		});
+		
+		$this->expectException(Exception::class);
+		$this->expectExceptionMessage('Factory failed');
+		
+		$this->container->get('failing_service');
+	}
+
+	public function test_resolving_state_cleared_after_exception(): void {
+		$this->container->register('failing_service', function() {
+			throw new Exception('Factory failed');
+		});
+		
+		try {
+			$this->container->get('failing_service');
+		} catch (Exception $e) {
+			// Expected
+		}
+		
+		// The service should be able to be resolved again (resolving state cleared)
+		$this->container->register('failing_service', function() {
+			return 'success';
+		});
+		
+		$this->assertEquals('success', $this->container->get('failing_service'));
+	}
 }

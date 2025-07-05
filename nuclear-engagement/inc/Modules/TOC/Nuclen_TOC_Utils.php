@@ -1,14 +1,14 @@
 <?php
 /**
-	* File: modules/toc/includes/Nuclen_TOC_Utils.php
-	*
-	* Heavy‑lifting utilities:
-	*   ▸ heading extraction with skip‑rules
-	*   ▸ slug deduplication
-	*   ▸ object‑cache wrapper
-	*
-	* @package NuclearEngagement
-	*/
+ * File: modules/toc/includes/Nuclen_TOC_Utils.php
+ *
+ * Heavy‑lifting utilities:
+ *   ▸ heading extraction with skip‑rules
+ *   ▸ slug deduplication
+ *   ▸ object‑cache wrapper
+ *
+ * @package NuclearEngagement
+ */
 
 declare(strict_types=1);
 
@@ -21,8 +21,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
-	* Utility helpers for TOC parsing and slug generation.
-	*/
+ * Utility helpers for TOC parsing and slug generation.
+ */
 final class Nuclen_TOC_Utils {
 
 	private const CACHE_GROUP = 'nuclen_toc';
@@ -58,10 +58,10 @@ final class Nuclen_TOC_Utils {
 	 *     'id'    => 'slugified-id'
 	 * ]
 	 */
-	   public static function extract( string $html, array $heading_levels, int $post_id = 0 ): array {
-							   $t0 = microtime( true );
+	public static function extract( string $html, array $heading_levels, int $post_id = 0 ): array {
+							$t0 = microtime( true );
 
-				// If no specific levels provided, use defaults (2-6).
+			// If no specific levels provided, use defaults (2-6).
 		if ( empty( $heading_levels ) ) {
 				$heading_levels = range( 2, 6 );
 		}
@@ -92,18 +92,18 @@ final class Nuclen_TOC_Utils {
 			}
 		}
 
-							   list( $key, $transient, $hit ) = self::get_cached_headings( $html, $heading_levels );
-			   if ( false !== $hit ) {
-							   self::$last_parse_ms = (int) round( ( microtime( true ) - $t0 ) * 1000 );
-							   return $hit;
-			   }
+							list( $key, $transient, $hit ) = self::get_cached_headings( $html, $heading_levels );
+		if ( $hit !== false ) {
+						self::$last_parse_ms = (int) round( ( microtime( true ) - $t0 ) * 1000 );
+						return $hit;
+		}
 
-							   $out = self::parse_headings( $html, $heading_levels );
+							$out = self::parse_headings( $html, $heading_levels );
 
-				wp_cache_set( $key, $out, self::CACHE_GROUP, self::CACHE_TTL );
-				set_transient( $transient, $out, self::CACHE_TTL );
-				self::$last_parse_ms = (int) round( ( microtime( true ) - $t0 ) * 1000 );
-				return $out;
+			wp_cache_set( $key, $out, self::CACHE_GROUP, self::CACHE_TTL );
+			set_transient( $transient, $out, self::CACHE_TTL );
+			self::$last_parse_ms = (int) round( ( microtime( true ) - $t0 ) * 1000 );
+			return $out;
 	}
 
 		/*
@@ -112,84 +112,84 @@ final class Nuclen_TOC_Utils {
 		 * ----------------------------------------------------------
 		 */
 
-	   /**
-		* Retrieve cached headings if available and return cache identifiers.
-		*
-		* @param string $html           Raw HTML content.
-		* @param array  $heading_levels Sanitized heading levels.
-		* @return array{0:string,1:string,2:mixed} [$key, $transient, $hit]
-		*/
-	   private static function get_cached_headings( string $html, array $heading_levels ): array {
-					   $key       = md5( $html ) . '_' . implode( '', $heading_levels );
-					   $transient = 'nuclen_toc_' . $key;
-					   $hit       = wp_cache_get( $key, self::CACHE_GROUP );
-			   if ( false === $hit ) {
-					   $hit = get_transient( $transient );
-			   }
-			   if ( false !== $hit ) {
-					   self::$ids_in_post = array_fill_keys( wp_list_pluck( $hit, 'id' ), true );
-			   }
-					   return array( $key, $transient, $hit );
-	   }
+		/**
+		 * Retrieve cached headings if available and return cache identifiers.
+		 *
+		 * @param string $html           Raw HTML content.
+		 * @param array  $heading_levels Sanitized heading levels.
+		 * @return array{0:string,1:string,2:mixed} [$key, $transient, $hit]
+		 */
+	private static function get_cached_headings( string $html, array $heading_levels ): array {
+					$key       = md5( $html ) . '_' . implode( '', $heading_levels );
+					$transient = 'nuclen_toc_' . $key;
+					$hit       = wp_cache_get( $key, self::CACHE_GROUP );
+		if ( $hit === false ) {
+				$hit = get_transient( $transient );
+		}
+		if ( $hit !== false ) {
+					self::$ids_in_post = array_fill_keys( wp_list_pluck( $hit, 'id' ), true );
+		}
+					return array( $key, $transient, $hit );
+	}
 
-	   /**
-		* Parse headings from HTML using DOM operations.
-		*
-		* @param string $html           Raw HTML content.
-		* @param array  $heading_levels Sanitized heading levels.
-		* @return array[] Parsed heading data.
-		*/
-	   private static function parse_headings( string $html, array $heading_levels ): array {
-					   $out               = array();
-					   self::$ids_in_post = array();
+		/**
+		 * Parse headings from HTML using DOM operations.
+		 *
+		 * @param string $html           Raw HTML content.
+		 * @param array  $heading_levels Sanitized heading levels.
+		 * @return array[] Parsed heading data.
+		 */
+	private static function parse_headings( string $html, array $heading_levels ): array {
+					$out               = array();
+					self::$ids_in_post = array();
 
-			   if ( nuclen_str_contains( $html, '<h' ) ) {
-					   libxml_use_internal_errors( true );
-					   $dom = new \DOMDocument();
-					   $dom->loadHTML( '<meta http-equiv="Content-Type" content="text/html; charset=utf-8">' . $html, \LIBXML_HTML_NOIMPLIED | \LIBXML_HTML_NODEFDTD );
-					   libxml_clear_errors();
+		if ( nuclen_str_contains( $html, '<h' ) ) {
+				libxml_use_internal_errors( true );
+				$dom = new \DOMDocument();
+				$dom->loadHTML( '<meta http-equiv="Content-Type" content="text/html; charset=utf-8">' . $html, \LIBXML_HTML_NOIMPLIED | \LIBXML_HTML_NODEFDTD );
+				libxml_clear_errors();
 
-					   $xpath = new \DOMXPath( $dom );
-					   $nodes = $xpath->query( '//h1|//h2|//h3|//h4|//h5|//h6' );
+				$xpath = new \DOMXPath( $dom );
+				$nodes = $xpath->query( '//h1|//h2|//h3|//h4|//h5|//h6' );
 
-					   foreach ( $nodes as $node ) {
-									   $tag = strtolower( $node->nodeName );
-									   $lvl = (int) substr( $tag, 1 );
+			foreach ( $nodes as $node ) {
+							$tag = strtolower( $node->nodeName );
+							$lvl = (int) substr( $tag, 1 );
 
-									   // Skip if not in allowed levels or has skip classes/attributes.
-							   if ( ! in_array( $lvl, $heading_levels, true ) ) {
-									   continue;
-							   }
-							   if ( preg_match( '/\bno-?toc\b/i', $node->getAttribute( 'class' ) ) ) {
-									   continue;
-							   }
-									   $data_toc = $node->getAttribute( 'data-toc' );
-							   if ( '' !== $data_toc && strtolower( $data_toc ) === 'false' ) {
-									   continue;
-							   }
+							// Skip if not in allowed levels or has skip classes/attributes.
+				if ( ! in_array( $lvl, $heading_levels, true ) ) {
+						continue;
+				}
+				if ( preg_match( '/\bno-?toc\b/i', $node->getAttribute( 'class' ) ) ) {
+									continue;
+				}
+							$data_toc = $node->getAttribute( 'data-toc' );
+				if ( '' !== $data_toc && strtolower( $data_toc ) === 'false' ) {
+									continue;
+				}
 
-									   $inner = self::inner_html( $node );
-									   $text  = trim( wp_strip_all_tags( $inner ) );
-							   if ( '' === $text ) {
-									   continue;
-							   }
+							$inner = self::inner_html( $node );
+							$text  = trim( wp_strip_all_tags( $inner ) );
+				if ( '' === $text ) {
+					continue;
+				}
 
-									   $id = $node->hasAttribute( 'id' )
-													   ? sanitize_html_class( $node->getAttribute( 'id' ) )
-													   : self::unique_id_from_text( $text );
+							$id = $node->hasAttribute( 'id' )
+											? sanitize_html_class( $node->getAttribute( 'id' ) )
+											: self::unique_id_from_text( $text );
 
-									   $out[] = array(
-											   'tag'   => $tag,
-											   'level' => $lvl,
-											   'text'  => $text,
-											   'inner' => $inner,
-											   'id'    => $id,
-									   );
-					   }
-			   }
+							$out[] = array(
+								'tag'   => $tag,
+								'level' => $lvl,
+								'text'  => $text,
+								'inner' => $inner,
+								'id'    => $id,
+							);
+			}
+		}
 
-					   return $out;
-	   }
+					return $out;
+	}
 
 		/**
 		 * Generate a unique slug from heading text.

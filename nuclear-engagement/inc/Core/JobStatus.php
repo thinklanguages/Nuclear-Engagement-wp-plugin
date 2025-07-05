@@ -1,4 +1,10 @@
 <?php
+/**
+ * JobStatus.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package NuclearEngagement_Core
+ */
+
 declare(strict_types=1);
 
 namespace NuclearEngagement\Core;
@@ -19,7 +25,7 @@ final class JobStatus {
 	 *
 	 * @var array<string, array{status: string, started: int, progress: int, message: string}>
 	 */
-	private static array $job_status = [];
+	private static array $job_status = array();
 
 	/**
 	 * Get job status.
@@ -28,20 +34,20 @@ final class JobStatus {
 	 * @return array|null Job status or null if not found.
 	 */
 	public static function get_job_status( string $job_id ): ?array {
-		// First check memory
-		if ( isset( self::$job_status[$job_id] ) ) {
-			return self::$job_status[$job_id];
+		// First check memory.
+		if ( isset( self::$job_status[ $job_id ] ) ) {
+			return self::$job_status[ $job_id ];
 		}
 
-		// Then check database
+		// Then check database.
 		$job = self::get_stored_job( $job_id );
 		if ( $job ) {
-			return [
+			return array(
 				'status'   => $job['status'],
 				'progress' => $job['progress'] ?? 0,
 				'message'  => $job['message'] ?? '',
 				'started'  => $job['started'] ?? 0,
-			];
+			);
 		}
 
 		return null;
@@ -71,24 +77,24 @@ final class JobStatus {
 
 		$wpdb->update(
 			$wpdb->prefix . 'nuclen_background_jobs',
-			[
+			array(
 				'status'   => $status,
 				'progress' => $progress,
 				'message'  => $message,
 				'updated'  => time(),
-			],
-			[ 'job_id' => $job_id ],
-			[ '%s', '%d', '%s', '%d' ],
-			[ '%s' ]
+			),
+			array( 'job_id' => $job_id ),
+			array( '%s', '%d', '%s', '%d' ),
+			array( '%s' )
 		);
 
-		// Update memory cache
-		self::$job_status[$job_id] = [
+		// Update memory cache.
+		self::$job_status[ $job_id ] = array(
 			'status'   => $status,
 			'progress' => $progress,
 			'message'  => $message,
 			'started'  => time(),
-		];
+		);
 	}
 
 	/**
@@ -103,14 +109,14 @@ final class JobStatus {
 
 		$wpdb->update(
 			$wpdb->prefix . 'nuclen_background_jobs',
-			[
+			array(
 				'status'    => 'retrying',
 				'attempts'  => $attempts,
 				'scheduled' => time() + $delay,
-			],
-			[ 'job_id' => $job_id ],
-			[ '%s', '%d', '%d' ],
-			[ '%s' ]
+			),
+			array( 'job_id' => $job_id ),
+			array( '%s', '%d', '%d' ),
+			array( '%s' )
 		);
 	}
 
@@ -123,13 +129,17 @@ final class JobStatus {
 	private static function get_stored_job( string $job_id ): ?array {
 		global $wpdb;
 
-		$job = $wpdb->get_row( $wpdb->prepare(
-			"SELECT * FROM {$wpdb->prefix}nuclen_background_jobs WHERE job_id = %s",
-			$job_id
-		), ARRAY_A );
+		$job = // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+		$wpdb->get_row(
+			$wpdb->prepare(
+				"SELECT * FROM {$wpdb->prefix}nuclen_background_jobs WHERE job_id = %s",
+				$job_id
+			),
+			ARRAY_A
+		);
 
 		if ( $job ) {
-			$job['data'] = json_decode( $job['data'], true );
+			$job['data'] = wp_json_decode( $job['data'], true );
 		}
 
 		return $job;

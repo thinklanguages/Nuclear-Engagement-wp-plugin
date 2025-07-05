@@ -1,4 +1,10 @@
 <?php
+/**
+ * PublishGenerationHandler.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package NuclearEngagement_Services
+ */
+
 // phpcs:disable WordPress.Files.FileName.NotHyphenatedLowercase,WordPress.Files.FileName.InvalidClassFileName
 /**
  * PublishGenerationHandler service.
@@ -79,7 +85,7 @@ class PublishGenerationHandler {
 				$args = array( $post->ID, 'quiz' );
 				if ( ! wp_next_scheduled( AutoGenerationService::START_HOOK, $args ) ) {
 						$scheduled = wp_schedule_single_event( time(), AutoGenerationService::START_HOOK, $args );
-					if ( false === $scheduled ) {
+					if ( $scheduled === false ) {
 										\NuclearEngagement\Services\LoggingService::log(
 											'Failed to schedule event ' . AutoGenerationService::START_HOOK
 										);
@@ -94,7 +100,7 @@ class PublishGenerationHandler {
 				$args = array( $post->ID, 'summary' );
 				if ( ! wp_next_scheduled( AutoGenerationService::START_HOOK, $args ) ) {
 						$scheduled = wp_schedule_single_event( time(), AutoGenerationService::START_HOOK, $args );
-					if ( false === $scheduled ) {
+					if ( $scheduled === false ) {
 										\NuclearEngagement\Services\LoggingService::log(
 											'Failed to schedule event ' . AutoGenerationService::START_HOOK
 										);

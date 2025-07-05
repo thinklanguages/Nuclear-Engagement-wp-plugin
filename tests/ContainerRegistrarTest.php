@@ -1,22 +1,19 @@
 <?php
 use PHPUnit\Framework\TestCase;
-use NuclearEngagement\Core\Container;
+use NuclearEngagement\Core\ServiceContainer;
 use NuclearEngagement\Core\ContainerRegistrar;
 use NuclearEngagement\Core\SettingsRepository;
 
-require_once dirname(__DIR__) . '/nuclear-engagement/inc/Core/Container.php';
-require_once dirname(__DIR__) . '/nuclear-engagement/inc/Core/SettingsRepository.php';
-require_once dirname(__DIR__) . '/nuclear-engagement/inc/Core/Defaults.php';
-require_once dirname(__DIR__) . '/nuclear-engagement/inc/Core/ContainerRegistrar.php';
-
 class ContainerRegistrarTest extends TestCase {
-	private Container $container;
+	private ServiceContainer $container;
 	private SettingsRepository $settings;
 
 	protected function setUp(): void {
 		SettingsRepository::reset_for_tests();
-		$this->container = Container::getInstance();
-		$this->container->reset();
+		$this->container = ServiceContainer::getInstance();
+		if (method_exists($this->container, 'reset')) {
+			$this->container->reset();
+		}
 		$this->settings = SettingsRepository::get_instance();
 	}
 

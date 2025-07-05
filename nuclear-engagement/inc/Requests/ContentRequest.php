@@ -1,4 +1,10 @@
 <?php
+/**
+ * ContentRequest.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package NuclearEngagement_Requests
+ */
+
 declare(strict_types=1);
 /**
  * File: includes/Requests/ContentRequest.php
@@ -48,7 +54,7 @@ class ContentRequest {
 
 		$request->workflow = sanitize_text_field( $data['workflow'] );
 
-		// Validate workflow
+		// Validate workflow.
 		if ( ! in_array( $request->workflow, array( 'quiz', 'summary' ), true ) ) {
 			throw new \InvalidArgumentException( 'Invalid workflow type: ' . $request->workflow );
 		}

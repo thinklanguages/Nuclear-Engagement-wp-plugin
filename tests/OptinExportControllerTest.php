@@ -1,16 +1,20 @@
 <?php
 namespace NuclearEngagement\Services {
-	class OptinExportService {
-		public static int $calls = 0;
-		public function stream_csv(): void { self::$calls++; }
+	if (!class_exists('NuclearEngagement\Services\OptinExportService')) {
+		class OptinExportService {
+			public static int $calls = 0;
+			public function stream_csv(): void { self::$calls++; }
+		}
 	}
 }
 
 namespace NuclearEngagement {
 	use NuclearEngagement\Services\OptinExportService;
-	class OptinData {
-		public static function handle_export(): void {
-			( new OptinExportService() )->stream_csv();
+	if (!class_exists('NuclearEngagement\OptinData')) {
+		class OptinData {
+			public static function handle_export(): void {
+				( new OptinExportService() )->stream_csv();
+			}
 		}
 	}
 }

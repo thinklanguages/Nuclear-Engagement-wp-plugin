@@ -1,11 +1,5 @@
 <?php
 namespace NuclearEngagement\Services {
-	class LoggingService {
-		public static array $logs = [];
-		public static function log(string $msg): void {
-			self::$logs[] = $msg;
-		}
-	}
 }
 
 namespace {

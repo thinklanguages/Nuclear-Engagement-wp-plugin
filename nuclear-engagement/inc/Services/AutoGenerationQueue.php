@@ -1,4 +1,10 @@
 <?php
+/**
+ * AutoGenerationQueue.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package NuclearEngagement_Services
+ */
+
 declare(strict_types=1);
 /**
  * File: includes/Services/AutoGenerationQueue.php
@@ -23,7 +29,7 @@ class AutoGenerationQueue {
 	private const BATCH_SIZE = 5;
 
 	/** Lock timeout in seconds. */
-	private const LOCK_TIMEOUT = 300; // 5 minutes
+	private const LOCK_TIMEOUT = 300; // 5 minutes.
 
 
 	private RemoteApiService $remote_api;
@@ -40,7 +46,7 @@ class AutoGenerationQueue {
 	 * Add a post to the pending generation queue and schedule processing.
 	 */
 	public function queue_post( int $post_id, string $workflow_type ): void {
-		// Acquire lock before modifying queue
+		// Acquire lock before modifying queue.
 		if ( ! $this->acquire_lock() ) {
 			\NuclearEngagement\Services\LoggingService::log( 'Failed to acquire queue lock for post ' . $post_id );
 			return;
@@ -57,9 +63,10 @@ class AutoGenerationQueue {
 			}
 			if ( ! wp_next_scheduled( AutoGenerationService::QUEUE_HOOK ) ) {
 				$scheduled = wp_schedule_single_event( time(), AutoGenerationService::QUEUE_HOOK, array() );
-				if ( false === $scheduled ) {
+				if ( $scheduled === false ) {
 					\NuclearEngagement\Services\LoggingService::log( 'Failed to schedule event ' . AutoGenerationService::QUEUE_HOOK );
 					\NuclearEngagement\Services\LoggingService::notify_admin(
+						/* translators: %s: placeholder description */
 						sprintf( __( 'Failed to schedule event %s', 'nuclear-engagement' ), AutoGenerationService::QUEUE_HOOK )
 					);
 				}
@@ -69,11 +76,11 @@ class AutoGenerationQueue {
 		}
 	}
 
-/**
- * Process queued posts in batches.
- */
+	/**
+	 * Process queued posts in batches.
+	 */
 	public function process_queue(): void {
-		// Acquire lock before processing
+		// Acquire lock before processing.
 		if ( ! $this->acquire_lock() ) {
 			\NuclearEngagement\Services\LoggingService::log( 'Failed to acquire queue lock for processing' );
 			return;
@@ -84,28 +91,28 @@ class AutoGenerationQueue {
 			if ( empty( $queue ) ) {
 				return;
 			}
-	
-	$generations = get_option( 'nuclen_active_generations', array() );
-	
-	foreach ( $queue as $workflow_type => $ids ) {
-	while ( ! empty( $ids ) ) {
-	$batch     = array_splice( $ids, 0, self::BATCH_SIZE );
-	$post_data = $this->prepare_post_data( $batch, $workflow_type );
-	
-	if ( empty( $post_data ) ) {
-	continue;
-	}
-	
-	$generation_id = $this->dispatch_generation( $post_data, $workflow_type );
-	if ( ! $generation_id ) {
-	continue;
-	}
-	
-	$this->schedule_follow_up_events( $generation_id, $workflow_type, $batch, $generations );
-	}
-	$queue[ $workflow_type ] = $ids;
-	}
-	
+
+			$generations = get_option( 'nuclen_active_generations', array() );
+
+			foreach ( $queue as $workflow_type => $ids ) {
+				while ( ! empty( $ids ) ) {
+					$batch     = array_splice( $ids, 0, self::BATCH_SIZE );
+					$post_data = $this->prepare_post_data( $batch, $workflow_type );
+
+					if ( empty( $post_data ) ) {
+						continue;
+					}
+
+					$generation_id = $this->dispatch_generation( $post_data, $workflow_type );
+					if ( ! $generation_id ) {
+						continue;
+					}
+
+					$this->schedule_follow_up_events( $generation_id, $workflow_type, $batch, $generations );
+				}
+				$queue[ $workflow_type ] = $ids;
+			}
+
 			update_option( 'nuclen_active_generations', $generations, 'no' );
 			$this->maybe_reschedule_queue( $queue );
 		} finally {
@@ -115,29 +122,29 @@ class AutoGenerationQueue {
 
 	/** Fetch the queued post IDs grouped by workflow type. */
 	private function get_queued_ids(): array {
-		$queue   = get_option( self::QUEUE_OPTION, array() );
-		$result  = array();
+		$queue  = get_option( self::QUEUE_OPTION, array() );
+		$result = array();
 		foreach ( $queue as $type => $ids ) {
-		$result[ $type ] = array_map( 'absint', (array) $ids );
+			$result[ $type ] = array_map( 'absint', (array) $ids );
 		}
 		return $result;
 	}
-	
+
 	/** Prepare post payload data for the API. */
 	private function prepare_post_data( array $ids, string $workflow_type = '' ): array {
 		$post_data = array();
 		$posts     = $this->fetcher->fetch( $ids, $workflow_type );
 		foreach ( $posts as $post ) {
-		$pid         = (int) $post->ID;
-		$post_data[] = array(
-		'id'      => $pid,
-		'title'   => $post->post_title,
-		'content' => wp_strip_all_tags( $post->post_content ),
-		);
+			$pid         = (int) $post->ID;
+			$post_data[] = array(
+				'id'      => $pid,
+				'title'   => $post->post_title,
+				'content' => wp_strip_all_tags( $post->post_content ),
+			);
 		}
-	return $post_data;
+		return $post_data;
 	}
-	
+
 	/**
 	 * Send the posts to the remote API to start a generation.
 	 *
@@ -145,65 +152,67 @@ class AutoGenerationQueue {
 	 */
 	private function dispatch_generation( array $post_data, string $workflow_type ): string {
 		$workflow      = array(
-		'type'                    => $workflow_type,
-		'summary_format'          => 'paragraph',
-		'summary_length'          => NUCLEN_SUMMARY_LENGTH_DEFAULT,
-		'summary_number_of_items' => NUCLEN_SUMMARY_ITEMS_DEFAULT,
+			'type'                    => $workflow_type,
+			'summary_format'          => 'paragraph',
+			'summary_length'          => NUCLEN_SUMMARY_LENGTH_DEFAULT,
+			'summary_number_of_items' => NUCLEN_SUMMARY_ITEMS_DEFAULT,
 		);
 		$generation_id = 'gen_' . uniqid( 'auto_', true );
 		try {
-		$this->remote_api->send_posts_to_generate(
-		array(
-		'posts'         => $post_data,
-		'workflow'      => $workflow,
-		'generation_id' => $generation_id,
-		)
-		);
+			$this->remote_api->send_posts_to_generate(
+				array(
+					'posts'         => $post_data,
+					'workflow'      => $workflow,
+					'generation_id' => $generation_id,
+				)
+			);
 		} catch ( \Throwable $e ) {
-		\NuclearEngagement\Services\LoggingService::log( 'Failed to start generation: ' . $e->getMessage() );
-		\NuclearEngagement\Services\LoggingService::notify_admin( 'Auto-generation failed: ' . $e->getMessage() );
-		return '';
+			\NuclearEngagement\Services\LoggingService::log( 'Failed to start generation: ' . $e->getMessage() );
+			\NuclearEngagement\Services\LoggingService::notify_admin( 'Auto-generation failed: ' . $e->getMessage() );
+			return '';
 		}
 		return $generation_id;
 	}
-	
+
 	/** Store generation info and schedule the polling event. */
 	private function schedule_follow_up_events( string $generation_id, string $workflow_type, array $batch, array &$generations ): void {
 		$next_poll                     = time() + NUCLEN_INITIAL_POLL_DELAY + mt_rand( 1, 5 );
 		$generations[ $generation_id ] = array(
-		'started_at'    => current_time( 'mysql' ),
-		'post_ids'      => $batch,
-		'next_poll'     => $next_poll,
-		'attempt'       => 1,
-		'workflow_type' => $workflow_type,
+			'started_at'    => current_time( 'mysql' ),
+			'post_ids'      => $batch,
+			'next_poll'     => $next_poll,
+			'attempt'       => 1,
+			'workflow_type' => $workflow_type,
 		);
-		$scheduled = wp_schedule_single_event( $next_poll, 'nuclen_poll_generation', array( $generation_id, $workflow_type, $batch, 1 ) );
-		if ( false === $scheduled ) {
-		\NuclearEngagement\Services\LoggingService::log( 'Failed to schedule event nuclen_poll_generation for generation ' . $generation_id );
-		\NuclearEngagement\Services\LoggingService::notify_admin(
-		sprintf( __( 'Failed to schedule event nuclen_poll_generation for generation %s', 'nuclear-engagement' ), $generation_id )
-		);
+		$scheduled                     = wp_schedule_single_event( $next_poll, 'nuclen_poll_generation', array( $generation_id, $workflow_type, $batch, 1 ) );
+		if ( $scheduled === false ) {
+			\NuclearEngagement\Services\LoggingService::log( 'Failed to schedule event nuclen_poll_generation for generation ' . $generation_id );
+			\NuclearEngagement\Services\LoggingService::notify_admin(
+				/* translators: %s: placeholder description */
+				sprintf( __( 'Failed to schedule event nuclen_poll_generation for generation %s', 'nuclear-engagement' ), $generation_id )
+			);
 		}
 	}
-	
+
 	/** Update the queue option and schedule processing if needed. */
 	private function maybe_reschedule_queue( array $queue ): void {
 		foreach ( $queue as $type => $ids ) {
-		if ( empty( $ids ) ) {
-		unset( $queue[ $type ] );
-		}
+			if ( empty( $ids ) ) {
+				unset( $queue[ $type ] );
+			}
 		}
 		if ( empty( $queue ) ) {
-		delete_option( self::QUEUE_OPTION );
-		return;
+			delete_option( self::QUEUE_OPTION );
+			return;
 		}
 		update_option( self::QUEUE_OPTION, $queue, 'no' );
 		$scheduled = wp_schedule_single_event( time() + 1, AutoGenerationService::QUEUE_HOOK, array() );
-		if ( false === $scheduled ) {
-		\NuclearEngagement\Services\LoggingService::log( 'Failed to schedule event ' . AutoGenerationService::QUEUE_HOOK );
-		\NuclearEngagement\Services\LoggingService::notify_admin(
-		sprintf( __( 'Failed to schedule event %s', 'nuclear-engagement' ), AutoGenerationService::QUEUE_HOOK )
-		);
+		if ( $scheduled === false ) {
+			\NuclearEngagement\Services\LoggingService::log( 'Failed to schedule event ' . AutoGenerationService::QUEUE_HOOK );
+			\NuclearEngagement\Services\LoggingService::notify_admin(
+				/* translators: %s: placeholder description */
+				sprintf( __( 'Failed to schedule event %s', 'nuclear-engagement' ), AutoGenerationService::QUEUE_HOOK )
+			);
 		}
 	}
 
@@ -211,18 +220,18 @@ class AutoGenerationQueue {
 	 * Acquire a processing lock to prevent race conditions.
 	 */
 	private function acquire_lock(): bool {
-		$lock_time = $this->get_site_option( self::LOCK_OPTION, 0 );
+		$lock_time    = $this->get_site_option( self::LOCK_OPTION, 0 );
 		$current_time = time();
 
-		// Check if lock is already held and not expired
+		// Check if lock is already held and not expired.
 		if ( $lock_time && ( $current_time - $lock_time ) < self::LOCK_TIMEOUT ) {
 			return false;
 		}
 
-		// Acquire lock
+		// Acquire lock.
 		$this->update_site_option( self::LOCK_OPTION, $current_time, 'no' );
-		
-		// Double-check we got the lock (basic race condition protection)
+
+		// Double-check we got the lock (basic race condition protection).
 		$verify_lock = $this->get_site_option( self::LOCK_OPTION, 0 );
 		return $verify_lock === $current_time;
 	}
@@ -239,7 +248,7 @@ class AutoGenerationQueue {
 	 */
 	private function get_site_option( string $option, $default = false ) {
 		if ( is_multisite() ) {
-			// In multisite, use site-specific options with blog ID prefix
+			// In multisite, use site-specific options with blog ID prefix.
 			$blog_id = get_current_blog_id();
 			return get_option( $option . '_blog_' . $blog_id, $default );
 		}
@@ -251,7 +260,7 @@ class AutoGenerationQueue {
 	 */
 	private function update_site_option( string $option, $value, $autoload = null ): bool {
 		if ( is_multisite() ) {
-			// In multisite, use site-specific options with blog ID prefix
+			// In multisite, use site-specific options with blog ID prefix.
 			$blog_id = get_current_blog_id();
 			return update_option( $option . '_blog_' . $blog_id, $value, $autoload );
 		}
@@ -263,10 +272,10 @@ class AutoGenerationQueue {
 	 */
 	private function delete_site_option( string $option ): bool {
 		if ( is_multisite() ) {
-			// In multisite, use site-specific options with blog ID prefix
+			// In multisite, use site-specific options with blog ID prefix.
 			$blog_id = get_current_blog_id();
 			return delete_option( $option . '_blog_' . $blog_id );
 		}
 		return delete_option( $option );
 	}
-	}
+}

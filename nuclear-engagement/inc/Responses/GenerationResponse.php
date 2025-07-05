@@ -1,4 +1,10 @@
 <?php
+/**
+ * GenerationResponse.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package NuclearEngagement_Responses
+ */
+
 declare(strict_types=1);
 /**
  * File: includes/Responses/GenerationResponse.php
@@ -41,12 +47,12 @@ class GenerationResponse {
 	/**
 	 * @var string|null Error code if any
 	 */
-	public ?string $errorCode = null;
+	public ?string $error_code = null;
 
 	/**
 	 * @var int|null HTTP status code from remote API
 	 */
-	public ?int $statusCode = null;
+	public ?int $status_code = null;
 
 	/**
 	 * Convert to array for JSON response

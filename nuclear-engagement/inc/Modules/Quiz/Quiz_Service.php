@@ -1,4 +1,10 @@
 <?php
+/**
+ * Quiz_Service.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package NuclearEngagement_Modules_Quiz
+ */
+
 declare(strict_types=1);
 /**
  * Quiz data storage and management handler.
@@ -31,7 +37,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @since 1.0.0
  */
 final class Quiz_Service {
-	
+
 	/**
 	 * Meta key for storing quiz data in WordPress post meta.
 	 *
@@ -39,7 +45,7 @@ final class Quiz_Service {
 	 * @var string
 	 */
 	public const META_KEY = 'nuclen-quiz-data';
-	
+
 	/**
 	 * Meta key for storing quiz protection status.
 	 *
@@ -66,23 +72,23 @@ final class Quiz_Service {
 	 * }
 	 */
 	public function get_quiz_data( int $post_id ): array {
-		// Retrieve raw quiz data from post meta
+		// Retrieve raw quiz data from post meta.
 		$quiz_data = get_post_meta( $post_id, self::META_KEY, true );
-		
-		// Secure unserialize with validation
+
+		// Secure unserialize with validation.
 		if ( ! empty( $quiz_data ) ) {
 			$quiz_data = $this->safe_unserialize( $quiz_data );
 		}
-		
-		// Ensure we always return a valid array structure
+
+		// Ensure we always return a valid array structure.
 		if ( ! is_array( $quiz_data ) ) {
 			$quiz_data = array(
 				'questions' => array(),
 				'date'      => '',
 			);
 		}
-		
-		// Validate and sanitize the structure
+
+		// Validate and sanitize the structure.
 		return $this->validate_quiz_structure( $quiz_data );
 	}
 
@@ -93,24 +99,24 @@ final class Quiz_Service {
 	 * @return mixed Unserialized data or false on failure.
 	 */
 	private function safe_unserialize( $data ) {
-		// First try maybe_unserialize for WordPress compatibility
+		// First try maybe_unserialize for WordPress compatibility.
 		$unserialized = maybe_unserialize( $data );
-		
-		// If it's a string and looks like serialized data, validate it
+
+		// If it's a string and looks like serialized data, validate it.
 		if ( is_string( $data ) && preg_match( '/^[aOs]:[0-9]+:/', $data ) ) {
-			// Check for potentially dangerous classes
+			// Check for potentially dangerous classes.
 			if ( preg_match( '/[CO]:[0-9]+:"/', $data ) ) {
 				LoggingService::log( 'Attempted to unserialize data containing objects - blocked for security' );
 				return false;
 			}
 		}
-		
-		// Additional validation - ensure result is expected type
+
+		// Additional validation - ensure result is expected type.
 		if ( $unserialized && ! is_array( $unserialized ) ) {
 			LoggingService::log( 'Unserialized quiz data is not an array - potential security issue' );
 			return false;
 		}
-		
+
 		return $unserialized;
 	}
 
@@ -125,13 +131,13 @@ final class Quiz_Service {
 			'questions' => array(),
 			'date'      => '',
 		);
-		
-		// Validate date
+
+		// Validate date.
 		if ( isset( $quiz_data['date'] ) && is_string( $quiz_data['date'] ) ) {
 			$validated['date'] = sanitize_text_field( $quiz_data['date'] );
 		}
-		
-		// Validate questions array
+
+		// Validate questions array.
 		if ( isset( $quiz_data['questions'] ) && is_array( $quiz_data['questions'] ) ) {
 			foreach ( $quiz_data['questions'] as $index => $question ) {
 				if ( is_array( $question ) ) {
@@ -140,29 +146,32 @@ final class Quiz_Service {
 						'answers'     => array(),
 						'explanation' => '',
 					);
-					
-					// Validate question text
+
+					// Validate question text.
 					if ( isset( $question['question'] ) && is_string( $question['question'] ) ) {
 						$validated_question['question'] = wp_kses_post( $question['question'] );
 					}
-					
-					// Validate answers
+
+					// Validate answers.
 					if ( isset( $question['answers'] ) && is_array( $question['answers'] ) ) {
-						$validated_question['answers'] = array_map( function( $answer ) {
-							return is_string( $answer ) ? wp_kses_post( $answer ) : '';
-						}, array_slice( $question['answers'], 0, 4 ) ); // Limit to 4 answers
+						$validated_question['answers'] = array_map(
+							function ( $answer ) {
+								return is_string( $answer ) ? wp_kses_post( $answer ) : '';
+							},
+							array_slice( $question['answers'], 0, 4 )
+						); // Limit to 4 answers.
 					}
-					
-					// Validate explanation
+
+					// Validate explanation.
 					if ( isset( $question['explanation'] ) && is_string( $question['explanation'] ) ) {
 						$validated_question['explanation'] = wp_kses_post( $question['explanation'] );
 					}
-					
-					$validated['questions'][$index] = $validated_question;
+
+					$validated['questions'][ $index ] = $validated_question;
 				}
 			}
 		}
-		
+
 		return $validated;
 	}
 
@@ -183,27 +192,27 @@ final class Quiz_Service {
 	 * @return void
 	 */
 	public function save_quiz_data( int $post_id, array $raw ): void {
-		// Initialize formatted data structure with sanitized date
+		// Initialize formatted data structure with sanitized date.
 		$formatted = array(
 			'date'      => sanitize_text_field( $raw['date'] ?? gmdate( 'Y-m-d H:i:s' ) ),
 			'questions' => array(),
 		);
 
-		// Process and sanitize questions if they exist
+		// Process and sanitize questions if they exist.
 		if ( isset( $raw['questions'] ) && is_array( $raw['questions'] ) ) {
 			foreach ( $raw['questions'] as $q_index => $q_raw ) {
-				// Sanitize question text allowing basic HTML formatting
+				// Sanitize question text allowing basic HTML formatting.
 				$question = isset( $q_raw['question'] ) ? wp_kses_post( $q_raw['question'] ) : '';
-				
-				// Process answer options (ensure we have exactly 4 answers)
+
+				// Process answer options (ensure we have exactly 4 answers).
 				$answers_raw = isset( $q_raw['answers'] ) && is_array( $q_raw['answers'] ) ? $q_raw['answers'] : array();
-				$answers_raw = array_pad( $answers_raw, 4, '' ); // Pad to ensure 4 answers
-				$answers     = array_map( 'wp_kses_post', $answers_raw ); // Sanitize each answer
-				
-				// Sanitize explanation text
+				$answers_raw = array_pad( $answers_raw, 4, '' ); // Pad to ensure 4 answers.
+				$answers     = array_map( 'wp_kses_post', $answers_raw ); // Sanitize each answer.
+
+				// Sanitize explanation text.
 				$explan = isset( $q_raw['explanation'] ) ? wp_kses_post( $q_raw['explanation'] ) : '';
 
-				// Build formatted question structure
+				// Build formatted question structure.
 				$formatted['questions'][ $q_index ] = array(
 					'question'    => $question,
 					'answers'     => $answers,
@@ -212,16 +221,16 @@ final class Quiz_Service {
 			}
 		}
 
-		// Attempt to save the formatted data to post meta
+		// Attempt to save the formatted data to post meta.
 		$updated = update_post_meta( $post_id, self::META_KEY, $formatted );
-		
-		// Handle save failure with logging and admin notification
-		if ( false === $updated ) {
+
+		// Handle save failure with logging and admin notification.
+		if ( $updated === false ) {
 			LoggingService::log( 'Failed to update quiz data for post ' . $post_id );
 			LoggingService::notify_admin( 'Failed to update quiz data for post ' . $post_id );
 		}
-		
-		// Clear post cache to ensure fresh data on next request
+
+		// Clear post cache to ensure fresh data on next request.
 		clean_post_cache( $post_id );
 	}
 
@@ -238,7 +247,7 @@ final class Quiz_Service {
 	 * @return bool True if the quiz is protected, false otherwise.
 	 */
 	public function is_protected( int $post_id ): bool {
-		// Retrieve protection flag and cast to boolean
+		// Retrieve protection flag and cast to boolean.
 		return (bool) get_post_meta( $post_id, self::PROTECTED_KEY, true );
 	}
 
@@ -257,16 +266,16 @@ final class Quiz_Service {
 	 */
 	public function set_protected( int $post_id, bool $protected ): void {
 		if ( $protected ) {
-			// Set protection flag to true (stored as 1)
+			// Set protection flag to true (stored as 1).
 			$updated = update_post_meta( $post_id, self::PROTECTED_KEY, 1 );
-			
-			// Log failure if meta update didn't succeed
-			if ( false === $updated ) {
+
+			// Log failure if meta update didn't succeed.
+			if ( $updated === false ) {
 				LoggingService::log( 'Failed to update quiz protected flag for post ' . $post_id );
 				LoggingService::notify_admin( 'Failed to update quiz protected flag for post ' . $post_id );
 			}
 		} else {
-			// Remove protection flag entirely when not protected
+			// Remove protection flag entirely when not protected.
 			delete_post_meta( $post_id, self::PROTECTED_KEY );
 		}
 	}

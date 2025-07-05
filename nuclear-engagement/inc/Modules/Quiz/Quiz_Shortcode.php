@@ -1,4 +1,10 @@
 <?php
+/**
+ * Quiz_Shortcode.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package NuclearEngagement_Modules_Quiz
+ */
+
 declare(strict_types=1);
 /**
  * Quiz shortcode handler and renderer.
@@ -34,7 +40,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @since 1.0.0
  */
 class Quiz_Shortcode {
-	
+
 	/**
 	 * Settings repository instance.
 	 *
@@ -42,7 +48,7 @@ class Quiz_Shortcode {
 	 * @var SettingsRepository
 	 */
 	private SettingsRepository $settings;
-	
+
 	/**
 	 * Quiz view renderer instance.
 	 *
@@ -50,7 +56,7 @@ class Quiz_Shortcode {
 	 * @var QuizView
 	 */
 	private QuizView $view;
-	
+
 	/**
 	 * Frontend class instance for asset management.
 	 *
@@ -58,7 +64,7 @@ class Quiz_Shortcode {
 	 * @var FrontClass
 	 */
 	private FrontClass $front;
-	
+
 	/**
 	 * Quiz service instance for data operations.
 	 *
@@ -112,35 +118,35 @@ class Quiz_Shortcode {
 	 * @return string The rendered quiz HTML or empty string if invalid.
 	 */
 	public function render(): string {
-		// Force enqueue frontend assets (CSS/JS) for quiz functionality
+		// Force enqueue frontend assets (CSS/JS) for quiz functionality.
 		$this->front->nuclen_force_enqueue_assets();
-		
-		// Get current post ID
+
+		// Get current post ID.
 		$post_id = get_the_ID();
-		
-		// Validate post ID before proceeding
+
+		// Validate post ID before proceeding.
 		if ( ! $post_id || ! is_int( $post_id ) ) {
 			return '';
 		}
-		
-		// Retrieve quiz data for the current post
+
+		// Retrieve quiz data for the current post.
 		$quiz_data = $this->service->get_quiz_data( $post_id );
-		
-		// Validate quiz data before rendering
+
+		// Validate quiz data before rendering.
 		if ( ! $this->isValidQuizData( $quiz_data ) ) {
 			return '';
 		}
 
-		// Get quiz-specific settings and theme configuration
+		// Get quiz-specific settings and theme configuration.
 		$settings = $this->getQuizSettings();
 		$theme    = $this->settings->get_string( 'theme', 'bright' );
-		
-		// Build HTML output with proper escaping
+
+		// Build HTML output with proper escaping.
 		$html  = '<div class="nuclen-root" data-theme="' . esc_attr( $theme ) . '">';
 		$html .= $this->view->container( $settings );
 		$html .= $this->view->attribution( $settings['show_attribution'] );
 		$html .= '</div>';
-		
+
 		return $html;
 	}
 
@@ -149,7 +155,7 @@ class Quiz_Shortcode {
 	 *
 	 * This method performs comprehensive validation to ensure quiz data
 	 * is properly structured and contains valid questions before rendering.
-	 * 
+	 *
 	 * Validation checks:
 	 * - Data is an array
 	 * - Questions array exists and is not empty
@@ -161,12 +167,12 @@ class Quiz_Shortcode {
 	 * @return bool True if quiz data is valid, false otherwise.
 	 */
 	private function isValidQuizData( $quiz_data ): bool {
-		// Basic structure validation
+		// Basic structure validation.
 		if ( ! is_array( $quiz_data ) || empty( $quiz_data['questions'] ) ) {
 			return false;
 		}
 
-		// Filter out questions with empty or invalid content
+		// Filter out questions with empty or invalid content.
 		$valid_questions = array_filter(
 			$quiz_data['questions'],
 			static function ( $q ) {
@@ -174,7 +180,7 @@ class Quiz_Shortcode {
 			}
 		);
 
-		// Require at least one valid question
+		// Require at least one valid question.
 		return ! empty( $valid_questions );
 	}
 

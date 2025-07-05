@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import { shuffle, isValidEmail, escapeHtml, storeOptinLocally, submitToWebhook } from '../../src/front/ts/nuclen-quiz-utils';
 import * as logger from '../../src/front/ts/logger';
 import type { OptinContext } from '../../src/front/ts/nuclen-quiz-types';
@@ -44,13 +44,11 @@ describe('storeOptinLocally', () => {
 
   afterEach(() => {
 	vi.restoreAllMocks();
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	delete (global as any).fetch;
   });
 
   it('posts to ajax url', async () => {
 	const fetchMock = vi.fn().mockResolvedValue({ ok: true });
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	(global as any).fetch = fetchMock;
 	const log = vi.spyOn(logger, 'error').mockImplementation(() => {});
 	await storeOptinLocally('n', 'e', 'u', baseCtx);
@@ -98,7 +96,6 @@ describe('submitToWebhook', () => {
 
   afterEach(() => {
 	vi.restoreAllMocks();
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	delete (global as any).fetch;
   });
 

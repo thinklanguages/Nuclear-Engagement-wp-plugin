@@ -1,4 +1,10 @@
 <?php
+/**
+ * nuclear-engagement-public-display.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package Nuclear_Engagement
+ */
+
 declare(strict_types=1);
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -18,7 +24,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 use NuclearEngagement\Helpers\SettingsFunctions;
 
-// Get theme settings with type-safe methods
+// Get theme settings with type-safe methods.
 $theme        = SettingsFunctions::get_string( 'theme', 'bright' );
 $font_size    = SettingsFunctions::get_int( 'font_size', 16 );
 $font_color   = SettingsFunctions::get_string( 'font_color', '#000000' );
@@ -27,7 +33,7 @@ $border_color = SettingsFunctions::get_string( 'border_color', '#000000' );
 $border_style = SettingsFunctions::get_string( 'border_style', 'solid' );
 $border_width = SettingsFunctions::get_int( 'border_width', 1 );
 
-// For backward compatibility, create an options array
+// For backward compatibility, create an options array.
 $options = array(
 	'theme'        => $theme,
 	'font_size'    => $font_size,

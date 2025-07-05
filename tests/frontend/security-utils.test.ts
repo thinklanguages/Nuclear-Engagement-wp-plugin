@@ -2,7 +2,7 @@
  * Tests for security utility functions
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 
 // Mock security utilities that would be in the actual codebase
 const SecurityUtils = {

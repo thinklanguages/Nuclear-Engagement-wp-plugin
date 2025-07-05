@@ -1,4 +1,10 @@
 <?php
+/**
+ * labels.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package Nuclear_Engagement
+ */
+
 declare(strict_types=1);
 // File: admin/partials/settings/display/labels.php
 if ( ! defined( 'ABSPATH' ) ) {

@@ -1,4 +1,10 @@
 <?php
+/**
+ * SecureSetupHandlersTrait.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package NuclearEngagement_Admin_Traits
+ */
+
 declare(strict_types=1);
 
 namespace NuclearEngagement\Admin\Traits;
@@ -56,7 +62,7 @@ trait SecureSetupHandlersTrait {
 		}
 
 		list( $new_password, $uuid, $current_user ) = $this->create_app_password();
-		$api_key = $settings->get( 'api_key' );
+		$api_key                                    = $settings->get( 'api_key' );
 		if ( empty( $api_key ) ) {
 			$this->redirect_with_error( 'API key is missing. Please complete Step 1 first.' );
 		}
@@ -93,10 +99,10 @@ trait SecureSetupHandlersTrait {
 			->set( 'plugin_token_hash', '' )
 			->save();
 
-		$app_setup = get_option( 'nuclear_engagement_setup', array() );
+		$app_setup                        = get_option( 'nuclear_engagement_setup', array() );
 		$app_setup['wp_app_pass_created'] = false;
-		$app_setup['wp_app_pass_uuid'] = '';
-		$app_setup['plugin_token_hash'] = '';
+		$app_setup['wp_app_pass_uuid']    = '';
+		$app_setup['plugin_token_hash']   = '';
 		update_option( 'nuclear_engagement_setup', $app_setup );
 		wp_cache_delete( 'nuclear_engagement_setup', 'options' );
 
@@ -106,16 +112,14 @@ trait SecureSetupHandlersTrait {
 	private function validate_generate_nonce( bool $bypass ): void {
 		if ( ! $bypass ) {
 			$this->validate_nonce_and_permissions( 'nuclen_generate_app_password_nonce', 'nuclen_generate_app_password_action' );
-		} else {
-			if ( ! current_user_can( 'manage_options' ) ) {
+		} elseif ( ! current_user_can( 'manage_options' ) ) {
 				$this->redirect_with_error( 'Insufficient permissions.' );
-			}
 		}
 	}
 
 	private function create_app_password(): array {
 		$new_password = wp_generate_password( 32, true, true );
-		$uuid = wp_generate_uuid4();
+		$uuid         = wp_generate_uuid4();
 		$current_user = wp_get_current_user();
 		return array( $new_password, $uuid, $current_user );
 	}
@@ -138,19 +142,19 @@ trait SecureSetupHandlersTrait {
 		// The SaaS backend uses this plain password for authentication.
 		// Any changes to this storage method will break SaaS connectivity.
 		// This password must remain accessible in plain text for the SaaS to function.
-		
+
 		$settings = $this->nuclen_get_settings_repository();
 		$settings->set( 'wp_app_pass_created', true )
 			->set( 'wp_app_pass_uuid', $uuid )
-			->set( 'plugin_password', $password )  // REQUIRED: SaaS needs plain text access
+			->set( 'plugin_password', $password )  // REQUIRED: SaaS needs plain text access.
 			->set( 'connected', true )
 			->save();
 
-		$app_setup = get_option( 'nuclear_engagement_setup', array() );
+		$app_setup                        = get_option( 'nuclear_engagement_setup', array() );
 		$app_setup['wp_app_pass_created'] = true;
-		$app_setup['wp_app_pass_uuid'] = $uuid;
-		$app_setup['plugin_password'] = $password;  // REQUIRED: SaaS needs plain text access
-		$app_setup['connected'] = true;
+		$app_setup['wp_app_pass_uuid']    = $uuid;
+		$app_setup['plugin_password']     = $password;  // REQUIRED: SaaS needs plain text access.
+		$app_setup['connected']           = true;
 		update_option( 'nuclear_engagement_setup', $app_setup );
 		wp_cache_delete( 'nuclear_engagement_setup', 'options' );
 	}

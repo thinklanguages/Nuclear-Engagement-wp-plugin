@@ -1,4 +1,10 @@
 <?php
+/**
+ * GenerationService.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package NuclearEngagement_Services
+ */
+
 declare(strict_types=1);
 /**
  * File: includes/Services/GenerationService.php
@@ -43,12 +49,12 @@ class GenerationService {
 	/**
 	 * @var ContentStorageService
 	 */
-		private ContentStorageService $storage;
+	private ContentStorageService $storage;
 
 		/**
 		 * @var PostDataFetcher
 		 */
-		private PostDataFetcher $fetcher;
+	private PostDataFetcher $fetcher;
 
 	/**
 	 * @var Utils
@@ -62,21 +68,21 @@ class GenerationService {
 	 * @param RemoteApiService      $api
 	 * @param ContentStorageService $storage
 	 */
-		public function __construct(
-				SettingsRepository $settings,
-				RemoteApiService $api,
-				ContentStorageService $storage,
-				?PostDataFetcher $fetcher = null
-		) {
-				$this->settings = $settings;
-				$this->api      = $api;
-				$this->storage  = $storage;
-				$this->fetcher  = $fetcher ?: new PostDataFetcher();
-				$this->utils    = new Utils();
-				if ( defined( 'NUCLEN_GENERATION_POLL_DELAY' ) ) {
-						$this->pollDelay = (int) constant( 'NUCLEN_GENERATION_POLL_DELAY' );
-				}
+	public function __construct(
+		SettingsRepository $settings,
+		RemoteApiService $api,
+		ContentStorageService $storage,
+		?PostDataFetcher $fetcher = null
+	) {
+			$this->settings = $settings;
+			$this->api      = $api;
+			$this->storage  = $storage;
+			$this->fetcher  = $fetcher ?: new PostDataFetcher();
+			$this->utils    = new Utils();
+		if ( defined( 'NUCLEN_GENERATION_POLL_DELAY' ) ) {
+				$this->pollDelay = (int) constant( 'NUCLEN_GENERATION_POLL_DELAY' );
 		}
+	}
 
 	/**
 	 * Generate content for multiple posts
@@ -86,13 +92,13 @@ class GenerationService {
 	 * @throws \RuntimeException On API errors
 	 */
 	public function generateContent( GenerateRequest $request ): GenerationResponse {
-		// Get posts data
+		// Get posts data.
 		$posts = $this->getPostsData( $request->postIds, $request->postType, $request->postStatus, $request->workflowType );
 		if ( empty( $posts ) ) {
 			throw new \RuntimeException( 'No matching posts found' );
 		}
 
-		// Build workflow data
+		// Build workflow data.
 		$workflow = array(
 			'type'                    => $request->workflowType,
 			'summary_format'          => $request->summaryFormat,
@@ -100,7 +106,7 @@ class GenerationService {
 			'summary_number_of_items' => $request->summaryItems,
 		);
 
-		// Send to API
+		// Send to API.
 		try {
 				$result = $this->api->send_posts_to_generate(
 					array(
@@ -123,20 +129,20 @@ class GenerationService {
 			return $response;
 		}
 
-		// Create response
+		// Create response.
 		$response               = new GenerationResponse();
 		$response->generationId = $request->generationId;
 
-		// Process immediate results if any
-				if ( ! empty( $result['results'] ) && is_array( $result['results'] ) ) {
-						$statuses = $this->storage->storeResults( $result['results'], $request->workflowType );
-						if ( array_filter( $statuses, static fn( $s ) => $s !== true ) ) {
-								$response->success    = false;
-								$response->error      = 'Failed to store generated content';
-								return $response;
-						}
-						$response->results = $result['results'];
-				}
+		// Process immediate results if any.
+		if ( ! empty( $result['results'] ) && is_array( $result['results'] ) ) {
+				$statuses = $this->storage->storeResults( $result['results'], $request->workflowType );
+			if ( array_filter( $statuses, static fn( $s ) => $s !== true ) ) {
+						$response->success = false;
+						$response->error   = 'Failed to store generated content';
+						return $response;
+			}
+				$response->results = $result['results'];
+		}
 
 		return $response;
 	}
@@ -144,26 +150,26 @@ class GenerationService {
 	/**
 	 * Generate content for a single post
 	 *
-	 * @param int    $postId
+	 * @param int    $post_id
 	 * @param string $workflowType
 	 * @throws \InvalidArgumentException If post not found
 	 */
-	public function generateSingle( int $postId, string $workflowType ): void {
-		$post = get_post( $postId );
+	public function generateSingle( int $post_id, string $workflowType ): void {
+		$post = get_post( $post_id );
 		if ( ! $post ) {
-			throw new \InvalidArgumentException( "Post {$postId} not found" );
+			throw new \InvalidArgumentException( "Post {$post_id} not found" );
 		}
 
-		// Check if protected
-		if ( $this->isProtected( $postId, $workflowType ) ) {
-			\NuclearEngagement\Services\LoggingService::log( "Skipping protected {$workflowType} for post {$postId}" );
+		// Check if protected.
+		if ( $this->isProtected( $post_id, $workflowType ) ) {
+			\NuclearEngagement\Services\LoggingService::log( "Skipping protected {$workflowType} for post {$post_id}" );
 			return;
 		}
 
 		$request               = new GenerateRequest();
-		$request->postIds      = array( $postId );
+		$request->postIds      = array( $post_id );
 		$request->workflowType = $workflowType;
-		$request->generationId = 'auto_' . $postId . '_' . time();
+		$request->generationId = 'auto_' . $post_id . '_' . time();
 		$request->postType     = $post->post_type;
 		$request->postStatus   = $post->post_status;
 
@@ -178,19 +184,19 @@ class GenerationService {
 				);
 			}
 
-			// If no immediate results, schedule polling
+			// If no immediate results, schedule polling.
 			if ( empty( $response->results ) ) {
 					$scheduled = wp_schedule_single_event(
 						time() + $this->pollDelay,
 						'nuclen_poll_generation',
-						array( $response->generationId, $workflowType, $postId, 1 )
+						array( $response->generationId, $workflowType, $post_id, 1 )
 					);
-				if ( false === $scheduled ) {
+				if ( $scheduled === false ) {
 					\NuclearEngagement\Services\LoggingService::log(
 						'Failed to schedule event nuclen_poll_generation for generation ' . $response->generationId
 					);
 				}
-					\NuclearEngagement\Services\LoggingService::log( "Scheduled polling for post {$postId}, generation {$response->generationId}" );
+					\NuclearEngagement\Services\LoggingService::log( "Scheduled polling for post {$post_id}, generation {$response->generationId}" );
 			}
 		} catch ( \Throwable $e ) {
 			\NuclearEngagement\Services\LoggingService::log_exception( $e );
@@ -201,49 +207,49 @@ class GenerationService {
 	/**
 	 * Get posts data for generation
 	 *
-	 * @param array  $postIds
-	 * @param string $postType
+	 * @param array  $post_ids
+	 * @param string $post_type
 	 * @param string $postStatus
 	 * @param string $workflowType
 	 * @return array
 	 */
-		private function getPostsData( array $postIds, string $postType, string $postStatus, string $workflowType = '' ): array {
-				$data      = array();
-				$postsById = array();
+	private function getPostsData( array $post_ids, string $post_type, string $postStatus, string $workflowType = '' ): array {
+			$data      = array();
+			$postsById = array();
 
-				$chunkSize = defined( 'NUCLEN_POST_FETCH_CHUNK' ) ? (int) constant( 'NUCLEN_POST_FETCH_CHUNK' ) : 200;
-				$chunks    = count( $postIds ) <= $chunkSize ? array( $postIds ) : array_chunk( $postIds, $chunkSize );
+			$chunkSize = defined( 'NUCLEN_POST_FETCH_CHUNK' ) ? (int) constant( 'NUCLEN_POST_FETCH_CHUNK' ) : 200;
+			$chunks    = count( $post_ids ) <= $chunkSize ? array( $post_ids ) : array_chunk( $post_ids, $chunkSize );
 
-				foreach ( $chunks as $chunk ) {
-						$posts = $this->fetcher->fetch( $chunk, $workflowType );
+		foreach ( $chunks as $chunk ) {
+				$posts = $this->fetcher->fetch( $chunk, $workflowType );
 
-						foreach ( $posts as $post ) {
-								$postsById[ (int) $post->ID ] = array(
-										'id'      => (int) $post->ID,
-										'title'   => $post->post_title,
-										'content' => wp_strip_all_tags( $post->post_content ),
-								);
-						}
-				}
+			foreach ( $posts as $post ) {
+				$postsById[ (int) $post->ID ] = array(
+					'id'      => (int) $post->ID,
+					'title'   => $post->post_title,
+					'content' => wp_strip_all_tags( $post->post_content ),
+				);
+			}
+		}
 
-		foreach ( $postIds as $id ) {
+		foreach ( $post_ids as $id ) {
 			if ( isset( $postsById[ $id ] ) ) {
 				$data[] = $postsById[ $id ];
 			}
 		}
 
-		return $data;
+			return $data;
 	}
 
 	/**
 	 * Check if content is protected from regeneration
 	 *
-	 * @param int    $postId
+	 * @param int    $post_id
 	 * @param string $workflowType
 	 * @return bool
 	 */
-	private function isProtected( int $postId, string $workflowType ): bool {
-		$metaKey = $workflowType === 'quiz' ? 'nuclen_quiz_protected' : Summary_Service::PROTECTED_KEY;
-		return (bool) get_post_meta( $postId, $metaKey, true );
+	private function isProtected( int $post_id, string $workflowType ): bool {
+		$meta_key = $workflowType === 'quiz' ? 'nuclen_quiz_protected' : Summary_Service::PROTECTED_KEY;
+		return (bool) get_post_meta( $post_id, $meta_key, true );
 	}
 }

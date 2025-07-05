@@ -4,11 +4,19 @@ if ( ! defined( 'ABSPATH' ) ) {
 	define( 'ABSPATH', __DIR__ . '/' );
 }
 
+// Define plugin constants
+if ( ! defined( 'NUCLEN_PLUGIN_DIR' ) ) {
+	define( 'NUCLEN_PLUGIN_DIR', dirname(__DIR__) . '/nuclear-engagement/' );
+}
+
 // Load composer autoloader
 $autoloader = dirname(__DIR__) . '/vendor/autoload.php';
 if (file_exists($autoloader)) {
     require_once $autoloader;
 }
+
+// Load Brain Monkey mock
+require_once __DIR__ . '/brain-monkey-mock.php';
 
 // Define WordPress time constants
 if ( ! defined( 'MINUTE_IN_SECONDS' ) ) {
@@ -29,11 +37,31 @@ if ( ! defined( 'MONTH_IN_SECONDS' ) ) {
 if ( ! defined( 'YEAR_IN_SECONDS' ) ) {
 	define( 'YEAR_IN_SECONDS', 365 * DAY_IN_SECONDS );
 }
+
+// Define WordPress size constants
+if ( ! defined( 'KB_IN_BYTES' ) ) {
+	define( 'KB_IN_BYTES', 1024 );
+}
+if ( ! defined( 'MB_IN_BYTES' ) ) {
+	define( 'MB_IN_BYTES', 1024 * KB_IN_BYTES );
+}
+if ( ! defined( 'GB_IN_BYTES' ) ) {
+	define( 'GB_IN_BYTES', 1024 * MB_IN_BYTES );
+}
 // Track calls to dbDelta in unit tests
 global $dbDelta_called;
 $dbDelta_called = false;
 // Load shared WordPress function stubs
 require_once __DIR__ . '/wp-stubs.php';
+
+// WP_Mock is already loaded by composer autoloader
+// Initialize globals for WP_Mock support
+$GLOBALS['wp_mock_callbacks'] = [];
+$GLOBALS['wp_mock_values'] = [];
+$GLOBALS['wp_mock_values_with_args'] = [];
+
+// Initialize global cache variable
+$GLOBALS['wp_cache'] = [];
 // Minimal stubs for WordPress functions used in included files
 if (!function_exists('add_action')) {
 	function add_action(...$args) {}
@@ -104,6 +132,26 @@ require_once __DIR__ . '/../nuclear-engagement/inc/Core/Defaults.php';
 require_once __DIR__ . '/../nuclear-engagement/inc/OptinData.php';
 require_once __DIR__ . '/../nuclear-engagement/inc/Core/SettingsRepository.php';
 require_once __DIR__ . '/../nuclear-engagement/inc/Core/SettingsSanitizer.php';
+require_once __DIR__ . '/../nuclear-engagement/front/traits/AssetsTrait.php';
+require_once __DIR__ . '/../nuclear-engagement/front/traits/RestTrait.php';
+require_once __DIR__ . '/../nuclear-engagement/front/traits/ShortcodesTrait.php';
+
+// Include admin classes
+if (file_exists(__DIR__ . '/../nuclear-engagement/admin/Setup.php')) {
+    require_once __DIR__ . '/../nuclear-engagement/admin/Setup.php';
+}
+if (file_exists(__DIR__ . '/../nuclear-engagement/admin/Settings.php')) {
+    require_once __DIR__ . '/../nuclear-engagement/admin/Settings.php';
+}
+if (file_exists(__DIR__ . '/../nuclear-engagement/inc/Core/ServiceContainer.php')) {
+    require_once __DIR__ . '/../nuclear-engagement/inc/Core/ServiceContainer.php';
+}
+if (file_exists(__DIR__ . '/../nuclear-engagement/inc/Core/InventoryCache.php')) {
+    require_once __DIR__ . '/../nuclear-engagement/inc/Core/InventoryCache.php';
+}
+if (file_exists(__DIR__ . '/../nuclear-engagement/inc/Core/AssetVersions.php')) {
+    require_once __DIR__ . '/../nuclear-engagement/inc/Core/AssetVersions.php';
+}
 if (!function_exists('sanitize_key')) {
 	function sanitize_key($key) { return strtolower(preg_replace('/[^a-z0-9_]/', '', $key)); }
 }
@@ -119,8 +167,18 @@ if (!function_exists('wp_parse_args')) {
 		return array_merge($defaults, $parsed);
 	}
 }
+if (!function_exists('is_multisite')) {
+	function is_multisite() {
+		return false;
+	}
+}
+if (!function_exists('get_current_blog_id')) {
+	function get_current_blog_id() {
+		return 1;
+	}
+}
 
-// Additional stubs used by services
+// get_post will be provided by WP_Mock when needed
 if (!function_exists('get_post')) {
 	function get_post($id) { return $GLOBALS['wp_posts'][$id] ?? null; }
 }
@@ -160,6 +218,65 @@ if (!class_exists('WP_Error')) {
 			$this->data = $data;
 		}
 		public function get_error_message() { return $this->message ?: 'error'; }
+	}
+}
+
+// Add WP_UnitTestCase mock for integration tests
+if (!class_exists('WP_UnitTestCase')) {
+	class WP_UnitTestCase extends \PHPUnit\Framework\TestCase {
+		protected $factory;
+		
+		public function setUp(): void {
+			parent::setUp();
+			// Mock factory object
+			$this->factory = new class {
+				public $post;
+				public $user;
+				public $term;
+				
+				public function __construct() {
+					$this->post = new class {
+						public function create($args = []) {
+							static $id = 1;
+							$post = (object) array_merge([
+								'ID' => $id++,
+								'post_title' => 'Test Post',
+								'post_content' => 'Test content',
+								'post_status' => 'publish',
+								'post_type' => 'post'
+							], $args);
+							$GLOBALS['wp_posts'][$post->ID] = $post;
+							return $post->ID;
+						}
+					};
+					
+					$this->user = new class {
+						public function create($args = []) {
+							static $id = 1;
+							return $id++;
+						}
+					};
+					
+					$this->term = new class {
+						public function create($args = []) {
+							static $id = 1;
+							return $id++;
+						}
+					};
+				}
+			};
+		}
+		
+		public function tearDown(): void {
+			parent::tearDown();
+			// Clear global state
+			$GLOBALS['wp_posts'] = [];
+			$GLOBALS['wp_meta'] = [];
+			$GLOBALS['wp_options'] = [];
+			$GLOBALS['wp_autoload'] = [];
+			$GLOBALS['wp_events'] = [];
+			$GLOBALS['wp_user_meta'] = [];
+		}
 	}
 }
 

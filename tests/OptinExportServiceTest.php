@@ -3,8 +3,59 @@ declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
 use NuclearEngagement\Services\OptinExportService;
-use NuclearEngagement\OptinData;
-use NuclearEngagement\Services\LoggingService;
+
+// Mock WordPress functions
+if (!function_exists('current_user_can')) {
+	function current_user_can($capability) {
+		return $GLOBALS['current_user_can'] ?? true;
+	}
+}
+
+if (!function_exists('wp_die')) {
+	function wp_die($message = '', $code = 0) {
+		$GLOBALS['wp_die_called'] = true;
+		$GLOBALS['wp_die_message'] = $message;
+		$GLOBALS['wp_die_code'] = $code;
+		throw new WPDieException($message, $code);
+	}
+}
+
+if (!function_exists('wp_verify_nonce')) {
+	function wp_verify_nonce($nonce, $action) {
+		return $GLOBALS['wp_verify_nonce'] ?? true;
+	}
+}
+
+if (!function_exists('__')) {
+	function __($text, $domain = '') {
+		return $text;
+	}
+}
+
+if (!function_exists('nocache_headers')) {
+	function nocache_headers() {
+		$GLOBALS['headers']['Cache-Control'] = 'no-cache, must-revalidate, max-age=0';
+		$GLOBALS['headers']['Pragma'] = 'no-cache';
+		$GLOBALS['headers']['Expires'] = '0';
+	}
+}
+
+if (!function_exists('header')) {
+	function header($header) {
+		list($key, $value) = explode(': ', $header, 2);
+		$GLOBALS['headers'][$key] = $value;
+	}
+}
+
+if (!function_exists('gmdate')) {
+	function gmdate($format, $timestamp = null) {
+		return date($format, $timestamp ?? time());
+	}
+}
+
+// Custom exceptions
+class WPDieException extends \Exception {}
+class SystemExit extends \Exception {}
 
 /**
  * Tests for OptinExportService
@@ -19,12 +70,27 @@ class OptinExportServiceTest extends TestCase {
 	protected function setUp(): void {
 		parent::setUp();
 		
+		// Define constants
+		if (!defined('ABSPATH')) {
+			define('ABSPATH', '/tmp/');
+		}
+		
+		// Mock OptinData if not exists
+		if (!class_exists('NuclearEngagement\OptinData')) {
+			require_once __DIR__ . '/mocks/OptinDataMock.php';
+		}
+		
+		// Mock LoggingService if not exists
+		if (!class_exists('NuclearEngagement\Services\LoggingService')) {
+			require_once __DIR__ . '/mocks/LoggingServiceMock.php';
+		}
+		
 		$this->service = new OptinExportService();
 		
 		// Save original wpdb and create mock
 		global $wpdb;
 		$this->originalWpdb = $wpdb;
-		$this->mockWpdb = $this->createMock(stdClass::class);
+		$this->mockWpdb = $this->createMock(\stdClass::class);
 		$this->mockWpdb->method('prepare')->willReturnCallback(function($query, ...$args) {
 			return vsprintf(str_replace('%d', '%d', $query), $args);
 		});
@@ -122,7 +188,11 @@ class OptinExportServiceTest extends TestCase {
 	public function test_stream_csv_insufficient_permissions() {
 		$GLOBALS['current_user_can'] = false;
 		
-		$this->service->stream_csv();
+		try {
+			$this->service->stream_csv();
+		} catch (WPDieException $e) {
+			// Expected
+		}
 		
 		$this->assertTrue($GLOBALS['wp_die_called']);
 		$this->assertEquals('Insufficient permissions.', $GLOBALS['wp_die_message']);
@@ -136,7 +206,11 @@ class OptinExportServiceTest extends TestCase {
 		$GLOBALS['wp_verify_nonce'] = false;
 		$_REQUEST['_wpnonce'] = 'invalid_nonce';
 		
-		$this->service->stream_csv();
+		try {
+			$this->service->stream_csv();
+		} catch (WPDieException $e) {
+			// Expected
+		}
 		
 		$this->assertTrue($GLOBALS['wp_die_called']);
 		$this->assertEquals('Invalid nonce.', $GLOBALS['wp_die_message']);
@@ -291,91 +365,3 @@ class OptinExportServiceTest extends TestCase {
 		$this->assertStringStartsWith('datetime,url,name,email', trim($output));
 	}
 }
-
-// Mock WordPress functions
-if (!function_exists('current_user_can')) {
-	function current_user_can($capability) {
-		return $GLOBALS['current_user_can'] ?? true;
-	}
-}
-
-if (!function_exists('wp_die')) {
-	function wp_die($message = '', $code = 0) {
-		$GLOBALS['wp_die_called'] = true;
-		$GLOBALS['wp_die_message'] = $message;
-		$GLOBALS['wp_die_code'] = $code;
-		throw new WPDieException($message, $code);
-	}
-}
-
-if (!function_exists('wp_verify_nonce')) {
-	function wp_verify_nonce($nonce, $action) {
-		return $GLOBALS['wp_verify_nonce'] ?? true;
-	}
-}
-
-if (!function_exists('__')) {
-	function __($text, $domain = '') {
-		return $text;
-	}
-}
-
-if (!function_exists('nocache_headers')) {
-	function nocache_headers() {
-		$GLOBALS['headers']['Cache-Control'] = 'no-cache, must-revalidate, max-age=0';
-		$GLOBALS['headers']['Pragma'] = 'no-cache';
-		$GLOBALS['headers']['Expires'] = '0';
-	}
-}
-
-if (!function_exists('header')) {
-	function header($header) {
-		list($key, $value) = explode(': ', $header, 2);
-		$GLOBALS['headers'][$key] = $value;
-	}
-}
-
-if (!function_exists('gmdate')) {
-	function gmdate($format, $timestamp = null) {
-		return date($format, $timestamp ?? time());
-	}
-}
-
-if (!function_exists('exit')) {
-	function exit($status = 0) {
-		throw new SystemExit($status);
-	}
-}
-
-if (!defined('ABSPATH')) {
-	define('ABSPATH', '/tmp/');
-}
-
-// Mock OptinData class methods
-namespace NuclearEngagement;
-
-class OptinData {
-	public static function table_name() {
-		return 'wp_nuclen_optins';
-	}
-	
-	public static function escape_csv_field($value) {
-		if (preg_match('/^[=+\-@]/', $value)) {
-			return "'" . $value;
-		}
-		return $value;
-	}
-}
-
-// Mock LoggingService
-namespace NuclearEngagement\Services;
-
-class LoggingService {
-	public static function log($message) {
-		// Do nothing in tests
-	}
-}
-
-// Custom exceptions for testing
-class WPDieException extends \Exception {}
-class SystemExit extends \Exception {}

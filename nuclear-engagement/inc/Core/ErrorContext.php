@@ -1,4 +1,10 @@
 <?php
+/**
+ * ErrorContext.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package NuclearEngagement_Core
+ */
+
 declare(strict_types=1);
 
 namespace NuclearEngagement\Core;
@@ -12,7 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 /**
  * Legacy compatibility wrapper for the refactored ErrorContext.
- * 
+ *
  * @deprecated Use NuclearEngagement\Core\Error\ErrorContext instead
  * @package NuclearEngagement\Core
  */
@@ -24,7 +30,7 @@ final class ErrorContext {
 		string $message,
 		string $severity = 'error',
 		string $category = 'general',
-		array $context = [],
+		array $context = array(),
 		string $stack_trace = '',
 		?int $timestamp = null
 	) {
@@ -38,8 +44,8 @@ final class ErrorContext {
 			null,
 			$timestamp
 		);
-		
-		$this->new_context = new NewErrorContext($error_data);
+
+		$this->new_context = new NewErrorContext( $error_data );
 	}
 
 	public function getErrorId(): string {

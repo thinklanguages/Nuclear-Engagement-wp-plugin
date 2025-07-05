@@ -1,20 +1,28 @@
 <?php
-namespace NuclearEngagement {
-	if (!function_exists('sanitize_text_field')) {
+namespace NuclearEngagement\Core {
+	if (!function_exists(__NAMESPACE__ . '\sanitize_text_field')) {
 		function sanitize_text_field($text) { return trim($text); }
 	}
-	if (!function_exists('wp_kses_post')) {
+	if (!function_exists(__NAMESPACE__ . '\wp_kses_post')) {
 		function wp_kses_post($text) { return $text; }
 	}
-	if (!function_exists('wp_kses')) {
+	if (!function_exists(__NAMESPACE__ . '\wp_kses')) {
 		function wp_kses($text, $allowed_html) {
-			$allowed = '<' . implode('><', array_keys($allowed_html)) . '>';
-			return strip_tags($text, $allowed);
+			if (is_array($allowed_html) && !empty($allowed_html)) {
+				$allowed = '<' . implode('><', array_keys($allowed_html)) . '>';
+				return strip_tags($text, $allowed);
+			}
+			return strip_tags($text);
 		}
 	}
 }
 
 namespace {
+	// Global function stubs for array_map callbacks
+	if (!function_exists('wp_kses_post')) {
+		function wp_kses_post($text) { return $text; }
+	}
+	
 	use PHPUnit\Framework\TestCase;
 	use NuclearEngagement\Core\MetaRegistration;
 	require_once dirname(__DIR__) . '/nuclear-engagement/inc/Core/MetaRegistration.php';

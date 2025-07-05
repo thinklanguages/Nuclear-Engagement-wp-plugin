@@ -1,4 +1,10 @@
 <?php
+/**
+ * ServiceFactory.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package NuclearEngagement_Factories
+ */
+
 declare(strict_types=1);
 /**
  * File: inc/Factories/ServiceFactory.php
@@ -26,14 +32,14 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Factory for creating services with dependency injection.
  */
 class ServiceFactory {
-	
+
 	/** @var Container */
 	private Container $container;
-	
+
 	public function __construct( Container $container ) {
 		$this->container = $container;
 	}
-	
+
 	/**
 	 * Create post service with dependencies.
 	 *
@@ -47,7 +53,7 @@ class ServiceFactory {
 			$this->container->get( EventDispatcher::class )
 		);
 	}
-	
+
 	/**
 	 * Create post repository with dependencies.
 	 *
@@ -59,26 +65,35 @@ class ServiceFactory {
 			$this->container->get( LoggerInterface::class )
 		);
 	}
-	
+
 	/**
 	 * Register all services in container.
 	 */
 	public function register_services(): void {
-		// Register repository
-		$this->container->singleton( PostRepository::class, function( Container $container ) {
-			return $this->create_post_repository();
-		} );
-		
-		// Register service layer
-		$this->container->singleton( PostService::class, function( Container $container ) {
-			return $this->create_post_service();
-		} );
-		
-		// Register event dispatcher
-		$this->container->singleton( EventDispatcher::class, function( Container $container ) {
-			return new EventDispatcher(
-				$container->get( LoggerInterface::class )
-			);
-		} );
+		// Register repository.
+		$this->container->singleton(
+			PostRepository::class,
+			function ( Container $container ) {
+				return $this->create_post_repository();
+			}
+		);
+
+		// Register service layer.
+		$this->container->singleton(
+			PostService::class,
+			function ( Container $container ) {
+				return $this->create_post_service();
+			}
+		);
+
+		// Register event dispatcher.
+		$this->container->singleton(
+			EventDispatcher::class,
+			function ( Container $container ) {
+				return new EventDispatcher(
+					$container->get( LoggerInterface::class )
+				);
+			}
+		);
 	}
 }

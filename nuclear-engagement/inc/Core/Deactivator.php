@@ -1,4 +1,10 @@
 <?php
+/**
+ * Deactivator.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package NuclearEngagement_Core
+ */
+
 declare(strict_types=1);
 
 namespace NuclearEngagement\Core;
@@ -38,20 +44,20 @@ class Deactivator {
 	 * @param SettingsRepository|null $settings Optional settings repository instance
 	 */
 	public static function nuclen_deactivate( ?SettingsRepository $settings = null ) {
-			// Clear scheduled cron hooks
+			// Clear scheduled cron hooks.
 			wp_clear_scheduled_hook( AutoGenerationService::START_HOOK );
 			wp_clear_scheduled_hook( AutoGenerationService::QUEUE_HOOK );
 			wp_clear_scheduled_hook( 'nuclen_poll_generation' );
 
-			// Remove any pending generation records
+			// Remove any pending generation records.
 			delete_option( 'nuclen_active_generations' );
 
-			// Clear any scheduled hooks or transients if needed
+			// Clear any scheduled hooks or transients if needed.
 			delete_transient( 'nuclen_plugin_activation_redirect' );
 
-		// If settings instance is provided, perform any necessary cleanup
+		// If settings instance is provided, perform any necessary cleanup.
 		if ( $settings !== null ) {
-			// Clear any cached settings if needed
+			// Clear any cached settings if needed.
 			$settings->clear_cache();
 		}
 	}

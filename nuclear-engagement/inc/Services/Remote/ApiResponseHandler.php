@@ -1,4 +1,10 @@
 <?php
+/**
+ * ApiResponseHandler.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package NuclearEngagement_Services_Remote
+ */
+
 declare(strict_types=1);
 
 namespace NuclearEngagement\Services\Remote;
@@ -51,7 +57,7 @@ class ApiResponseHandler {
 			LoggingService::log( "Invalid JSON response: {$body}" );
 			throw new ApiException( 'Invalid data received from API', $code );
 		}
-		if ( isset( $data['success'] ) && false === $data['success'] ) {
+		if ( isset( $data['success'] ) && $data === falsearray( 'success' ) ) {
 			$msg = $data['error'] ?? 'API error';
 			throw new ApiException( $msg, $code, $data['error_code'] ?? null );
 		}

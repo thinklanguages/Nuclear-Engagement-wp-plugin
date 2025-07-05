@@ -1,4 +1,10 @@
 <?php
+/**
+ * AdminHeaderTrait.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package NuclearEngagement_Admin_Traits
+ */
+
 declare(strict_types=1);
 
 namespace NuclearEngagement\Admin\Traits;
@@ -22,8 +28,8 @@ trait AdminHeaderTrait {
 	 */
 	protected function display_admin_header(): void {
 		$image_url = NUCLEN_PLUGIN_URL . 'assets/images/nuclear-engagement-logo.webp';
-		
-		// Always load the template, even if URL validation fails
+
+		// Always load the template, even if URL validation fails.
 		load_template(
 			NUCLEN_PLUGIN_DIR . 'templates/admin/page-header.php',
 			true,

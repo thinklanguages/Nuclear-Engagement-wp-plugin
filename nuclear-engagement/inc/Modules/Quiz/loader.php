@@ -1,11 +1,11 @@
 <?php
 /**
-	* File: modules/quiz/loader.php
-	*
-	* Loads the Nuclen Quiz module.
-	*
-	* @package NuclearEngagement
-	*/
+ * File: modules/quiz/loader.php
+ *
+ * Loads the Nuclen Quiz module.
+ *
+ * @package NuclearEngagement
+ */
 
 declare(strict_types=1);
 
@@ -49,10 +49,10 @@ if ( is_admin() ) {
 				( new Quiz_Admin( $settings, $service ) )->register_hooks();
 } else {
 				$front = new FrontClass(
-								'nuclear-engagement',
-								defined( 'NUCLEN_PLUGIN_VERSION' ) ? NUCLEN_PLUGIN_VERSION : '1.0.0',
-								$settings,
-								ServiceContainer::getInstance()
+					'nuclear-engagement',
+					defined( 'NUCLEN_PLUGIN_VERSION' ) ? NUCLEN_PLUGIN_VERSION : '1.0.0',
+					$settings,
+					ServiceContainer::getInstance()
 				);
 				( new Quiz_Shortcode( $settings, $front, $service ) )->register();
 }

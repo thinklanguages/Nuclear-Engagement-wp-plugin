@@ -1,12 +1,18 @@
 <?php
+/**
+ * constants.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package Nuclear_Engagement
+ */
+
 declare(strict_types=1);
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
-	}
+}
 
-	if ( ! defined( 'MB_IN_BYTES' ) ) {
+if ( ! defined( 'MB_IN_BYTES' ) ) {
 	define( 'MB_IN_BYTES', 1024 * 1024 );
-	}
+}
 
 /**
  * Plugin-wide numeric configuration.

@@ -1,7 +1,11 @@
 <?php
 namespace NuclearEngagement\Front {
-	function get_the_ID() { return $GLOBALS['current_post_id'] ?? 0; }
-	function maybe_unserialize($data) { return is_string($data) ? unserialize($data) : $data; }
+	if (!function_exists('NuclearEngagement\Front\get_the_ID')) {
+		function get_the_ID() { return $GLOBALS['current_post_id'] ?? 0; }
+	}
+	if (!function_exists('NuclearEngagement\Front\maybe_unserialize')) {
+		function maybe_unserialize($data) { return is_string($data) ? unserialize($data) : $data; }
+	}
 }
 
 namespace {
@@ -16,7 +20,7 @@ namespace {
 	if (!function_exists('shortcode_unautop')) { function shortcode_unautop($html){ return $html; } }
 	if (!function_exists('esc_attr')) { function esc_attr($t){ return $t; } }
 
-	class DummyFront {
+	class DummyFrontQuiz {
 		public int $calls = 0;
 		public function nuclen_force_enqueue_assets(): void { $this->calls++; }
 	}
@@ -28,7 +32,7 @@ namespace {
 			SettingsRepository::reset_for_tests();
 		}
 
-		private function makeShortcode(DummyFront $front): QuizShortcode {
+		private function makeShortcode(DummyFrontQuiz $front): QuizShortcode {
 			$settings = SettingsRepository::get_instance();
 			return new QuizShortcode($settings, $front);
 		}
@@ -46,7 +50,7 @@ namespace {
 					 ->set_string('custom_quiz_html_before', '<p>Start</p>')
 					 ->save();
 
-			$front = new DummyFront();
+			$front = new DummyFrontQuiz();
 			$sc = $this->makeShortcode($front);
 			$html = $sc->render();
 
@@ -61,7 +65,7 @@ namespace {
 			$current_post_id = 4;
 			$wp_meta[4]['nuclen-quiz-data'] = [ 'questions' => [ [ 'question' => '', 'answers' => [] ] ] ];
 
-			$front = new DummyFront();
+			$front = new DummyFrontQuiz();
 			$sc = $this->makeShortcode($front);
 			$this->assertSame('', $sc->render());
 		}

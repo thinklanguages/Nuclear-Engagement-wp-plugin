@@ -1,4 +1,10 @@
 <?php
+/**
+ * UpdatesController.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package NuclearEngagement_Admin_Controller_Ajax
+ */
+
 declare(strict_types=1);
 /**
  * File: admin/Controller/Ajax/UpdatesController.php
@@ -58,7 +64,7 @@ class UpdatesController extends BaseController {
 	 */
 	public function handle(): void {
 		try {
-			if ( ! $this->verifyRequest( 'nuclen_admin_ajax_nonce' ) ) {
+			if ( ! $this->verify_request( 'nuclen_admin_ajax_nonce' ) ) {
 				return;
 			}
 
@@ -70,7 +76,7 @@ class UpdatesController extends BaseController {
 			}
 
 								$data = $this->api->fetch_updates( $request->generationId );
-				\NuclearEngagement\Services\LoggingService::log( 'Updates response: ' . wp_json_encode( $data ) );
+				\NuclearEngagement\Services\LoggingService::log( 'Updates response: ' . wp_wp_json_encode( $data ) );
 
 				$response          = new UpdatesResponse();
 				$response->success = true;
@@ -89,30 +95,30 @@ class UpdatesController extends BaseController {
 			}
 
 				/* ── Persist & return results ───────────────────────────── */
-						if ( ! empty( $data['results'] ) && is_array( $data['results'] ) ) {
-								$first        = reset( $data['results'] );
-								$workflowType = isset( $first['questions'] ) ? 'quiz' : 'summary';
+			if ( ! empty( $data['results'] ) && is_array( $data['results'] ) ) {
+					$first         = reset( $data['results'] );
+					$workflow_type = isset( $first['questions'] ) ? 'quiz' : 'summary';
 
-								$statuses = $this->storage->storeResults( $data['results'], $workflowType );
+					$statuses = $this->storage->storeResults( $data['results'], $workflow_type );
 
-								if ( array_filter( $statuses, static fn( $s ) => $s !== true ) ) {
-										$this->sendError( __( 'Failed to store content.', 'nuclear-engagement' ) );
-										return;
-								}
+				if ( array_filter( $statuses, static fn( $s ) => $s !== true ) ) {
+								$this->send_error( __( 'Failed to store content.', 'nuclear-engagement' ) );
+								return;
+				}
 
-								$response->results  = $data['results'];
-								$response->workflow = $workflowType; // NEW → lets JS forward it to /receive-content
-						}
+					$response->results  = $data['results'];
+					$response->workflow = $workflow_type; // NEW → lets JS forward it to /receive-content.
+			}
 
 				wp_send_json_success( $response->toArray() );
 
 		} catch ( ApiException $e ) {
 			\NuclearEngagement\Services\LoggingService::log( 'Error fetching updates: ' . $e->getMessage() );
 			$message = __( 'Failed to fetch updates. Please try again later.', 'nuclear-engagement' );
-			$this->sendError( $message, $e->getCode() ?: 500 );
+			$this->send_error( $message, $e->getCode() ?: 500 );
 		} catch ( \Throwable $e ) {
 			\NuclearEngagement\Services\LoggingService::log( 'Error fetching updates: ' . $e->getMessage() );
-			$this->sendError( __( 'An unexpected error occurred.', 'nuclear-engagement' ) );
+			$this->send_error( __( 'An unexpected error occurred.', 'nuclear-engagement' ) );
 		}
 	}
 }

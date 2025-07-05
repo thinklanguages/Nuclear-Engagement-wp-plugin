@@ -1,4 +1,10 @@
 <?php
+/**
+ * AdminAutoGenerate.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package NuclearEngagement_Admin_Traits
+ */
+
 declare(strict_types=1);
 /**
  * File: admin/Traits/AdminAutoGenerate.php
@@ -26,7 +32,7 @@ trait AdminAutoGenerate {
 			'nuclen_poll_generation',
 			array( $this, 'nuclen_cron_poll_generation' ),
 			10,
-			4 // generation_id, workflow_type, post_id, attempt
+			4 // generation_id, workflow_type, post_id, attempt.
 		);
 	}
 
@@ -35,12 +41,12 @@ trait AdminAutoGenerate {
 		Hook: post transitions to "publish"
 	──────────────────────────────────────────────────────────*/
 	public function nuclen_auto_generate_on_publish( $new_status, $old_status, $post ) {
-		// Only when we enter publish
+		// Only when we enter publish.
 		if ( $old_status === 'publish' || $new_status !== 'publish' ) {
 			return;
 		}
 
-		// Get settings from repository
+		// Get settings from repository.
 		$settings_repo      = $this->nuclen_get_settings_repository();
 		$allowed_post_types = $settings_repo->get( 'generation_post_types', array( 'post' ) );
 		if ( ! in_array( $post->post_type, (array) $allowed_post_types, true ) ) {
@@ -53,18 +59,18 @@ trait AdminAutoGenerate {
 			return;
 		}
 
-		// Auto-generate quiz
+		// Auto-generate quiz.
 		if ( $gen_quiz ) {
-			// Skip if quiz is protected
+			// Skip if quiz is protected.
 			$protected = get_post_meta( $post->ID, 'nuclen_quiz_protected', true );
 			if ( ! $protected ) {
 				$this->nuclen_generate_single( $post->ID, 'quiz' );
 			}
 		}
 
-		// Auto-generate summary
+		// Auto-generate summary.
 		if ( $gen_summary ) {
-						// Skip if summary is protected
+						// Skip if summary is protected.
 						$protected = get_post_meta( $post->ID, \NuclearEngagement\Modules\Summary\Summary_Service::PROTECTED_KEY, true );
 			if ( ! $protected ) {
 				$this->nuclen_generate_single( $post->ID, 'summary' );
@@ -92,7 +98,7 @@ trait AdminAutoGenerate {
 	──────────────────────────────────────────────────────────*/
 	public function nuclen_cron_poll_generation( $generation_id, $workflow_type, $post_id, $attempt ) {
 				$max_attempts = NUCLEN_MAX_POLL_ATTEMPTS;
-				$retry_delay  = NUCLEN_POLL_RETRY_DELAY * $attempt; // Increase delay per attempt
+				$retry_delay  = NUCLEN_POLL_RETRY_DELAY * $attempt; // Increase delay per attempt.
 
 		try {
 			// Check if auto-generation is enabled for this post type.
@@ -109,24 +115,24 @@ trait AdminAutoGenerate {
 
 						$data = $api->fetch_updates( $generation_id );
 
-			// Check if we have results
-						if ( ! empty( $data['results'] ) && is_array( $data['results'] ) ) {
-								$statuses = $storage->storeResults( $data['results'], $workflow_type );
-								if ( array_filter( $statuses, static fn( $s ) => $s !== true ) ) {
-										\NuclearEngagement\Services\LoggingService::notify_admin(
-												sprintf( 'Failed to store results for post %d', $post_id )
-										);
-								} else {
-										\NuclearEngagement\Services\LoggingService::log(
-												"Poll success for post {$post_id} ({$workflow_type}), generation {$generation_id}"
-										);
-								}
-								return;
-						}
+			// Check if we have results.
+			if ( ! empty( $data['results'] ) && is_array( $data['results'] ) ) {
+					$statuses = $storage->storeResults( $data['results'], $workflow_type );
+				if ( array_filter( $statuses, static fn( $s ) => $s !== true ) ) {
+								\NuclearEngagement\Services\LoggingService::notify_admin(
+									sprintf( 'Failed to store results for post %d', $post_id )
+								);
+				} else {
+									\NuclearEngagement\Services\LoggingService::log(
+										"Poll success for post {$post_id} ({$workflow_type}), generation {$generation_id}"
+									);
+				}
+										return;
+			}
 
-			// Check if still processing
+			// Check if still processing.
 			if ( isset( $data['success'] ) && $data['success'] === true ) {
-				// Still processing, continue polling
+				// Still processing, continue polling.
 				\NuclearEngagement\Services\LoggingService::log(
 					"Still processing post {$post_id} ({$workflow_type}), attempt {$attempt}/{$max_attempts}"
 				);
@@ -135,14 +141,14 @@ trait AdminAutoGenerate {
 				\NuclearEngagement\Services\LoggingService::log_exception( $e );
 		}
 
-		// Schedule next poll if not at max attempts
+		// Schedule next poll if not at max attempts.
 		if ( $attempt < $max_attempts ) {
 				$scheduled = wp_schedule_single_event(
 					time() + $retry_delay,
 					'nuclen_poll_generation',
 					array( $generation_id, $workflow_type, $post_id, $attempt + 1 )
 				);
-			if ( false === $scheduled ) {
+			if ( $scheduled === false ) {
 				\NuclearEngagement\Services\LoggingService::log(
 					'Failed to schedule event nuclen_poll_generation for generation ' . $generation_id
 				);

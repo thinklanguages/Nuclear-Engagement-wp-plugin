@@ -1,4 +1,10 @@
 <?php
+/**
+ * support.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package Nuclear_Engagement
+ */
+
 declare(strict_types=1);
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -71,19 +77,19 @@ printf(
 			),
 		)
 	),
-	// Google
+	// Google.
 	'<a href="https://www.google.com/search?q=Nuclear+Engagement" target="_blank" rel="noopener noreferrer">'
 		. esc_html__( 'Google', 'nuclear-engagement' )
 		. '</a>',
-	// TrustPilot
+	// TrustPilot.
 	'<a href="https://www.trustpilot.com/evaluate/nuclearengagement.com?stars=5" target="_blank" rel="noopener noreferrer">'
 		. esc_html__( 'TrustPilot', 'nuclear-engagement' )
 		. '</a>',
-	// Facebook
+	// Facebook.
 	'<a href="https://www.facebook.com/nuclearengagement/reviews" target="_blank" rel="noopener noreferrer">'
 		. esc_html__( 'Facebook', 'nuclear-engagement' )
 		. '</a>',
-	// TrustIndex
+	// TrustIndex.
 	'<a href="https://public.trustindex.io/review/write/slug/www.nuclearengagement.com" target="_blank" rel="noopener noreferrer">'
 		. esc_html__( 'TrustIndex', 'nuclear-engagement' )
 		. '</a>',

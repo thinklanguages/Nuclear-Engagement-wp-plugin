@@ -1,4 +1,10 @@
 <?php
+/**
+ * nuclen-admin-generate.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package Nuclear_Engagement
+ */
+
 declare(strict_types=1);
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -14,17 +20,17 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @package NuclearEngagement\Admin
  */
 
-// Retrieve the plugin settings
+// Retrieve the plugin settings.
 $settings = get_option( 'nuclear_engagement_settings', array() );
 
-// The user-selected post types
+// The user-selected post types.
 $allowed_post_types = $settings['generation_post_types'] ?? array( 'post' );
 
 $statuses   = get_post_stati( array( 'show_in_admin_status_list' => true ), 'objects' );
 $categories = get_categories( array( 'hide_empty' => false ) );
 $authors    = get_users( array( 'who' => 'authors' ) );
 
-// We'll still fetch all public post types, but only show the allowed ones
+// We'll still fetch all public post types, but only show the allowed ones.
 $post_types = get_post_types( array( 'public' => true ), 'objects' );
 
 $utils = new \NuclearEngagement\Utils\Utils();

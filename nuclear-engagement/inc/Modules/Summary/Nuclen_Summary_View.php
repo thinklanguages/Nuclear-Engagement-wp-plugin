@@ -1,4 +1,10 @@
 <?php
+/**
+ * Nuclen_Summary_View.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package NuclearEngagement_Modules_Summary
+ */
+
 declare(strict_types=1);
 
 namespace NuclearEngagement\Modules\Summary;

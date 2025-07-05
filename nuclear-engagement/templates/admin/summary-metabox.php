@@ -1,4 +1,10 @@
 <?php
+/**
+ * summary-metabox.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package Nuclear_Engagement
+ */
+
 if ( ! defined( 'ABSPATH' ) ) {
 		exit;
 }

@@ -1,4 +1,10 @@
 <?php
+/**
+ * FormSanitizer.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package NuclearEngagement_Helpers
+ */
+
 declare(strict_types=1);
 /**
  * File: inc/Helpers/FormSanitizer.php
@@ -30,19 +36,19 @@ class FormSanitizer {
 	 * @param array  $validation_rules Optional validation rules.
 	 * @return string Sanitized value.
 	 */
-	public static function sanitize_post_text( string $key, string $default = '', array $validation_rules = [] ): string {
+	public static function sanitize_post_text( string $key, string $default = '', array $validation_rules = array() ): string {
 		if ( ! isset( $_POST[ $key ] ) ) {
 			return $default;
 		}
-		
+
 		$value = wp_unslash( $_POST[ $key ] );
-		
-		// Apply validation if rules provided
+
+		// Apply validation if rules provided.
 		if ( ! empty( $validation_rules ) ) {
 			$validated = InputValidator::validate_text( $value, $key, $validation_rules );
 			return $validated !== false ? $validated : $default;
 		}
-		
+
 		return sanitize_text_field( $value );
 	}
 
@@ -95,22 +101,22 @@ class FormSanitizer {
 	 * Enhanced with proper validation including negative numbers.
 	 *
 	 * @param string $key The POST key to sanitize.
-	 * @param int $default Default value if key doesn't exist.
-	 * @param int $min Minimum allowed value.
-	 * @param int $max Maximum allowed value.
+	 * @param int    $default Default value if key doesn't exist.
+	 * @param int    $min Minimum allowed value.
+	 * @param int    $max Maximum allowed value.
 	 * @return int Sanitized integer value.
 	 */
 	public static function sanitize_post_int( string $key, int $default = 0, int $min = PHP_INT_MIN, int $max = PHP_INT_MAX ): int {
 		if ( ! isset( $_POST[ $key ] ) ) {
 			return $default;
 		}
-		
-		$validation_rules = [
-			'min' => $min,
-			'max' => $max,
-			'default' => $default
-		];
-		
+
+		$validation_rules = array(
+			'min'     => $min,
+			'max'     => $max,
+			'default' => $default,
+		);
+
 		$validated = InputValidator::validate_integer( $_POST[ $key ], $key, $validation_rules );
 		return $validated !== false ? $validated : $default;
 	}
@@ -128,18 +134,18 @@ class FormSanitizer {
 	/**
 	 * Sanitize array field from POST data.
 	 *
-	 * @param string $key The POST key to sanitize.
-	 * @param array $default Default value if key doesn't exist.
+	 * @param string        $key The POST key to sanitize.
+	 * @param array         $default Default value if key doesn't exist.
 	 * @param callable|null $sanitize_callback Optional callback to sanitize each array element.
 	 * @return array Sanitized array.
 	 */
-	public static function sanitize_post_array( string $key, array $default = [], ?callable $sanitize_callback = null ): array {
+	public static function sanitize_post_array( string $key, array $default = array(), ?callable $sanitize_callback = null ): array {
 		if ( ! isset( $_POST[ $key ] ) || ! is_array( $_POST[ $key ] ) ) {
 			return $default;
 		}
 
 		$array = wp_unslash( $_POST[ $key ] );
-		
+
 		if ( $sanitize_callback !== null ) {
 			return array_map( $sanitize_callback, $array );
 		}
@@ -171,8 +177,8 @@ class FormSanitizer {
 	 * @param array $defaults Default values for each field.
 	 * @return array Sanitized values array.
 	 */
-	public static function collect_post_fields( array $field_map, array $defaults = [] ): array {
-		$collected = [];
+	public static function collect_post_fields( array $field_map, array $defaults = array() ): array {
+		$collected = array();
 
 		foreach ( $field_map as $post_key => $sanitize_type ) {
 			$default = $defaults[ $post_key ] ?? null;
@@ -197,7 +203,7 @@ class FormSanitizer {
 					$collected[ $post_key ] = self::sanitize_post_bool( $post_key );
 					break;
 				case 'array':
-					$collected[ $post_key ] = self::sanitize_post_array( $post_key, $default ?? [] );
+					$collected[ $post_key ] = self::sanitize_post_array( $post_key, $default ?? array() );
 					break;
 				default:
 					$collected[ $post_key ] = self::sanitize_post_text( $post_key, $default ?? '' );

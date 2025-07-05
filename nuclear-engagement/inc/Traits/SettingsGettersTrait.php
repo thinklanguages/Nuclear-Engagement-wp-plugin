@@ -28,7 +28,7 @@ trait SettingsGettersTrait {
 	 */
 	public function all(): array {
 		$cached = $this->cache->get();
-		if ( null !== $cached ) {
+		if ( $cached !== null ) {
 			return $cached;
 		}
 

@@ -24,6 +24,7 @@ beforeEach(() => {
 	this.cb = cb;
 	this.observe = vi.fn();
 	this.disconnect = vi.fn();
+	// eslint-disable-next-line @typescript-eslint/no-this-alias
 	moInstance = this;
   }) as unknown as typeof MutationObserver;
 
@@ -34,7 +35,6 @@ afterEach(() => {
   global.IntersectionObserver = originalIO;
   global.MutationObserver = originalMO;
   vi.restoreAllMocks();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   delete (global as any).NuclenLazyLoadComponent;
 });
 
@@ -43,7 +43,6 @@ describe('nuclen-front-lazy', () => {
 	await import('../../src/front/ts/nuclen-front-lazy');
 	document.body.innerHTML = '<div id="lazy-el"></div>';
 	const initFn = vi.fn();
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	(window as any).testInit = initFn;
 	window.NuclenLazyLoadComponent!('lazy-el', 'testInit');
 

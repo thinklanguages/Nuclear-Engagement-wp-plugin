@@ -65,10 +65,10 @@ $delete_css       = ! empty( $settings['delete_custom_css_on_uninstall'] );
 // Delete generated content from post meta if requested.
 if ( $delete_generated ) {
 								$meta_keys = array(
-										'nuclen-quiz-data',
-										\NuclearEngagement\Modules\Summary\Summary_Service::META_KEY,
-										'nuclen_quiz_protected',
-										\NuclearEngagement\Modules\Summary\Summary_Service::PROTECTED_KEY,
+									'nuclen-quiz-data',
+									\NuclearEngagement\Modules\Summary\Summary_Service::META_KEY,
+									'nuclen_quiz_protected',
+									\NuclearEngagement\Modules\Summary\Summary_Service::PROTECTED_KEY,
 								);
 								foreach ( $meta_keys as $mk ) {
 												delete_post_meta_by_key( $mk );
@@ -77,12 +77,12 @@ if ( $delete_generated ) {
 
 // Delete plugin settings if requested.
 if ( $delete_settings ) {
-	// Core plugin options
+	// Core plugin options.
 	delete_option( 'nuclear_engagement_settings' );
 	delete_option( 'nuclear_engagement_setup' );
 	delete_option( 'nuclen_custom_css_version' );
-	
-	// Additional plugin options that need cleanup
+
+	// Additional plugin options that need cleanup.
 	delete_option( 'nuclen_error_tracking' );
 	delete_option( 'nuclen_rate_limits' );
 	delete_option( 'nuclen_error_analytics_report' );
@@ -92,17 +92,20 @@ if ( $delete_settings ) {
 	delete_option( 'nuclen_meta_migration_done' );
 	delete_option( 'nuclen_active_generations' );
 	delete_option( 'nuclen_posts_query_version' );
-	
-	// Clean up any transients
+
+	// Clean up any transients.
 	delete_transient( 'nuclen_plugin_activation_redirect' );
-	
-	// Clean up any remaining options with nuclen prefix
+
+	// Clean up any remaining options with nuclen prefix.
 	global $wpdb;
-	$wpdb->query( $wpdb->prepare( 
-		"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s OR option_name LIKE %s",
-		'nuclen_%',
-		'_transient_nuclen_%'
-	));
+	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+	$wpdb->query(
+		$wpdb->prepare(
+			"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s OR option_name LIKE %s",
+			'nuclen_%',
+			'_transient_nuclen_%'
+		)
+	);
 }
 
 // Remove log file if requested.
@@ -122,26 +125,28 @@ if ( $delete_css ) {
 				delete_option( 'nuclen_custom_css_version' );
 }
 
-// Drop opt-in table only when the user opts to delete settings or generated
+// Drop opt-in table only when the user opts to delete settings or generated.
 // content. This avoids data loss unless a full cleanup was requested.
 if ( $delete_settings || $delete_generated ) {
 	global $wpdb;
-	
-	// Security: Validate and safely drop optin table
+
+	// Security: Validate and safely drop optin table.
 	$table_suffix = 'nuclen_optins';
-	$table_name = $wpdb->prefix . $table_suffix;
-	
-	// Validate table name format to prevent injection
+	$table_name   = $wpdb->prefix . $table_suffix;
+
+	// Validate table name format to prevent injection.
 	if ( preg_match( '/^[a-zA-Z0-9_]+$/', $table_suffix ) ) {
-		// Safely escape table name using WordPress standards
+		// Safely escape table name using WordPress standards.
 		$escaped_table = esc_sql( $table_name );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
 		$wpdb->query( "DROP TABLE IF EXISTS `{$escaped_table}`" );
-		
-		// Also clean up any related options
+
+		// Also clean up any related options.
 		delete_option( 'nuclen_optins_version' );
 		delete_option( 'nuclen_optins_db_version' );
 	} else {
-		// Log security event for invalid table name attempt
+		// Log security event for invalid table name attempt.
+		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 		error_log( 'Nuclear Engagement: Invalid table name attempted in uninstall: ' . $table_name );
 	}
 }

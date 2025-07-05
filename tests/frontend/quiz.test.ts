@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { initQuiz } from '../../src/front/ts/nuclen-quiz-main';
 import { renderFinal } from '../../src/front/ts/nuclen-quiz-results';
-import type { QuizQuestion, QuizUIRefs, QuizState, OptinContext } from '../../src/front/ts/nuclen-quiz-types';
+import type { QuizQuestion, OptinContext } from '../../src/front/ts/nuclen-quiz-types';
 
 // Basic DOM markup used by the quiz scripts
 function setupDOM() {
@@ -83,7 +83,7 @@ describe('initQuiz', () => {
 describe('renderFinal', () => {
   it('outputs opt-in markup and callbacks', () => {
 	setupDOM();
-	const ui: QuizUIRefs = {
+	const ui: any = {
 	  qContainer: document.getElementById('nuclen-quiz-question-container')!,
 	  aContainer: document.getElementById('nuclen-quiz-answers-container')!,
 	  explContainer: document.getElementById('nuclen-quiz-explanation-container')!,
@@ -91,7 +91,7 @@ describe('renderFinal', () => {
 	  finalContainer: document.getElementById('nuclen-quiz-final-result-container')!,
 	  progBar: document.getElementById('nuclen-quiz-progress-bar')!,
 	};
-	const state: QuizState = { currIdx: 0, score: 2, userAnswers: [0, 1] };
+	const state: any = { currIdx: 0, score: 2, userAnswers: [0, 1] };
 	const optin: OptinContext = {
 	  position: 'with_results',
 	  mandatory: false,

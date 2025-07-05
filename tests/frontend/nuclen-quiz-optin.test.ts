@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import { buildOptinInlineHTML, mountOptinBeforeResults } from '../../src/front/ts/nuclen-quiz-optin';
 import * as utils from '../../src/front/ts/nuclen-quiz-utils';
 import type { OptinContext } from '../../src/front/ts/nuclen-quiz-types';
@@ -21,7 +21,6 @@ function createContainer() {
 
 afterEach(() => {
   vi.restoreAllMocks();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   delete (global as any).alert;
 });
 
@@ -83,7 +82,6 @@ describe('mountOptinBeforeResults', () => {
   it('alerts on invalid email', () => {
 	const container = createContainer();
 	const alertMock = vi.fn();
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	(global as any).alert = alertMock;
 	vi.spyOn(utils, 'storeOptinLocally').mockResolvedValue();
 	vi.spyOn(utils, 'submitToWebhook').mockResolvedValue();

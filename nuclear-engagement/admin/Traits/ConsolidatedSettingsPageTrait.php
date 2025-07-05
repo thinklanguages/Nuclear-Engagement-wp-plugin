@@ -1,4 +1,10 @@
 <?php
+/**
+ * ConsolidatedSettingsPageTrait.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package NuclearEngagement_Admin_Traits
+ */
+
 declare(strict_types=1);
 
 namespace NuclearEngagement\Admin\Traits;
@@ -9,7 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 /**
  * Consolidated settings page management trait.
- * 
+ *
  * Combines functionality from SettingsPageTrait, SettingsPageLoadTrait,
  * SettingsPageSaveTrait, and SettingsPageCustomCSSTrait.
  *
@@ -23,15 +29,17 @@ trait ConsolidatedSettingsPageTrait {
 	 */
 	public function nuclen_display_settings_page(): void {
 		$current_settings = $this->nuclen_get_current_settings();
-		
-		// Handle save action
+
+		// Handle save action.
+		// phpcs:ignore WordPress.Security.NonceVerification
+
 		if ( isset( $_POST['nuclen_save_settings'] ) ) {
 			$this->nuclen_handle_save_settings();
-			// Refresh settings after save
+			// Refresh settings after save.
 			$current_settings = $this->nuclen_get_current_settings();
 		}
 
-		// Include the settings page template
+		// Include the settings page template.
 		$template_path = NUCLEN_PLUGIN_DIR . 'templates/admin/settings/settings-page.php';
 		if ( file_exists( $template_path ) ) {
 			include $template_path;
@@ -45,8 +53,8 @@ trait ConsolidatedSettingsPageTrait {
 	 */
 	public function nuclen_get_current_settings(): array {
 		$defaults = $this->settings_repository->get_defaults();
-		$current = $this->settings_repository->get_all();
-		
+		$current  = $this->settings_repository->get_all();
+
 		return array_merge( $defaults, $current );
 	}
 
@@ -56,27 +64,27 @@ trait ConsolidatedSettingsPageTrait {
 	 * @return bool Whether save was successful.
 	 */
 	public function nuclen_handle_save_settings(): bool {
-		// Verify nonce
-		if ( ! isset( $_POST['nuclen_settings_nonce'] ) || 
-			 ! wp_verify_nonce( $_POST['nuclen_settings_nonce'], 'nuclen_save_settings' ) ) {
+		// Verify nonce.
+		if ( ! isset( $_POST['nuclen_settings_nonce'] ) ||
+			! wp_verify_nonce( $_POST['nuclen_settings_nonce'], 'nuclen_save_settings' ) ) {
 			$this->add_admin_notice( 'Security check failed. Please try again.', 'error' );
 			return false;
 		}
 
 		try {
-			// Collect and sanitize input
+			// Collect and sanitize input.
 			$collected_settings = $this->collect_settings_input();
 			$sanitized_settings = $this->sanitize_all_settings( $collected_settings );
-			
-			// Persist settings
+
+			// Persist settings.
 			$this->settings_repository->save_settings( $sanitized_settings );
-			
-			// Generate custom CSS
+
+			// Generate custom CSS.
 			$this->nuclen_write_custom_css( $sanitized_settings );
-			
+
 			$this->add_admin_notice( 'Settings saved successfully!', 'success' );
 			return true;
-			
+
 		} catch ( \Exception $e ) {
 			$this->add_admin_notice( 'Error saving settings: ' . $e->getMessage(), 'error' );
 			return false;
@@ -89,13 +97,13 @@ trait ConsolidatedSettingsPageTrait {
 	 * @return array Collected settings.
 	 */
 	private function collect_settings_input(): array {
-		$collected = [];
-		
-		// Core settings collection
+		$collected = array();
+
+		// Core settings collection.
 		$this->collect_general_settings( $collected );
 		$this->collect_style_settings( $collected );
 		$this->collect_optin_settings( $collected );
-		
+
 		return $collected;
 	}
 
@@ -105,16 +113,27 @@ trait ConsolidatedSettingsPageTrait {
 	 * @param array &$collected Reference to collected settings array.
 	 */
 	private function collect_general_settings( array &$collected ): void {
-		$general_fields = [
-			'theme', 'count_summary', 'count_toc', 'count_quiz',
-			'placement_summary', 'placement_toc', 'placement_quiz',
-			'allow_html_summary', 'allow_html_toc', 'allow_html_quiz',
-			'auto_generate_summary', 'auto_generate_toc', 'auto_generate_quiz'
-		];
-		
+		$general_fields = array(
+			'theme',
+			'count_summary',
+			'count_toc',
+			'count_quiz',
+			'placement_summary',
+			'placement_toc',
+			'placement_quiz',
+			'allow_html_summary',
+			'allow_html_toc',
+			'allow_html_quiz',
+			'auto_generate_summary',
+			'auto_generate_toc',
+			'auto_generate_quiz',
+		);
+
 		foreach ( $general_fields as $field ) {
-			if ( isset( $_POST[$field] ) ) {
-				$collected[$field] = sanitize_text_field( $_POST[$field] );
+			// phpcs:ignore WordPress.Security.NonceVerification
+
+			if ( isset( $_POST[ $field ] ) ) {
+				$collected[ $field ] = sanitize_text_field( $_POST[ $field ] );
 			}
 		}
 	}
@@ -125,24 +144,41 @@ trait ConsolidatedSettingsPageTrait {
 	 * @param array &$collected Reference to collected settings array.
 	 */
 	private function collect_style_settings( array &$collected ): void {
-		$style_fields = [
-			// Quiz styles
-			'quiz_bg_color', 'quiz_text_color', 'quiz_border_color',
-			'quiz_border_width', 'quiz_border_radius', 'quiz_padding',
-			'quiz_margin', 'quiz_font_size',
-			// Summary styles  
-			'summary_bg_color', 'summary_text_color', 'summary_border_color',
-			'summary_border_width', 'summary_border_radius', 'summary_padding',
-			'summary_margin', 'summary_font_size',
-			// TOC styles
-			'toc_bg_color', 'toc_text_color', 'toc_border_color',
-			'toc_border_width', 'toc_border_radius', 'toc_padding',
-			'toc_margin', 'toc_font_size'
-		];
-		
+		$style_fields = array(
+			// Quiz styles.
+			'quiz_bg_color',
+			'quiz_text_color',
+			'quiz_border_color',
+			'quiz_border_width',
+			'quiz_border_radius',
+			'quiz_padding',
+			'quiz_margin',
+			'quiz_font_size',
+			// Summary styles.
+			'summary_bg_color',
+			'summary_text_color',
+			'summary_border_color',
+			'summary_border_width',
+			'summary_border_radius',
+			'summary_padding',
+			'summary_margin',
+			'summary_font_size',
+			// TOC styles.
+			'toc_bg_color',
+			'toc_text_color',
+			'toc_border_color',
+			'toc_border_width',
+			'toc_border_radius',
+			'toc_padding',
+			'toc_margin',
+			'toc_font_size',
+		);
+
 		foreach ( $style_fields as $field ) {
-			if ( isset( $_POST[$field] ) ) {
-				$collected[$field] = sanitize_text_field( $_POST[$field] );
+			// phpcs:ignore WordPress.Security.NonceVerification
+
+			if ( isset( $_POST[ $field ] ) ) {
+				$collected[ $field ] = sanitize_text_field( $_POST[ $field ] );
 			}
 		}
 	}
@@ -153,14 +189,20 @@ trait ConsolidatedSettingsPageTrait {
 	 * @param array &$collected Reference to collected settings array.
 	 */
 	private function collect_optin_settings( array &$collected ): void {
-		$optin_fields = [
-			'webhook_url', 'position', 'display_text', 'submit_text',
-			'success_message', 'error_message'
-		];
-		
+		$optin_fields = array(
+			'webhook_url',
+			'position',
+			'display_text',
+			'submit_text',
+			'success_message',
+			'error_message',
+		);
+
 		foreach ( $optin_fields as $field ) {
-			if ( isset( $_POST[$field] ) ) {
-				$collected[$field] = sanitize_text_field( $_POST[$field] );
+			// phpcs:ignore WordPress.Security.NonceVerification
+
+			if ( isset( $_POST[ $field ] ) ) {
+				$collected[ $field ] = sanitize_text_field( $_POST[ $field ] );
 			}
 		}
 	}
@@ -172,17 +214,17 @@ trait ConsolidatedSettingsPageTrait {
 	 * @return array Sanitized settings.
 	 */
 	private function sanitize_all_settings( array $settings ): array {
-		$sanitized = [];
-		
-		// Sanitize general settings
+		$sanitized = array();
+
+		// Sanitize general settings.
 		$sanitized = array_merge( $sanitized, $this->sanitize_general_settings( $settings ) );
-		
-		// Sanitize style settings
+
+		// Sanitize style settings.
 		$sanitized = array_merge( $sanitized, $this->sanitize_style_settings( $settings ) );
-		
-		// Sanitize opt-in settings
+
+		// Sanitize opt-in settings.
 		$sanitized = array_merge( $sanitized, $this->sanitize_optin_settings( $settings ) );
-		
+
 		return $sanitized;
 	}
 
@@ -193,42 +235,48 @@ trait ConsolidatedSettingsPageTrait {
 	 * @return array Sanitized general settings.
 	 */
 	private function sanitize_general_settings( array $settings ): array {
-		$sanitized = [];
-		
-		// Theme validation
+		$sanitized = array();
+
+		// Theme validation.
 		if ( isset( $settings['theme'] ) ) {
-			$valid_themes = [ 'default', 'dark', 'light', 'custom' ];
-			$sanitized['theme'] = in_array( $settings['theme'], $valid_themes ) 
-				? $settings['theme'] 
+			$valid_themes       = array( 'default', 'dark', 'light', 'custom' );
+			$sanitized['theme'] = in_array( $settings['theme'], $valid_themes, true )
+				? $settings['theme']
 				: 'default';
 		}
-		
-		// Count validation (1-100)
-		foreach ( [ 'count_summary', 'count_toc', 'count_quiz' ] as $field ) {
-			if ( isset( $settings[$field] ) ) {
-				$value = intval( $settings[$field] );
-				$sanitized[$field] = max( 1, min( 100, $value ) );
+
+		// Count validation (1-100).
+		foreach ( array( 'count_summary', 'count_toc', 'count_quiz' ) as $field ) {
+			if ( isset( $settings[ $field ] ) ) {
+				$value               = intval( $settings[ $field ] );
+				$sanitized[ $field ] = max( 1, min( 100, $value ) );
 			}
 		}
-		
-		// Placement validation
-		$valid_placements = [ 'before', 'after', 'both', 'manual' ];
-		foreach ( [ 'placement_summary', 'placement_toc', 'placement_quiz' ] as $field ) {
-			if ( isset( $settings[$field] ) ) {
-				$sanitized[$field] = in_array( $settings[$field], $valid_placements )
-					? $settings[$field]
+
+		// Placement validation.
+		$valid_placements = array( 'before', 'after', 'both', 'manual' );
+		foreach ( array( 'placement_summary', 'placement_toc', 'placement_quiz' ) as $field ) {
+			if ( isset( $settings[ $field ] ) ) {
+				$sanitized[ $field ] = in_array( $settings[ $field ], $valid_placements, true )
+					? $settings[ $field ]
 					: 'after';
 			}
 		}
-		
-		// Boolean fields
-		foreach ( [ 'allow_html_summary', 'allow_html_toc', 'allow_html_quiz',
-				   'auto_generate_summary', 'auto_generate_toc', 'auto_generate_quiz' ] as $field ) {
-			if ( isset( $settings[$field] ) ) {
-				$sanitized[$field] = (bool) $settings[$field];
+
+		// Boolean fields.
+		foreach ( array(
+			'allow_html_summary',
+			'allow_html_toc',
+			'allow_html_quiz',
+			'auto_generate_summary',
+			'auto_generate_toc',
+			'auto_generate_quiz',
+		) as $field ) {
+			if ( isset( $settings[ $field ] ) ) {
+				$sanitized[ $field ] = (bool) $settings[ $field ];
 			}
 		}
-		
+
 		return $sanitized;
 	}
 
@@ -239,43 +287,58 @@ trait ConsolidatedSettingsPageTrait {
 	 * @return array Sanitized style settings.
 	 */
 	private function sanitize_style_settings( array $settings ): array {
-		$sanitized = [];
-		
-		// Color validation (HEX format)
-		$color_fields = [
-			'quiz_bg_color', 'quiz_text_color', 'quiz_border_color',
-			'summary_bg_color', 'summary_text_color', 'summary_border_color',
-			'toc_bg_color', 'toc_text_color', 'toc_border_color'
-		];
-		
+		$sanitized = array();
+
+		// Color validation (HEX format).
+		$color_fields = array(
+			'quiz_bg_color',
+			'quiz_text_color',
+			'quiz_border_color',
+			'summary_bg_color',
+			'summary_text_color',
+			'summary_border_color',
+			'toc_bg_color',
+			'toc_text_color',
+			'toc_border_color',
+		);
+
 		foreach ( $color_fields as $field ) {
-			if ( isset( $settings[$field] ) ) {
-				$sanitized[$field] = $this->sanitize_hex_color( $settings[$field] );
+			if ( isset( $settings[ $field ] ) ) {
+				$sanitized[ $field ] = $this->sanitize_hex_color( $settings[ $field ] );
 			}
 		}
-		
-		// Dimension validation (0-100px)
-		$dimension_fields = [
-			'quiz_border_width', 'quiz_border_radius', 'quiz_padding', 'quiz_margin',
-			'summary_border_width', 'summary_border_radius', 'summary_padding', 'summary_margin',
-			'toc_border_width', 'toc_border_radius', 'toc_padding', 'toc_margin'
-		];
-		
+
+		// Dimension validation (0-100px).
+		$dimension_fields = array(
+			'quiz_border_width',
+			'quiz_border_radius',
+			'quiz_padding',
+			'quiz_margin',
+			'summary_border_width',
+			'summary_border_radius',
+			'summary_padding',
+			'summary_margin',
+			'toc_border_width',
+			'toc_border_radius',
+			'toc_padding',
+			'toc_margin',
+		);
+
 		foreach ( $dimension_fields as $field ) {
-			if ( isset( $settings[$field] ) ) {
-				$value = intval( $settings[$field] );
-				$sanitized[$field] = max( 0, min( 100, $value ) ) . 'px';
+			if ( isset( $settings[ $field ] ) ) {
+				$value               = intval( $settings[ $field ] );
+				$sanitized[ $field ] = max( 0, min( 100, $value ) ) . 'px';
 			}
 		}
-		
-		// Font size validation (8-72px)
-		foreach ( [ 'quiz_font_size', 'summary_font_size', 'toc_font_size' ] as $field ) {
-			if ( isset( $settings[$field] ) ) {
-				$value = intval( $settings[$field] );
-				$sanitized[$field] = max( 8, min( 72, $value ) ) . 'px';
+
+		// Font size validation (8-72px).
+		foreach ( array( 'quiz_font_size', 'summary_font_size', 'toc_font_size' ) as $field ) {
+			if ( isset( $settings[ $field ] ) ) {
+				$value               = intval( $settings[ $field ] );
+				$sanitized[ $field ] = max( 8, min( 72, $value ) ) . 'px';
 			}
 		}
-		
+
 		return $sanitized;
 	}
 
@@ -286,30 +349,30 @@ trait ConsolidatedSettingsPageTrait {
 	 * @return array Sanitized opt-in settings.
 	 */
 	private function sanitize_optin_settings( array $settings ): array {
-		$sanitized = [];
-		
-		// Webhook URL validation
+		$sanitized = array();
+
+		// Webhook URL validation.
 		if ( isset( $settings['webhook_url'] ) ) {
-			$url = esc_url_raw( $settings['webhook_url'] );
+			$url                      = esc_url_raw( $settings['webhook_url'] );
 			$sanitized['webhook_url'] = filter_var( $url, FILTER_VALIDATE_URL ) ? $url : '';
 		}
-		
-		// Position validation
+
+		// Position validation.
 		if ( isset( $settings['position'] ) ) {
-			$valid_positions = [ 'top', 'bottom', 'sidebar', 'floating' ];
-			$sanitized['position'] = in_array( $settings['position'], $valid_positions )
+			$valid_positions       = array( 'top', 'bottom', 'sidebar', 'floating' );
+			$sanitized['position'] = in_array( $settings['position'], $valid_positions, true )
 				? $settings['position']
 				: 'bottom';
 		}
-		
-		// Text fields
-		$text_fields = [ 'display_text', 'submit_text', 'success_message', 'error_message' ];
+
+		// Text fields.
+		$text_fields = array( 'display_text', 'submit_text', 'success_message', 'error_message' );
 		foreach ( $text_fields as $field ) {
-			if ( isset( $settings[$field] ) ) {
-				$sanitized[$field] = sanitize_textarea_field( $settings[$field] );
+			if ( isset( $settings[ $field ] ) ) {
+				$sanitized[ $field ] = sanitize_textarea_field( $settings[ $field ] );
 			}
 		}
-		
+
 		return $sanitized;
 	}
 
@@ -319,30 +382,31 @@ trait ConsolidatedSettingsPageTrait {
 	 * @param array $settings Current settings.
 	 * @return bool Whether CSS was written successfully.
 	 */
-	public function nuclen_write_custom_css( array $settings = [] ): bool {
+	public function nuclen_write_custom_css( array $settings = array() ): bool {
 		if ( empty( $settings ) ) {
 			$settings = $this->nuclen_get_current_settings();
 		}
-		
+
 		try {
-			$css_content = $this->generate_css_content( $settings );
+			$css_content   = $this->generate_css_content( $settings );
 			$css_file_path = $this->get_css_file_path();
-			
-			// Ensure directory exists
+
+			// Ensure directory exists.
 			$css_dir = dirname( $css_file_path );
 			if ( ! file_exists( $css_dir ) ) {
 				wp_mkdir_p( $css_dir );
 			}
-			
-			// Write CSS file with atomic operation
+
+			// Write CSS file with atomic operation.
 			$temp_file = $css_file_path . '.tmp';
 			if ( file_put_contents( $temp_file, $css_content, LOCK_EX ) !== false ) {
 				return rename( $temp_file, $css_file_path );
 			}
-			
+
 			return false;
-			
+
 		} catch ( \Exception $e ) {
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 			error_log( 'Nuclear Engagement: CSS generation failed - ' . $e->getMessage() );
 			return false;
 		}
@@ -356,16 +420,16 @@ trait ConsolidatedSettingsPageTrait {
 	 */
 	private function generate_css_content( array $settings ): string {
 		$css = "/* Nuclear Engagement - Generated Styles */\n\n";
-		
-		// Quiz styles
+
+		// Quiz styles.
 		$css .= $this->generate_component_css( 'quiz', $settings );
-		
-		// Summary styles
+
+		// Summary styles.
 		$css .= $this->generate_component_css( 'summary', $settings );
-		
-		// TOC styles
+
+		// TOC styles.
 		$css .= $this->generate_component_css( 'toc', $settings );
-		
+
 		return $css;
 	}
 
@@ -373,32 +437,32 @@ trait ConsolidatedSettingsPageTrait {
 	 * Generate CSS for a specific component.
 	 *
 	 * @param string $component Component name (quiz, summary, toc).
-	 * @param array $settings Current settings.
+	 * @param array  $settings Current settings.
 	 * @return string CSS for the component.
 	 */
 	private function generate_component_css( string $component, array $settings ): string {
-		$css = "/* {$component} styles */\n";
+		$css  = "/* {$component} styles */\n";
 		$css .= ".nuclen-{$component} {\n";
-		
-		$properties = [
-			'background-color' => $settings["{$component}_bg_color"] ?? '',
-			'color' => $settings["{$component}_text_color"] ?? '',
-			'border-color' => $settings["{$component}_border_color"] ?? '',
-			'border-width' => $settings["{$component}_border_width"] ?? '',
-			'border-radius' => $settings["{$component}_border_radius"] ?? '',
-			'padding' => $settings["{$component}_padding"] ?? '',
-			'margin' => $settings["{$component}_margin"] ?? '',
-			'font-size' => $settings["{$component}_font_size"] ?? '',
-		];
-		
+
+		$properties = array(
+			'background-color' => $settings[ "{$component}_bg_color" ] ?? '',
+			'color'            => $settings[ "{$component}_text_color" ] ?? '',
+			'border-color'     => $settings[ "{$component}_border_color" ] ?? '',
+			'border-width'     => $settings[ "{$component}_border_width" ] ?? '',
+			'border-radius'    => $settings[ "{$component}_border_radius" ] ?? '',
+			'padding'          => $settings[ "{$component}_padding" ] ?? '',
+			'margin'           => $settings[ "{$component}_margin" ] ?? '',
+			'font-size'        => $settings[ "{$component}_font_size" ] ?? '',
+		);
+
 		foreach ( $properties as $property => $value ) {
 			if ( ! empty( $value ) ) {
 				$css .= "    {$property}: {$value};\n";
 			}
 		}
-		
+
 		$css .= "}\n\n";
-		
+
 		return $css;
 	}
 
@@ -420,12 +484,12 @@ trait ConsolidatedSettingsPageTrait {
 	 */
 	private function sanitize_hex_color( string $color ): string {
 		$color = ltrim( $color, '#' );
-		
+
 		if ( ctype_xdigit( $color ) && ( strlen( $color ) === 3 || strlen( $color ) === 6 ) ) {
 			return '#' . $color;
 		}
-		
-		return ''; // Return empty if invalid
+
+		return ''; // Return empty if invalid.
 	}
 
 	/**
@@ -435,12 +499,15 @@ trait ConsolidatedSettingsPageTrait {
 	 * @param string $type Notice type (success, error, warning, info).
 	 */
 	private function add_admin_notice( string $message, string $type = 'info' ): void {
-		add_action( 'admin_notices', function() use ( $message, $type ) {
-			printf(
-				'<div class="notice notice-%s is-dismissible"><p>%s</p></div>',
-				esc_attr( $type ),
-				esc_html( $message )
-			);
-		} );
+		add_action(
+			'admin_notices',
+			function () use ( $message, $type ) {
+				printf(
+					'<div class="notice notice-%s is-dismissible"><p>%s</p></div>',
+					esc_attr( $type ),
+					esc_html( $message )
+				);
+			}
+		);
 	}
 }

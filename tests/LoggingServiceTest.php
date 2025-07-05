@@ -1,7 +1,9 @@
 <?php
 namespace NuclearEngagement\Services {
-	function add_action(...$args) {
-		$GLOBALS['ls_actions'][] = $args;
+	if (!function_exists('NuclearEngagement\Services\add_action')) {
+		function add_action(...$args) {
+			$GLOBALS['ls_actions'][] = $args;
+		}
 	}
 	function file_put_contents($file, $data, $flags = 0) {
 		$GLOBALS['ls_puts'][] = $file;

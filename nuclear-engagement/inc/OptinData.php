@@ -1,4 +1,10 @@
 <?php
+/**
+ * OptinData.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package NuclearEngagement
+ */
+
 declare(strict_types=1);
 /**
  * file: includes/OptinData.php
@@ -34,7 +40,7 @@ class OptinData {
 		add_action( 'wp_ajax_nuclen_save_optin', array( self::class, 'handle_ajax' ) );
 		add_action( 'wp_ajax_nopriv_nuclen_save_optin', array( self::class, 'handle_ajax' ) );
 
-				// CSV export handled via OptinExportController
+				// CSV export handled via OptinExportController.
 	}
 
 	/*
@@ -62,7 +68,8 @@ class OptinData {
 
 		global $wpdb;
 		$table                    = self::table_name();
-		self::$table_exists_cache = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table ) ) === $table;
+		self::$table_exists_cache = // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+		$wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table ) ) === $table;
 		return self::$table_exists_cache;
 	}
 
@@ -130,7 +137,7 @@ class OptinData {
 			array( '%s', '%s', '%s', '%s' )
 		);
 
-		if ( false === $ok ) {
+		if ( $ok === false ) {
 			LoggingService::log( 'Insert error: ' . $wpdb->last_error );
 		}
 
@@ -176,7 +183,7 @@ class OptinData {
 	 * ------------------------------------------------------------------- */
 	public static function handle_export(): void {
 
-	   $service = new \NuclearEngagement\Services\OptinExportService();
-	   $service->stream_csv();
+		$service = new \NuclearEngagement\Services\OptinExportService();
+		$service->stream_csv();
 	}
 }

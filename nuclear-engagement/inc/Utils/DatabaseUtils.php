@@ -1,4 +1,10 @@
 <?php
+/**
+ * DatabaseUtils.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package NuclearEngagement_Utils
+ */
+
 declare(strict_types=1);
 
 namespace NuclearEngagement\Utils;
@@ -21,13 +27,13 @@ final class DatabaseUtils {
 	/**
 	 * Allowed table suffixes for this plugin.
 	 */
-	private const ALLOWED_TABLE_SUFFIXES = [
+	private const ALLOWED_TABLE_SUFFIXES = array(
 		'nuclear_themes',
 		'nuclear_errors',
 		'nuclear_jobs',
 		'nuclear_performance',
 		'nuclear_optins',
-	];
+	);
 
 	/**
 	 * Get a validated and secure table name.
@@ -37,16 +43,16 @@ final class DatabaseUtils {
 	 * @throws \InvalidArgumentException If suffix is not allowed.
 	 */
 	public static function get_table_name( string $suffix ): string {
-		// Validate suffix is in allowed list
+		// Validate suffix is in allowed list.
 		if ( ! in_array( $suffix, self::ALLOWED_TABLE_SUFFIXES, true ) ) {
 			throw new \InvalidArgumentException( "Table suffix '{$suffix}' is not allowed" );
 		}
 
 		global $wpdb;
-		
-		// Validate and sanitize prefix
+
+		// Validate and sanitize prefix.
 		$prefix = self::sanitize_table_prefix( $wpdb->prefix );
-		
+
 		return $prefix . $suffix;
 	}
 
@@ -57,15 +63,15 @@ final class DatabaseUtils {
 	 * @return string Sanitized prefix.
 	 */
 	public static function sanitize_table_prefix( string $prefix ): string {
-		// Allow only alphanumeric characters and underscores
+		// Allow only alphanumeric characters and underscores.
 		$sanitized = preg_replace( '/[^a-zA-Z0-9_]/', '', $prefix );
-		
-		// Ensure it's not empty and doesn't start with a number
+
+		// Ensure it's not empty and doesn't start with a number.
 		if ( empty( $sanitized ) || is_numeric( $sanitized[0] ) ) {
 			$sanitized = 'wp_';
 		}
-		
-		// Limit length
+
+		// Limit length.
 		return substr( $sanitized, 0, 64 );
 	}
 
@@ -77,13 +83,13 @@ final class DatabaseUtils {
 	 */
 	public static function escape_table_name( string $table_name ): string {
 		global $wpdb;
-		
-		// Validate the table name format
+
+		// Validate the table name format.
 		if ( ! preg_match( '/^[a-zA-Z0-9_]+$/', $table_name ) ) {
 			throw new \InvalidArgumentException( 'Invalid table name format' );
 		}
-		
-		// Use WordPress escaping
+
+		// Use WordPress escaping.
 		return esc_sql( $table_name );
 	}
 
@@ -99,45 +105,45 @@ final class DatabaseUtils {
 	 */
 	public static function build_select_query(
 		string $table_name,
-		array $columns = [ '*' ],
-		array $where = [],
-		array $order_by = [],
+		array $columns = array( '*' ),
+		array $where = array(),
+		array $order_by = array(),
 		int $limit = 0
 	): string {
 		global $wpdb;
-		
+
 		$escaped_table = self::escape_table_name( $table_name );
-		
-		// Validate and escape columns
-		$escaped_columns = [];
+
+		// Validate and escape columns.
+		$escaped_columns = array();
 		foreach ( $columns as $column ) {
 			if ( $column === '*' ) {
 				$escaped_columns[] = '*';
 			} else {
-				// Validate column name format
+				// Validate column name format.
 				if ( ! preg_match( '/^[a-zA-Z0-9_]+$/', $column ) ) {
 					throw new \InvalidArgumentException( "Invalid column name: {$column}" );
 				}
 				$escaped_columns[] = esc_sql( $column );
 			}
 		}
-		
-		$sql = "SELECT " . implode( ', ', $escaped_columns ) . " FROM {$escaped_table}";
-		
-		// Add WHERE clause
+
+		$sql = 'SELECT ' . implode( ', ', $escaped_columns ) . " FROM {$escaped_table}";
+
+		// Add WHERE clause.
 		if ( ! empty( $where ) ) {
-			$where_clauses = [];
+			$where_clauses = array();
 			foreach ( $where as $column => $value ) {
-				// Validate column name
+				// Validate column name.
 				if ( ! preg_match( '/^[a-zA-Z0-9_]+$/', $column ) ) {
 					throw new \InvalidArgumentException( "Invalid WHERE column: {$column}" );
 				}
-				
+
 				$escaped_column = esc_sql( $column );
 				if ( is_null( $value ) ) {
 					$where_clauses[] = "{$escaped_column} IS NULL";
 				} elseif ( is_array( $value ) ) {
-					$placeholders = implode( ', ', array_fill( 0, count( $value ), '%s' ) );
+					$placeholders    = implode( ', ', array_fill( 0, count( $value ), '%s' ) );
 					$where_clauses[] = $wpdb->prepare( "{$escaped_column} IN ({$placeholders})", ...$value );
 				} else {
 					$where_clauses[] = $wpdb->prepare( "{$escaped_column} = %s", $value );
@@ -145,32 +151,32 @@ final class DatabaseUtils {
 			}
 			$sql .= ' WHERE ' . implode( ' AND ', $where_clauses );
 		}
-		
-		// Add ORDER BY clause
+
+		// Add ORDER BY clause.
 		if ( ! empty( $order_by ) ) {
-			$order_clauses = [];
+			$order_clauses = array();
 			foreach ( $order_by as $column => $direction ) {
-				// Validate column name
+				// Validate column name.
 				if ( ! preg_match( '/^[a-zA-Z0-9_]+$/', $column ) ) {
 					throw new \InvalidArgumentException( "Invalid ORDER BY column: {$column}" );
 				}
-				
-				// Validate direction
+
+				// Validate direction.
 				$direction = strtoupper( $direction );
-				if ( ! in_array( $direction, [ 'ASC', 'DESC' ], true ) ) {
+				if ( ! in_array( $direction, array( 'ASC', 'DESC' ), true ) ) {
 					$direction = 'ASC';
 				}
-				
+
 				$order_clauses[] = esc_sql( $column ) . ' ' . $direction;
 			}
 			$sql .= ' ORDER BY ' . implode( ', ', $order_clauses );
 		}
-		
-		// Add LIMIT clause
+
+		// Add LIMIT clause.
 		if ( $limit > 0 ) {
 			$sql .= $wpdb->prepare( ' LIMIT %d', $limit );
 		}
-		
+
 		return $sql;
 	}
 
@@ -183,42 +189,52 @@ final class DatabaseUtils {
 	 */
 	public static function execute_query( string $query, string $operation = 'database_operation' ) {
 		global $wpdb;
-		
-		$start_time = microtime( true );
-		$result = $wpdb->query( $query );
+
+		$start_time     = microtime( true );
+		$result         = // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+		$wpdb->query( $query );
 		$execution_time = microtime( true ) - $start_time;
-		
-		// Log query execution
+
+		// Log query execution.
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( sprintf(
-				'Nuclear Engagement DB Query [%s]: %s (%.4fs)',
-				$operation,
-				$query,
-				$execution_time
-			) );
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+			error_log(
+				sprintf(
+					'Nuclear Engagement DB Query [%s]: %s (%.4fs)',
+					$operation,
+					$query,
+					$execution_time
+				)
+			);
 		}
-		
-		// Check for errors
+
+		// Check for errors.
 		if ( $wpdb->last_error ) {
-			error_log( sprintf(
-				'Nuclear Engagement DB Error [%s]: %s | Query: %s',
-				$operation,
-				$wpdb->last_error,
-				$query
-			) );
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+			error_log(
+				sprintf(
+					'Nuclear Engagement DB Error [%s]: %s | Query: %s',
+					$operation,
+					$wpdb->last_error,
+					$query
+				)
+			);
 			return false;
 		}
-		
-		// Log slow queries
+
+		// Log slow queries.
 		if ( $execution_time > 1.0 ) {
-			error_log( sprintf(
-				'Nuclear Engagement Slow Query [%s]: %.4fs | %s',
-				$operation,
-				$execution_time,
-				$query
-			) );
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+			error_log(
+				sprintf(
+					'Nuclear Engagement Slow Query [%s]: %.4fs | %s',
+					$operation,
+					$execution_time,
+					$query
+				)
+			);
 		}
-		
+
 		return $result;
 	}
 
@@ -230,12 +246,12 @@ final class DatabaseUtils {
 	 */
 	public static function table_exists( string $table_name ): bool {
 		global $wpdb;
-		
+
 		$escaped_table = self::escape_table_name( $table_name );
-		$query = $wpdb->prepare( 'SHOW TABLES LIKE %s', $escaped_table );
-		
+		$query         = $wpdb->prepare( 'SHOW TABLES LIKE %s', $escaped_table );
+
 		$result = $wpdb->get_var( $query );
-		
+
 		return $result === $escaped_table;
 	}
 
@@ -256,9 +272,9 @@ final class DatabaseUtils {
 	 * @return bool True if valid, false otherwise.
 	 */
 	public static function is_valid_column_name( string $column_name ): bool {
-		// Allow only alphanumeric characters and underscores
-		// Must start with a letter or underscore
-		// Length between 1 and 64 characters
+		// Allow only alphanumeric characters and underscores.
+		// Must start with a letter or underscore.
+		// Length between 1 and 64 characters.
 		return preg_match( '/^[a-zA-Z_][a-zA-Z0-9_]{0,63}$/', $column_name ) === 1;
 	}
 
@@ -269,13 +285,24 @@ final class DatabaseUtils {
 	 * @return bool True if valid, false otherwise.
 	 */
 	public static function is_valid_operator( string $operator ): bool {
-		$valid_operators = [
-			'=', '!=', '<>', '<', '>', '<=', '>=',
-			'LIKE', 'NOT LIKE', 'IN', 'NOT IN',
-			'IS NULL', 'IS NOT NULL',
-			'EXISTS', 'NOT EXISTS'
-		];
-		
+		$valid_operators = array(
+			'=',
+			'!=',
+			'<>',
+			'<',
+			'>',
+			'<=',
+			'>=',
+			'LIKE',
+			'NOT LIKE',
+			'IN',
+			'NOT IN',
+			'IS NULL',
+			'IS NOT NULL',
+			'EXISTS',
+			'NOT EXISTS',
+		);
+
 		return in_array( strtoupper( $operator ), $valid_operators, true );
 	}
 
@@ -285,17 +312,17 @@ final class DatabaseUtils {
 	 * @return array Array of plugin table names.
 	 */
 	public static function get_plugin_tables(): array {
-		$tables = [];
-		
+		$tables = array();
+
 		foreach ( self::ALLOWED_TABLE_SUFFIXES as $suffix ) {
 			try {
 				$tables[] = self::get_table_name( $suffix );
 			} catch ( \InvalidArgumentException $e ) {
-				// Skip invalid table names
+				// Skip invalid table names.
 				continue;
 			}
 		}
-		
+
 		return $tables;
 	}
 }

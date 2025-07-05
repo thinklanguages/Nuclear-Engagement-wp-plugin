@@ -1,11 +1,11 @@
 <?php
 /**
-	* File: modules/summary/loader.php
-	*
-	* Loads the Nuclen Summary sub-module.
-	*
-	* @package NuclearEngagement
-	*/
+ * File: modules/summary/loader.php
+ *
+ * Loads the Nuclen Summary sub-module.
+ *
+ * @package NuclearEngagement
+ */
 
 declare(strict_types=1);
 
@@ -39,10 +39,10 @@ require_once NUCLEN_SUMMARY_DIR . 'Nuclen_Summary_Metabox.php';
 	* ------------------------------------------------------------------ */
 $settings = \NuclearEngagement\Core\SettingsRepository::get_instance();
 $front    = new \NuclearEngagement\Front\FrontClass(
-		'nuclear-engagement',
-		defined( 'NUCLEN_PLUGIN_VERSION' ) ? NUCLEN_PLUGIN_VERSION : '1.0.0',
-		$settings,
-		\NuclearEngagement\Core\ServiceContainer::getInstance()
+	'nuclear-engagement',
+	defined( 'NUCLEN_PLUGIN_VERSION' ) ? NUCLEN_PLUGIN_VERSION : '1.0.0',
+	$settings,
+	\NuclearEngagement\Core\ServiceContainer::getInstance()
 );
 new Nuclen_Summary_Shortcode( $settings, $front );
 if ( is_admin() ) {

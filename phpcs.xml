@@ -1,5 +1,9 @@
 <?xml version="1.0"?>
 <ruleset name="Nuclear Engagement">
+    <description>PHP CodeSniffer rules for the Nuclear Engagement plugin</description>
+    
+    <file>nuclear-engagement</file>
+    
     <rule ref="WordPress">
         <exclude name="WordPress.Files.FileName" />
     </rule>

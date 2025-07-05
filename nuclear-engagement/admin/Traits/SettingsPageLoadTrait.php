@@ -1,4 +1,10 @@
 <?php
+/**
+ * SettingsPageLoadTrait.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package NuclearEngagement_Admin_Traits
+ */
+
 declare(strict_types=1);
 /**
  * File: admin/Traits/SettingsPageLoadTrait.php
@@ -25,13 +31,13 @@ trait SettingsPageLoadTrait {
 		$settings_repo = $this->nuclen_get_settings_repository();
 		$defaults      = \NuclearEngagement\Core\Defaults::nuclen_get_default_settings();
 
-		// Get all settings from the repository
+		// Get all settings from the repository.
 		$settings = array();
 		foreach ( $defaults as $key => $default_value ) {
 			$settings[ $key ] = $settings_repo->get( $key, $default_value );
 		}
 
-		// Sanitize the settings
+		// Sanitize the settings.
 		$settings = $this->nuclen_sanitize_settings( $settings );
 
 		return array( $settings, $defaults );

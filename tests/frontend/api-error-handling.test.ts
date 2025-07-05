@@ -2,7 +2,7 @@
  * Tests for API error handling functionality
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 // Mock API error handling utilities
 interface ApiError {

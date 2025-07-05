@@ -23,19 +23,19 @@ final class SlugGenerator {
 	 *
 	 * @var array<string,bool>
 	 */
-private static array $ids_in_post = array();
+	private static array $ids_in_post = array();
 
-/**
- * Prime internal slug tracking with existing IDs.
- *
- * @param array $ids IDs already present in the post.
- */
+	/**
+	 * Prime internal slug tracking with existing IDs.
+	 *
+	 * @param array $ids IDs already present in the post.
+	 */
 	public static function prime( array $ids ): void {
-	foreach ( $ids as $id ) {
-	if ( is_string( $id ) && '' !== $id ) {
-	self::$ids_in_post[ $id ] = true;
-	}
-	}
+		foreach ( $ids as $id ) {
+			if ( is_string( $id ) && '' !== $id ) {
+				self::$ids_in_post[ $id ] = true;
+			}
+		}
 	}
 
 	/**

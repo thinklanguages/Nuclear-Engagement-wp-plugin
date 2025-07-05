@@ -1,4 +1,10 @@
 <?php
+/**
+ * Admin.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package NuclearEngagement_Admin
+ */
+
 declare(strict_types=1);
 /**
 	* File: admin/Admin.php
@@ -48,15 +54,15 @@ class Admin {
 		$this->version             = $version;
 		$this->utils               = new Utils();
 		$this->settings_repository = $settings_repository;
-				$this->container           = $container;
+				$this->container   = $container;
 
-// Meta-boxes handled by module loader
+		// Meta-boxes handled by module loader.
 
 		// Note: Hooks are registered via the loader system in Plugin.php
-		// This avoids duplicate registration and ensures proper timing
+		// This avoids duplicate registration and ensures proper timing.
 
-		// Auto-generation on publish is now handled by AutoGenerationService
-		// The service is registered in the Plugin class and handles its own hooks
+		// Auto-generation on publish is now handled by AutoGenerationService.
+		// The service is registered in the Plugin class and handles its own hooks.
 	}
 
 	/* --------------------------------‑ getters ---------------------------- */

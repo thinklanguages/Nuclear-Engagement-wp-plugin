@@ -1,4 +1,10 @@
 <?php
+/**
+ * ThemeRegistry.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package NuclearEngagement_Core
+ */
+
 declare(strict_types=1);
 /**
  * File: inc/Core/ThemeRegistry.php

@@ -1,4 +1,10 @@
 <?php
+/**
+ * RestTrait.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package NuclearEngagement_Front
+ */
+
 declare(strict_types=1);
 /**
  * File: front/traits/RestTrait.php
@@ -22,8 +28,8 @@ trait RestTrait {
 
 	/* ---------- REST route registration ---------- */
 	public function nuclen_register_content_endpoint() {
-		// Registration is now handled directly in Plugin::nuclen_define_public_hooks()
-		// This method is kept for backward compatibility but does nothing
+		// Registration is now handled directly in Plugin::nuclen_define_public_hooks().
+		// This method is kept for backward compatibility but does nothing.
 	}
 
 	/* ---------- Legacy methods for backward compatibility ---------- */

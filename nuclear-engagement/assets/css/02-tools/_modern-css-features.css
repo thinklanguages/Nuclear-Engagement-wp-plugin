@@ -1,6 +1,6 @@
 /**
  * Modern CSS Features - Nuclear Engagement Plugin
- * 
+ *
  * Progressive enhancement with modern CSS features.
  * Includes CSS Grid, Container Queries, and advanced selectors.
  */
@@ -9,488 +9,488 @@
 
 /* Quiz container queries */
 @supports (container-type: inline-size) {
-  .c-quiz {
-    container-name: quiz;
-    container-type: inline-size;
-  }
-  
-  /* Responsive quiz layout based on container size */
-  @container quiz (max-width: 480px) {
-    .c-quiz__answers--columns {
-      grid-template-columns: 1fr;
-    }
-    
-    .c-quiz-answer {
-      font-size: var(--ne-font-size-sm);
-      padding: var(--ne-space-3);
-    }
-    
-    .c-quiz__title {
-      font-size: var(--ne-font-size-lg);
-    }
-  }
-  
-  @container quiz (min-width: 600px) {
-    .c-quiz__answers--auto {
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    }
-    
-    .c-quiz__question {
-      font-size: var(--ne-font-size-xl);
-    }
-  }
+	.c-quiz {
+	container-name: quiz;
+	container-type: inline-size;
+	}
+
+	/* Responsive quiz layout based on container size */
+	@container quiz (max-width: 480px) {
+	.c-quiz__answers--columns {
+		grid-template-columns: 1fr;
+	}
+
+	.c-quiz-answer {
+		font-size: var(--ne-font-size-sm);
+		padding: var(--ne-space-3);
+	}
+
+	.c-quiz__title {
+		font-size: var(--ne-font-size-lg);
+	}
+	}
+
+	@container quiz (min-width: 600px) {
+	.c-quiz__answers--auto {
+		grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+	}
+
+	.c-quiz__question {
+		font-size: var(--ne-font-size-xl);
+	}
+	}
 }
 
 /* Admin container queries */
 @supports (container-type: inline-size) {
-  .c-admin {
-    container-name: admin;
-    container-type: inline-size;
-  }
-  
-  @container admin (max-width: 768px) {
-    .c-form-field--row {
-      grid-template-columns: 1fr;
-    }
-    
-    .c-admin-tabs__list {
-      flex-direction: column;
-    }
-  }
-  
-  @container admin (min-width: 1200px) {
-    .c-admin-form {
-      display: grid;
-      gap: var(--ne-space-8);
-      grid-template-columns: 1fr 300px;
-    }
-  }
+	.c-admin {
+	container-name: admin;
+	container-type: inline-size;
+	}
+
+	@container admin (max-width: 768px) {
+	.c-form-field--row {
+		grid-template-columns: 1fr;
+	}
+
+	.c-admin-tabs__list {
+		flex-direction: column;
+	}
+	}
+
+	@container admin (min-width: 1200px) {
+	.c-admin-form {
+		display: grid;
+		gap: var(--ne-space-8);
+		grid-template-columns: 1fr 300px;
+	}
+	}
 }
 
 /* TOC container queries */
 @supports (container-type: inline-size) {
-  .c-toc {
-    container-name: toc;
-    container-type: inline-size;
-  }
-  
-  @container toc (max-width: 280px) {
-    .c-toc__content {
-      max-height: 200px;
-    }
-    
-    .c-toc__link {
-      font-size: var(--ne-font-size-xs);
-      padding: var(--ne-space-1) var(--ne-space-2);
-    }
-  }
+	.c-toc {
+	container-name: toc;
+	container-type: inline-size;
+	}
+
+	@container toc (max-width: 280px) {
+	.c-toc__content {
+		max-height: 200px;
+	}
+
+	.c-toc__link {
+		font-size: var(--ne-font-size-xs);
+		padding: var(--ne-space-1) var(--ne-space-2);
+	}
+	}
 }
 
 /* === CSS GRID ADVANCED LAYOUTS === */
 
 /* Masonry layout with CSS Grid (where supported) */
 @supports (grid-template-rows: masonry) {
-  .ne-masonry-grid {
-    display: grid;
-    gap: var(--ne-space-4);
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    grid-template-rows: masonry;
-  }
+	.ne-masonry-grid {
+	display: grid;
+	gap: var(--ne-space-4);
+	grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+	grid-template-rows: masonry;
+	}
 }
 
 /* Subgrid support */
 @supports (grid-template-columns: subgrid) {
-  .ne-subgrid {
-    display: grid;
-    grid-template-columns: subgrid;
-    grid-template-rows: subgrid;
-  }
+	.ne-subgrid {
+	display: grid;
+	grid-template-columns: subgrid;
+	grid-template-rows: subgrid;
+	}
 }
 
 /* Advanced grid areas */
 .ne-grid-advanced {
-  display: grid;
-  gap: var(--ne-space-4);
-  grid-template: "header header header" auto "sidebar main aside" 1fr "footer footer footer" auto / 200px 1fr 150px;
-  min-height: 100vh;
+	display: grid;
+	gap: var(--ne-space-4);
+	grid-template: "header header header" auto "sidebar main aside" 1fr "footer footer footer" auto / 200px 1fr 150px;
+	min-height: 100vh;
 }
 
 .ne-grid-advanced__header {
-  grid-area: header;
+	grid-area: header;
 }
 
 .ne-grid-advanced__sidebar {
-  grid-area: sidebar;
+	grid-area: sidebar;
 }
 
 .ne-grid-advanced__main {
-  grid-area: main;
+	grid-area: main;
 }
 
 .ne-grid-advanced__aside {
-  grid-area: aside;
+	grid-area: aside;
 }
 
 .ne-grid-advanced__footer {
-  grid-area: footer;
+	grid-area: footer;
 }
 
 /* === ADVANCED SELECTORS === */
 
 /* :has() pseudo-class support */
 @supports selector(:has(+ *)) {
-  /* Quiz with progress bar */
-  .c-quiz:has(.c-quiz-progress) {
-    padding-top: var(--ne-space-8);
-  }
-  
-  /* Form field with error */
-  .c-form-field:has(.c-form-field__error) {
-    --form-field-border: var(--ne-color-error-500);
-  }
-  
-  /* Quiz without actions */
-  .c-quiz:not(:has(.c-quiz-actions)) {
-    padding-bottom: var(--ne-space-4);
-  }
-  
-  /* Admin form with multiple sections */
-  .c-admin-form:has(.c-admin-form__section + .c-admin-form__section) {
-    padding: var(--ne-space-8);
-  }
+	/* Quiz with progress bar */
+	.c-quiz:has(.c-quiz-progress) {
+	padding-top: var(--ne-space-8);
+	}
+
+	/* Form field with error */
+	.c-form-field:has(.c-form-field__error) {
+	--form-field-border: var(--ne-color-error-500);
+	}
+
+	/* Quiz without actions */
+	.c-quiz:not(:has(.c-quiz-actions)) {
+	padding-bottom: var(--ne-space-4);
+	}
+
+	/* Admin form with multiple sections */
+	.c-admin-form:has(.c-admin-form__section + .c-admin-form__section) {
+	padding: var(--ne-space-8);
+	}
 }
 
 /* :is() and :where() selectors */
 @supports selector(:is(h1, h2, h3)) {
-  .c-quiz :is(h1, h2, h3, h4, h5, h6) {
-    color: var(--ne-text-primary);
-    margin-bottom: var(--ne-space-3);
-  }
-  
-  .c-admin :is(.c-form-field__input, .c-form-field__select, .c-form-field__textarea) {
-    transition: border-color var(--ne-duration-200) var(--ne-ease-out);
-  }
+	.c-quiz :is(h1, h2, h3, h4, h5, h6) {
+	color: var(--ne-text-primary);
+	margin-bottom: var(--ne-space-3);
+	}
+
+	.c-admin :is(.c-form-field__input, .c-form-field__select, .c-form-field__textarea) {
+	transition: border-color var(--ne-duration-200) var(--ne-ease-out);
+	}
 }
 
 @supports selector(:where(button, input)) {
-  /* Lower specificity default styles */
-  :where(.c-quiz-button, .c-admin-button) {
-    font-family: inherit;
-    font-size: inherit;
-  }
+	/* Lower specificity default styles */
+	:where(.c-quiz-button, .c-admin-button) {
+	font-family: inherit;
+	font-size: inherit;
+	}
 }
 
 /* === LOGICAL PROPERTIES === */
 
 /* Use logical properties for internationalization */
 .ne-logical {
-  border-block-end: 1px solid var(--ne-border-primary);
-  border-inline-start: 3px solid var(--ne-color-primary-500);
-  margin-block: var(--ne-space-2);
-  margin-inline: var(--ne-space-4);
-  padding-block: var(--ne-space-4);
-  padding-inline: var(--ne-space-6);
+	border-block-end: 1px solid var(--ne-border-primary);
+	border-inline-start: 3px solid var(--ne-color-primary-500);
+	margin-block: var(--ne-space-2);
+	margin-inline: var(--ne-space-4);
+	padding-block: var(--ne-space-4);
+	padding-inline: var(--ne-space-6);
 }
 
 .ne-logical-text {
-  border-inline-end: 1px solid var(--ne-border-primary);
-  text-align: start;
+	border-inline-end: 1px solid var(--ne-border-primary);
+	text-align: start;
 }
 
 /* === MODERN COLOR FUNCTIONS === */
 
 /* Color mixing */
 @supports (color: color-mix(in srgb, red 50%, blue)) {
-  .ne-color-mix {
-    --mixed-primary: color-mix(in srgb, var(--ne-color-primary-500) 80%, white);
-    --mixed-hover: color-mix(in srgb, var(--ne-color-primary-500) 90%, black);
-    background: var(--mixed-primary);
-  }
-  
-  .ne-color-mix:hover {
-    background: var(--mixed-hover);
-  }
+	.ne-color-mix {
+	--mixed-primary: color-mix(in srgb, var(--ne-color-primary-500) 80%, white);
+	--mixed-hover: color-mix(in srgb, var(--ne-color-primary-500) 90%, black);
+	background: var(--mixed-primary);
+	}
+
+	.ne-color-mix:hover {
+	background: var(--mixed-hover);
+	}
 }
 
 /* Relative color syntax */
 @supports (color: rgb(from white r g b / 0.5)) {
-  .ne-relative-color {
-    --primary-transparent: rgb(from var(--ne-color-primary-500) r g b / 10%);
-    --primary-lighter: hsl(from var(--ne-color-primary-500) h s calc(l + 20%));
-    background: var(--primary-transparent);
-    border-color: var(--primary-lighter);
-  }
+	.ne-relative-color {
+	--primary-transparent: rgb(from var(--ne-color-primary-500) r g b / 10%);
+	--primary-lighter: hsl(from var(--ne-color-primary-500) h s calc(l + 20%));
+	background: var(--primary-transparent);
+	border-color: var(--primary-lighter);
+	}
 }
 
 /* === ADVANCED LAYOUT === */
 
 /* CSS Anchor Positioning */
 @supports (anchor-name: --anchor) {
-  .ne-anchor-target {
-    anchor-name: --tooltip-anchor;
-    position: relative;
-  }
-  
-  .ne-tooltip {
-    bottom: anchor(top);
-    left: anchor(center);
-    position: absolute;
-    position-anchor: --tooltip-anchor;
-    transform: translateX(-50%);
-  }
+	.ne-anchor-target {
+	anchor-name: --tooltip-anchor;
+	position: relative;
+	}
+
+	.ne-tooltip {
+	bottom: anchor(top);
+	left: anchor(center);
+	position: absolute;
+	position-anchor: --tooltip-anchor;
+	transform: translateX(-50%);
+	}
 }
 
 /* CSS Nesting */
 @supports (color: rgb(0 0 0)) {
-  .ne-nested {
-    background: var(--ne-bg-primary);
-    border: 1px solid var(--ne-border-primary);
-    
-    /* Nested selectors */
-    & .ne-nested__title {
-      color: var(--ne-text-primary);
-      font-weight: var(--ne-font-weight-semibold);
-      
-      &:hover {
-        color: var(--ne-color-primary-600);
-      }
-    }
-    
-    & .ne-nested__content {
-      padding: var(--ne-space-4);
-      
-      & p {
-        margin-bottom: var(--ne-space-3);
-        
-        &:last-child {
-          margin-bottom: 0;
-        }
-      }
-    }
-    
-    @media (width >= 768px) {
-      & {
-        display: grid;
-        gap: var(--ne-space-6);
-        grid-template-columns: 1fr 2fr;
-      }
-    }
-  }
+	.ne-nested {
+	background: var(--ne-bg-primary);
+	border: 1px solid var(--ne-border-primary);
+
+	/* Nested selectors */
+	& .ne-nested__title {
+		color: var(--ne-text-primary);
+		font-weight: var(--ne-font-weight-semibold);
+
+		&:hover {
+		color: var(--ne-color-primary-600);
+		}
+	}
+
+	& .ne-nested__content {
+		padding: var(--ne-space-4);
+
+		& p {
+		margin-bottom: var(--ne-space-3);
+
+		&:last-child {
+			margin-bottom: 0;
+		}
+		}
+	}
+
+	@media (width >= 768px) {
+		& {
+		display: grid;
+		gap: var(--ne-space-6);
+		grid-template-columns: 1fr 2fr;
+		}
+	}
+	}
 }
 
 /* === MODERN UNITS === */
 
 /* Container query units */
 .ne-cq-units {
-  font-size: clamp(1rem, 4cqw, 2rem);
-  margin: 1cqi;
-  padding: 2cqh 4cqw;
+	font-size: clamp(1rem, 4cqw, 2rem);
+	margin: 1cqi;
+	padding: 2cqh 4cqw;
 }
 
 /* Dynamic viewport units */
 .ne-dynamic-viewport {
-  margin: 1lvh 1lvw;  /* Large viewport units */
-  min-height: 100dvh; /* Dynamic viewport height */
-  padding: 1svh 1svw; /* Small viewport units */
-  width: 100dvw;      /* Dynamic viewport width */
+	margin: 1lvh 1lvw;  /* Large viewport units */
+	min-height: 100dvh; /* Dynamic viewport height */
+	padding: 1svh 1svw; /* Small viewport units */
+	width: 100dvw;      /* Dynamic viewport width */
 }
 
 /* === MODERN PSEUDO-ELEMENTS === */
 
 /* ::backdrop for modals */
 @supports selector(::backdrop) {
-  .ne-modal::backdrop {
-    backdrop-filter: blur(4px);
-    background: rgb(0 0 0 / 50%);
-  }
+	.ne-modal::backdrop {
+	backdrop-filter: blur(4px);
+	background: rgb(0 0 0 / 50%);
+	}
 }
 
 /* ::marker for lists */
 @supports selector(::marker) {
-  .ne-custom-marker::marker {
-    color: var(--ne-color-primary-500);
-    font-size: 1.2em;
-  }
+	.ne-custom-marker::marker {
+	color: var(--ne-color-primary-500);
+	font-size: 1.2em;
+	}
 }
 
 /* === MODERN FUNCTIONS === */
 
 /* Math functions */
 .ne-math {
-  font-size: calc(1rem + 0.5vw);
-  height: max(200px, 20vh);
-  margin: clamp(1rem, 4%, 3rem) auto;
-  padding: clamp(1rem, 4vw, 2rem);
-  width: min(100%, 600px);
+	font-size: calc(1rem + 0.5vw);
+	height: max(200px, 20vh);
+	margin: clamp(1rem, 4%, 3rem) auto;
+	padding: clamp(1rem, 4vw, 2rem);
+	width: min(100%, 600px);
 }
 
 /* Round function */
 @supports (width: round(10.7px, 1px)) {
-  .ne-round {
-    height: round(var(--dynamic-height), 1px);
-    width: round(var(--dynamic-width), 1px);
-  }
+	.ne-round {
+	height: round(var(--dynamic-height), 1px);
+	width: round(var(--dynamic-width), 1px);
+	}
 }
 
 /* === PROGRESSIVE ENHANCEMENT UTILITIES === */
 
 /* Feature detection classes */
 .ne-supports-grid {
-  display: block;
+	display: block;
 }
 
 @supports (display: grid) {
-  .ne-supports-grid {
-    display: grid;
-  }
-  
-  .ne-no-grid {
-    display: none;
-  }
+	.ne-supports-grid {
+	display: grid;
+	}
+
+	.ne-no-grid {
+	display: none;
+	}
 }
 
 .ne-supports-flexbox {
-  display: block;
+	display: block;
 }
 
 @supports (display: flex) {
-  .ne-supports-flexbox {
-    display: flex;
-  }
-  
-  .ne-no-flexbox {
-    display: none;
-  }
+	.ne-supports-flexbox {
+	display: flex;
+	}
+
+	.ne-no-flexbox {
+	display: none;
+	}
 }
 
 /* Container query support */
 @supports (container-type: inline-size) {
-  .ne-supports-cq {
-    display: block;
-  }
-  
-  .ne-no-cq {
-    display: none;
-  }
+	.ne-supports-cq {
+	display: block;
+	}
+
+	.ne-no-cq {
+	display: none;
+	}
 }
 
 /* === EXPERIMENTAL FEATURES === */
 
 /* View transitions */
 @supports (view-transition-name: slide) {
-  .ne-view-transition {
-    view-transition-name: slide;
-  }
-  
-  ::view-transition-old(slide) {
-    animation: slide-out 0.3s ease-out;
-  }
-  
-  ::view-transition-new(slide) {
-    animation: slide-in 0.3s ease-in;
-  }
-  
-  @keyframes slide-out {
-    to { transform: translateX(-100%); }
-  }
-  
-  @keyframes slide-in {
-    from { transform: translateX(100%); }
+	.ne-view-transition {
+	view-transition-name: slide;
+	}
 
-    to { transform: translateX(0); }
-  }
+	::view-transition-old(slide) {
+	animation: slide-out 0.3s ease-out;
+	}
+
+	::view-transition-new(slide) {
+	animation: slide-in 0.3s ease-in;
+	}
+
+	@keyframes slide-out {
+	to { transform: translateX(-100%); }
+	}
+
+	@keyframes slide-in {
+	from { transform: translateX(100%); }
+
+	to { transform: translateX(0); }
+	}
 }
 
 /* CSS Layers */
 @layer base, components, utilities;
 
 @layer base {
-  .ne-base {
-    color: var(--ne-text-primary);
-    font-family: var(--ne-font-family-sans);
-  }
+	.ne-base {
+	color: var(--ne-text-primary);
+	font-family: var(--ne-font-family-sans);
+	}
 }
 
 @layer components {
-  .ne-component {
-    background: var(--ne-bg-primary);
-    border: 1px solid var(--ne-border-primary);
-  }
+	.ne-component {
+	background: var(--ne-bg-primary);
+	border: 1px solid var(--ne-border-primary);
+	}
 }
 
 @layer utilities {
-  .ne-utility {
-    margin: 0 !important;
-  }
+	.ne-utility {
+	margin: 0 !important;
+	}
 }
 
 /* === BROWSER-SPECIFIC ENHANCEMENTS === */
 
 /* Safari-specific optimizations */
 @supports (-webkit-backdrop-filter: blur(10px)) {
-  .ne-safari-blur {
-    backdrop-filter: blur(10px);
-  }
+	.ne-safari-blur {
+	backdrop-filter: blur(10px);
+	}
 }
 
 /* Firefox-specific optimizations */
 @supports (-moz-appearance: none) {
-  .ne-firefox-scroll {
-    scrollbar-color: var(--ne-border-primary) transparent;
-    scrollbar-width: thin;
-  }
+	.ne-firefox-scroll {
+	scrollbar-color: var(--ne-border-primary) transparent;
+	scrollbar-width: thin;
+	}
 }
 
 /* Chromium-specific optimizations */
 @supports (-webkit-mask: url()) {
-  .ne-webkit-mask {
-    mask: linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%);
-  }
+	.ne-webkit-mask {
+	mask: linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%);
+	}
 }
 
 /* === FUTURE-PROOFING === */
 
 /* Placeholder for future CSS features */
 .ne-future-ready {
-  /* Ready for new CSS features */
+	/* Ready for new CSS features */
 }
 
 /* Graceful degradation patterns */
 .ne-graceful-fallback {
-  /* Fallback styles */
-  
-  /* Enhanced styles with feature detection */
-  background: var(--enhanced-bg, var(--ne-bg-primary));
+	/* Fallback styles */
+
+	/* Enhanced styles with feature detection */
+	background: var(--enhanced-bg, var(--ne-bg-primary));
 }
 
 /* === BUILD SYSTEM INTEGRATION HINTS === */
 
 /* PostCSS processing hints */
 .ne-postcss-process {
-  /* cssnano will optimize this */
-  margin: 1rem;
+	/* cssnano will optimize this */
+	margin: 1rem;
 
-  /* autoprefixer will handle vendor prefixes */
-  user-select: none;
-  
-  /* Custom properties for processing */
-  --processed: true;
+	/* autoprefixer will handle vendor prefixes */
+	user-select: none;
+
+	/* Custom properties for processing */
+	--processed: true;
 }
 
 /* PurgeCSS/UnCSS preservation */
 
 /* purgecss start ignore */
 .ne-preserve-utility {
-  display: block;
+	display: block;
 }
 
 /* purgecss end ignore */
 
 /* Critical CSS extraction hints */
 .ne-critical-extract {
-  /* Mark for critical CSS extraction */
+	/* Mark for critical CSS extraction */
 }
 
 .ne-non-critical {
-  /* Mark for deferred loading */
+	/* Mark for deferred loading */
 }

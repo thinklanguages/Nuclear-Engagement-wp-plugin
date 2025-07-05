@@ -1,4 +1,10 @@
 <?php
+/**
+ * ServiceContainer.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package NuclearEngagement_Core
+ */
+
 declare(strict_types=1);
 
 namespace NuclearEngagement\Core;
@@ -8,23 +14,23 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 class ServiceContainer {
-	
+
 	private static ?ServiceContainer $instance = null;
-	private array $services = [];
-	private array $singletons = [];
-	private array $factories = [];
-	private array $aliases = [];
-	private array $resolving = [];
-	
+	private array $services                    = array();
+	private array $singletons                  = array();
+	private array $factories                   = array();
+	private array $aliases                     = array();
+	private array $resolving                   = array();
+
 	private function __construct() {}
-	
+
 	public static function getInstance(): ServiceContainer {
 		if ( self::$instance === null ) {
 			self::$instance = new self();
 		}
 		return self::$instance;
 	}
-	
+
 	/**
 	 * Register a service factory
 	 *
@@ -39,7 +45,7 @@ class ServiceContainer {
 			$this->singletons[ $service_name ] = true;
 		}
 	}
-	
+
 	/**
 	 * Register a service instance directly
 	 *
@@ -50,7 +56,7 @@ class ServiceContainer {
 	public function set( string $service_name, $instance ): void {
 		$this->services[ $service_name ] = $instance;
 	}
-	
+
 	/**
 	 * Get a service instance
 	 *
@@ -60,38 +66,38 @@ class ServiceContainer {
 	 */
 	public function get( string $service_name ) {
 		$service_name = $this->resolveAlias( $service_name );
-		
-		// Check for circular dependencies
+
+		// Check for circular dependencies.
 		if ( isset( $this->resolving[ $service_name ] ) ) {
 			throw new \RuntimeException( "Circular dependency detected for service: {$service_name}" );
 		}
-		
-		// Return cached instance if available
+
+		// Return cached instance if available.
 		if ( isset( $this->services[ $service_name ] ) ) {
 			return $this->services[ $service_name ];
 		}
-		
-		// Create new instance using factory
+
+		// Create new instance using factory.
 		if ( isset( $this->factories[ $service_name ] ) ) {
 			$this->resolving[ $service_name ] = true;
-			
+
 			try {
 				$instance = $this->factories[ $service_name ]( $this );
-				
-				// Cache if singleton
+
+				// Cache if singleton.
 				if ( isset( $this->singletons[ $service_name ] ) ) {
 					$this->services[ $service_name ] = $instance;
 				}
-				
+
 				return $instance;
 			} finally {
 				unset( $this->resolving[ $service_name ] );
 			}
 		}
-		
+
 		throw new \RuntimeException( "Service '{$service_name}' not found in container." );
 	}
-	
+
 	/**
 	 * Check if a service is registered
 	 *
@@ -101,85 +107,118 @@ class ServiceContainer {
 	public function has( string $service_name ): bool {
 		return isset( $this->services[ $service_name ] ) || isset( $this->factories[ $service_name ] );
 	}
-	
+
 	/**
 	 * Register core plugin services
 	 *
 	 * @return void
 	 */
 	public function registerCoreServices(): void {
-		// Settings Repository
-		$this->register( 'settings_repository', function() {
-			return SettingsRepository::get_instance();
-		} );
-		
-		// Token Manager
-		$this->register( 'token_manager', function( $container ) {
-			return new \NuclearEngagement\Security\TokenManager(
-				$container->get( 'settings_repository' )
-			);
-		} );
-		
-		// Remote Request Service
-		$this->register( 'remote_request', function( $container ) {
-			return new \NuclearEngagement\Services\Remote\RemoteRequest(
-				$container->get( 'settings_repository' )
-			);
-		} );
-		
-		// Setup Service
-		$this->register( 'setup_service', function( $container ) {
-			return new \NuclearEngagement\Services\SetupService(
-				$container->get( 'remote_request' )
-			);
-		} );
-		
-		// App Password Handler
-		$this->register( 'app_password_handler', function( $container ) {
-			return new \NuclearEngagement\Admin\Setup\AppPasswordHandler(
-				$container->get( 'setup_service' ),
-				$container->get( 'settings_repository' ),
-				$container->get( 'token_manager' )
-			);
-		} );
-		
-		
-		// Error Handler
-		$this->register( 'error_handler', function() {
-			return new ErrorHandler();
-		} );
-		
-		// Cache Manager
-		$this->register( 'cache_manager', function() {
-			return new CacheManager();
-		} );
+		// Settings Repository.
+		$this->register(
+			'settings_repository',
+			function () {
+				return SettingsRepository::get_instance();
+			}
+		);
+
+		// Token Manager.
+		$this->register(
+			'token_manager',
+			function ( $container ) {
+				return new \NuclearEngagement\Security\TokenManager(
+					$container->get( 'settings_repository' )
+				);
+			}
+		);
+
+		// Remote Request Service.
+		$this->register(
+			'remote_request',
+			function ( $container ) {
+				return new \NuclearEngagement\Services\Remote\RemoteRequest(
+					$container->get( 'settings_repository' )
+				);
+			}
+		);
+
+		// Setup Service.
+		$this->register(
+			'setup_service',
+			function ( $container ) {
+				return new \NuclearEngagement\Services\SetupService(
+					$container->get( 'remote_request' )
+				);
+			}
+		);
+
+		// App Password Handler.
+		$this->register(
+			'app_password_handler',
+			function ( $container ) {
+				return new \NuclearEngagement\Admin\Setup\AppPasswordHandler(
+					$container->get( 'setup_service' ),
+					$container->get( 'settings_repository' ),
+					$container->get( 'token_manager' )
+				);
+			}
+		);
+
+		// Error Handler.
+		$this->register(
+			'error_handler',
+			function () {
+				return new ErrorHandler();
+			}
+		);
+
+		// Cache Manager.
+		$this->register(
+			'cache_manager',
+			function () {
+				return new CacheManager();
+			}
+		);
 	}
-	
+
 	/**
 	 * Initialize all singleton services that need early initialization
 	 *
 	 * @return void
 	 */
 	public function initializeCoreServices(): void {
-		// Initialize error handler early
+		// Initialize error handler early.
 		$this->get( 'error_handler' );
-		
-		// Initialize settings repository
+
+		// Initialize settings repository.
 		$this->get( 'settings_repository' );
-		
-		// Initialize cache manager
+
+		// Initialize cache manager.
 		$this->get( 'cache_manager' );
 	}
-	
+
 	/**
 	 * Clear all cached services (useful for testing)
 	 *
 	 * @return void
 	 */
 	public function clearCache(): void {
-		$this->services = [];
+		$this->services = array();
 	}
-	
+
+	/**
+	 * Reset the container (for testing purposes)
+	 *
+	 * @return void
+	 */
+	public function reset(): void {
+		$this->services   = array();
+		$this->factories  = array();
+		$this->singletons = array();
+		$this->aliases    = array();
+		$this->resolving  = array();
+	}
+
 	/**
 	 * Create an alias for a service
 	 *
@@ -190,7 +229,7 @@ class ServiceContainer {
 	public function alias( string $alias, string $service_name ): void {
 		$this->aliases[ $alias ] = $service_name;
 	}
-	
+
 	/**
 	 * Resolve alias to actual service identifier
 	 *
@@ -200,16 +239,18 @@ class ServiceContainer {
 	private function resolveAlias( string $service_name ): string {
 		return $this->aliases[ $service_name ] ?? $service_name;
 	}
-	
+
 	/**
 	 * Get all registered service names
 	 *
 	 * @return array List of service names.
 	 */
 	public function getServiceNames(): array {
-		return array_unique( array_merge(
-			array_keys( $this->services ),
-			array_keys( $this->factories )
-		) );
+		return array_unique(
+			array_merge(
+				array_keys( $this->services ),
+				array_keys( $this->factories )
+			)
+		);
 	}
 }

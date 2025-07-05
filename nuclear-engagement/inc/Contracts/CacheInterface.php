@@ -1,4 +1,10 @@
 <?php
+/**
+ * CacheInterface.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package NuclearEngagement_Contracts
+ */
+
 declare(strict_types=1);
 /**
  * File: inc/Contracts/CacheInterface.php
@@ -18,7 +24,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Defines caching contract for the plugin.
  */
 interface CacheInterface {
-	
+
 	/**
 	 * Get cached value.
 	 *
@@ -27,7 +33,7 @@ interface CacheInterface {
 	 * @return mixed Cached value or default.
 	 */
 	public function get( string $key, $default = null );
-	
+
 	/**
 	 * Set cached value.
 	 *
@@ -37,7 +43,7 @@ interface CacheInterface {
 	 * @return bool Success status.
 	 */
 	public function set( string $key, $value, int $expiration = 3600 ): bool;
-	
+
 	/**
 	 * Delete cached value.
 	 *
@@ -45,7 +51,7 @@ interface CacheInterface {
 	 * @return bool Success status.
 	 */
 	public function delete( string $key ): bool;
-	
+
 	/**
 	 * Clear all cached values in group.
 	 *
@@ -53,14 +59,14 @@ interface CacheInterface {
 	 * @return bool Success status.
 	 */
 	public function flush_group( string $group ): bool;
-	
+
 	/**
 	 * Clear all cached values.
 	 *
 	 * @return bool Success status.
 	 */
 	public function flush(): bool;
-	
+
 	/**
 	 * Check if key exists in cache.
 	 *

@@ -1,12 +1,5 @@
 <?php
 namespace NuclearEngagement\Services {
-	// Stub LoggingService to capture log messages
-	class LoggingService {
-		public static array $logs = [];
-		public static function log(string $msg): void {
-			self::$logs[] = $msg;
-		}
-	}
 }
 
 namespace {

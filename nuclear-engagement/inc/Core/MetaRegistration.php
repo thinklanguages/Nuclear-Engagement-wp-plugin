@@ -1,10 +1,16 @@
 <?php
+/**
+ * MetaRegistration.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package NuclearEngagement_Core
+ */
+
 declare(strict_types=1);
 /**
 	* File: includes/MetaRegistration.php
 	*
 	* Register meta keys for better query performance
-	*
+ *
 	* @package NuclearEngagement
 	*/
 
@@ -18,10 +24,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
-	* Class MetaRegistration
-	*
-	* Handles registration of post meta keys for improved query performance
-	*/
+ * Class MetaRegistration
+ *
+ * Handles registration of post meta keys for improved query performance
+ */
 class MetaRegistration {
 
 	/**
@@ -35,10 +41,10 @@ class MetaRegistration {
 	 * Register all plugin meta keys
 	 */
 	public static function register_meta_keys(): void {
-		// Get allowed post types from settings
+		// Get allowed post types from settings.
 				$post_types = SettingsFunctions::get_array( 'generation_post_types', array( 'post' ) );
 
-		// Register quiz data meta
+		// Register quiz data meta.
 		foreach ( $post_types as $post_type ) {
 			register_post_meta(
 				$post_type,
@@ -67,7 +73,7 @@ class MetaRegistration {
 				)
 			);
 
-			// Register summary data meta
+			// Register summary data meta.
 			register_post_meta(
 				$post_type,
 				Summary_Service::META_KEY,
@@ -108,7 +114,7 @@ class MetaRegistration {
 			return '';
 		}
 
-		// Ensure required structure
+		// Ensure required structure.
 		$sanitized = array(
 			'date'      => '',
 			'questions' => array(),
@@ -183,7 +189,7 @@ class MetaRegistration {
 	 * @return bool
 	 */
 	public static function auth_callback( $allowed, $meta_key, $object_id, $user_id, $cap, $caps ) {
-		// Check if user can edit this post
+		// Check if user can edit this post.
 		if ( ! user_can( $user_id, 'edit_post', $object_id ) ) {
 			return false;
 		}

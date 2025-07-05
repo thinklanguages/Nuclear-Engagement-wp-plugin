@@ -1,7 +1,9 @@
 <?php
 namespace NuclearEngagement\Services {
-	function add_action(...$args) {
-		$GLOBALS['ans_actions'][] = $args;
+	if (!function_exists('NuclearEngagement\Services\add_action')) {
+		function add_action(...$args) {
+			$GLOBALS['ans_actions'][] = $args;
+		}
 	}
 	if (!function_exists('esc_html')) {
 		function esc_html($text) { return $text; }

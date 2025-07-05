@@ -1,4 +1,10 @@
 <?php
+/**
+ * ServiceDiscovery.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package NuclearEngagement_Core
+ */
+
 declare(strict_types=1);
 
 namespace NuclearEngagement\Core;
@@ -19,21 +25,21 @@ final class ServiceDiscovery {
 	 *
 	 * @var array<string, array{class: string, interfaces: array, dependencies: array, metadata: array}>
 	 */
-	private static array $discovered_services = [];
+	private static array $discovered_services = array();
 
 	/**
 	 * Service providers.
 	 *
 	 * @var array<string, callable>
 	 */
-	private static array $service_providers = [];
+	private static array $service_providers = array();
 
 	/**
 	 * Service health status.
 	 *
 	 * @var array<string, array{status: string, last_check: int, message: string}>
 	 */
-	private static array $health_status = [];
+	private static array $health_status = array();
 
 	/**
 	 * Auto-discovery enabled.
@@ -50,12 +56,12 @@ final class ServiceDiscovery {
 			return;
 		}
 
-		// Schedule health checks
+		// Schedule health checks.
 		if ( ! wp_next_scheduled( 'nuclen_service_health_check' ) ) {
 			wp_schedule_event( time(), 'hourly', 'nuclen_service_health_check' );
 		}
 
-		add_action( 'nuclen_service_health_check', [ self::class, 'run_health_checks' ] );
+		add_action( 'nuclen_service_health_check', array( self::class, 'run_health_checks' ) );
 	}
 
 	/**
@@ -64,22 +70,22 @@ final class ServiceDiscovery {
 	 * @param array<string> $directories Directories to scan.
 	 * @return array<string, array> Discovered services.
 	 */
-	public static function discoverServices( array $directories = [] ): array {
+	public static function discoverServices( array $directories = array() ): array {
 		if ( empty( $directories ) ) {
-			$directories = [
+			$directories = array(
 				NUCLEN_PLUGIN_DIR . 'inc/Services/',
 				NUCLEN_PLUGIN_DIR . 'inc/Core/',
-			];
+			);
 		}
 
 		$cache_key = 'nuclen_discovered_services_' . hash( 'xxh3', implode( '|', $directories ) );
-		$cached = wp_cache_get( $cache_key, 'nuclen_services' );
+		$cached    = wp_cache_get( $cache_key, 'nuclen_services' );
 
 		if ( $cached !== false ) {
 			return $cached;
 		}
 
-		$services = [];
+		$services = array();
 
 		foreach ( $directories as $directory ) {
 			if ( ! is_dir( $directory ) ) {
@@ -102,7 +108,7 @@ final class ServiceDiscovery {
 	 * @param callable $provider Provider function.
 	 */
 	public static function registerProvider( string $name, callable $provider ): void {
-		self::$service_providers[$name] = $provider;
+		self::$service_providers[ $name ] = $provider;
 	}
 
 	/**
@@ -117,12 +123,12 @@ final class ServiceDiscovery {
 			} catch ( \Throwable $e ) {
 				ErrorRecovery::addErrorContext(
 					"Failed to load service provider: {$name}",
-					[
+					array(
 						'provider' => $name,
 						'error'    => $e->getMessage(),
 						'file'     => $e->getFile(),
 						'line'     => $e->getLine(),
-					],
+					),
 					'error'
 				);
 			}
@@ -134,7 +140,7 @@ final class ServiceDiscovery {
 	 *
 	 * @param array<string> $directories Directories to scan.
 	 */
-	public static function autoRegister( array $directories = [] ): void {
+	public static function autoRegister( array $directories = array() ): void {
 		$services = self::discoverServices( $directories );
 
 		foreach ( $services as $class => $metadata ) {
@@ -149,36 +155,36 @@ final class ServiceDiscovery {
 	 * @return array{status: string, message: string, timestamp: int}
 	 */
 	public static function checkServiceHealth( string $service_id ): array {
-		$health = [
+		$health = array(
 			'status'    => 'unknown',
 			'message'   => 'Service not found',
 			'timestamp' => time(),
-		];
+		);
 
 		try {
 			if ( ServiceContainer::bound( $service_id ) ) {
 				$service = ServiceContainer::resolve( $service_id );
-				
-				// Check if service has a health check method
+
+				// Check if service has a health check method.
 				if ( method_exists( $service, 'healthCheck' ) ) {
-					$result = $service->healthCheck();
-					$health['status'] = $result['status'] ?? 'healthy';
+					$result            = $service->healthCheck();
+					$health['status']  = $result['status'] ?? 'healthy';
 					$health['message'] = $result['message'] ?? 'Service is operational';
 				} else {
-					$health['status'] = 'healthy';
+					$health['status']  = 'healthy';
 					$health['message'] = 'Service is available';
 				}
 			}
 		} catch ( \Throwable $e ) {
-			$health['status'] = 'unhealthy';
+			$health['status']  = 'unhealthy';
 			$health['message'] = $e->getMessage();
 		}
 
-		self::$health_status[$service_id] = [
+		self::$health_status[ $service_id ] = array(
 			'status'     => $health['status'],
 			'last_check' => $health['timestamp'],
 			'message'    => $health['message'],
-		];
+		);
 
 		return $health;
 	}
@@ -197,7 +203,7 @@ final class ServiceDiscovery {
 	 */
 	public static function run_health_checks(): void {
 		$services = ServiceContainer::getServices();
-		
+
 		foreach ( $services['bindings'] as $service_id ) {
 			self::checkServiceHealth( $service_id );
 		}
@@ -213,10 +219,10 @@ final class ServiceDiscovery {
 	 * @return array<string, array<string>>
 	 */
 	public static function getDependencyGraph(): array {
-		$graph = [];
+		$graph = array();
 
 		foreach ( self::$discovered_services as $class => $metadata ) {
-			$graph[$class] = $metadata['dependencies'] ?? [];
+			$graph[ $class ] = $metadata['dependencies'] ?? array();
 		}
 
 		return $graph;
@@ -228,13 +234,13 @@ final class ServiceDiscovery {
 	 * @return array<string, array<string>> Missing dependencies by service.
 	 */
 	public static function validateDependencies(): array {
-		$missing = [];
-		$graph = self::getDependencyGraph();
+		$missing = array();
+		$graph   = self::getDependencyGraph();
 
 		foreach ( $graph as $service => $dependencies ) {
 			foreach ( $dependencies as $dependency ) {
 				if ( ! ServiceContainer::bound( $dependency ) && ! class_exists( $dependency ) ) {
-					$missing[$service][] = $dependency;
+					$missing[ $service ][] = $dependency;
 				}
 			}
 		}
@@ -256,7 +262,7 @@ final class ServiceDiscovery {
 	 */
 	public static function clearCache(): void {
 		wp_cache_flush_group( 'nuclen_services' );
-		self::$discovered_services = [];
+		self::$discovered_services = array();
 	}
 
 	/**
@@ -266,7 +272,7 @@ final class ServiceDiscovery {
 	 * @return array<string, array> Discovered services.
 	 */
 	private static function scanDirectory( string $directory ): array {
-		$services = [];
+		$services = array();
 		$iterator = new \RecursiveIteratorIterator(
 			new \RecursiveDirectoryIterator( $directory, \RecursiveDirectoryIterator::SKIP_DOTS )
 		);
@@ -278,7 +284,7 @@ final class ServiceDiscovery {
 
 			$class_info = self::analyzeFile( $file->getPathname() );
 			if ( $class_info ) {
-				$services[$class_info['class']] = $class_info;
+				$services[ $class_info['class'] ] = $class_info;
 			}
 		}
 
@@ -297,43 +303,43 @@ final class ServiceDiscovery {
 			return null;
 		}
 
-		// Extract namespace
+		// Extract namespace.
 		if ( ! preg_match( '/namespace\s+([^;]+);/', $content, $namespace_match ) ) {
 			return null;
 		}
 
-		// Extract class name
+		// Extract class name.
 		if ( ! preg_match( '/class\s+(\w+)/', $content, $class_match ) ) {
 			return null;
 		}
 
-		$namespace = trim( $namespace_match[1] );
+		$namespace  = trim( $namespace_match[1] );
 		$class_name = $class_match[1];
 		$full_class = $namespace . '\\' . $class_name;
 
-		// Skip if class doesn't exist
+		// Skip if class doesn't exist.
 		if ( ! class_exists( $full_class ) ) {
 			return null;
 		}
 
 		try {
 			$reflection = new \ReflectionClass( $full_class );
-			
-			// Skip abstract classes and interfaces
+
+			// Skip abstract classes and interfaces.
 			if ( $reflection->isAbstract() || $reflection->isInterface() ) {
 				return null;
 			}
 
-			$interfaces = array_keys( $reflection->getInterfaces() );
+			$interfaces   = array_keys( $reflection->getInterfaces() );
 			$dependencies = self::extractDependencies( $reflection );
-			$metadata = self::extractMetadata( $reflection, $content );
+			$metadata     = self::extractMetadata( $reflection, $content );
 
-			return [
+			return array(
 				'class'        => $full_class,
 				'interfaces'   => $interfaces,
 				'dependencies' => $dependencies,
 				'metadata'     => $metadata,
-			];
+			);
 		} catch ( \ReflectionException $e ) {
 			return null;
 		}
@@ -346,8 +352,8 @@ final class ServiceDiscovery {
 	 * @return array<string> Dependencies.
 	 */
 	private static function extractDependencies( \ReflectionClass $reflection ): array {
-		$dependencies = [];
-		$constructor = $reflection->getConstructor();
+		$dependencies = array();
+		$constructor  = $reflection->getConstructor();
 
 		if ( ! $constructor ) {
 			return $dependencies;
@@ -355,7 +361,7 @@ final class ServiceDiscovery {
 
 		foreach ( $constructor->getParameters() as $parameter ) {
 			$type = $parameter->getType();
-			
+
 			if ( $type instanceof \ReflectionNamedType && ! $type->isBuiltin() ) {
 				$dependencies[] = $type->getName();
 			}
@@ -372,22 +378,22 @@ final class ServiceDiscovery {
 	 * @return array Metadata.
 	 */
 	private static function extractMetadata( \ReflectionClass $reflection, string $content ): array {
-		$metadata = [
+		$metadata = array(
 			'singleton'   => false,
 			'lazy'        => false,
 			'priority'    => 10,
-			'tags'        => [],
+			'tags'        => array(),
 			'description' => '',
-		];
+		);
 
 		$docComment = $reflection->getDocComment();
 		if ( $docComment ) {
-			// Extract description
+			// Extract description.
 			if ( preg_match( '/\*\s*(.+?)(?:\s*\*\s*@|\s*\*\/)/s', $docComment, $desc_match ) ) {
 				$metadata['description'] = trim( $desc_match[1] );
 			}
 
-			// Check for service annotations
+			// Check for service annotations.
 			if ( strpos( $docComment, '@singleton' ) !== false ) {
 				$metadata['singleton'] = true;
 			}
@@ -396,18 +402,18 @@ final class ServiceDiscovery {
 				$metadata['lazy'] = true;
 			}
 
-			// Extract priority
+			// Extract priority.
 			if ( preg_match( '/@priority\s+(\d+)/', $docComment, $priority_match ) ) {
 				$metadata['priority'] = (int) $priority_match[1];
 			}
 
-			// Extract tags
+			// Extract tags.
 			if ( preg_match_all( '/@tag\s+(\w+)/', $docComment, $tag_matches ) ) {
 				$metadata['tags'] = $tag_matches[1];
 			}
 		}
 
-		// Check for service registration method
+		// Check for service registration method.
 		if ( $reflection->hasMethod( 'register_hooks' ) ) {
 			$metadata['tags'][] = 'hook_provider';
 		}
@@ -422,7 +428,7 @@ final class ServiceDiscovery {
 	 * @param array  $metadata Service metadata.
 	 */
 	private static function registerDiscoveredService( string $class, array $metadata ): void {
-		$factory = function() use ( $class ) {
+		$factory = function () use ( $class ) {
 			return ServiceContainer::resolve( $class );
 		};
 
@@ -432,7 +438,7 @@ final class ServiceDiscovery {
 			ServiceContainer::bind( $class, $factory );
 		}
 
-		// Register interfaces
+		// Register interfaces.
 		foreach ( $metadata['interfaces'] as $interface ) {
 			ServiceContainer::interface( $interface, $class );
 		}

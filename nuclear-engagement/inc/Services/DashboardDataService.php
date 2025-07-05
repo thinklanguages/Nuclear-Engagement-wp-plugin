@@ -1,4 +1,10 @@
 <?php
+/**
+ * DashboardDataService.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package NuclearEngagement_Services
+ */
+
 declare(strict_types=1);
 /**
  * File: includes/Services/DashboardDataService.php
@@ -114,7 +120,7 @@ class DashboardDataService {
 	 * @param array  $statuses   Allowed post statuses.
 	 * @return array             Rows with counts for quiz and summary.
 	 */
-public function get_dual_counts( string $group_by, array $post_types, array $statuses ): array {
+	public function get_dual_counts( string $group_by, array $post_types, array $statuses ): array {
 		global $wpdb;
 
 		$post_types = array_map( 'sanitize_key', $post_types );
@@ -160,27 +166,27 @@ public function get_dual_counts( string $group_by, array $post_types, array $sta
 		wp_cache_set( $cache_key, $rows, self::CACHE_GROUP, self::CACHE_TTL );
 		set_transient( $transient, $rows, self::CACHE_TTL );
 
-return $rows;
-}
+		return $rows;
+	}
 
-/**
- * Retrieve counts grouped by category.
- *
- * @param array $post_types Allowed post types.
- * @param array $statuses   Allowed post statuses.
- * @return array            Rows of counts.
- */
+	/**
+	 * Retrieve counts grouped by category.
+	 *
+	 * @param array $post_types Allowed post types.
+	 * @param array $statuses   Allowed post statuses.
+	 * @return array            Rows of counts.
+	 */
 	public function get_category_dual_counts( array $post_types, array $statuses ): array {
 		global $wpdb;
-		
+
 		$post_types = array_map( 'sanitize_key', $post_types );
 		$statuses   = array_map( 'sanitize_key', $statuses );
-		
+
 		$placeholders_pt = implode( ',', array_fill( 0, count( $post_types ), '%s' ) );
 		$placeholders_st = implode( ',', array_fill( 0, count( $statuses ), '%s' ) );
-		
+
 		$sql = $wpdb->prepare(
-		"SELECT t.term_id,
+			"SELECT t.term_id,
 		 t.name AS cat_name,
 		 SUM(CASE WHEN pm_q.meta_id IS NULL THEN 0 ELSE 1 END) AS quiz_with,
 		 SUM(CASE WHEN pm_q.meta_id IS NULL THEN 1 ELSE 0 END) AS quiz_without,
@@ -195,18 +201,18 @@ return $rows;
 		WHERE p.post_type  IN ($placeholders_pt)
 		AND p.post_status IN ($placeholders_st)
 		GROUP BY t.term_id",
-		array_merge( $post_types, $statuses )
+			array_merge( $post_types, $statuses )
 		);
-		
+
 		$rows = $wpdb->get_results( $sql, ARRAY_A );
-		
+
 		if ( ! empty( $wpdb->last_error ) ) {
-		LoggingService::log( 'Category stats query error: ' . $wpdb->last_error );
-		return array();
+			LoggingService::log( 'Category stats query error: ' . $wpdb->last_error );
+			return array();
 		}
-		
+
 		return $rows;
-		}
+	}
 
 	/**
 	 * Retrieve any scheduled generation tasks.

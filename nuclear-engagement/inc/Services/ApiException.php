@@ -1,4 +1,10 @@
 <?php
+/**
+ * ApiException.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package NuclearEngagement_Services
+ */
+
 declare(strict_types=1);
 /**
  * File: includes/Services/ApiException.php
@@ -13,11 +19,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 class ApiException extends \RuntimeException {
-	private ?string $errorCode;
+	private ?string $error_code;
 
-	public function __construct( string $message, int $code = 500, ?string $errorCode = null ) {
+	public function __construct( string $message, int $code = 500, ?string $error_code = null ) {
 		parent::__construct( $message, $code );
-		$this->errorCode = $errorCode;
+		$this->errorCode = $error_code;
 	}
 
 	public function getErrorCode(): ?string {

@@ -1,4 +1,10 @@
 <?php
+/**
+ * BaseController.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package NuclearEngagement_Admin_Controller_Ajax
+ */
+
 declare(strict_types=1);
 /**
  * File: admin/Controller/Ajax/BaseController.php
@@ -28,7 +34,7 @@ abstract class BaseController {
 	 * @param string $message Error message.
 	 * @param int    $code    HTTP status code.
 	 */
-	protected function sendError( string $message, int $code = 500 ): void {
+	protected function send_error( string $message, int $code = 500 ): void {
 		status_header( $code );
 		wp_send_json_error(
 			array(
@@ -43,48 +49,48 @@ abstract class BaseController {
 	 *
 	 * @return bool True if rate limited.
 	 */
-	protected function isRateLimited(): bool {
-		$user_id = get_current_user_id();
+	protected function is_rate_limited(): bool {
+		$user_id    = get_current_user_id();
 		$identifier = $user_id > 0 ? 'user_' . $user_id : ServerUtils::get_client_identifier();
-		
-		// Check if temporarily blocked
+
+		// Check if temporarily blocked.
 		if ( RateLimiter::is_temporarily_blocked( $identifier ) ) {
 			return true;
 		}
-		
-		// Check rate limit for API requests
+
+		// Check rate limit for API requests.
 		if ( RateLimiter::is_rate_limited( 'api_request', $identifier ) ) {
 			RateLimiter::record_violation( 'api_request', $identifier );
 			return true;
 		}
-		
+
 		return false;
 	}
 
 	/**
 	 * Verify nonce and permissions.
 	 *
-	 * @param string $nonceAction Nonce action.
-	 * @param string $nonceField  Nonce field name.
+	 * @param string $nonce_action Nonce action.
+	 * @param string $nonce_field  Nonce field name.
 	 * @param string $capability  Capability to check.
 	 * @return bool Whether the request is valid.
 	 */
-	protected function verifyRequest(
-		string $nonceAction,
-		string $nonceField = 'security',
+	protected function verify_request(
+		string $nonce_action,
+		string $nonce_field = 'security',
 		string $capability = 'manage_options'
 	): bool {
-		// Check rate limiting first
-		if ( $this->isRateLimited() ) {
-			$this->sendError(
+		// Check rate limiting first.
+		if ( $this->is_rate_limited() ) {
+			$this->send_error(
 				__( 'Too many requests. Please wait before trying again.', 'nuclear-engagement' ),
 				429
 			);
 			return false;
 		}
 
-		if ( ! check_ajax_referer( $nonceAction, $nonceField, false ) ) {
-			$this->sendError(
+		if ( ! check_ajax_referer( $nonce_action, $nonce_field, false ) ) {
+			$this->send_error(
 				__( 'Security check failed', 'nuclear-engagement' ),
 				403
 			);
@@ -92,7 +98,7 @@ abstract class BaseController {
 		}
 
 		if ( ! current_user_can( $capability ) ) {
-			$this->sendError( __( 'Not allowed', 'nuclear-engagement' ), 403 );
+			$this->send_error( __( 'Not allowed', 'nuclear-engagement' ), 403 );
 			return false;
 		}
 
@@ -107,7 +113,7 @@ abstract class BaseController {
 	 * @param int    $max Maximum allowed value.
 	 * @return int|null Sanitized value or null if invalid.
 	 */
-	protected function validatePostInt( string $key, int $min = 0, int $max = PHP_INT_MAX ): ?int {
+	protected function validate_post_int( string $key, int $min = 0, int $max = PHP_INT_MAX ): ?int {
 		if ( ! isset( $_POST[ $key ] ) ) {
 			return null;
 		}
@@ -161,13 +167,13 @@ abstract class BaseController {
 		}
 
 		$json_string = $_POST[ $key ];
-		
+
 		if ( ! is_string( $json_string ) || strlen( $json_string ) > $max_length ) {
 			return null;
 		}
 
-		$decoded = json_decode( $json_string, true, $max_depth );
-		
+		$decoded = wp_json_decode( $json_string, true, $max_depth );
+
 		if ( json_last_error() !== JSON_ERROR_NONE ) {
 			return null;
 		}

@@ -1,4 +1,10 @@
 <?php
+/**
+ * ErrorRecovery.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package NuclearEngagement_Core
+ */
+
 declare(strict_types=1);
 
 namespace NuclearEngagement\Core;
@@ -17,8 +23,8 @@ final class ErrorRecovery {
 	/**
 	 * Circuit breaker states.
 	 */
-	private const STATE_CLOSED = 'closed';
-	private const STATE_OPEN = 'open';
+	private const STATE_CLOSED    = 'closed';
+	private const STATE_OPEN      = 'open';
 	private const STATE_HALF_OPEN = 'half_open';
 
 	/**
@@ -26,65 +32,65 @@ final class ErrorRecovery {
 	 *
 	 * @var array<string, array{state: string, failures: int, last_failure: int, next_attempt: int}>
 	 */
-	private static array $circuit_breakers = [];
+	private static array $circuit_breakers = array();
 
 	/**
 	 * Retry configurations.
 	 *
 	 * @var array<string, array{max_attempts: int, delay: int, backoff_multiplier: float}>
 	 */
-	private static array $retry_configs = [];
+	private static array $retry_configs = array();
 
 	/**
 	 * Fallback handlers.
 	 *
 	 * @var array<string, callable>
 	 */
-	private static array $fallback_handlers = [];
+	private static array $fallback_handlers = array();
 
 	/**
 	 * Error context storage.
 	 *
 	 * @var array<array{message: string, context: array, timestamp: int, level: string}>
 	 */
-	private static array $error_context = [];
+	private static array $error_context = array();
 
 	/**
 	 * Default circuit breaker settings.
 	 *
 	 * @var array{failure_threshold: int, timeout: int, half_open_max_calls: int}
 	 */
-	private static array $default_breaker_config = [
-		'failure_threshold'    => 5,
+	private static array $default_breaker_config = array(
+		'failure_threshold'   => 5,
 		'timeout'             => 60,
 		'half_open_max_calls' => 3,
-	];
+	);
 
 	/**
 	 * Initialize error recovery system.
 	 */
 	public static function init(): void {
-		// Set up default retry configurations
-		self::$retry_configs = [
-			'default' => [
+		// Set up default retry configurations.
+		self::$retry_configs = array(
+			'default'  => array(
 				'max_attempts'       => 3,
-				'delay'             => 1000, // 1 second
+				'delay'              => 1000, // 1 second.
 				'backoff_multiplier' => 2.0,
-			],
-			'network' => [
+			),
+			'network'  => array(
 				'max_attempts'       => 5,
-				'delay'             => 500, // 0.5 seconds
+				'delay'              => 500, // 0.5 seconds
 				'backoff_multiplier' => 1.5,
-			],
-			'database' => [
+			),
+			'database' => array(
 				'max_attempts'       => 3,
-				'delay'             => 2000, // 2 seconds
+				'delay'              => 2000, // 2 seconds.
 				'backoff_multiplier' => 2.5,
-			],
-		];
+			),
+		);
 
-		// Register shutdown handler for emergency cleanup
-		register_shutdown_function( [ self::class, 'handle_shutdown' ] );
+		// Register shutdown handler for emergency cleanup.
+		register_shutdown_function( array( self::class, 'handle_shutdown' ) );
 	}
 
 	/**
@@ -96,11 +102,11 @@ final class ErrorRecovery {
 	 * @return mixed
 	 * @throws \RuntimeException If circuit is open or operation fails.
 	 */
-	public static function executeWithCircuitBreaker( string $service_id, callable $operation, array $config = [] ) {
+	public static function executeWithCircuitBreaker( string $service_id, callable $operation, array $config = array() ) {
 		$config = array_merge( self::$default_breaker_config, $config );
-		
+
 		if ( ! self::canExecute( $service_id, $config ) ) {
-			$fallback = self::$fallback_handlers[$service_id] ?? null;
+			$fallback = self::$fallback_handlers[ $service_id ] ?? null;
 			if ( $fallback ) {
 				return call_user_func( $fallback );
 			}
@@ -126,29 +132,29 @@ final class ErrorRecovery {
 	 * @return mixed
 	 * @throws \RuntimeException If all retry attempts fail.
 	 */
-	public static function executeWithRetry( callable $operation, string $type = 'default', array $context = [] ) {
-		$config = self::$retry_configs[$type] ?? self::$retry_configs['default'];
-		$attempt = 0;
+	public static function executeWithRetry( callable $operation, string $type = 'default', array $context = array() ) {
+		$config         = self::$retry_configs[ $type ] ?? self::$retry_configs['default'];
+		$attempt        = 0;
 		$last_exception = null;
 
 		while ( $attempt < $config['max_attempts'] ) {
-			$attempt++;
+			++$attempt;
 
 			try {
 				return call_user_func( $operation );
 			} catch ( \Throwable $e ) {
 				$last_exception = $e;
-				
+
 				self::logRetryAttempt( $attempt, $config['max_attempts'], $e, $context );
 
 				if ( $attempt < $config['max_attempts'] ) {
 					$delay = self::calculateDelay( $attempt, $config );
-					usleep( $delay * 1000 ); // Convert to microseconds
+					usleep( $delay * 1000 ); // Convert to microseconds.
 				}
 			}
 		}
 
-		throw new \RuntimeException( 
+		throw new \RuntimeException(
 			"Operation failed after {$config['max_attempts']} attempts. Last error: " . $last_exception->getMessage(),
 			0,
 			$last_exception
@@ -163,7 +169,7 @@ final class ErrorRecovery {
 	 * @param array         $context            Context for logging.
 	 * @return mixed
 	 */
-	public static function executeWithGracefulDegradation( callable $primary_operation, ?callable $fallback_operation = null, array $context = [] ) {
+	public static function executeWithGracefulDegradation( callable $primary_operation, ?callable $fallback_operation = null, array $context = array() ) {
 		try {
 			return call_user_func( $primary_operation );
 		} catch ( \Throwable $e ) {
@@ -189,7 +195,7 @@ final class ErrorRecovery {
 	 * @param callable $handler    Fallback handler.
 	 */
 	public static function registerFallback( string $service_id, callable $handler ): void {
-		self::$fallback_handlers[$service_id] = $handler;
+		self::$fallback_handlers[ $service_id ] = $handler;
 	}
 
 	/**
@@ -199,7 +205,7 @@ final class ErrorRecovery {
 	 * @param array  $config Retry configuration.
 	 */
 	public static function configureRetry( string $type, array $config ): void {
-		self::$retry_configs[$type] = array_merge( self::$retry_configs['default'], $config );
+		self::$retry_configs[ $type ] = array_merge( self::$retry_configs['default'], $config );
 	}
 
 	/**
@@ -209,18 +215,18 @@ final class ErrorRecovery {
 	 * @return array{state: string, failures: int, last_failure: int}
 	 */
 	public static function getCircuitBreakerStatus( string $service_id ): array {
-		$breaker = self::$circuit_breakers[$service_id] ?? [
+		$breaker = self::$circuit_breakers[ $service_id ] ?? array(
 			'state'        => self::STATE_CLOSED,
 			'failures'     => 0,
 			'last_failure' => 0,
 			'next_attempt' => 0,
-		];
+		);
 
-		return [
+		return array(
 			'state'        => $breaker['state'],
 			'failures'     => $breaker['failures'],
 			'last_failure' => $breaker['last_failure'],
-		];
+		);
 	}
 
 	/**
@@ -229,7 +235,7 @@ final class ErrorRecovery {
 	 * @param string $service_id Service identifier.
 	 */
 	public static function resetCircuitBreaker( string $service_id ): void {
-		unset( self::$circuit_breakers[$service_id] );
+		unset( self::$circuit_breakers[ $service_id ] );
 	}
 
 	/**
@@ -239,15 +245,15 @@ final class ErrorRecovery {
 	 * @param array  $context Additional context.
 	 * @param string $level   Error level.
 	 */
-	public static function addErrorContext( string $message, array $context = [], string $level = 'error' ): void {
-		self::$error_context[] = [
+	public static function addErrorContext( string $message, array $context = array(), string $level = 'error' ): void {
+		self::$error_context[] = array(
 			'message'   => $message,
 			'context'   => $context,
 			'timestamp' => time(),
 			'level'     => $level,
-		];
+		);
 
-		// Keep only last 100 entries
+		// Keep only last 100 entries.
 		if ( count( self::$error_context ) > 100 ) {
 			self::$error_context = array_slice( self::$error_context, -100 );
 		}
@@ -268,22 +274,22 @@ final class ErrorRecovery {
 	 */
 	public static function handle_shutdown(): void {
 		$error = error_get_last();
-		
-		if ( $error && in_array( $error['type'], [ E_ERROR, E_CORE_ERROR, E_COMPILE_ERROR, E_PARSE ], true ) ) {
-			self::addErrorContext( 
+
+		if ( $error && in_array( $error['type'], array( E_ERROR, E_CORE_ERROR, E_COMPILE_ERROR, E_PARSE ), true ) ) {
+			self::addErrorContext(
 				'Fatal error detected during shutdown',
-				[
-					'error'    => $error,
-					'context'  => self::getErrorContext( 5 ),
-					'memory'   => memory_get_peak_usage( true ),
-					'time'     => microtime( true ),
-				],
+				array(
+					'error'   => $error,
+					'context' => self::getErrorContext( 5 ),
+					'memory'  => memory_get_peak_usage( true ),
+					'time'    => microtime( true ),
+				),
 				'critical'
 			);
 
-			// Try to log the fatal error
+			// Try to log the fatal error.
 			if ( class_exists( 'NuclearEngagement\\Services\\LoggingService' ) ) {
-				\NuclearEngagement\Services\LoggingService::log( 
+				\NuclearEngagement\Services\LoggingService::log(
 					'Nuclear Engagement Fatal Error: ' . $error['message'] . ' in ' . $error['file'] . ':' . $error['line']
 				);
 			}
@@ -298,17 +304,17 @@ final class ErrorRecovery {
 	 * @return bool
 	 */
 	private static function canExecute( string $service_id, array $config ): bool {
-		if ( ! isset( self::$circuit_breakers[$service_id] ) ) {
-			self::$circuit_breakers[$service_id] = [
+		if ( ! isset( self::$circuit_breakers[ $service_id ] ) ) {
+			self::$circuit_breakers[ $service_id ] = array(
 				'state'        => self::STATE_CLOSED,
 				'failures'     => 0,
 				'last_failure' => 0,
 				'next_attempt' => 0,
-			];
+			);
 		}
 
-		$breaker = &self::$circuit_breakers[$service_id];
-		$now = time();
+		$breaker = &self::$circuit_breakers[ $service_id ];
+		$now     = time();
 
 		switch ( $breaker['state'] ) {
 			case self::STATE_CLOSED:
@@ -335,13 +341,13 @@ final class ErrorRecovery {
 	 * @param string $service_id Service identifier.
 	 */
 	private static function recordSuccess( string $service_id ): void {
-		if ( isset( self::$circuit_breakers[$service_id] ) ) {
-			self::$circuit_breakers[$service_id] = [
+		if ( isset( self::$circuit_breakers[ $service_id ] ) ) {
+			self::$circuit_breakers[ $service_id ] = array(
 				'state'        => self::STATE_CLOSED,
 				'failures'     => 0,
 				'last_failure' => 0,
 				'next_attempt' => 0,
-			];
+			);
 		}
 	}
 
@@ -352,21 +358,21 @@ final class ErrorRecovery {
 	 * @param array  $config     Circuit breaker configuration.
 	 */
 	private static function recordFailure( string $service_id, array $config ): void {
-		if ( ! isset( self::$circuit_breakers[$service_id] ) ) {
-			self::$circuit_breakers[$service_id] = [
+		if ( ! isset( self::$circuit_breakers[ $service_id ] ) ) {
+			self::$circuit_breakers[ $service_id ] = array(
 				'state'        => self::STATE_CLOSED,
 				'failures'     => 0,
 				'last_failure' => 0,
 				'next_attempt' => 0,
-			];
+			);
 		}
 
-		$breaker = &self::$circuit_breakers[$service_id];
-		$breaker['failures']++;
+		$breaker = &self::$circuit_breakers[ $service_id ];
+		++$breaker['failures'];
 		$breaker['last_failure'] = time();
 
 		if ( $breaker['failures'] >= $config['failure_threshold'] ) {
-			$breaker['state'] = self::STATE_OPEN;
+			$breaker['state']        = self::STATE_OPEN;
 			$breaker['next_attempt'] = time() + $config['timeout'];
 		}
 	}
@@ -393,11 +399,14 @@ final class ErrorRecovery {
 	private static function logRetryAttempt( int $attempt, int $max_attempts, \Throwable $exception, array $context ): void {
 		self::addErrorContext(
 			"Retry attempt {$attempt}/{$max_attempts} failed",
-			array_merge( $context, [
-				'exception' => $exception->getMessage(),
-				'file'      => $exception->getFile(),
-				'line'      => $exception->getLine(),
-			] ),
+			array_merge(
+				$context,
+				array(
+					'exception' => $exception->getMessage(),
+					'file'      => $exception->getFile(),
+					'line'      => $exception->getLine(),
+				)
+			),
 			'warning'
 		);
 	}
@@ -411,11 +420,14 @@ final class ErrorRecovery {
 	private static function logDegradation( \Throwable $exception, array $context ): void {
 		self::addErrorContext(
 			'Primary operation failed, attempting graceful degradation',
-			array_merge( $context, [
-				'exception' => $exception->getMessage(),
-				'file'      => $exception->getFile(),
-				'line'      => $exception->getLine(),
-			] ),
+			array_merge(
+				$context,
+				array(
+					'exception' => $exception->getMessage(),
+					'file'      => $exception->getFile(),
+					'line'      => $exception->getLine(),
+				)
+			),
 			'warning'
 		);
 	}
@@ -429,11 +441,14 @@ final class ErrorRecovery {
 	private static function logFallbackFailure( \Throwable $exception, array $context ): void {
 		self::addErrorContext(
 			'Fallback operation also failed',
-			array_merge( $context, [
-				'exception' => $exception->getMessage(),
-				'file'      => $exception->getFile(),
-				'line'      => $exception->getLine(),
-			] ),
+			array_merge(
+				$context,
+				array(
+					'exception' => $exception->getMessage(),
+					'file'      => $exception->getFile(),
+					'line'      => $exception->getLine(),
+				)
+			),
 			'critical'
 		);
 	}

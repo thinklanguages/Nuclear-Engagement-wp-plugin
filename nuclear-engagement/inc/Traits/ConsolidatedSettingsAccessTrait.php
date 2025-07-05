@@ -1,4 +1,10 @@
 <?php
+/**
+ * ConsolidatedSettingsAccessTrait.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package NuclearEngagement_Traits
+ */
+
 declare(strict_types=1);
 
 namespace NuclearEngagement\Traits;
@@ -9,7 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 /**
  * Consolidated settings access trait.
- * 
+ *
  * Combines functionality from SettingsAccessTrait, SettingsGettersTrait,
  * SettingsCacheTrait, and SettingsPersistenceTrait.
  *
@@ -29,12 +35,12 @@ trait ConsolidatedSettingsAccessTrait {
 	 * Get a setting value with type safety.
 	 *
 	 * @param string $key Setting key.
-	 * @param mixed $default Default value.
+	 * @param mixed  $default Default value.
 	 * @return mixed Setting value.
 	 */
 	public function get( string $key, $default = null ) {
 		$all_settings = $this->get_all();
-		return $all_settings[$key] ?? $default;
+		return $all_settings[ $key ] ?? $default;
 	}
 
 	/**
@@ -53,7 +59,7 @@ trait ConsolidatedSettingsAccessTrait {
 	 * Get an integer setting value.
 	 *
 	 * @param string $key Setting key.
-	 * @param int $default Default value.
+	 * @param int    $default Default value.
 	 * @return int Setting value.
 	 */
 	public function get_int( string $key, int $default = 0 ): int {
@@ -65,7 +71,7 @@ trait ConsolidatedSettingsAccessTrait {
 	 * Get a boolean setting value.
 	 *
 	 * @param string $key Setting key.
-	 * @param bool $default Default value.
+	 * @param bool   $default Default value.
 	 * @return bool Setting value.
 	 */
 	public function get_bool( string $key, bool $default = false ): bool {
@@ -77,10 +83,10 @@ trait ConsolidatedSettingsAccessTrait {
 	 * Get an array setting value.
 	 *
 	 * @param string $key Setting key.
-	 * @param array $default Default value.
+	 * @param array  $default Default value.
 	 * @return array Setting value.
 	 */
-	public function get_array( string $key, array $default = [] ): array {
+	public function get_array( string $key, array $default = array() ): array {
 		$value = $this->get( $key, $default );
 		return is_array( $value ) ? $value : $default;
 	}
@@ -89,17 +95,17 @@ trait ConsolidatedSettingsAccessTrait {
 	 * Set a setting value.
 	 *
 	 * @param string $key Setting key.
-	 * @param mixed $value Setting value.
+	 * @param mixed  $value Setting value.
 	 * @return self
 	 */
 	public function set( string $key, $value ): self {
 		$this->invalidate_cache();
-		
-		// Update the setting using the repository
+
+		// Update the setting using the repository.
 		if ( isset( $this->settings_repository ) ) {
 			$this->settings_repository->set( $key, $value );
 		}
-		
+
 		return $this;
 	}
 
@@ -114,17 +120,17 @@ trait ConsolidatedSettingsAccessTrait {
 			return self::$settings_cache;
 		}
 
-		$settings = [];
-		
-		// Get settings from repository if available
+		$settings = array();
+
+		// Get settings from repository if available.
 		if ( isset( $this->settings_repository ) ) {
 			$settings = $this->settings_repository->get_all();
 		} else {
-			// Fallback to direct database access
+			// Fallback to direct database access.
 			$settings = $this->get_settings_from_database();
 		}
 
-		// Cache the settings
+		// Cache the settings.
 		if ( $use_cache ) {
 			self::$settings_cache = $settings;
 		}
@@ -151,7 +157,7 @@ trait ConsolidatedSettingsAccessTrait {
 	 */
 	public function save( array $settings = null ): bool {
 		if ( $settings === null ) {
-			$settings = $this->get_all( false ); // Don't use cache
+			$settings = $this->get_all( false ); // Don't use cache.
 		}
 
 		try {
@@ -159,6 +165,7 @@ trait ConsolidatedSettingsAccessTrait {
 			$this->invalidate_cache();
 			return true;
 		} catch ( \Exception $e ) {
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 			error_log( 'Nuclear Engagement: Settings save failed - ' . $e->getMessage() );
 			return false;
 		}
@@ -172,8 +179,8 @@ trait ConsolidatedSettingsAccessTrait {
 	 */
 	public function save_multiple( array $settings ): bool {
 		$current_settings = $this->get_all( false );
-		$merged_settings = array_merge( $current_settings, $settings );
-		
+		$merged_settings  = array_merge( $current_settings, $settings );
+
 		return $this->save( $merged_settings );
 	}
 
@@ -185,12 +192,12 @@ trait ConsolidatedSettingsAccessTrait {
 	 */
 	public function delete( string $key ): bool {
 		$all_settings = $this->get_all( false );
-		
+
 		if ( ! array_key_exists( $key, $all_settings ) ) {
 			return false;
 		}
-		
-		unset( $all_settings[$key] );
+
+		unset( $all_settings[ $key ] );
 		return $this->save( $all_settings );
 	}
 
@@ -205,6 +212,7 @@ trait ConsolidatedSettingsAccessTrait {
 			$this->invalidate_cache();
 			return true;
 		} catch ( \Exception $e ) {
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 			error_log( 'Nuclear Engagement: Settings clear failed - ' . $e->getMessage() );
 			return false;
 		}
@@ -215,12 +223,12 @@ trait ConsolidatedSettingsAccessTrait {
 	 */
 	public function invalidate_cache(): void {
 		self::$settings_cache = null;
-		
-		// Clear related caches
+
+		// Clear related caches.
 		wp_cache_delete( 'nuclen_settings', 'nuclear_engagement' );
 		wp_cache_delete( 'nuclen_all_settings', 'nuclear_engagement' );
-		
-		// Trigger cache invalidation action
+
+		// Trigger cache invalidation action.
 		do_action( 'nuclen_settings_cache_invalidated' );
 	}
 
@@ -240,11 +248,11 @@ trait ConsolidatedSettingsAccessTrait {
 	 * @return array Cache statistics.
 	 */
 	public function get_cache_stats(): array {
-		return [
-			'is_cached' => self::$settings_cache !== null,
-			'cache_size' => self::$settings_cache ? count( self::$settings_cache ) : 0,
+		return array(
+			'is_cached'    => self::$settings_cache !== null,
+			'cache_size'   => self::$settings_cache ? count( self::$settings_cache ) : 0,
 			'memory_usage' => self::$settings_cache ? strlen( serialize( self::$settings_cache ) ) : 0,
-		];
+		);
 	}
 
 	/**
@@ -253,21 +261,21 @@ trait ConsolidatedSettingsAccessTrait {
 	 * @return array Settings from database.
 	 */
 	private function get_settings_from_database(): array {
-		// Try object cache first
+		// Try object cache first.
 		$cached = wp_cache_get( 'nuclen_all_settings', 'nuclear_engagement' );
 		if ( $cached !== false ) {
 			return $cached;
 		}
 
-		// Get from WordPress options
-		$settings = get_option( 'nuclen_settings', [] );
-		
-		// Ensure we have an array
+		// Get from WordPress options.
+		$settings = get_option( 'nuclen_settings', array() );
+
+		// Ensure we have an array.
 		if ( ! is_array( $settings ) ) {
-			$settings = [];
+			$settings = array();
 		}
 
-		// Cache the result
+		// Cache the result.
 		wp_cache_set( 'nuclen_all_settings', $settings, 'nuclear_engagement', HOUR_IN_SECONDS );
 
 		return $settings;
@@ -280,23 +288,23 @@ trait ConsolidatedSettingsAccessTrait {
 	 * @throws \Exception If save fails.
 	 */
 	private function save_settings_to_database( array $settings ): void {
-		// Sanitize settings before saving
+		// Sanitize settings before saving.
 		$sanitized_settings = $this->sanitize_settings_for_storage( $settings );
-		
-		// Determine if option should be autoloaded
+
+		// Determine if option should be autoloaded.
 		$autoload = $this->should_autoload_settings( $sanitized_settings );
-		
-		// Save to WordPress options
+
+		// Save to WordPress options.
 		$result = update_option( 'nuclen_settings', $sanitized_settings, $autoload );
-		
+
 		if ( ! $result ) {
 			throw new \Exception( 'Failed to update settings option' );
 		}
 
-		// Update object cache
+		// Update object cache.
 		wp_cache_set( 'nuclen_all_settings', $sanitized_settings, 'nuclear_engagement', HOUR_IN_SECONDS );
-		
-		// Trigger settings saved action
+
+		// Trigger settings saved action.
 		do_action( 'nuclen_settings_saved', $sanitized_settings );
 	}
 
@@ -307,25 +315,25 @@ trait ConsolidatedSettingsAccessTrait {
 	 * @return array Sanitized settings.
 	 */
 	private function sanitize_settings_for_storage( array $settings ): array {
-		$sanitized = [];
-		
+		$sanitized = array();
+
 		foreach ( $settings as $key => $value ) {
 			$sanitized_key = sanitize_key( $key );
-			
+
 			if ( is_array( $value ) ) {
-				$sanitized[$sanitized_key] = $this->sanitize_settings_for_storage( $value );
+				$sanitized[ $sanitized_key ] = $this->sanitize_settings_for_storage( $value );
 			} elseif ( is_string( $value ) ) {
-				$sanitized[$sanitized_key] = sanitize_text_field( $value );
+				$sanitized[ $sanitized_key ] = sanitize_text_field( $value );
 			} elseif ( is_bool( $value ) ) {
-				$sanitized[$sanitized_key] = (bool) $value;
+				$sanitized[ $sanitized_key ] = (bool) $value;
 			} elseif ( is_numeric( $value ) ) {
-				$sanitized[$sanitized_key] = is_float( $value ) ? (float) $value : (int) $value;
+				$sanitized[ $sanitized_key ] = is_float( $value ) ? (float) $value : (int) $value;
 			} else {
-				// For other types, store as serialized string
-				$sanitized[$sanitized_key] = maybe_serialize( $value );
+				// For other types, store as serialized string.
+				$sanitized[ $sanitized_key ] = maybe_serialize( $value );
 			}
 		}
-		
+
 		return $sanitized;
 	}
 
@@ -336,17 +344,17 @@ trait ConsolidatedSettingsAccessTrait {
 	 * @return bool Whether to autoload.
 	 */
 	private function should_autoload_settings( array $settings ): bool {
-		// Don't autoload if settings are too large (> 100KB)
+		// Don't autoload if settings are too large (> 100KB).
 		$serialized_size = strlen( serialize( $settings ) );
 		if ( $serialized_size > 100 * 1024 ) {
 			return false;
 		}
-		
-		// Don't autoload if there are too many settings
+
+		// Don't autoload if there are too many settings.
 		if ( count( $settings, COUNT_RECURSIVE ) > 1000 ) {
 			return false;
 		}
-		
+
 		return true;
 	}
 
@@ -359,23 +367,23 @@ trait ConsolidatedSettingsAccessTrait {
 		if ( isset( $this->settings_repository ) ) {
 			return $this->settings_repository->get_defaults();
 		}
-		
-		// Fallback defaults
-		return [
-			'theme' => 'default',
-			'count_summary' => 5,
-			'count_toc' => 10,
-			'count_quiz' => 5,
-			'placement_summary' => 'after',
-			'placement_toc' => 'after',
-			'placement_quiz' => 'after',
-			'allow_html_summary' => false,
-			'allow_html_toc' => false,
-			'allow_html_quiz' => false,
+
+		// Fallback defaults.
+		return array(
+			'theme'                 => 'default',
+			'count_summary'         => 5,
+			'count_toc'             => 10,
+			'count_quiz'            => 5,
+			'placement_summary'     => 'after',
+			'placement_toc'         => 'after',
+			'placement_quiz'        => 'after',
+			'allow_html_summary'    => false,
+			'allow_html_toc'        => false,
+			'allow_html_quiz'       => false,
 			'auto_generate_summary' => true,
-			'auto_generate_toc' => true,
-			'auto_generate_quiz' => true,
-		];
+			'auto_generate_toc'     => true,
+			'auto_generate_quiz'    => true,
+		);
 	}
 
 	/**
@@ -395,13 +403,13 @@ trait ConsolidatedSettingsAccessTrait {
 	 */
 	public function export_settings(): array {
 		$settings = $this->get_all( false );
-		
-		return [
-			'version' => NUCLEN_PLUGIN_VERSION,
+
+		return array(
+			'version'     => NUCLEN_PLUGIN_VERSION,
 			'exported_at' => time(),
-			'settings' => $settings,
-			'checksum' => md5( serialize( $settings ) ),
-		];
+			'settings'    => $settings,
+			'checksum'    => md5( serialize( $settings ) ),
+		);
 	}
 
 	/**
@@ -411,28 +419,28 @@ trait ConsolidatedSettingsAccessTrait {
 	 * @return bool Whether import was successful.
 	 */
 	public function import_settings( array $import_data ): bool {
-		// Validate import data
+		// Validate import data.
 		if ( ! isset( $import_data['settings'] ) || ! is_array( $import_data['settings'] ) ) {
 			return false;
 		}
-		
-		// Verify checksum if present
+
+		// Verify checksum if present.
 		if ( isset( $import_data['checksum'] ) ) {
 			$calculated_checksum = md5( serialize( $import_data['settings'] ) );
 			if ( $calculated_checksum !== $import_data['checksum'] ) {
 				return false;
 			}
 		}
-		
-		// Backup current settings
+
+		// Backup current settings.
 		$backup = $this->export_settings();
 		update_option( 'nuclen_settings_backup', $backup );
-		
-		// Import new settings
+
+		// Import new settings.
 		try {
 			return $this->save( $import_data['settings'] );
 		} catch ( \Exception $e ) {
-			// Restore backup on failure
+			// Restore backup on failure.
 			if ( isset( $backup['settings'] ) ) {
 				$this->save( $backup['settings'] );
 			}
@@ -447,23 +455,23 @@ trait ConsolidatedSettingsAccessTrait {
 	 */
 	public function get_usage_stats(): array {
 		$all_settings = $this->get_all( false );
-		$defaults = $this->get_defaults();
-		
+		$defaults     = $this->get_defaults();
+
 		$changed_count = 0;
-		$total_count = count( $defaults );
-		
+		$total_count   = count( $defaults );
+
 		foreach ( $defaults as $key => $default_value ) {
-			if ( isset( $all_settings[$key] ) && $all_settings[$key] !== $default_value ) {
-				$changed_count++;
+			if ( isset( $all_settings[ $key ] ) && $all_settings[ $key ] !== $default_value ) {
+				++$changed_count;
 			}
 		}
-		
-		return [
-			'total_settings' => $total_count,
-			'changed_settings' => $changed_count,
-			'default_settings' => $total_count - $changed_count,
+
+		return array(
+			'total_settings'           => $total_count,
+			'changed_settings'         => $changed_count,
+			'default_settings'         => $total_count - $changed_count,
 			'customization_percentage' => $total_count > 0 ? round( ( $changed_count / $total_count ) * 100, 1 ) : 0,
-			'cache_status' => $this->get_cache_stats(),
-		];
+			'cache_status'             => $this->get_cache_stats(),
+		);
 	}
 }

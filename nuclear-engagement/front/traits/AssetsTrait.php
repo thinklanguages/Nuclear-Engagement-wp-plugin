@@ -1,4 +1,10 @@
 <?php
+/**
+ * AssetsTrait.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package NuclearEngagement_Front
+ */
+
 declare(strict_types=1);
 /**
  * File: front/traits/assets-trait.php
@@ -19,7 +25,7 @@ use NuclearEngagement\Modules\Summary\Summary_Service;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
-		}
+}
 
 trait AssetsTrait {
 
@@ -62,10 +68,9 @@ trait AssetsTrait {
 			return true;
 		}
 		if ( is_admin() || ! is_singular() ) {
-return false;
-}
+			return false;
+		}
 
-	
 		$post_id = get_the_ID();
 		if ( ! $post_id ) {
 			return false;
@@ -95,86 +100,86 @@ return false;
 			}
 		}
 
-				if ( $display_summary !== 'manual' && $display_summary !== 'none' ) {
-						$summary_meta = get_post_meta( $post_id, Summary_Service::META_KEY, true );
+		if ( $display_summary !== 'manual' && $display_summary !== 'none' ) {
+				$summary_meta = get_post_meta( $post_id, Summary_Service::META_KEY, true );
 			if ( is_array( $summary_meta ) && ! empty( trim( $summary_meta['summary'] ?? '' ) ) ) {
 				return true;
 			}
 		}
 
 		return false;
-}
-/**
- * Build inline JS variables for opt-in settings.
- */
+	}
+	/**
+	 * Build inline JS variables for opt-in settings.
+	 */
 	private function get_optin_inline_js(): string {
-		$settings_repo = $this->nuclen_get_settings_repository();
-		$inline_js  = '';
-		$inline_js .= 'window.NuclenOptinEnabled  = ' . ( $settings_repo->get( 'enable_optin', false ) ? 'true' : 'false' ) . ";\n";
+		$settings_repo   = $this->nuclen_get_settings_repository();
+		$inline_js       = '';
+		$inline_js      .= 'window.NuclenOptinEnabled  = ' . ( $settings_repo->get( 'enable_optin', false ) ? 'true' : 'false' ) . ";\n";
 		$raw_mandatory   = $settings_repo->get( 'optin_mandatory', false );
 		$optin_mandatory = ( $raw_mandatory === true || $raw_mandatory === 1 || $raw_mandatory === '1' );
-		$inline_js .= 'window.NuclenOptinMandatory = ' . ( $optin_mandatory ? 'true' : 'false' ) . ";\n";
-		$inline_js .= 'window.NuclenOptinPosition = ' . json_encode( $settings_repo->get( 'optin_position', 'with_results' ) ) . ";\n";
-		$inline_js .= 'window.NuclenOptinPromptText = ' . json_encode( $settings_repo->get( 'optin_prompt_text', 'Please enter your details to view your score:' ) ) . ";\n";
-		$inline_js .= 'window.NuclenOptinButtonText = ' . json_encode( $settings_repo->get( 'optin_button_text', 'Submit' ) ) . ";\n";
-		$inline_js .= 'window.NuclenOptinWebhook = ' . json_encode( $settings_repo->get( 'optin_webhook', '' ) ) . ";\n";
-		$inline_js .= 'window.NuclenOptinSuccessMessage = ' . json_encode( $settings_repo->get( 'optin_success_message', '' ) ) . ";\n";
-		$inline_js .= 'window.NuclenCustomQuizHtmlAfter = ' . json_encode( $settings_repo->get( 'custom_quiz_html_after', '' ) ) . ";\n";
+		$inline_js      .= 'window.NuclenOptinMandatory = ' . ( $optin_mandatory ? 'true' : 'false' ) . ";\n";
+		$inline_js      .= 'window.NuclenOptinPosition = ' . wp_json_encode( $settings_repo->get( 'optin_position', 'with_results' ) ) . ";\n";
+		$inline_js      .= 'window.NuclenOptinPromptText = ' . wp_json_encode( $settings_repo->get( 'optin_prompt_text', 'Please enter your details to view your score:' ) ) . ";\n";
+		$inline_js      .= 'window.NuclenOptinButtonText = ' . wp_json_encode( $settings_repo->get( 'optin_button_text', 'Submit' ) ) . ";\n";
+		$inline_js      .= 'window.NuclenOptinWebhook = ' . wp_json_encode( $settings_repo->get( 'optin_webhook', '' ) ) . ";\n";
+		$inline_js      .= 'window.NuclenOptinSuccessMessage = ' . wp_json_encode( $settings_repo->get( 'optin_success_message', '' ) ) . ";\n";
+		$inline_js      .= 'window.NuclenCustomQuizHtmlAfter = ' . wp_json_encode( $settings_repo->get( 'custom_quiz_html_after', '' ) ) . ";\n";
 		return $inline_js;
 	}
-	
+
 	/**
 	 * Data for AJAX opt-in requests.
 	 */
 	private function get_optin_ajax_data(): array {
 		return array(
-		'url'   => admin_url( 'admin-ajax.php' ),
-		'nonce' => wp_create_nonce( 'nuclen_optin_nonce' ),
+			'url'   => admin_url( 'admin-ajax.php' ),
+			'nonce' => wp_create_nonce( 'nuclen_optin_nonce' ),
 		);
-		}
-	
+	}
+
 	/**
 	 * Retrieve quiz questions for the current post.
 	 */
 	private function get_post_quiz_data(): array {
 		$post_id = get_the_ID();
-		
-		// Validate post ID before proceeding
+
+		// Validate post ID before proceeding.
 		if ( ! $post_id || ! is_int( $post_id ) ) {
 			return array();
 		}
-		
+
 		$quiz_meta = maybe_unserialize( get_post_meta( $post_id, 'nuclen-quiz-data', true ) );
 		return ( is_array( $quiz_meta ) && isset( $quiz_meta['questions'] ) ) ? $quiz_meta['questions'] : array();
-		}
-	
+	}
+
 	/**
 	 * Numeric settings used by the front-end.
 	 */
 	private function get_numeric_settings(): array {
 		$repo = $this->nuclen_get_settings_repository();
 		return array(
-		'questions_per_quiz'   => $repo->get_int( 'questions_per_quiz', 10 ),
-		'answers_per_question' => $repo->get_int( 'answers_per_question', 4 ),
+			'questions_per_quiz'   => $repo->get_int( 'questions_per_quiz', 10 ),
+			'answers_per_question' => $repo->get_int( 'answers_per_question', 4 ),
 		);
 	}
-	
+
 	/**
 	 * Translatable labels for the quiz interface.
 	 */
 	private function get_translatable_strings(): array {
 		$repo = $this->nuclen_get_settings_repository();
 		return array(
-		'retake_test'   => $repo->get( 'quiz_label_retake_test', __( 'Retake Test', 'nuclear-engagement' ) ),
-		'your_score'    => $repo->get( 'quiz_label_your_score', __( 'Your Score', 'nuclear-engagement' ) ),
-		'perfect'       => $repo->get( 'quiz_label_perfect', __( 'Perfect!', 'nuclear-engagement' ) ),
-		'well_done'     => $repo->get( 'quiz_label_well_done', __( 'Well done!', 'nuclear-engagement' ) ),
-		'retake_prompt' => $repo->get( 'quiz_label_retake_prompt', __( 'Why not retake the test?', 'nuclear-engagement' ) ),
-		'correct'       => $repo->get( 'quiz_label_correct', __( 'Correct:', 'nuclear-engagement' ) ),
-		'your_answer'   => $repo->get( 'quiz_label_your_answer', __( 'Your answer:', 'nuclear-engagement' ) ),
+			'retake_test'   => $repo->get( 'quiz_label_retake_test', __( 'Retake Test', 'nuclear-engagement' ) ),
+			'your_score'    => $repo->get( 'quiz_label_your_score', __( 'Your Score', 'nuclear-engagement' ) ),
+			'perfect'       => $repo->get( 'quiz_label_perfect', __( 'Perfect!', 'nuclear-engagement' ) ),
+			'well_done'     => $repo->get( 'quiz_label_well_done', __( 'Well done!', 'nuclear-engagement' ) ),
+			'retake_prompt' => $repo->get( 'quiz_label_retake_prompt', __( 'Why not retake the test?', 'nuclear-engagement' ) ),
+			'correct'       => $repo->get( 'quiz_label_correct', __( 'Correct:', 'nuclear-engagement' ) ),
+			'your_answer'   => $repo->get( 'quiz_label_your_answer', __( 'Your answer:', 'nuclear-engagement' ) ),
 		);
 	}
-	
+
 
 	/*
 	────────────────────────────
@@ -188,22 +193,22 @@ return false;
 		/* Base CSS */
 			wp_enqueue_style(
 				$this->plugin_name,
-					NUCLEN_PLUGIN_URL . 'front/css/nuclen-front.css',
-					array(),
-					NUCLEN_ASSET_VERSION,
-					'all'
-					);
-		
+				NUCLEN_PLUGIN_URL . 'front/css/nuclen-front.css',
+				array(),
+				NUCLEN_ASSET_VERSION,
+				'all'
+			);
+
 				/* Theme CSS */
 				$settings_repo = $this->nuclen_get_settings_repository();
 				$theme_choice  = $settings_repo->get( 'theme', 'light' );
-				
-				// Convert 'bright' to 'light' for backward compatibility
-				if ( $theme_choice === 'bright' ) {
-					$theme_choice = 'light';
-				}
 
-		// Theme-specific CSS is now handled via inline CSS variables in wp_head_custom_theme_vars()
+				// Convert 'bright' to 'light' for backward compatibility.
+		if ( $theme_choice === 'bright' ) {
+			$theme_choice = 'light';
+		}
+
+		// Theme-specific CSS is now handled via inline CSS variables in wp_head_custom_theme_vars().
 		// The dark theme is handled via data-theme attribute in nuclen-front.css
 	}
 
@@ -224,32 +229,37 @@ return false;
 			NUCLEN_ASSET_VERSION,
 			true
 		);
-		
-		// Ensure script is loaded as ES6 module
-		add_filter( 'script_loader_tag', function( $tag, $handle, $src ) {
-			if ( $handle === $this->plugin_name . '-front' ) {
-				return '<script type="module" src="' . esc_url( $src ) . '"></script>' . "\n";
-			}
-			return $tag;
-		}, 10, 3 );
+
+		// Ensure script is loaded as ES6 module.
+		add_filter(
+			'script_loader_tag',
+			function ( $tag, $handle, $src ) {
+				if ( $handle === $this->plugin_name . '-front' ) {
+					return '<script type="module" src="' . esc_url( $src ) . '"></script>' . "\n";
+				}
+				return $tag;
+			},
+			10,
+			3
+		);
 
 		$settings_repo = $this->nuclen_get_settings_repository();
-		
+
 		/* ───── Inline scalars (booleans & strings) ───── */
 		wp_add_inline_script( $this->plugin_name . '-front', $this->get_optin_inline_js(), 'before' );
-		
+
 		/* ► NEW ◄ – endpoint & nonce for AJAX opt-in storage */
 		wp_localize_script( $this->plugin_name . '-front', 'NuclenOptinAjax', $this->get_optin_ajax_data() );
-		
+
 		/* Per-post quiz data */
 				wp_localize_script( $this->plugin_name . '-front', 'postQuizData', $this->get_post_quiz_data() );
-				
+
 				/* Numeric settings */
 				wp_localize_script( $this->plugin_name . '-front', 'NuclenSettings', $this->get_numeric_settings() );
-				
+
 				/* Translatable strings for the quiz */
 		wp_localize_script( $this->plugin_name . '-front', 'NuclenStrings', $this->get_translatable_strings() );
-			}
+	}
 
 	/**
 	 * Force asset enqueue when shortcodes run outside post content.
@@ -267,25 +277,25 @@ return false;
 	public function wp_head_custom_theme_vars(): void {
 		$settings_repo = $this->nuclen_get_settings_repository();
 		$theme_choice  = $settings_repo->get( 'theme', 'light' );
-		
-		// Convert 'bright' to 'light' for backward compatibility
+
+		// Convert 'bright' to 'light' for backward compatibility.
 		if ( $theme_choice === 'bright' ) {
 			$theme_choice = 'light';
 		}
 
-		// Only output custom CSS variables for custom theme
+		// Only output custom CSS variables for custom theme.
 		if ( $theme_choice !== 'custom' ) {
 			return;
 		}
 
-		// Get all settings with defaults
+		// Get all settings with defaults.
 		$defaults = \NuclearEngagement\Core\Defaults::nuclen_get_default_settings();
 		$settings = array();
 		foreach ( $defaults as $key => $default_value ) {
 			$settings[ $key ] = $settings_repo->get( $key, $default_value );
 		}
 
-		// Output CSS variables inline
+		// Output CSS variables inline.
 		?>
 		<style id="nuclen-custom-theme-vars">
 		.nuclen-root {

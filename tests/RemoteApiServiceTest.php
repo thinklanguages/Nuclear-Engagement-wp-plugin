@@ -1,12 +1,5 @@
 <?php
 namespace NuclearEngagement\Services {
-	class LoggingService {
-		public static array $logs = [];
-		public static array $notices = [];
-		public static function log(string $msg): void { self::$logs[] = $msg; }
-		public static function debug(string $msg): void { self::$logs[] = $msg; }
-		public static function notify_admin(string $msg): void { self::$notices[] = $msg; }
-	}
 	function get_site_url() { return 'http://example.com'; }
 }
 

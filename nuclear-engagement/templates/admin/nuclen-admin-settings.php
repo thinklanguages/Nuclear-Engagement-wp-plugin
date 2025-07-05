@@ -1,4 +1,10 @@
 <?php
+/**
+ * nuclen-admin-settings.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package Nuclear_Engagement
+ */
+
 declare(strict_types=1);
 // File: admin/partials/nuclen-admin-settings.php
 if ( ! defined( 'ABSPATH' ) ) {
@@ -10,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @package NuclearEngagement\Admin
  */
 
-// Display the admin header
+// Display the admin header.
 $utils = new \NuclearEngagement\Utils\Utils();
 $utils->display_nuclen_page_header();
 ?>
@@ -68,25 +74,25 @@ $utils->display_nuclen_page_header();
 
 <script type="text/javascript">
 jQuery(document).ready(function($) {
-	// Tab functionality
+	// Tab functionality.
 	$('.nav-tab').on('click', function(e) {
 		e.preventDefault();
 		
-		// Remove active class from all tabs
+		// Remove active class from all tabs.
 		$('.nav-tab').removeClass('nav-tab-active');
 		
-		// Add active class to clicked tab
+		// Add active class to clicked tab.
 		$(this).addClass('nav-tab-active');
 		
-		// Hide all tab contents
+		// Hide all tab contents.
 		$('.nuclen-tab-content').hide();
 		
-		// Show the selected tab content
+		// Show the selected tab content.
 		var target = $(this).attr('href');
 		$(target).show();
 	});
 	
-	// Theme custom section toggle
+	// Theme custom section toggle.
 	$('input[name="nuclen_theme"]').on('change', function() {
 		if ($(this).val() === 'custom') {
 			$('#nuclen-custom-theme-section').removeClass('nuclen-hidden');
@@ -95,7 +101,7 @@ jQuery(document).ready(function($) {
 		}
 	});
 	
-	// Initialize theme section visibility
+	// Initialize theme section visibility.
 	if ($('input[name="nuclen_theme"]:checked').val() === 'custom') {
 		$('#nuclen-custom-theme-section').removeClass('nuclen-hidden');
 	}

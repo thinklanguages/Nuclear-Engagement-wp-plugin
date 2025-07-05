@@ -1,4 +1,10 @@
 <?php
+/**
+ * PendingSettingsTrait.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package NuclearEngagement
+ */
+
 declare(strict_types=1);
 /**
  * File: includes/PendingSettingsTrait.php
@@ -22,7 +28,7 @@ trait PendingSettingsTrait {
 		if ( isset( $this->pending[ $key ] ) ) {
 			unset( $this->pending[ $key ] );
 		}
-		// Set to null to indicate removal
+		// Set to null to indicate removal.
 		$this->pending[ $key ] = null;
 		return $this;
 	}

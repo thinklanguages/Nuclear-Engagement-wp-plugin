@@ -1,4 +1,10 @@
 <?php
+/**
+ * OptinExportService.php - Part of the Nuclear Engagement plugin.
+ *
+ * @package NuclearEngagement_Services
+ */
+
 declare(strict_types=1);
 /**
  * Handles streaming the opt-in CSV export.
@@ -39,7 +45,7 @@ class OptinExportService {
 		header( 'Content-Disposition: attachment; filename=nuclen_optins_' . gmdate( 'Y-m-d' ) . '.csv' );
 
 		$out = fopen( 'php://output', 'w' );
-		if ( false === $out ) {
+		if ( $out === false ) {
 			LoggingService::log( 'Failed to open output stream for CSV export' );
 			wp_die( __( 'Unable to generate export.', 'nuclear-engagement' ), 500 );
 		}
@@ -53,13 +59,13 @@ class OptinExportService {
 		do {
 			$rows = $wpdb->get_results(
 				$wpdb->prepare(
-					"SELECT submitted_at AS datetime,
+					'SELECT submitted_at AS datetime,
 						url,
 						name,
 						email
-					FROM " . OptinData::table_name() . "
+					FROM ' . OptinData::table_name() . '
 					ORDER BY submitted_at DESC
-					LIMIT %d OFFSET %d",
+					LIMIT %d OFFSET %d',
 					$limit,
 					$offset
 				),
