@@ -292,7 +292,7 @@ final class UnifiedErrorHandler {
 			$error_data['message'],
 			$error_data['category'],
 			$error_data['severity'],
-			wp_wp_json_encode( $error_data['context'] )
+			wp_json_encode( $error_data['context'] )
 		);
 
 		// Use LoggingService if available.

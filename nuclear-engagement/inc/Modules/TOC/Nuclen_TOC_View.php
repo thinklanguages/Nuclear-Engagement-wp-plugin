@@ -166,7 +166,7 @@ final class Nuclen_TOC_View {
 	 */
 	public function build_nav_markup( array $heads, string $list_tag, array $atts, string $nav_id, string $toc_title, bool $hidden ): string {
 			$nav = sprintf(
-				'<nav id="%s" class="nuclen-toc" aria-label="%s"%s%s>',
+				'<nav id="%s" class="nuclen-toc" aria-label="%s" data-testid="nuclen-toc"%s%s>',
 				esc_attr( $nav_id ),
 				esc_attr( $toc_title ),
 				$hidden ? ' style="display:none"' : '',

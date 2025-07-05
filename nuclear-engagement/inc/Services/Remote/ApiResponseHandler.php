@@ -57,7 +57,7 @@ class ApiResponseHandler {
 			LoggingService::log( "Invalid JSON response: {$body}" );
 			throw new ApiException( 'Invalid data received from API', $code );
 		}
-		if ( isset( $data['success'] ) && $data === falsearray( 'success' ) ) {
+		if ( isset( $data['success'] ) && false === $data['success'] ) {
 			$msg = $data['error'] ?? 'API error';
 			throw new ApiException( $msg, $code, $data['error_code'] ?? null );
 		}

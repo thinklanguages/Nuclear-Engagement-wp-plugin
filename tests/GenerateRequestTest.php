@@ -27,7 +27,29 @@ namespace {
 	if ( ! function_exists( 'wp_unslash' ) ) {
 		function wp_unslash( $v ) { return $v; }
 	}
+	if ( ! function_exists( 'current_user_can' ) ) {
+		function current_user_can( $cap, $id = null ) { return true; }
+	}
+	if ( ! function_exists( 'get_post' ) ) {
+		function get_post( $id ) { 
+			return (object) ['ID' => $id, 'post_status' => 'publish', 'post_type' => 'post']; 
+		}
+	}
+	if ( ! function_exists( 'wp_json_encode' ) ) {
+		function wp_json_encode( $data ) { return json_encode( $data ); }
+	}
 
+	// Mock LoggingService
+	namespace NuclearEngagement\Services {
+		class LoggingService {
+			public static function log( $message ) {
+				// Mock implementation
+			}
+		}
+	}
+	
+	namespace {
+	
 	require_once dirname( __DIR__ ) . '/nuclear-engagement/inc/Requests/GenerateRequest.php';
 
 	class GenerateRequestTest extends TestCase {
@@ -44,7 +66,7 @@ namespace {
 					'generation_id' => 'abc123',
 				) )
 			);
-			$req = GenerateRequest::fromPost( $post );
+			$req = GenerateRequest::from_post( $post );
 			$this->assertSame( array( 3, 4 ), $req->postIds );
 			$this->assertSame( 'draft', $req->postStatus );
 			$this->assertSame( 'page', $req->postType );
@@ -57,7 +79,7 @@ namespace {
 
 		public function test_invalid_json_triggers_exception(): void {
 			$this->expectException( \InvalidArgumentException::class );
-			GenerateRequest::fromPost( array( 'payload' => '{bad' ) );
+			GenerateRequest::from_post( array( 'payload' => '{bad' ) );
 		}
 
 		public function test_invalid_post_ids_throw_exception(): void {
@@ -68,7 +90,7 @@ namespace {
 				) )
 			);
 			$this->expectException( \InvalidArgumentException::class );
-			GenerateRequest::fromPost( $post );
+			GenerateRequest::from_post( $post );
 		}
 
 		public function test_invalid_workflow_throws_exception(): void {
@@ -79,7 +101,7 @@ namespace {
 				) )
 			);
 			$this->expectException( \InvalidArgumentException::class );
-			GenerateRequest::fromPost( $post );
+			GenerateRequest::from_post( $post );
 		}
 	}
 }

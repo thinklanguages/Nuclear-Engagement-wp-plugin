@@ -17,7 +17,7 @@ final class Nuclen_Summary_View {
 	public function container( array $summary_data, array $settings ): string {
 		$summary_content = wp_kses_post( $summary_data['summary'] );
 		return sprintf(
-			'<section id="nuclen-summary-container" class="nuclen-summary">'
+			'<section id="nuclen-summary-container" class="nuclen-summary" data-testid="nuclen-summary">'
 			. '<h2 id="nuclen-summary-title" class="nuclen-fg">%s</h2>'
 			. '<div class="nuclen-fg" id="nuclen-summary-body">%s</div>'
 			. '</section>',

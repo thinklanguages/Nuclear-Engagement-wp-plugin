@@ -30,6 +30,7 @@ export function renderQuestion(
 		<button
 			class="nuclen-quiz-answer-button nuclen-quiz-possible-answer"
 			data-orig-idx="${a.idx}"
+			data-testid="quiz-answer"
 			tabindex="0"
 			aria-label="Answer ${i + 1}: ${escapeHtml(a.ans)}"
 		>${escapeHtml(a.ans)}</button>`,

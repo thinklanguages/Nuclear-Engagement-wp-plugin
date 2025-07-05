@@ -85,12 +85,12 @@ class PostsQueryService {
 		 */
 	private function get_cache_key( PostsCountRequest $request ): string {
 			$data = array(
-				$request->post_type,
-				$request->post_status,
-				$request->category_id,
-				$request->author_id,
-				$request->allow_regenerate ? 1 : 0,
-				$request->regenerate_protected ? 1 : 0,
+				$request->postType,
+				$request->postStatus,
+				$request->categoryId,
+				$request->authorId,
+				$request->allowRegenerate ? 1 : 0,
+				$request->regenerateProtected ? 1 : 0,
 				$request->workflow,
 				$this->get_cache_version(),
 				get_current_blog_id(),
@@ -109,14 +109,14 @@ class PostsQueryService {
 		$meta_query = array( 'relation' => 'AND' );
 
 		// Ensure we have a valid post type.
-		$post_type = ! empty( $request->post_type ) ? $request->post_type : 'post';
+		$post_type = ! empty( $request->postType ) ? $request->postType : 'post';
 
 		// Handle post status properly.
-		if ( 'any' === $request->post_status ) {
+		if ( 'any' === $request->postStatus ) {
 			// Use a predefined list of common viewable statuses.
 			$post_status = array( 'publish', 'private', 'draft', 'pending', 'future' );
 		} else {
-			$post_status = $request->post_status;
+			$post_status = $request->postStatus;
 		}
 
 		$query_args = array(
@@ -126,16 +126,16 @@ class PostsQueryService {
 			'fields'         => 'ids',
 		);
 
-		if ( $request->category_id ) {
-			$query_args['cat'] = $request->category_id;
+		if ( $request->categoryId ) {
+			$query_args['cat'] = $request->categoryId;
 		}
 
-		if ( $request->author_id ) {
-			$query_args['author'] = $request->author_id;
+		if ( $request->authorId ) {
+			$query_args['author'] = $request->authorId;
 		}
 
 		// Skip existing data if not allowing regeneration.
-		if ( ! $request->allow_regenerate ) {
+		if ( ! $request->allowRegenerate ) {
 			$meta_key     = 'quiz' === $request->workflow ? 'nuclen-quiz-data' : Summary_Service::META_KEY;
 			$meta_query[] = array(
 				'key'     => $meta_key,
@@ -144,7 +144,7 @@ class PostsQueryService {
 		}
 
 		// Skip protected data if not allowed.
-		if ( ! $request->regenerate_protected ) {
+		if ( ! $request->regenerateProtected ) {
 			$protected_key = 'quiz' === $request->workflow ? 'nuclen_quiz_protected' : Summary_Service::PROTECTED_KEY;
 			$meta_query[]  = array(
 				'relation' => 'OR',
@@ -186,11 +186,11 @@ class PostsQueryService {
 		$wheres = array();
 
 		// Ensure we have a valid post type.
-		$post_type = ! empty( $request->post_type ) ? $request->post_type : 'post';
+		$post_type = ! empty( $request->postType ) ? $request->postType : 'post';
 		$wheres[]  = $wpdb->prepare( 'p.post_type = %s', $post_type );
 
-		if ( 'any' !== $request->post_status ) {
-			$wheres[] = $wpdb->prepare( 'p.post_status = %s', $request->post_status );
+		if ( 'any' !== $request->postStatus ) {
+			$wheres[] = $wpdb->prepare( 'p.post_status = %s', $request->postStatus );
 		} else {
 			// When 'any' is selected, use a predefined list of common viewable statuses.
 			$viewable_statuses = array( 'publish', 'private', 'draft', 'pending', 'future' );
@@ -204,23 +204,23 @@ class PostsQueryService {
 			}
 		}
 
-		if ( $request->author_id ) {
-			$wheres[] = $wpdb->prepare( 'p.post_author = %d', $request->author_id );
+		if ( $request->authorId ) {
+			$wheres[] = $wpdb->prepare( 'p.post_author = %d', $request->authorId );
 		}
 
-		if ( $request->category_id ) {
+		if ( $request->categoryId ) {
 			$joins[]  = "JOIN {$wpdb->term_relationships} tr ON tr.object_id = p.ID";
 			$joins[]  = "JOIN {$wpdb->term_taxonomy} tt ON tt.term_taxonomy_id = tr.term_taxonomy_id AND tt.taxonomy = 'category'";
-			$wheres[] = $wpdb->prepare( 'tt.term_id = %d', $request->category_id );
+			$wheres[] = $wpdb->prepare( 'tt.term_id = %d', $request->categoryId );
 		}
 
-		if ( ! $request->allow_regenerate ) {
+		if ( ! $request->allowRegenerate ) {
 			$meta_key = 'quiz' === $request->workflow ? 'nuclen-quiz-data' : Summary_Service::META_KEY;
 			$joins[]  = $wpdb->prepare( "LEFT JOIN {$wpdb->postmeta} pm_exist ON pm_exist.post_id = p.ID AND pm_exist.meta_key = %s", $meta_key );
 			$wheres[] = 'pm_exist.meta_id IS NULL';
 		}
 
-		if ( ! $request->regenerate_protected ) {
+		if ( ! $request->regenerateProtected ) {
 			$prot_key = 'quiz' === $request->workflow ? 'nuclen_quiz_protected' : Summary_Service::PROTECTED_KEY;
 			$joins[]  = $wpdb->prepare( "LEFT JOIN {$wpdb->postmeta} pm_prot ON pm_prot.post_id = p.ID AND pm_prot.meta_key = %s", $prot_key );
 			$wheres[] = "(pm_prot.meta_id IS NULL OR pm_prot.meta_value != '1')";
@@ -259,8 +259,8 @@ class PostsQueryService {
 		$sql = $this->build_sql_clauses( $request );
 
 		// Debug logging (commented out temporarily to isolate 500 error).
-		// LoggingService::log( 'PostsQueryService: Request post type: ' . $request->post_type );
-		// LoggingService::log( 'PostsQueryService: Request post status: ' . $request->post_status );
+		// LoggingService::log( 'PostsQueryService: Request post type: ' . $request->postType );
+		// LoggingService::log( 'PostsQueryService: Request post status: ' . $request->postStatus );
 		// LoggingService::log( 'PostsQueryService: SQL clauses: ' . $sql );
 
 		// Use optimized memory-efficient batch processing.
@@ -278,7 +278,7 @@ class PostsQueryService {
 
 		// Debug logging (commented out temporarily).
 		// LoggingService::log( 'PostsQueryService: Total posts found: ' . $count );
-		// LoggingService::log( 'PostsQueryService: Allow regenerate: ' . ( $request->allow_regenerate ? 'true' : 'false' ) );
+		// LoggingService::log( 'PostsQueryService: Allow regenerate: ' . ( $request->allowRegenerate ? 'true' : 'false' ) );
 		// LoggingService::log( 'PostsQueryService: Workflow: ' . $request->workflow );
 
 		$result = array(
@@ -345,32 +345,32 @@ class PostsQueryService {
 		$where[] = 'p.post_type = %s';
 
 		// Status filter.
-		if ( 'any' !== $request->post_status ) {
+		if ( 'any' !== $request->postStatus ) {
 			$where[] = 'p.post_status = %s';
 		} else {
 			$where[] = "p.post_status IN ('publish', 'private', 'draft', 'pending', 'future')";
 		}
 
 		// Author filter.
-		if ( $request->author_id ) {
+		if ( $request->authorId ) {
 			$where[] = 'p.post_author = %d';
 		}
 
 		// Category filter.
-		if ( $request->category_id ) {
+		if ( $request->categoryId ) {
 			$joins[] = "JOIN {$wpdb->term_relationships} tr ON tr.object_id = p.ID";
 			$joins[] = "JOIN {$wpdb->term_taxonomy} tt ON tt.term_taxonomy_id = tr.term_taxonomy_id AND tt.taxonomy = 'category'";
 			$where[] = 'tt.term_id = %d';
 		}
 
 		// Regenerate filters.
-		if ( ! $request->allow_regenerate ) {
+		if ( ! $request->allowRegenerate ) {
 			$meta_key = 'quiz' === $request->workflow ? 'nuclen-quiz-data' : Summary_Service::META_KEY;
 			$joins[]  = "LEFT JOIN {$wpdb->postmeta} pm_exist ON pm_exist.post_id = p.ID AND pm_exist.meta_key = %s";
 			$where[]  = 'pm_exist.meta_id IS NULL';
 		}
 
-		if ( ! $request->regenerate_protected ) {
+		if ( ! $request->regenerateProtected ) {
 			$prot_key = 'quiz' === $request->workflow ? 'nuclen_quiz_protected' : Summary_Service::PROTECTED_KEY;
 			$joins[]  = "LEFT JOIN {$wpdb->postmeta} pm_prot ON pm_prot.post_id = p.ID AND pm_prot.meta_key = %s";
 			$where[]  = "(pm_prot.meta_id IS NULL OR pm_prot.meta_value != '1')";
@@ -392,30 +392,30 @@ class PostsQueryService {
 		$params = array();
 
 		// Post type.
-		$params[] = $request->post_type ?: 'post';
+		$params[] = $request->postType ?: 'post';
 
 		// Status (only if not 'any').
-		if ( 'any' !== $request->post_status ) {
-			$params[] = $request->post_status;
+		if ( 'any' !== $request->postStatus ) {
+			$params[] = $request->postStatus;
 		}
 
 		// Author.
-		if ( $request->author_id ) {
-			$params[] = $request->author_id;
+		if ( $request->authorId ) {
+			$params[] = $request->authorId;
 		}
 
 		// Category.
-		if ( $request->category_id ) {
-			$params[] = $request->category_id;
+		if ( $request->categoryId ) {
+			$params[] = $request->categoryId;
 		}
 
 		// Meta keys for regenerate filters.
-		if ( ! $request->allow_regenerate ) {
+		if ( ! $request->allowRegenerate ) {
 			$meta_key = 'quiz' === $request->workflow ? 'nuclen-quiz-data' : Summary_Service::META_KEY;
 			$params[] = $meta_key;
 		}
 
-		if ( ! $request->regenerate_protected ) {
+		if ( ! $request->regenerateProtected ) {
 			$prot_key = 'quiz' === $request->workflow ? 'nuclen_quiz_protected' : Summary_Service::PROTECTED_KEY;
 			$params[] = $prot_key;
 		}

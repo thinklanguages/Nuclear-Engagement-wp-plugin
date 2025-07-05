@@ -75,7 +75,18 @@ final class ValidationUtils {
 			$string_value = sanitize_text_field( $string_value );
 		}
 
-		if ( $string_value === null || $max_length < strlen( $string_value ) ) {
+		// If the sanitized value is null or becomes empty after trimming, handle appropriately
+		if ( $string_value === null ) {
+			return null;
+		}
+
+		// Trim and check if it becomes empty (for whitespace-only strings)
+		$trimmed_value = trim( $string_value );
+		if ( $trimmed_value === '' && $string_value !== '' ) {
+			$string_value = '';
+		}
+
+		if ( $max_length < strlen( $string_value ) ) {
 			return null;
 		}
 

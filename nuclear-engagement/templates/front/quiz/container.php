@@ -10,7 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 ?>
-<section id="nuclen-quiz-container" class="nuclen-quiz">
+<section id="nuclen-quiz-container" class="nuclen-quiz" data-testid="nuclen-quiz">
 <?php echo wp_kses_post( $start_message ); ?>
 <?php echo wp_kses_post( $title ); ?>
 <?php echo wp_kses_post( $progress_bar ); ?>

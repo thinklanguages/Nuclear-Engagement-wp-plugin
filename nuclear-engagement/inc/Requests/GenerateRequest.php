@@ -29,56 +29,56 @@ class GenerateRequest {
 	 *
 	 * @var array
 	 */
-	public array $post_ids = array();
+	public array $postIds = array();
 
 	/**
 	 * Workflow type (quiz|summary).
 	 *
 	 * @var string
 	 */
-	public string $workflow_type = '';
+	public string $workflowType = '';
 
 	/**
 	 * Summary format (paragraph|bullet_list).
 	 *
 	 * @var string
 	 */
-	public string $summary_format = 'paragraph';
+	public string $summaryFormat = 'paragraph';
 
 	/**
 	 * Summary length in words.
 	 *
 	 * @var int
 	 */
-	public int $summary_length = 30; // Default value.
+	public int $summaryLength = 30; // Default value.
 
 	/**
 	 * Number of summary items.
 	 *
 	 * @var int
 	 */
-	public int $summary_items = 3; // Default value.
+	public int $summaryItems = 3; // Default value.
 
 	/**
 	 * Generation ID for tracking.
 	 *
 	 * @var string
 	 */
-	public string $generation_id = '';
+	public string $generationId = '';
 
 	/**
 	 * Post status filter.
 	 *
 	 * @var string
 	 */
-	public string $post_status = 'any';
+	public string $postStatus = 'any';
 
 	/**
 	 * Post type filter.
 	 *
 	 * @var string
 	 */
-	public string $post_type = 'post';
+	public string $postType = 'post';
 
 	/**
 	 * Create from POST data.
@@ -104,28 +104,28 @@ class GenerateRequest {
 
 		// Extract and validate post IDs.
 		$post_ids_json     = $payload['nuclen_selected_post_ids'] ?? '';
-		$request->post_ids = json_decode( $post_ids_json, true ) ?: array();
+		$request->postIds = json_decode( $post_ids_json, true ) ?: array();
 
-		if ( empty( $request->post_ids ) || ! is_array( $request->post_ids ) ) {
+		if ( empty( $request->postIds ) || ! is_array( $request->postIds ) ) {
 			throw new \InvalidArgumentException( 'No valid posts selected' );
 		}
 
 		// Sanitize post IDs.
-		$request->post_ids = array_map( 'intval', $request->post_ids );
-		$request->post_ids = array_filter(
-			$request->post_ids,
+		$request->postIds = array_map( 'intval', $request->postIds );
+		$request->postIds = array_filter(
+			$request->postIds,
 			function ( $id ) {
 				return $id > 0;
 			}
 		);
 
-		if ( empty( $request->post_ids ) ) {
+		if ( empty( $request->postIds ) ) {
 			throw new \InvalidArgumentException( 'No valid post IDs after sanitization' );
 		}
 
 		// Validate post ownership/permissions.
-		$request->post_ids = array_filter(
-			$request->post_ids,
+		$request->postIds = array_filter(
+			$request->postIds,
 			function ( $id ) {
 				// Check if user can edit this post.
 				if ( ! current_user_can( 'edit_post', $id ) ) {
@@ -142,24 +142,24 @@ class GenerateRequest {
 			}
 		);
 
-		if ( empty( $request->post_ids ) ) {
+		if ( empty( $request->postIds ) ) {
 			throw new \InvalidArgumentException( 'No posts available for generation - insufficient permissions or invalid post IDs' );
 		}
 
 		// Map other fields.
-		$request->post_status   = sanitize_text_field( $payload['nuclen_selected_post_status'] ?? 'any' );
-		$request->post_type     = sanitize_text_field( $payload['nuclen_selected_post_type'] ?? 'post' );
-		$request->workflow_type = sanitize_text_field( $payload['nuclen_selected_generate_workflow'] ?? '' );
+		$request->postStatus   = sanitize_text_field( $payload['nuclen_selected_post_status'] ?? 'any' );
+		$request->postType     = sanitize_text_field( $payload['nuclen_selected_post_type'] ?? 'post' );
+		$request->workflowType = sanitize_text_field( $payload['nuclen_selected_generate_workflow'] ?? '' );
 
 		// Validate workflow type.
-		if ( ! in_array( $request->workflow_type, array( 'quiz', 'summary' ), true ) ) {
-			throw new \InvalidArgumentException( 'Invalid workflow type: ' . $request->workflow_type );
+		if ( ! in_array( $request->workflowType, array( 'quiz', 'summary' ), true ) ) {
+			throw new \InvalidArgumentException( 'Invalid workflow type: ' . $request->workflowType );
 		}
 
 		// Summary specific fields.
-		$request->summary_format = sanitize_text_field( $payload['nuclen_selected_summary_format'] ?? 'paragraph' );
-		if ( ! in_array( $request->summary_format, array( 'paragraph', 'bullet_list' ), true ) ) {
-			$request->summary_format = 'paragraph';
+		$request->summaryFormat = sanitize_text_field( $payload['nuclen_selected_summary_format'] ?? 'paragraph' );
+		if ( ! in_array( $request->summaryFormat, array( 'paragraph', 'bullet_list' ), true ) ) {
+			$request->summaryFormat = 'paragraph';
 		}
 
 		// Use constants if defined, otherwise use defaults.
@@ -171,14 +171,14 @@ class GenerateRequest {
 		$summary_items_max     = defined( 'NUCLEN_SUMMARY_ITEMS_MAX' ) ? NUCLEN_SUMMARY_ITEMS_MAX : 7;
 		$summary_items_default = defined( 'NUCLEN_SUMMARY_ITEMS_DEFAULT' ) ? NUCLEN_SUMMARY_ITEMS_DEFAULT : 3;
 
-		$request->summary_length = max(
+		$request->summaryLength = max(
 			$summary_length_min,
 			min(
 				$summary_length_max,
 				(int) ( $payload['nuclen_selected_summary_length'] ?? $summary_length_default )
 			)
 		);
-		$request->summary_items  = max(
+		$request->summaryItems  = max(
 			$summary_items_min,
 			min(
 				$summary_items_max,
@@ -187,7 +187,7 @@ class GenerateRequest {
 		);
 
 		// Generation ID.
-		$request->generation_id = ! empty( $payload['generation_id'] )
+		$request->generationId = ! empty( $payload['generation_id'] )
 			? sanitize_text_field( $payload['generation_id'] )
 			: 'gen_' . uniqid( 'manual_', true );
 

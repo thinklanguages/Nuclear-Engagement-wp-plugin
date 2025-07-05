@@ -76,7 +76,7 @@ class UpdatesController extends BaseController {
 			}
 
 								$data = $this->api->fetch_updates( $request->generationId );
-				\NuclearEngagement\Services\LoggingService::log( 'Updates response: ' . wp_wp_json_encode( $data ) );
+				\NuclearEngagement\Services\LoggingService::log( 'Updates response: ' . wp_json_encode( $data ) );
 
 				$response          = new UpdatesResponse();
 				$response->success = true;

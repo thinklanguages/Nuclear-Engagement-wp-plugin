@@ -3,6 +3,7 @@ namespace {
 	use PHPUnit\Framework\TestCase;
 	use NuclearEngagement\Requests\UpdatesRequest;
 
+	// Just ensure the function exists - it should trim in the bootstrap
 	if ( ! function_exists( 'sanitize_text_field' ) ) {
 		function sanitize_text_field( $t ) { return is_string( $t ) ? trim( $t ) : ''; }
 	}

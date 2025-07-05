@@ -10,4 +10,4 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 ?>
-<div id="nuclen-quiz-question-container"></div>
+<div id="nuclen-quiz-question-container" data-testid="quiz-question"></div>

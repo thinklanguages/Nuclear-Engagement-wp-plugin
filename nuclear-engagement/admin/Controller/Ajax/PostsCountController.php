@@ -68,7 +68,7 @@ class PostsCountController extends BaseController {
 			}
 
 			// Get posts.
-			$result = $this->service->getPostsCount( $request );
+			$result = $this->service->get_posts_count( $request );
 
 			wp_send_json_success( $result );
 

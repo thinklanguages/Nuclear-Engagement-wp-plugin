@@ -361,7 +361,7 @@ final class QueryOptimizer {
 		}
 
 		// Check if we can serve this from cache.
-		$cache_key     = 'wp_query_' . hash( 'xxh3', wp_wp_json_encode( $query->query_vars ) );
+		$cache_key     = 'wp_query_' . hash( 'xxh3', wp_json_encode( $query->query_vars ) );
 		$cached_result = CacheManager::get( $cache_key, 'queries' );
 
 		if ( $cached_result !== false ) {

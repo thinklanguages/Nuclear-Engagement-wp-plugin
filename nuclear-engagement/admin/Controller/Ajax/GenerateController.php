@@ -57,7 +57,7 @@ class GenerateController extends BaseController {
 				}
 			}
 			\NuclearEngagement\Services\LoggingService::log(
-				'GenerateController received request with safe data: ' . wp_wp_json_encode( $safe_post_data )
+				'GenerateController received request with safe data: ' . wp_json_encode( $safe_post_data )
 			);
 
 			if ( ! $this->verify_request( 'nuclen_admin_ajax_nonce' ) ) {
@@ -73,7 +73,7 @@ class GenerateController extends BaseController {
 			}
 
 			// Parse request.
-			$request = GenerateRequest::fromPost( $_POST );
+			$request = GenerateRequest::from_post( $_POST );
 
 			// Process generation.
 			$response = $this->service->generateContent( $request );

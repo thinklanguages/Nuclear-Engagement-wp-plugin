@@ -42,7 +42,7 @@ namespace {
 	if (!function_exists('wp_json_decode')) { function wp_json_decode($json, $assoc = false, $depth = 512, $options = 0){ return json_decode($json, $assoc, $depth, $options); } }
 	if (!function_exists('esc_html__')) { function esc_html__($text, $domain = 'default'){ return htmlspecialchars($text); } }
 	if (!function_exists('wp_json_encode')) { function wp_json_encode($data, $options = 0, $depth = 512){ return json_encode($data, $options, $depth); } }
-	if (!function_exists('wp_wp_json_encode')) { function wp_wp_json_encode($data, $options = 0, $depth = 512){ return json_encode($data, $options, $depth); } }
+	if (!function_exists('wp_json_encode')) { function wp_json_encode($data, $options = 0, $depth = 512){ return json_encode($data, $options, $depth); } }
 	if (!function_exists('get_current_user_id')) { function get_current_user_id(){ return 1; } }
 }
 
@@ -111,8 +111,8 @@ namespace NuclearEngagement\Admin {
 			return json_encode($data, $options, $depth); 
 		} 
 	}
-	if (!function_exists('NuclearEngagement\Admin\wp_wp_json_encode')) { 
-		function wp_wp_json_encode($data, $options = 0, $depth = 512){ 
+	if (!function_exists('NuclearEngagement\Admin\wp_json_encode')) { 
+		function wp_json_encode($data, $options = 0, $depth = 512){ 
 			return json_encode($data, $options, $depth); 
 		} 
 	}

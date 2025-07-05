@@ -319,3 +319,40 @@ if (!function_exists('wp_slash')) {
     }
 }
 
+if (!function_exists('wp_unslash')) {
+    function wp_unslash($value) {
+        if (is_string($value)) {
+            return stripslashes($value);
+        }
+        if (is_array($value)) {
+            return array_map('wp_unslash', $value);
+        }
+        return $value;
+    }
+}
+
+if (!function_exists('sanitize_text_field')) {
+    function sanitize_text_field($str) {
+        // Simplified for testing - just strip tags and trim
+        $filtered = strip_tags($str);
+        return trim($filtered);
+    }
+}
+
+if (!function_exists('wp_check_invalid_utf8')) {
+    function wp_check_invalid_utf8($string, $strip = false) {
+        return $string; // Simplified for testing
+    }
+}
+
+if (!function_exists('wp_strip_all_tags')) {
+    function wp_strip_all_tags($string, $remove_breaks = false) {
+        $string = preg_replace('@<(script|style)[^>]*?>.*?</\\1>@si', '', $string);
+        $string = strip_tags($string);
+        if ($remove_breaks) {
+            $string = preg_replace('/[\r\n\t ]+/', ' ', $string);
+        }
+        return trim($string);
+    }
+}
+
