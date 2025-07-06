@@ -83,7 +83,8 @@
       "Bash(./vendor/bin/phpcs --standard=phpcs.xml nuclear-engagement/inc/Utils/ValidationUtils.php --report=source)",
       "Bash(./vendor/bin/phpcs:*)",
       "Bash(./setup-test-post.sh:*)",
-      "Bash(./scripts/test-property-naming.sh:*)"
+      "Bash(./scripts/test-property-naming.sh:*)",
+      "Bash(timeout 60 vendor/bin/phpunit:*)"
     ],
     "deny": []
   }

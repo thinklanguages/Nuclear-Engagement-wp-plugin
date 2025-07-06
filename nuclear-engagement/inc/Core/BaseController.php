@@ -107,9 +107,11 @@ abstract class BaseController {
 	/**
 	 * Comprehensive security validation for requests.
 	 *
+	 * Note: Rate limiting is handled by the SaaS backend, not locally.
+	 *
 	 * @param string $nonce_action  Nonce action name.
 	 * @param string $capability    Required capability.
-	 * @param string $rate_limit_action Rate limit action name.
+	 * @param string $rate_limit_action Rate limit action name (unused - kept for compatibility).
 	 * @param string $nonce_field   Nonce field name.
 	 * @return bool True if request is valid and allowed.
 	 */
@@ -119,15 +121,8 @@ abstract class BaseController {
 		string $rate_limit_action = 'api_request',
 		string $nonce_field = 'security'
 	): bool {
-		// Check rate limiting first.
-		if ( $this->is_rate_limited( $rate_limit_action ) ) {
-			$this->send_error(
-				__( 'Too many requests. Please wait before trying again.', 'nuclear-engagement' ),
-				429
-			);
-			return false;
-		}
-
+		// Note: Rate limiting is skipped - handled by SaaS backend
+		
 		// Verify nonce.
 		if ( ! $this->verify_nonce( $nonce_action, $nonce_field ) ) {
 			$this->send_error(
@@ -152,24 +147,14 @@ abstract class BaseController {
 	/**
 	 * Check if the current request is rate limited.
 	 *
+	 * DISABLED: Rate limiting is handled by the SaaS backend.
+	 * Always returns false to allow all requests through.
+	 *
 	 * @param string $action Rate limit action name.
-	 * @return bool True if rate limited.
+	 * @return bool Always returns false (no rate limiting).
 	 */
 	protected function is_rate_limited( string $action = 'api_request' ): bool {
-		$user_id    = get_current_user_id();
-		$identifier = $user_id > 0 ? 'user_' . $user_id : ServerUtils::get_client_identifier();
-
-		// Check if temporarily blocked.
-		if ( RateLimiter::is_temporarily_blocked( $identifier ) ) {
-			return true;
-		}
-
-		// Check rate limit.
-		if ( RateLimiter::is_rate_limited( $action, $identifier ) ) {
-			RateLimiter::record_violation( $action, $identifier );
-			return true;
-		}
-
+		// Rate limiting is handled by the SaaS backend - always allow through
 		return false;
 	}
 

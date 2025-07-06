@@ -1,5 +1,5 @@
 parameters:
-    level: 6
+    level: 8
     paths:
         - nuclear-engagement
         - tests
@@ -7,3 +7,10 @@ parameters:
         - nuclear-engagement/vendor/*
     bootstrapFiles:
         - tests/wp-stubs.php
+    ignoreErrors:
+        # Baseline for existing code - remove these as issues are fixed
+        - '#Call to an undefined method WP_.*#'
+        - '#Function wp_.* not found#'
+        - '#Class WP_.* not found#'
+        - '#Constant WP_.* not found#'
+    reportUnmatchedIgnoredErrors: false

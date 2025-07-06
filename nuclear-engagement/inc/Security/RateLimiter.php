@@ -17,10 +17,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Secure rate limiting implementation.
+ * Rate limiter class - DISABLED.
  *
- * This class provides consistent rate limiting across the plugin
- * with proper security measures and monitoring.
+ * Rate limiting is handled by the SaaS backend, not the plugin.
+ * This class is kept for compatibility but all rate limiting logic is disabled.
+ * The backend API already implements comprehensive rate limiting, throttling,
+ * and abuse prevention mechanisms.
  */
 final class RateLimiter {
 
@@ -61,80 +63,32 @@ final class RateLimiter {
 	/**
 	 * Check if an action is rate limited for a given identifier.
 	 *
+	 * DISABLED: Rate limiting is handled by the SaaS backend.
+	 * Always returns false to allow all requests through.
+	 *
 	 * @param string $action       The action being performed.
 	 * @param string $identifier   Unique identifier (IP hash, user ID, etc.).
 	 * @param array  $custom_limit Custom limit override.
-	 * @return bool True if rate limited, false if allowed.
+	 * @return bool Always returns false (no rate limiting).
 	 */
 	public static function is_rate_limited( string $action, string $identifier, array $custom_limit = array() ): bool {
-		// Check for temporary blocks first.
-		if ( self::is_temporarily_blocked( $identifier ) ) {
-			return true;
-		}
-
-		// Validate inputs.
-		if ( empty( $action ) || empty( $identifier ) ) {
-			return true; // Block invalid requests.
-		}
-
-		$limit = $custom_limit ?: ( self::DEFAULT_LIMITS[ $action ] ?? self::DEFAULT_LIMITS['api_request'] );
-
-		// Validate limit structure.
-		if ( ! isset( $limit['requests'] ) || ! isset( $limit['window'] ) ) {
-			return true; // Block if invalid limit configuration.
-		}
-
-		$key           = self::get_cache_key( $action, $identifier );
-		$current_count = (int) get_transient( $key );
-
-		if ( $current_count >= $limit['requests'] ) {
-			// Log rate limit hit.
-			self::log_rate_limit_event( $action, $identifier, $current_count, $limit['requests'] );
-			return true;
-		}
-
-		// Increment counter for next check.
-		self::increment_counter( $key, $limit['window'] );
-
+		// Rate limiting is handled by the SaaS backend - always allow through
 		return false;
 	}
 
 	/**
 	 * Record a rate limit violation.
 	 *
+	 * DISABLED: Rate limiting is handled by the SaaS backend.
+	 * This method does nothing as violations are not tracked locally.
+	 *
 	 * @param string $action     The action that was rate limited.
 	 * @param string $identifier The identifier that was rate limited.
 	 * @return void
 	 */
 	public static function record_violation( string $action, string $identifier ): void {
-		$violation_key       = self::get_violation_key( $action, $identifier );
-		$violations          = (int) get_transient( $violation_key );
-		$new_violation_count = $violations + 1;
-
-		// Store violation with 24-hour expiry.
-		set_transient( $violation_key, $new_violation_count, DAY_IN_SECONDS );
-
-		// Log security event with context.
-		$log_data = array(
-			'action'          => $action,
-			'identifier'      => $identifier,
-			'violation_count' => $new_violation_count,
-			'client_ip'       => ServerUtils::get_client_ip(),
-			'user_agent'      => ServerUtils::get_user_agent(),
-			'timestamp'       => time(),
-		);
-
-		if ( class_exists( 'NuclearEngagement\Services\LoggingService' ) ) {
-			LoggingService::log( 'Rate limit violation: ' . wp_json_encode( $log_data ) );
-		} else {
-			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-			error_log( 'Nuclear Engagement Rate Limit: ' . wp_json_encode( $log_data ) );
-		}
-
-		// Apply temporary block for repeat violators.
-		if ( $new_violation_count >= self::MAX_VIOLATIONS ) {
-			self::apply_temporary_block( $identifier, $action );
-		}
+		// Rate limiting violations are handled by the SaaS backend - no local tracking needed
+		return;
 	}
 
 	/**
@@ -285,14 +239,15 @@ final class RateLimiter {
 	/**
 	 * Check if an identifier is temporarily blocked.
 	 *
+	 * DISABLED: Rate limiting is handled by the SaaS backend.
+	 * Always returns false as no local blocking is performed.
+	 *
 	 * @param string $identifier The identifier to check.
-	 * @return bool True if blocked.
+	 * @return bool Always returns false (no blocking).
 	 */
 	public static function is_temporarily_blocked( string $identifier ): bool {
-		$block_key  = self::get_block_key( $identifier );
-		$block_data = get_transient( $block_key );
-
-		return $block_data !== false;
+		// Temporary blocking is handled by the SaaS backend - always allow through
+		return false;
 	}
 
 	/**

@@ -30,9 +30,9 @@ trait AdminAssets {
 		// First register the logger module.
 		wp_register_script(
 			'nuclen-logger',
-			NUCLEN_PLUGIN_URL . 'logger-CX9s0JXb.js',
+			NUCLEN_PLUGIN_URL . 'logger-CjYDh3vN.js',
 			array(),
-			AssetVersions::get( 'admin_js' ),
+			defined( 'NUCLEN_ASSET_VERSION' ) ? NUCLEN_ASSET_VERSION : NUCLEN_PLUGIN_VERSION,
 			true
 		);
 
@@ -41,7 +41,7 @@ trait AdminAssets {
 			'nuclen-admin',
 			NUCLEN_PLUGIN_URL . 'admin/js/nuclen-admin.js',
 			array( 'nuclen-logger' ),
-			AssetVersions::get( 'admin_js' ),
+			defined( 'NUCLEN_ASSET_VERSION' ) ? NUCLEN_ASSET_VERSION : NUCLEN_PLUGIN_VERSION,
 			true
 		);
 
@@ -67,7 +67,7 @@ trait AdminAssets {
 			$this->nuclen_get_plugin_name(),
 			NUCLEN_PLUGIN_URL . 'admin/css/nuclen-admin.css',
 			array(),
-			AssetVersions::get( 'admin_css' ),
+			defined( 'NUCLEN_ASSET_VERSION' ) ? NUCLEN_ASSET_VERSION : NUCLEN_PLUGIN_VERSION,
 			'all'
 		);
 	}

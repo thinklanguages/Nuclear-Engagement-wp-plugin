@@ -54,8 +54,12 @@ if (!function_exists('gmdate')) {
 }
 
 // Custom exceptions
-class WPDieException extends \Exception {}
-class SystemExit extends \Exception {}
+if (!class_exists('WPDieException')) {
+    class WPDieException extends \Exception {}
+}
+if (!class_exists('SystemExit')) {
+    class SystemExit extends \Exception {}
+}
 
 /**
  * Tests for OptinExportService

@@ -71,6 +71,7 @@ class ContentStorageService {
 			}
 
 			try {
+				\NuclearEngagement\Services\LoggingService::log( "Storing {$workflowType} data for post {$post_id}: " . wp_json_encode( $data ) );
 				if ( $workflowType === 'quiz' ) {
 								$this->storeQuizData( $post_id, $data );
 				} else {
@@ -106,7 +107,9 @@ class ContentStorageService {
 	 */
 	public function storeQuizData( int $post_id, array $data ): void {
 		if ( empty( $data['questions'] ) || ! is_array( $data['questions'] ) ) {
-				throw new \InvalidArgumentException( "Invalid quiz data for post {$post_id}" );
+				$error_details = 'questions field is ' . ( ! isset( $data['questions'] ) ? 'missing' : ( is_array( $data['questions'] ) ? 'empty array' : 'not an array' ) );
+				\NuclearEngagement\Services\LoggingService::log( "Quiz data validation failed for post {$post_id}: {$error_details}. Full data: " . wp_json_encode( $data ) );
+				throw new \InvalidArgumentException( "Invalid quiz data for post {$post_id}: {$error_details}" );
 		}
 
 			$maxAnswers = $this->settings->get_int( 'answers_per_question', 4 );
@@ -140,7 +143,8 @@ class ContentStorageService {
 		}
 
 		if ( empty( $questions ) ) {
-				throw new \InvalidArgumentException( "Invalid quiz data for post {$post_id}" );
+				\NuclearEngagement\Services\LoggingService::log( "No valid questions found after processing quiz data for post {$post_id}. Original questions count: " . count( $data['questions'] ?? array() ) );
+				throw new \InvalidArgumentException( "No valid quiz questions found for post {$post_id}" );
 		}
 
 				$formatted = array(

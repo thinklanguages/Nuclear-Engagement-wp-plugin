@@ -53,13 +53,11 @@ add_action( 'delete_post', array( 'NuclearEngagement\\Modules\\TOC\\TocCache', '
  * Spin-up
  * ------------------------------------------------------------------
  */
-add_action(
-	'plugins_loaded',
-	static function () {
-		new Nuclen_TOC_Headings();  // filter for heading IDs.
-		new Nuclen_TOC_Render( \NuclearEngagement\Core\SettingsRepository::get_instance() ); // shortcode handler.
-		if ( is_admin() ) {
-			new Nuclen_TOC_Admin();    // settings page.
-		}
-	}
-);
+// CRITICAL: TOC must be initialized immediately, not in plugins_loaded hook!
+// Nuclen_TOC_Render constructor registers the 'nuclear_engagement_toc' shortcode
+// If this is wrapped in plugins_loaded, the shortcode won't be available early enough
+new Nuclen_TOC_Headings();  // filter for heading IDs.
+new Nuclen_TOC_Render( \NuclearEngagement\Core\SettingsRepository::get_instance() ); // shortcode handler.
+if ( is_admin() ) {
+	new Nuclen_TOC_Admin();    // settings page.
+}

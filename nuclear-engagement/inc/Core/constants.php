@@ -79,3 +79,8 @@ define( 'NUCLEN_TOC_SCROLL_OFFSET_DEFAULT', 72 );
  * 30 avoids most conflicts with other plugins.
  */
 define( 'NUCLEN_ADMIN_MENU_POSITION', 30 );
+
+/** Asset version for cache busting. */
+if ( ! defined( 'NUCLEN_ASSET_VERSION' ) ) {
+	define( 'NUCLEN_ASSET_VERSION', '1.2.1' );
+}

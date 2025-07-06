@@ -186,21 +186,21 @@ class DashboardDataService {
 		$placeholders_st = implode( ',', array_fill( 0, count( $statuses ), '%s' ) );
 
 		$sql = $wpdb->prepare(
-			"SELECT t.term_id,
-		 t.name AS cat_name,
+			"SELECT COALESCE(t.term_id, 0) AS term_id,
+		 COALESCE(t.name, 'Uncategorized') AS cat_name,
 		 SUM(CASE WHEN pm_q.meta_id IS NULL THEN 0 ELSE 1 END) AS quiz_with,
 		 SUM(CASE WHEN pm_q.meta_id IS NULL THEN 1 ELSE 0 END) AS quiz_without,
 		 SUM(CASE WHEN pm_s.meta_id IS NULL THEN 0 ELSE 1 END) AS summary_with,
 		 SUM(CASE WHEN pm_s.meta_id IS NULL THEN 1 ELSE 0 END) AS summary_without
 		FROM {$wpdb->posts} p
-		JOIN {$wpdb->term_relationships} tr ON tr.object_id = p.ID
-		JOIN {$wpdb->term_taxonomy}  tt ON tt.term_taxonomy_id = tr.term_taxonomy_id AND tt.taxonomy = 'category'
-		JOIN {$wpdb->terms}          t  ON t.term_id = tt.term_id
+		LEFT JOIN {$wpdb->term_relationships} tr ON tr.object_id = p.ID
+		LEFT JOIN {$wpdb->term_taxonomy}  tt ON tt.term_taxonomy_id = tr.term_taxonomy_id AND tt.taxonomy = 'category'
+		LEFT JOIN {$wpdb->terms}          t  ON t.term_id = tt.term_id
 		LEFT JOIN {$wpdb->postmeta}  pm_q ON pm_q.post_id = p.ID AND pm_q.meta_key = 'nuclen-quiz-data'
 		LEFT JOIN {$wpdb->postmeta}  pm_s ON pm_s.post_id = p.ID AND pm_s.meta_key = '" . Summary_Service::META_KEY . "'
 		WHERE p.post_type  IN ($placeholders_pt)
 		AND p.post_status IN ($placeholders_st)
-		GROUP BY t.term_id",
+		GROUP BY COALESCE(t.term_id, 0), COALESCE(t.name, 'Uncategorized')",
 			array_merge( $post_types, $statuses )
 		);
 

@@ -47,28 +47,20 @@ abstract class BaseController {
 	/**
 	 * Check if the current request is rate limited.
 	 *
-	 * @return bool True if rate limited.
+	 * DISABLED: Rate limiting is handled by the SaaS backend.
+	 * Always returns false to allow all requests through.
+	 *
+	 * @return bool Always returns false (no rate limiting).
 	 */
 	protected function is_rate_limited(): bool {
-		$user_id    = get_current_user_id();
-		$identifier = $user_id > 0 ? 'user_' . $user_id : ServerUtils::get_client_identifier();
-
-		// Check if temporarily blocked.
-		if ( RateLimiter::is_temporarily_blocked( $identifier ) ) {
-			return true;
-		}
-
-		// Check rate limit for API requests.
-		if ( RateLimiter::is_rate_limited( 'api_request', $identifier ) ) {
-			RateLimiter::record_violation( 'api_request', $identifier );
-			return true;
-		}
-
+		// Rate limiting is handled by the SaaS backend - always allow through
 		return false;
 	}
 
 	/**
 	 * Verify nonce and permissions.
+	 *
+	 * Note: Rate limiting is handled by the SaaS backend, not locally.
 	 *
 	 * @param string $nonce_action Nonce action.
 	 * @param string $nonce_field  Nonce field name.
@@ -80,14 +72,7 @@ abstract class BaseController {
 		string $nonce_field = 'security',
 		string $capability = 'manage_options'
 	): bool {
-		// Check rate limiting first.
-		if ( $this->is_rate_limited() ) {
-			$this->send_error(
-				__( 'Too many requests. Please wait before trying again.', 'nuclear-engagement' ),
-				429
-			);
-			return false;
-		}
+		// Note: Rate limiting is skipped - handled by SaaS backend
 
 		if ( ! check_ajax_referer( $nonce_action, $nonce_field, false ) ) {
 			$this->send_error(

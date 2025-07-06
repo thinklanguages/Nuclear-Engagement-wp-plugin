@@ -47,12 +47,12 @@ class GenerationResponse {
 	/**
 	 * @var string|null Error code if any
 	 */
-	public ?string $error_code = null;
+	public ?string $errorCode = null;
 
 	/**
 	 * @var int|null HTTP status code from remote API
 	 */
-	public ?int $status_code = null;
+	public ?int $statusCode = null;
 
 	/**
 	 * Convert to array for JSON response

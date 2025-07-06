@@ -120,11 +120,6 @@ class Plugin {
 			$this->loader->nuclen_add_action( 'admin_enqueue_scripts', $plugin_admin, 'wp_enqueue_scripts' );
 			$this->loader->nuclen_add_action( 'admin_enqueue_scripts', $plugin_admin, 'nuclen_enqueue_dashboard_styles' );
 			$this->loader->nuclen_add_action( 'admin_enqueue_scripts', $plugin_admin, 'nuclen_enqueue_generate_page_scripts' );
-
-			// Admin Menu - Register immediately to ensure it's not missed.
-			// IMPORTANT: Using add_action directly instead of the loader to ensure.
-			// the menu hook is registered before WordPress fires the 'admin_menu' action.
-			add_action( 'admin_menu', array( $plugin_admin, 'nuclen_add_admin_menu' ) );
 		} catch ( \Throwable $e ) {
 			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 			error_log( 'Nuclear Engagement: Failed to initialize admin hooks - ' . $e->getMessage() );

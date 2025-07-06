@@ -1,17 +1,19 @@
 <?php
 namespace NuclearEngagement\Services {
-	class SetupService {
-		public bool $validate_return = true;
-		public bool $send_return = true;
-		public array $validate_args = [];
-		public array $send_args = [];
-		public function validate_api_key(string $key): bool {
-			$this->validate_args[] = $key;
-			return $this->validate_return;
-		}
-		public function send_app_password(array $data): bool {
-			$this->send_args[] = $data;
-			return $this->send_return;
+	if (!class_exists('NuclearEngagement\Services\SetupService')) {
+		class SetupService {
+			public bool $validate_return = true;
+			public bool $send_return = true;
+			public array $validate_args = [];
+			public array $send_args = [];
+			public function validate_api_key(string $key): bool {
+				$this->validate_args[] = $key;
+				return $this->validate_return;
+			}
+			public function send_app_password(array $data): bool {
+				$this->send_args[] = $data;
+				return $this->send_return;
+			}
 		}
 	}
 }

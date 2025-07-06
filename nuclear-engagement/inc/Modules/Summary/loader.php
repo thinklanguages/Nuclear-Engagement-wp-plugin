@@ -44,7 +44,9 @@ $front    = new \NuclearEngagement\Front\FrontClass(
 	$settings,
 	\NuclearEngagement\Core\ServiceContainer::getInstance()
 );
-new Nuclen_Summary_Shortcode( $settings, $front );
+// IMPORTANT: Must call ->register() to actually register the shortcode!
+// Without this, the shortcode won't work on frontend
+( new Nuclen_Summary_Shortcode( $settings, $front ) )->register();
 if ( is_admin() ) {
 		new Nuclen_Summary_Metabox( $settings );
 }

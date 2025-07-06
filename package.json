@@ -21,6 +21,7 @@
     "@typescript-eslint/eslint-plugin": "^8.35.1",
     "@typescript-eslint/parser": "^8.35.1",
     "@vitest/coverage-v8": "^3.2.4",
+    "@wordpress/e2e-test-utils-playwright": "^1.26.0",
     "autoprefixer": "^10.4.21",
     "cssnano": "^7.0.7",
     "eslint": "^9.30.1",

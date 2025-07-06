@@ -195,7 +195,7 @@ trait AssetsTrait {
 				$this->plugin_name,
 				NUCLEN_PLUGIN_URL . 'front/css/nuclen-front.css',
 				array(),
-				NUCLEN_ASSET_VERSION,
+				defined( 'NUCLEN_ASSET_VERSION' ) ? NUCLEN_ASSET_VERSION : NUCLEN_PLUGIN_VERSION,
 				'all'
 			);
 
@@ -226,7 +226,7 @@ trait AssetsTrait {
 			$this->plugin_name . '-front',
 			NUCLEN_PLUGIN_URL . 'front/js/nuclen-front.js',
 			array(),
-			NUCLEN_ASSET_VERSION,
+			defined( 'NUCLEN_ASSET_VERSION' ) ? NUCLEN_ASSET_VERSION : NUCLEN_PLUGIN_VERSION,
 			true
 		);
 

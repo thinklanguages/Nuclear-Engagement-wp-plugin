@@ -77,6 +77,7 @@ class UpdatesController extends BaseController {
 
 								$data = $this->api->fetch_updates( $request->generationId );
 				\NuclearEngagement\Services\LoggingService::log( 'Updates response: ' . wp_json_encode( $data ) );
+				\NuclearEngagement\Services\LoggingService::log( 'Results present in response: ' . ( ! empty( $data['results'] ) ? 'YES' : 'NO' ) );
 
 				$response          = new UpdatesResponse();
 				$response->success = true;
@@ -97,7 +98,11 @@ class UpdatesController extends BaseController {
 				/* ── Persist & return results ───────────────────────────── */
 			if ( ! empty( $data['results'] ) && is_array( $data['results'] ) ) {
 					$first         = reset( $data['results'] );
-					$workflow_type = isset( $first['questions'] ) ? 'quiz' : 'summary';
+					\NuclearEngagement\Services\LoggingService::log( 'First result data structure: ' . wp_json_encode( $first ) );
+					
+					// Improve workflow detection logic
+					$workflow_type = $this->detectWorkflowType( $data['results'], $first, $request->generationId );
+					\NuclearEngagement\Services\LoggingService::log( "Detected workflow type: {$workflow_type}" );
 
 					$statuses = $this->storage->storeResults( $data['results'], $workflow_type );
 
@@ -120,5 +125,46 @@ class UpdatesController extends BaseController {
 			\NuclearEngagement\Services\LoggingService::log( 'Error fetching updates: ' . $e->getMessage() );
 			$this->send_error( __( 'An unexpected error occurred.', 'nuclear-engagement' ) );
 		}
+	}
+
+	/**
+	 * Detect workflow type from results data
+	 * 
+	 * @param array $results Full results array
+	 * @param mixed $first First result item
+	 * @param string $generationId Generation ID for pattern matching
+	 * @return string Detected workflow type
+	 */
+	private function detectWorkflowType( array $results, $first, string $generationId ): string {
+		// Method 1: Check for 'questions' field in any result
+		foreach ( $results as $result ) {
+			if ( is_array( $result ) && isset( $result['questions'] ) && is_array( $result['questions'] ) ) {
+				return 'quiz';
+			}
+		}
+		
+		// Method 2: Check for 'summary' or 'content' field indicating summary workflow
+		foreach ( $results as $result ) {
+			if ( is_array( $result ) && ( isset( $result['summary'] ) || isset( $result['content'] ) ) ) {
+				return 'summary';
+			}
+		}
+		
+		// Method 3: Pattern matching on generation ID
+		if ( strpos( $generationId, 'quiz' ) !== false ) {
+			return 'quiz';
+		}
+		if ( strpos( $generationId, 'summary' ) !== false ) {
+			return 'summary';
+		}
+		
+		// Method 4: Check first result structure (fallback to original logic)
+		if ( is_array( $first ) && isset( $first['questions'] ) ) {
+			return 'quiz';
+		}
+		
+		// Default to summary if unclear
+		\NuclearEngagement\Services\LoggingService::log( 'Could not determine workflow type from results, defaulting to summary' );
+		return 'summary';
 	}
 }

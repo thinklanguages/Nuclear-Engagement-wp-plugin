@@ -68,6 +68,12 @@ export function initQuiz(): void {
 	};
 
 	/* PREPARE QUESTIONS */
+	// Check if postQuizData exists and is an array
+	if (typeof postQuizData === 'undefined' || !Array.isArray(postQuizData)) {
+		logger.warn('[NE] No quiz data available — quiz init aborted.');
+		return;
+	}
+	
 	const questions: QuizQuestion[] = postQuizData
 		.filter((q) => q.question.trim() && q.answers[0]?.trim())
 		.slice(0, maxQuestions)

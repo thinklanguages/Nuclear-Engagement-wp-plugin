@@ -8,30 +8,7 @@ use NuclearEngagement\Core\SettingsRepository;
 use NuclearEngagement\Core\ServiceContainer;
 use NuclearEngagement\Core\InventoryCache;
 
-require_once dirname(__DIR__) . '/nuclear-engagement/admin/Setup.php';
-require_once dirname(__DIR__) . '/nuclear-engagement/admin/Settings.php';
-require_once dirname(__DIR__) . '/nuclear-engagement/admin/Traits/AdminMenu.php';
-require_once dirname(__DIR__) . '/nuclear-engagement/admin/Traits/AdminAssets.php';
-require_once dirname(__DIR__) . '/nuclear-engagement/inc/Core/SettingsRepository.php';
-require_once dirname(__DIR__) . '/nuclear-engagement/inc/Core/ServiceContainer.php';
-require_once dirname(__DIR__) . '/nuclear-engagement/inc/Core/InventoryCache.php';
-require_once dirname(__DIR__) . '/nuclear-engagement/inc/Core/AssetVersions.php';
-
-if (!function_exists('esc_html')) { function esc_html($t){ return $t; } }
-if (!function_exists('esc_attr')) { function esc_attr($t){ return $t; } }
-if (!function_exists('esc_html__')) { function esc_html__($t,$d=null){ return $t; } }
-if (!function_exists('esc_js')) { function esc_js($t){ return $t; } }
-if (!function_exists('sanitize_text_field')) { function sanitize_text_field($t){ return is_string($t) ? trim($t) : $t; } }
-if (!function_exists('wp_unslash')) { function wp_unslash($v){ return $v; } }
-if (!function_exists('sanitize_key')) { function sanitize_key($s){ return $s; } }
-if (!function_exists('wp_verify_nonce')) { function wp_verify_nonce($n,$a){ return true; } }
-if (!function_exists('wp_nonce_field')) { function wp_nonce_field($a,$n,$r=true,$e=true){ $f='<input type="hidden" name="'.$n.'" value="nonce" />'; if($e) echo $f; return $f; } }
-if (!function_exists('submit_button')) { function submit_button($text,$type='primary',$name='submit'){ echo $text; } }
-if (!function_exists('admin_url')) { function admin_url($p=''){ return $p; } }
-if (!function_exists('plugin_dir_url')) { function plugin_dir_url($file){ return ''; } }
-if (!function_exists('plugin_dir_path')) { function plugin_dir_path($file){ return dirname($file).'/'; } }
-if (!function_exists('wp_enqueue_script')) { function wp_enqueue_script($h){ $GLOBALS['enqueued_scripts'][] = $h; } }
-if (!function_exists('wp_enqueue_style')) { function wp_enqueue_style($h){ $GLOBALS['enqueued_styles'][] = $h; } }
+// Dependencies are loaded by bootstrap.php
 if (!function_exists('wp_localize_script')) { function wp_localize_script($h,$o,$d){ $GLOBALS['localized'][$o]=$d; } }
 if (!function_exists('wp_create_nonce')) { function wp_create_nonce($a){ return 'nonce'; } }
 if (!function_exists('rest_url')) { function rest_url($p=''){ return 'rest/'.$p; } }
@@ -178,7 +155,7 @@ public function nuclen_get_version() { return '1.0'; }
 };
 
 $host->nuclen_enqueue_dashboard_styles('toplevel_page_nuclear-engagement');
-$this->assertContains('nuclen-dashboard', $enqueued_styles[0]);
+$this->assertStringContainsString('nuclen-dashboard', $enqueued_styles[0]);
 }
 
 }

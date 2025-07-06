@@ -121,11 +121,22 @@ If you’re tired of seeing users leave after skimming an article, or you simply
 > *“Helped us scale our blog content without losing quality.”*
 > – Elena Benelli, allitaliannames.com
 
+### Quiz + Summary + TOC in 1 Plugin
+
+#### AI Quiz Plugin
+Generate interactive quizzes in one click to keep visitors on the page longer, increase dwell time, and collect email leads—no coding required. Google rewards sites where users stay and interact, so quizzes boost both UX metrics and SEO performance.
+
+#### AI Summary Plugin
+Instantly add concise, skimmable summaries at the top of every post. Readers grasp key points fast, reducing bounce rates and signalling helpful content to search engines. Better engagement means stronger on-page SEO without extra writing effort.
+
+#### Table of Contents Plugin
+A dynamic TOC lets users jump to any section, cutting scroll fatigue and raising time on site. Clear structure improves accessibility, satisfies Google’s page-experience signals, and helps long-form content rank for multiple keywords.
+
 #### 🛣️ Growing with You 🛣️
 More features are coming!
 ➡️ See the [Roadmap](https://www.nuclearengagement.com/roadmap?ref=wp_listing&link=roadmap)
 
-I'm also looking forward to get feature requests and suggestions. Help me make NE work for you!
+Submit feature requests and suggestions here:
 ➡️ [Share your thoughts](https://wordpress.org/support/plugin/nuclear-engagement/)
 
 == Installation ==
@@ -230,6 +241,27 @@ They show your post’s outline at a glance and let readers jump to sections, cu
 = How are TOCs created? =
 TOCs are created automatically from your post content - no manual work, no AI needed. You can select which headings to include (h2-h6) and customize the styling.
 
+= How to add a quiz to a WordPress post? =
+To add a quiz to a WordPress post with the Nuclear Engagement plugin, create the quiz with AI or edit manually. Customize the look and feel, set the number of questions and answers. Display the quiz via block or shortcode, or append it to the post content automatically.
+1. Open the post in the WordPress editor.  
+2. In the Nuclear Engagement metabox, click Generate Quiz.  
+3. Wait for the success notice (a few seconds).  
+4. Publish or preview the post.
+
+= How to add a summary to a WordPress post? =
+To add a summary to a WordPress post with the Nuclear Engagement plugin, create the summary with AI or edit manually. Customize the look and feel, set the number of questions and answers. Display the quiz via block or shortcode, or append it to the post content automatically.
+1. Open the post in the WordPress editor.  
+2. In the Nuclear Engagement metabox, click Generate Summary.  
+3. Wait for the success notice (a few seconds).  
+4. Publish or preview the post.
+
+= How to add a table of contents (TOC) to a WordPress post? =
+To add a table of contents (TOC) to a WordPress post with the Nuclear Engagement plugin, simply enable display in the plugin settings. It will be automatically added to all posts set to display it. Display the TOC via block or shortcode, or append it to the post content automatically.
+1. Go to Nuclear Engagement → Settings → TOC.  
+2. Enable TOC, choose heading levels (e.g., H2–H4), and select the insertion point.  
+3. Save settings (no per-post action needed).  
+4. The TOC now appears automatically.
+
 = Does Nuclear Engagement provide analytics to track user engagement? =
 Yes, the plugin triggers Google Analytics events like quiz start, quiz answers, and email opt-ins. On the Nuclear Engagement web app, you can see metrics like summary view rates, quiz completion rates, and opt-in rates.
 
@@ -250,13 +282,13 @@ The tiny codebase and lazy loading assure fast loading, both in admin and on fro
 
 == Changelog ==
 
-= 2.0 – 2025-07-03 =
+= 2.0 – 2025-07-06 =
 * Added: Gutenberg blocks for summaries, quizzes and TOC.
-* Added: Improved theme system.
 * Added: Dashboard section showing scheduled content generation tasks.
 * Added: Inventory data caching with manual refresh and persistent transients.
 * Added: Test infrastructure for improved code quality.
 * Added: TOC analytics events.
+* Changed: Improved theme system.
 * Changed: Improve background processing.
 * Changed: Expanded cache invalidation to cover more post and term events.
 * Changed: Total architecture refactoring.

@@ -109,7 +109,6 @@ export default [
         $: 'readonly',
         gtag: 'readonly',
         alert: 'readonly',
-        jest: 'readonly',
         global: 'readonly',
         process: 'readonly',
         require: 'readonly',

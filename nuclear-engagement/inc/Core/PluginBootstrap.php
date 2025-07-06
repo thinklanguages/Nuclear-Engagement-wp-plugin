@@ -13,6 +13,7 @@ use NuclearEngagement\Core\ServiceContainer;
 use NuclearEngagement\Core\ContainerRegistrar;
 use NuclearEngagement\Core\SettingsRepository;
 use NuclearEngagement\Core\Defaults;
+use NuclearEngagement\Core\Plugin;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -141,6 +142,16 @@ final class PluginBootstrap {
 		// Only initialize what's absolutely necessary.
 		$defaults = Defaults::nuclen_get_default_settings();
 		SettingsRepository::get_instance( $defaults );
+
+		// CRITICAL: DO NOT REMOVE THIS! The Plugin class MUST be instantiated!
+		// The Plugin class is responsible for:
+		// - Registering shortcodes via FrontClass (quiz, summary)
+		// - Registering blocks via Blocks::register()
+		// - Setting up all WordPress hooks
+		// Without this, NO shortcodes or blocks will work!
+		if ( class_exists( 'NuclearEngagement\Core\Plugin' ) ) {
+			new \NuclearEngagement\Core\Plugin();
+		}
 
 		// Initialize error handling.
 		if ( class_exists( 'NuclearEngagement\Core\Error\ErrorContext' ) ) {
@@ -293,6 +304,9 @@ final class PluginBootstrap {
 			add_action( 'admin_enqueue_scripts', array( $admin, 'nuclen_enqueue_generate_page_scripts' ) );
 			add_action( 'admin_menu', array( $admin, 'nuclen_add_admin_menu' ) );
 
+			// REMOVED: Block registration is now handled by Plugin class
+			// to avoid duplicate registration. DO NOT add block registration here!
+
 			// Register AJAX hooks for controllers.
 			$this->registerAdminAjaxHooks( $container );
 
@@ -359,8 +373,6 @@ final class PluginBootstrap {
 			add_action( 'wp_head', array( $frontend, 'wp_head_custom_theme_vars' ), 99 );
 			add_action( 'init', array( $frontend, 'nuclen_register_quiz_shortcode' ) );
 			add_action( 'init', array( $frontend, 'nuclen_register_summary_shortcode' ) );
-			add_filter( 'the_content', array( $frontend, 'nuclen_auto_insert_shortcodes' ), 50 );
-			add_action( 'init', '\\NuclearEngagement\\Core\\Blocks::register' );
 		}
 	}
 

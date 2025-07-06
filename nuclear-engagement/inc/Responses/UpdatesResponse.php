@@ -32,7 +32,7 @@ class UpdatesResponse {
 	public ?string $workflow      = null; // NEW.
 	public ?int $remainingCredits = null;
 	public ?string $message       = null;
-	public ?int $status_code      = null;
+	public ?int $statusCode       = null;
 
 	/**
 	 * Convert to array for JSON response.
@@ -42,25 +42,25 @@ class UpdatesResponse {
 	public function toArray(): array {
 		$data = array( 'success' => $this->success );
 
-		if ( $this !== null->processed ) {
+		if ( $this->processed !== null ) {
 			$data['processed'] = $this->processed;
 		}
-		if ( $this !== null->total ) {
+		if ( $this->total !== null ) {
 			$data['total'] = $this->total;
 		}
-		if ( $this !== null->results ) {
+		if ( $this->results !== null ) {
 			$data['results'] = $this->results;
 		}
-		if ( $this !== null->workflow ) {
+		if ( $this->workflow !== null ) {
 			$data['workflow'] = $this->workflow;
 		}
-		if ( $this !== null->remainingCredits ) {
+		if ( $this->remainingCredits !== null ) {
 			$data['remaining_credits'] = $this->remainingCredits;
 		}
-		if ( $this !== null->message ) {
+		if ( $this->message !== null ) {
 			$data['message'] = $this->message;
 		}
-		if ( $this !== null->statusCode ) {
+		if ( $this->statusCode !== null ) {
 			$data['status_code'] = $this->statusCode;
 		}
 

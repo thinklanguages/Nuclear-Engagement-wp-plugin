@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, wpLogin, NuclearEngagementHelpers } from './wordpress-helpers.js';
 
 test.describe('Simple Playwright Test', () => {
   test('basic test to verify playwright works', async ({ page }) => {
