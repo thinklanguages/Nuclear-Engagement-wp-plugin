@@ -152,59 +152,125 @@ class LoggingService {
 
 		/** Write one or more messages to the log. */
 	private function write_messages( array $messages ): void {
-			$info   = self::get_log_file_info();
+		$info = self::get_log_file_info();
 		$log_folder = $info['dir'];
-		$log_file   = $info['path'];
-		$max_size   = defined( 'NUCLEN_LOG_FILE_MAX_SIZE' ) ? NUCLEN_LOG_FILE_MAX_SIZE : MB_IN_BYTES;
+		$log_file = $info['path'];
 
-		if ( ! file_exists( $log_folder ) ) {
-			if ( ! wp_mkdir_p( $log_folder ) ) {
-				foreach ( $messages as $msg ) {
-					$this->fallback( $msg, 'Failed to create log directory: ' . $log_folder );
-				}
-				return;
-			}
+		if ( ! $this->ensure_log_directory( $log_folder, $messages ) ) {
+			return;
 		}
 
-		if ( ! is_writable( $log_folder ) ) {
-			foreach ( $messages as $msg ) {
-				$this->fallback( $msg, 'Log directory not writable: ' . $log_folder );
-			}
+		if ( ! $this->check_write_permissions( $log_folder, $log_file, $messages ) ) {
 			return;
+		}
+
+		$this->rotate_log_if_needed( $log_file, $log_folder, $messages );
+		$this->write_log_data( $log_file, $messages );
+	}
+
+	/**
+	 * Ensure log directory exists and is writable.
+	 *
+	 * @param string $log_folder Log directory path.
+	 * @param array  $messages Messages to log on failure.
+	 * @return bool True if directory is ready, false otherwise.
+	 */
+	private function ensure_log_directory( string $log_folder, array $messages ): bool {
+		if ( ! file_exists( $log_folder ) ) {
+			if ( ! wp_mkdir_p( $log_folder ) ) {
+				$this->fallback_all( $messages, 'Failed to create log directory: ' . $log_folder );
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * Check write permissions for log directory and file.
+	 *
+	 * @param string $log_folder Log directory path.
+	 * @param string $log_file Log file path.
+	 * @param array  $messages Messages to log on failure.
+	 * @return bool True if writable, false otherwise.
+	 */
+	private function check_write_permissions( string $log_folder, string $log_file, array $messages ): bool {
+		if ( ! is_writable( $log_folder ) ) {
+			$this->fallback_all( $messages, 'Log directory not writable: ' . $log_folder );
+			return false;
 		}
 
 		if ( file_exists( $log_file ) && ! is_writable( $log_file ) ) {
-			foreach ( $messages as $msg ) {
-				$this->fallback( $msg, 'Log file not writable: ' . $log_file );
-			}
-			return;
+			$this->fallback_all( $messages, 'Log file not writable: ' . $log_file );
+			return false;
 		}
+
+		return true;
+	}
+
+	/**
+	 * Rotate log file if it exceeds size limit.
+	 *
+	 * @param string $log_file Log file path.
+	 * @param string $log_folder Log directory path.
+	 * @param array  $messages Messages to log on failure.
+	 */
+	private function rotate_log_if_needed( string $log_file, string $log_folder, array $messages ): void {
+		$max_size = defined( 'NUCLEN_LOG_FILE_MAX_SIZE' ) ? NUCLEN_LOG_FILE_MAX_SIZE : MB_IN_BYTES;
 
 		if ( file_exists( $log_file ) && filesize( $log_file ) > $max_size ) {
 			$timestamped = $log_folder . '/log-' . gmdate( 'Y-m-d-His' ) . '.txt';
-			$renamed     = rename( $log_file, $timestamped );
-			if ( ! $renamed ) {
-				foreach ( $messages as $msg ) {
-					$this->fallback( $msg, 'Failed to rotate log file: ' . $timestamped );
-				}
+			if ( ! rename( $log_file, $timestamped ) ) {
+				$this->fallback_all( $messages, 'Failed to rotate log file: ' . $timestamped );
 			}
 		}
+	}
 
+	/**
+	 * Write log data to file.
+	 *
+	 * @param string $log_file Log file path.
+	 * @param array  $messages Messages to write.
+	 */
+	private function write_log_data( string $log_file, array $messages ): void {
+		$data = $this->prepare_log_data( $log_file, $messages );
+
+		if ( file_put_contents( $log_file, $data, FILE_APPEND | LOCK_EX ) === false ) {
+			$this->fallback_all( $messages, 'Failed to write to log file: ' . $log_file );
+		}
+	}
+
+	/**
+	 * Prepare log data string.
+	 *
+	 * @param string $log_file Log file path.
+	 * @param array  $messages Messages to format.
+	 * @return string Formatted log data.
+	 */
+	private function prepare_log_data( string $log_file, array $messages ): string {
 		$data = '';
+
 		if ( ! file_exists( $log_file ) ) {
 			$timestamp = gmdate( 'Y-m-d H:i:s' );
-			$data     .= "[{$timestamp}] Log file created\n";
+			$data .= "[{$timestamp}] Log file created\n";
 		}
 
 		foreach ( $messages as $msg ) {
 			$timestamp = gmdate( 'Y-m-d H:i:s' );
-			$data     .= "[{$timestamp}] {$msg}\n";
+			$data .= "[{$timestamp}] {$msg}\n";
 		}
 
-		if ( file_put_contents( $log_file, $data, FILE_APPEND | LOCK_EX ) === false ) {
-			foreach ( $messages as $msg ) {
-				$this->fallback( $msg, 'Failed to write to log file: ' . $log_file );
-			}
+		return $data;
+	}
+
+	/**
+	 * Apply fallback logging to all messages.
+	 *
+	 * @param array  $messages Messages to fallback.
+	 * @param string $error_msg Error message.
+	 */
+	private function fallback_all( array $messages, string $error_msg ): void {
+		foreach ( $messages as $msg ) {
+			$this->fallback( $msg, $error_msg );
 		}
 	}
 

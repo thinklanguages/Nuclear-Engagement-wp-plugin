@@ -106,82 +106,170 @@ class ContentStorageService {
 	 * @throws \InvalidArgumentException On invalid data
 	 */
 	public function storeQuizData( int $post_id, array $data ): void {
+		$this->validate_quiz_data( $post_id, $data );
+		$questions = $this->process_quiz_questions( $post_id, $data['questions'] );
+		$formatted = $this->format_quiz_data( $data, $questions );
+		$this->save_quiz_data_transaction( $post_id, $formatted );
+	}
+
+	/**
+	 * Validate quiz data structure.
+	 *
+	 * @param int   $post_id Post ID.
+	 * @param array $data Quiz data to validate.
+	 * @throws \InvalidArgumentException On invalid data.
+	 */
+	private function validate_quiz_data( int $post_id, array $data ): void {
 		if ( empty( $data['questions'] ) || ! is_array( $data['questions'] ) ) {
-				$error_details = 'questions field is ' . ( ! isset( $data['questions'] ) ? 'missing' : ( is_array( $data['questions'] ) ? 'empty array' : 'not an array' ) );
-				\NuclearEngagement\Services\LoggingService::log( "Quiz data validation failed for post {$post_id}: {$error_details}. Full data: " . wp_json_encode( $data ) );
-				throw new \InvalidArgumentException( "Invalid quiz data for post {$post_id}: {$error_details}" );
+			$error_details = 'questions field is ' . ( ! isset( $data['questions'] ) ? 'missing' : ( is_array( $data['questions'] ) ? 'empty array' : 'not an array' ) );
+			\NuclearEngagement\Services\LoggingService::log( "Quiz data validation failed for post {$post_id}: {$error_details}. Full data: " . wp_json_encode( $data ) );
+			throw new \InvalidArgumentException( "Invalid quiz data for post {$post_id}: {$error_details}" );
 		}
+	}
 
-			$maxAnswers = $this->settings->get_int( 'answers_per_question', 4 );
-			$questions  = array();
+	/**
+	 * Process and validate quiz questions.
+	 *
+	 * @param int   $post_id Post ID.
+	 * @param array $raw_questions Raw questions data.
+	 * @return array Processed questions.
+	 * @throws \InvalidArgumentException On no valid questions.
+	 */
+	private function process_quiz_questions( int $post_id, array $raw_questions ): array {
+		$max_answers = $this->settings->get_int( 'answers_per_question', 4 );
+		$questions = array();
 
-		foreach ( $data['questions'] as $question ) {
+		foreach ( $raw_questions as $question ) {
 			if ( ! is_array( $question ) ) {
-					continue;
-			}
-
-				$qText   = trim( (string) ( $question['question'] ?? '' ) );
-				$answers = isset( $question['answers'] ) && is_array( $question['answers'] )
-						? array_map( 'trim', $question['answers'] )
-						: array();
-				$answers = array_filter(
-					$answers,
-					static function ( $a ) {
-							return $a !== '';
-					}
-				);
-
-			if ( $qText === '' || empty( $answers ) ) {
 				continue;
 			}
 
-				$questions[] = array(
-					'question'    => sanitize_text_field( $qText ),
-					'answers'     => array_map( 'sanitize_text_field', array_slice( $answers, 0, $maxAnswers ) ),
-					'explanation' => sanitize_text_field( (string) ( $question['explanation'] ?? '' ) ),
-				);
+			$processed = $this->process_single_question( $question, $max_answers );
+			if ( $processed !== null ) {
+				$questions[] = $processed;
+			}
 		}
 
 		if ( empty( $questions ) ) {
-				\NuclearEngagement\Services\LoggingService::log( "No valid questions found after processing quiz data for post {$post_id}. Original questions count: " . count( $data['questions'] ?? array() ) );
-				throw new \InvalidArgumentException( "No valid quiz questions found for post {$post_id}" );
+			\NuclearEngagement\Services\LoggingService::log( "No valid questions found after processing quiz data for post {$post_id}. Original questions count: " . count( $raw_questions ) );
+			throw new \InvalidArgumentException( "No valid quiz questions found for post {$post_id}" );
 		}
 
-				$formatted = array(
-					'date'      => $data['date'] ?? current_time( 'mysql' ),
-					'questions' => $questions,
-				);
+		return $questions;
+	}
 
-				// Use WordPress database transactions for race condition prevention.
-				global $wpdb;
+	/**
+	 * Process a single question.
+	 *
+	 * @param array $question Question data.
+	 * @param int   $max_answers Maximum answers per question.
+	 * @return array|null Processed question or null if invalid.
+	 */
+	private function process_single_question( array $question, int $max_answers ): ?array {
+		$q_text = trim( (string) ( $question['question'] ?? '' ) );
+		$answers = $this->process_question_answers( $question );
 
+		if ( $q_text === '' || empty( $answers ) ) {
+			return null;
+		}
+
+		return array(
+			'question'    => sanitize_text_field( $q_text ),
+			'answers'     => array_map( 'sanitize_text_field', array_slice( $answers, 0, $max_answers ) ),
+			'explanation' => sanitize_text_field( (string) ( $question['explanation'] ?? '' ) ),
+		);
+	}
+
+	/**
+	 * Process question answers.
+	 *
+	 * @param array $question Question data.
+	 * @return array Processed answers.
+	 */
+	private function process_question_answers( array $question ): array {
+		if ( ! isset( $question['answers'] ) || ! is_array( $question['answers'] ) ) {
+			return array();
+		}
+
+		$answers = array_map( 'trim', $question['answers'] );
+		return array_filter( $answers, static function ( $a ) {
+			return $a !== '';
+		} );
+	}
+
+	/**
+	 * Format quiz data for storage.
+	 *
+	 * @param array $data Original data.
+	 * @param array $questions Processed questions.
+	 * @return array Formatted data.
+	 */
+	private function format_quiz_data( array $data, array $questions ): array {
+		return array(
+			'date'      => $data['date'] ?? current_time( 'mysql' ),
+			'questions' => $questions,
+		);
+	}
+
+	/**
+	 * Save quiz data using database transaction.
+	 *
+	 * @param int   $post_id Post ID.
+	 * @param array $formatted Formatted data.
+	 * @throws \RuntimeException On database errors.
+	 */
+	private function save_quiz_data_transaction( int $post_id, array $formatted ): void {
+		global $wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+		$wpdb->query( 'START TRANSACTION' );
+
+		try {
+			if ( $this->is_data_unchanged( $post_id, $formatted ) ) {
 				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
-				$wpdb->query( 'START TRANSACTION' );
+				$wpdb->query( 'COMMIT' );
+				return;
+			}
 
-				try {
-					$current = get_post_meta( $post_id, 'nuclen-quiz-data', true );
-					if ( $current === $formatted ) {
-						// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
-						$wpdb->query( 'COMMIT' );
-						return;
-					}
+			$this->update_quiz_meta( $post_id, $formatted );
 
-					$updated = update_post_meta( $post_id, 'nuclen-quiz-data', $formatted );
-					if ( $updated === false ) {
-						// Check if the update actually worked (WordPress quirk).
-						$check = get_post_meta( $post_id, 'nuclen-quiz-data', true );
-						if ( $check !== $formatted ) {
-							throw new \RuntimeException( "Failed to update quiz data for post {$post_id}" );
-						}
-					}
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+			$wpdb->query( 'COMMIT' );
+		} catch ( \Throwable $e ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+			$wpdb->query( 'ROLLBACK' );
+			throw $e;
+		}
+	}
 
-					// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
-					$wpdb->query( 'COMMIT' );
-				} catch ( \Throwable $e ) {
-					// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
-					$wpdb->query( 'ROLLBACK' );
-					throw $e;
-				}
+	/**
+	 * Check if data is unchanged.
+	 *
+	 * @param int   $post_id Post ID.
+	 * @param array $formatted New data.
+	 * @return bool True if unchanged.
+	 */
+	private function is_data_unchanged( int $post_id, array $formatted ): bool {
+		$current = get_post_meta( $post_id, 'nuclen-quiz-data', true );
+		return $current === $formatted;
+	}
+
+	/**
+	 * Update quiz meta with validation.
+	 *
+	 * @param int   $post_id Post ID.
+	 * @param array $formatted Data to save.
+	 * @throws \RuntimeException On update failure.
+	 */
+	private function update_quiz_meta( int $post_id, array $formatted ): void {
+		$updated = update_post_meta( $post_id, 'nuclen-quiz-data', $formatted );
+		if ( $updated === false ) {
+			// Check if the update actually worked (WordPress quirk)
+			$check = get_post_meta( $post_id, 'nuclen-quiz-data', true );
+			if ( $check !== $formatted ) {
+				throw new \RuntimeException( "Failed to update quiz data for post {$post_id}" );
+			}
+		}
 	}
 
 	/**

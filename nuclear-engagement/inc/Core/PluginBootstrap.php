@@ -79,11 +79,10 @@ final class PluginBootstrap {
 		// 6. Register WordPress hooks
 		$this->registerWordPressHooks();
 
-		// 7. CRITICAL: Load admin services immediately if we're in admin context
-		// This MUST happen before WordPress fires the 'admin_menu' hook.
-		// Otherwise, admin menu items will not appear!
+		// 7. CRITICAL: Load admin services selectively in admin context
+		// Only load essential services immediately, defer heavy services
 		if ( is_admin() ) {
-			$this->loadService( 'admin' );
+			$this->loadMinimalAdminServices();
 		}
 
 		$this->initialized = true;
@@ -222,13 +221,14 @@ final class PluginBootstrap {
 
 	private function registerWordPressHooks(): void {
 		// Register hooks for lazy loading services.
-		// Note: Admin services are loaded immediately in init() if is_admin() is true.
-		// This ensures admin menu hooks are registered before WordPress fires them.
 		add_action( 'wp_loaded', array( $this, 'maybeLoadFrontendServices' ) );
 		add_action( 'rest_api_init', array( $this, 'maybeLoadApiServices' ) );
 
 		// Initialize modules.
 		add_action( 'init', array( $this, 'initializeModules' ), 5 );
+
+		// Register admin page detection for conditional loading
+		add_action( 'current_screen', array( $this, 'conditionallyLoadAdminServices' ) );
 
 		// Register auto-generation hooks after admin services are loaded.
 		add_action( 'init', array( $this, 'registerAutoGenerationHooks' ), 10 );
@@ -436,5 +436,144 @@ final class PluginBootstrap {
 
 		// Initialize all modules.
 		$registry->initializeAll();
+	}
+
+	/**
+	 * Load only minimal admin services on all admin pages.
+	 * This prevents loading heavy services on irrelevant pages.
+	 */
+	private function loadMinimalAdminServices(): void {
+		// Only load essential services needed for menu registration
+		add_action( 'admin_menu', array( $this, 'registerAdminMenu' ) );
+		
+		// Load AJAX handlers (lightweight)
+		$this->registerCriticalAjaxHooks();
+	}
+
+	/**
+	 * Register admin menu without loading full admin services.
+	 */
+	public function registerAdminMenu(): void {
+		// Simple menu registration without heavy dependencies
+		add_menu_page(
+			__( 'Nuclear Engagement', 'nuclear-engagement' ),
+			__( 'Nuclear Engagement', 'nuclear-engagement' ),
+			'manage_options',
+			'nuclear-engagement',
+			array( $this, 'renderMinimalAdminPage' ),
+			'dashicons-admin-tools',
+			30
+		);
+
+		// Add submenus
+		$submenus = array(
+			array( 'nuclear-engagement', __( 'Dashboard', 'nuclear-engagement' ), __( 'Dashboard', 'nuclear-engagement' ), 'manage_options', 'nuclear-engagement' ),
+			array( 'nuclear-engagement', __( 'Generate', 'nuclear-engagement' ), __( 'Generate', 'nuclear-engagement' ), 'manage_options', 'nuclear-engagement-generate' ),
+			array( 'nuclear-engagement', __( 'Settings', 'nuclear-engagement' ), __( 'Settings', 'nuclear-engagement' ), 'manage_options', 'nuclear-engagement-settings' ),
+			array( 'nuclear-engagement', __( 'Setup', 'nuclear-engagement' ), __( 'Setup', 'nuclear-engagement' ), 'manage_options', 'nuclear-engagement-setup' ),
+		);
+
+		foreach ( $submenus as $submenu ) {
+			add_submenu_page( ...$submenu );
+		}
+	}
+
+	/**
+	 * Load full admin services only when on plugin pages.
+	 */
+	public function conditionallyLoadAdminServices(): void {
+		$screen = get_current_screen();
+		
+		if ( ! $screen ) {
+			return;
+		}
+
+		// Check if we're on a plugin-related page
+		$plugin_pages = array(
+			'toplevel_page_nuclear-engagement',
+			'nuclear-engagement_page_nuclear-engagement-generate', 
+			'nuclear-engagement_page_nuclear-engagement-settings',
+			'nuclear-engagement_page_nuclear-engagement-setup',
+			'post',
+			'page'
+		);
+
+		$load_full_services = false;
+
+		// Check if on plugin admin pages
+		if ( in_array( $screen->id, $plugin_pages, true ) ) {
+			$load_full_services = true;
+		}
+
+		// Check if on post editor for supported post types
+		if ( in_array( $screen->base, array( 'post', 'edit' ), true ) ) {
+			$allowed_post_types = get_transient( 'nuclear_engagement_allowed_post_types' );
+			
+			if ( false === $allowed_post_types ) {
+				$settings = get_option( 'nuclear_engagement_settings', array() );
+				$allowed_post_types = isset( $settings['generation_post_types'] ) ? 
+					$settings['generation_post_types'] : array( 'post' );
+				set_transient( 'nuclear_engagement_allowed_post_types', $allowed_post_types, 10 * MINUTE_IN_SECONDS );
+			}
+
+			if ( in_array( $screen->post_type, $allowed_post_types, true ) ) {
+				$load_full_services = true;
+			}
+		}
+
+		// Only load full services if needed
+		if ( $load_full_services && ! $this->isServiceLoaded( 'admin' ) ) {
+			$this->loadService( 'admin' );
+		}
+	}
+
+	/**
+	 * Register only critical AJAX hooks.
+	 */
+	private function registerCriticalAjaxHooks(): void {
+		// Only register absolutely essential AJAX hooks
+		// Most AJAX hooks can be loaded when full admin services load
+		add_action( 'wp_ajax_nuclen_dismiss_pointer', array( $this, 'handleDismissPointer' ) );
+	}
+
+	/**
+	 * Minimal admin page callback.
+	 */
+	public function renderMinimalAdminPage(): void {
+		// This will trigger full admin loading when the page is accessed
+		if ( ! $this->isServiceLoaded( 'admin' ) ) {
+			$this->loadService( 'admin' );
+		}
+
+		// Defer to actual admin class
+		$container = ServiceContainer::getInstance();
+		if ( $container->has( 'admin' ) ) {
+			$admin = $container->get( 'admin' );
+			// Call appropriate method based on page
+		} else {
+			echo '<div class="wrap"><h1>' . esc_html__( 'Nuclear Engagement', 'nuclear-engagement' ) . '</h1><p>' . esc_html__( 'Loading...', 'nuclear-engagement' ) . '</p></div>';
+		}
+	}
+
+	/**
+	 * Handle pointer dismissal without full admin load.
+	 */
+	public function handleDismissPointer(): void {
+		if ( ! wp_verify_nonce( $_POST['nonce'] ?? '', 'nuclen_admin_ajax_nonce' ) ) {
+			wp_die( 'Security check failed' );
+		}
+
+		$pointer_id = sanitize_text_field( $_POST['pointer_id'] ?? '' );
+		if ( $pointer_id ) {
+			$dismissed_pointers = get_user_meta( get_current_user_id(), 'dismissed_wp_pointers', true );
+			$dismissed_pointers = $dismissed_pointers ? explode( ',', $dismissed_pointers ) : array();
+			
+			if ( ! in_array( $pointer_id, $dismissed_pointers, true ) ) {
+				$dismissed_pointers[] = $pointer_id;
+				update_user_meta( get_current_user_id(), 'dismissed_wp_pointers', implode( ',', $dismissed_pointers ) );
+			}
+		}
+
+		wp_send_json_success();
 	}
 }

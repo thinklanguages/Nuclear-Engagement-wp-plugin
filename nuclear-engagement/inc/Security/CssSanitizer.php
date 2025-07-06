@@ -77,94 +77,33 @@ class CssSanitizer {
 	public static function sanitize_color( string $color ): string {
 		$color = trim( $color );
 
-		// Remove any dangerous patterns.
-		foreach ( self::DANGEROUS_PATTERNS as $pattern ) {
-			if ( preg_match( $pattern, $color ) ) {
-				return '#000000'; // Safe fallback.
-			}
+		// Early return for dangerous patterns
+		if ( self::has_dangerous_pattern( $color ) ) {
+			return '#000000';
 		}
 
-		// Allow only valid color formats.
-		$color_patterns = array(
-			'/^#([0-9a-f]{3}|[0-9a-f]{6})$/i',                           // Hex colors.
-		);
-
-		// Check RGB/RGBA values with proper validation
-		if ( preg_match( '/^rgb\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)$/i', $color, $matches ) ) {
-			$r = (int) $matches[1];
-			$g = (int) $matches[2];
-			$b = (int) $matches[3];
-			if ( $r >= 0 && $r <= 255 && $g >= 0 && $g <= 255 && $b >= 0 && $b <= 255 ) {
-				return $color;
-			}
+		// Try each color format in order
+		if ( $hex_color = self::validate_hex_color( $color ) ) {
+			return $hex_color;
 		}
 
-		if ( preg_match( '/^rgba\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*([\d.]+)\s*\)$/i', $color, $matches ) ) {
-			$r = (int) $matches[1];
-			$g = (int) $matches[2];
-			$b = (int) $matches[3];
-			$a = (float) $matches[4];
-			if ( $r >= 0 && $r <= 255 && $g >= 0 && $g <= 255 && $b >= 0 && $b <= 255 && $a >= 0 && $a <= 1 ) {
-				return $color;
-			}
+		if ( $rgb_color = self::validate_rgb_color( $color ) ) {
+			return $rgb_color;
 		}
 
-		// Check HSL/HSLA values with proper validation
-		if ( preg_match( '/^hsl\s*\(\s*(\d+)\s*,\s*(\d+)%\s*,\s*(\d+)%\s*\)$/i', $color, $matches ) ) {
-			$h = (int) $matches[1];
-			$s = (int) $matches[2];
-			$l = (int) $matches[3];
-			if ( $h >= 0 && $h <= 360 && $s >= 0 && $s <= 100 && $l >= 0 && $l <= 100 ) {
-				return $color;
-			}
+		if ( $hsl_color = self::validate_hsl_color( $color ) ) {
+			return $hsl_color;
 		}
 
-		if ( preg_match( '/^hsla\s*\(\s*(\d+)\s*,\s*(\d+)%\s*,\s*(\d+)%\s*,\s*([\d.]+)\s*\)$/i', $color, $matches ) ) {
-			$h = (int) $matches[1];
-			$s = (int) $matches[2];
-			$l = (int) $matches[3];
-			$a = (float) $matches[4];
-			if ( $h >= 0 && $h <= 360 && $s >= 0 && $s <= 100 && $l >= 0 && $l <= 100 && $a >= 0 && $a <= 1 ) {
-				return $color;
-			}
+		if ( $keyword_color = self::validate_keyword_color( $color ) ) {
+			return $keyword_color;
 		}
 
-		// Check CSS keywords
-		if ( preg_match( '/^(transparent|currentcolor)$/i', $color ) ) {
-			return $color;
+		if ( $named_color = self::validate_named_color( $color ) ) {
+			return $named_color;
 		}
 
-		// Allow predefined CSS color names.
-		$valid_color_names = array(
-			'black',
-			'white',
-			'red',
-			'green',
-			'blue',
-			'yellow',
-			'cyan',
-			'magenta',
-			'gray',
-			'grey',
-			'orange',
-			'purple',
-			'pink',
-			'brown',
-			'lime',
-			'navy',
-		);
-
-		foreach ( $color_patterns as $pattern ) {
-			if ( preg_match( $pattern, $color ) ) {
-				return $color;
-			}
-		}
-
-		if ( in_array( strtolower( $color ), $valid_color_names, true ) ) {
-			return strtolower( $color );
-		}
-
-		// If nothing matches, return safe fallback.
+		// If nothing matches, return safe fallback
 		return '#000000';
 	}
 
@@ -293,6 +232,168 @@ class CssSanitizer {
 		}
 
 		return $value;
+	}
+
+	/**
+	 * Check if color contains dangerous patterns.
+	 *
+	 * @since 1.1.0
+	 *
+	 * @param string $color Color to check.
+	 * @return bool True if dangerous patterns found.
+	 */
+	private static function has_dangerous_pattern( string $color ): bool {
+		foreach ( self::DANGEROUS_PATTERNS as $pattern ) {
+			if ( preg_match( $pattern, $color ) ) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Validate hex color format.
+	 *
+	 * @since 1.1.0
+	 *
+	 * @param string $color Color to validate.
+	 * @return string|null Valid hex color or null.
+	 */
+	private static function validate_hex_color( string $color ): ?string {
+		if ( preg_match( '/^#([0-9a-f]{3}|[0-9a-f]{6})$/i', $color ) ) {
+			return $color;
+		}
+		return null;
+	}
+
+	/**
+	 * Validate RGB/RGBA color format.
+	 *
+	 * @since 1.1.0
+	 *
+	 * @param string $color Color to validate.
+	 * @return string|null Valid RGB/RGBA color or null.
+	 */
+	private static function validate_rgb_color( string $color ): ?string {
+		// RGB format
+		if ( preg_match( '/^rgb\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)$/i', $color, $matches ) ) {
+			if ( self::validate_rgb_values( (int) $matches[1], (int) $matches[2], (int) $matches[3] ) ) {
+				return $color;
+			}
+		}
+
+		// RGBA format
+		if ( preg_match( '/^rgba\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*([\d.]+)\s*\)$/i', $color, $matches ) ) {
+			if ( self::validate_rgb_values( (int) $matches[1], (int) $matches[2], (int) $matches[3] ) && 
+				 self::validate_alpha_value( (float) $matches[4] ) ) {
+				return $color;
+			}
+		}
+
+		return null;
+	}
+
+	/**
+	 * Validate HSL/HSLA color format.
+	 *
+	 * @since 1.1.0
+	 *
+	 * @param string $color Color to validate.
+	 * @return string|null Valid HSL/HSLA color or null.
+	 */
+	private static function validate_hsl_color( string $color ): ?string {
+		// HSL format
+		if ( preg_match( '/^hsl\s*\(\s*(\d+)\s*,\s*(\d+)%\s*,\s*(\d+)%\s*\)$/i', $color, $matches ) ) {
+			if ( self::validate_hsl_values( (int) $matches[1], (int) $matches[2], (int) $matches[3] ) ) {
+				return $color;
+			}
+		}
+
+		// HSLA format
+		if ( preg_match( '/^hsla\s*\(\s*(\d+)\s*,\s*(\d+)%\s*,\s*(\d+)%\s*,\s*([\d.]+)\s*\)$/i', $color, $matches ) ) {
+			if ( self::validate_hsl_values( (int) $matches[1], (int) $matches[2], (int) $matches[3] ) && 
+				 self::validate_alpha_value( (float) $matches[4] ) ) {
+				return $color;
+			}
+		}
+
+		return null;
+	}
+
+	/**
+	 * Validate CSS keyword colors.
+	 *
+	 * @since 1.1.0
+	 *
+	 * @param string $color Color to validate.
+	 * @return string|null Valid keyword color or null.
+	 */
+	private static function validate_keyword_color( string $color ): ?string {
+		if ( preg_match( '/^(transparent|currentcolor)$/i', $color ) ) {
+			return $color;
+		}
+		return null;
+	}
+
+	/**
+	 * Validate named CSS colors.
+	 *
+	 * @since 1.1.0
+	 *
+	 * @param string $color Color to validate.
+	 * @return string|null Valid named color or null.
+	 */
+	private static function validate_named_color( string $color ): ?string {
+		$valid_color_names = array(
+			'black', 'white', 'red', 'green', 'blue', 'yellow',
+			'cyan', 'magenta', 'gray', 'grey', 'orange', 'purple',
+			'pink', 'brown', 'lime', 'navy',
+		);
+
+		if ( in_array( strtolower( $color ), $valid_color_names, true ) ) {
+			return strtolower( $color );
+		}
+		return null;
+	}
+
+	/**
+	 * Validate RGB color values.
+	 *
+	 * @since 1.1.0
+	 *
+	 * @param int $r Red value.
+	 * @param int $g Green value.
+	 * @param int $b Blue value.
+	 * @return bool True if valid RGB values.
+	 */
+	private static function validate_rgb_values( int $r, int $g, int $b ): bool {
+		return $r >= 0 && $r <= 255 && $g >= 0 && $g <= 255 && $b >= 0 && $b <= 255;
+	}
+
+	/**
+	 * Validate HSL color values.
+	 *
+	 * @since 1.1.0
+	 *
+	 * @param int $h Hue value.
+	 * @param int $s Saturation value.
+	 * @param int $l Lightness value.
+	 * @return bool True if valid HSL values.
+	 */
+	private static function validate_hsl_values( int $h, int $s, int $l ): bool {
+		return $h >= 0 && $h <= 360 && $s >= 0 && $s <= 100 && $l >= 0 && $l <= 100;
+	}
+
+	/**
+	 * Validate alpha value.
+	 *
+	 * @since 1.1.0
+	 *
+	 * @param float $alpha Alpha value.
+	 * @return bool True if valid alpha value.
+	 */
+	private static function validate_alpha_value( float $alpha ): bool {
+		return $alpha >= 0 && $alpha <= 1;
 	}
 
 	/**

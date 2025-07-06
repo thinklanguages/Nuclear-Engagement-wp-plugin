@@ -90,107 +90,185 @@ class GenerateRequest {
 	public static function from_post( array $post ): self {
 		$request = new self();
 
-		// Parse the payload.
-		$payload = array();
-		if ( ! empty( $post['payload'] ) ) {
-			$payload = json_decode( wp_unslash( $post['payload'] ), true );
-			if ( json_last_error() !== JSON_ERROR_NONE ) {
-				throw new \InvalidArgumentException( 'Invalid JSON payload: ' . json_last_error_msg() );
-			}
-		}
-
-		// Debug log the payload.
+		$payload = self::parse_payload( $post );
 		\NuclearEngagement\Services\LoggingService::log( 'GenerateRequest payload: ' . print_r( $payload, true ) );
 
-		// Extract and validate post IDs.
-		$post_ids_json     = $payload['nuclen_selected_post_ids'] ?? '';
-		$request->postIds = json_decode( $post_ids_json, true ) ?: array();
+		$request->postIds = self::extract_and_validate_post_ids( $payload );
+		self::map_basic_fields( $request, $payload );
+		self::validate_workflow_type( $request->workflowType );
+		self::map_summary_fields( $request, $payload );
+		$request->generationId = self::generate_id( $payload );
 
-		if ( empty( $request->postIds ) || ! is_array( $request->postIds ) ) {
+		return $request;
+	}
+
+	/**
+	 * Parse JSON payload from POST data.
+	 *
+	 * @param array $post POST data.
+	 * @return array Parsed payload.
+	 * @throws \InvalidArgumentException On JSON parsing errors.
+	 */
+	private static function parse_payload( array $post ): array {
+		if ( empty( $post['payload'] ) ) {
+			return array();
+		}
+
+		$payload = json_decode( wp_unslash( $post['payload'] ), true );
+		if ( json_last_error() !== JSON_ERROR_NONE ) {
+			throw new \InvalidArgumentException( 'Invalid JSON payload: ' . json_last_error_msg() );
+		}
+
+		return $payload;
+	}
+
+	/**
+	 * Extract and validate post IDs from payload.
+	 *
+	 * @param array $payload Payload data.
+	 * @return array Valid post IDs.
+	 * @throws \InvalidArgumentException On validation errors.
+	 */
+	private static function extract_and_validate_post_ids( array $payload ): array {
+		$post_ids_json = $payload['nuclen_selected_post_ids'] ?? '';
+		$post_ids = json_decode( $post_ids_json, true ) ?: array();
+
+		if ( empty( $post_ids ) || ! is_array( $post_ids ) ) {
 			throw new \InvalidArgumentException( 'No valid posts selected' );
 		}
 
-		// Sanitize post IDs.
-		$request->postIds = array_map( 'intval', $request->postIds );
-		$request->postIds = array_filter(
-			$request->postIds,
-			function ( $id ) {
-				return $id > 0;
-			}
-		);
+		$post_ids = self::sanitize_post_ids( $post_ids );
+		$post_ids = self::filter_accessible_posts( $post_ids );
 
-		if ( empty( $request->postIds ) ) {
-			throw new \InvalidArgumentException( 'No valid post IDs after sanitization' );
-		}
-
-		// Validate post ownership/permissions.
-		$request->postIds = array_filter(
-			$request->postIds,
-			function ( $id ) {
-				// Check if user can edit this post.
-				if ( ! current_user_can( 'edit_post', $id ) ) {
-					return false;
-				}
-
-				// Verify post exists and is published.
-				$post = get_post( $id );
-				if ( ! $post || 'publish' !== $post->post_status ) {
-					return false;
-				}
-
-				return true;
-			}
-		);
-
-		if ( empty( $request->postIds ) ) {
+		if ( empty( $post_ids ) ) {
 			throw new \InvalidArgumentException( 'No posts available for generation - insufficient permissions or invalid post IDs' );
 		}
 
-		// Map other fields.
+		return $post_ids;
+	}
+
+	/**
+	 * Sanitize post IDs array.
+	 *
+	 * @param array $post_ids Raw post IDs.
+	 * @return array Sanitized post IDs.
+	 */
+	private static function sanitize_post_ids( array $post_ids ): array {
+		$sanitized = array_map( 'intval', $post_ids );
+		$sanitized = array_filter( $sanitized, function ( $id ) {
+			return $id > 0;
+		});
+
+		if ( empty( $sanitized ) ) {
+			throw new \InvalidArgumentException( 'No valid post IDs after sanitization' );
+		}
+
+		return $sanitized;
+	}
+
+	/**
+	 * Filter posts that user can access.
+	 *
+	 * @param array $post_ids Post IDs to filter.
+	 * @return array Accessible post IDs.
+	 */
+	private static function filter_accessible_posts( array $post_ids ): array {
+		return array_filter( $post_ids, function ( $id ) {
+			if ( ! current_user_can( 'edit_post', $id ) ) {
+				return false;
+			}
+
+			$post = get_post( $id );
+			return $post && 'publish' === $post->post_status;
+		});
+	}
+
+	/**
+	 * Map basic fields from payload to request.
+	 *
+	 * @param self  $request Request object.
+	 * @param array $payload Payload data.
+	 */
+	private static function map_basic_fields( self $request, array $payload ): void {
 		$request->postStatus   = sanitize_text_field( $payload['nuclen_selected_post_status'] ?? 'any' );
 		$request->postType     = sanitize_text_field( $payload['nuclen_selected_post_type'] ?? 'post' );
 		$request->workflowType = sanitize_text_field( $payload['nuclen_selected_generate_workflow'] ?? '' );
+	}
 
-		// Validate workflow type.
-		if ( ! in_array( $request->workflowType, array( 'quiz', 'summary' ), true ) ) {
-			throw new \InvalidArgumentException( 'Invalid workflow type: ' . $request->workflowType );
+	/**
+	 * Validate workflow type.
+	 *
+	 * @param string $workflow_type Workflow type to validate.
+	 * @throws \InvalidArgumentException On invalid workflow type.
+	 */
+	private static function validate_workflow_type( string $workflow_type ): void {
+		if ( ! in_array( $workflow_type, array( 'quiz', 'summary' ), true ) ) {
+			throw new \InvalidArgumentException( 'Invalid workflow type: ' . $workflow_type );
 		}
+	}
 
-		// Summary specific fields.
+	/**
+	 * Map summary-specific fields from payload to request.
+	 *
+	 * @param self  $request Request object.
+	 * @param array $payload Payload data.
+	 */
+	private static function map_summary_fields( self $request, array $payload ): void {
 		$request->summaryFormat = sanitize_text_field( $payload['nuclen_selected_summary_format'] ?? 'paragraph' );
 		if ( ! in_array( $request->summaryFormat, array( 'paragraph', 'bullet_list' ), true ) ) {
 			$request->summaryFormat = 'paragraph';
 		}
 
-		// Use constants if defined, otherwise use defaults.
-		$summary_length_min     = defined( 'NUCLEN_SUMMARY_LENGTH_MIN' ) ? NUCLEN_SUMMARY_LENGTH_MIN : 20;
-		$summary_length_max     = defined( 'NUCLEN_SUMMARY_LENGTH_MAX' ) ? NUCLEN_SUMMARY_LENGTH_MAX : 50;
-		$summary_length_default = defined( 'NUCLEN_SUMMARY_LENGTH_DEFAULT' ) ? NUCLEN_SUMMARY_LENGTH_DEFAULT : 30;
-
-		$summary_items_min     = defined( 'NUCLEN_SUMMARY_ITEMS_MIN' ) ? NUCLEN_SUMMARY_ITEMS_MIN : 3;
-		$summary_items_max     = defined( 'NUCLEN_SUMMARY_ITEMS_MAX' ) ? NUCLEN_SUMMARY_ITEMS_MAX : 7;
-		$summary_items_default = defined( 'NUCLEN_SUMMARY_ITEMS_DEFAULT' ) ? NUCLEN_SUMMARY_ITEMS_DEFAULT : 3;
-
-		$request->summaryLength = max(
-			$summary_length_min,
-			min(
-				$summary_length_max,
-				(int) ( $payload['nuclen_selected_summary_length'] ?? $summary_length_default )
-			)
+		$limits = self::get_summary_limits();
+		$request->summaryLength = self::clamp_value(
+			(int) ( $payload['nuclen_selected_summary_length'] ?? $limits['length_default'] ),
+			$limits['length_min'],
+			$limits['length_max']
 		);
-		$request->summaryItems  = max(
-			$summary_items_min,
-			min(
-				$summary_items_max,
-				(int) ( $payload['nuclen_selected_summary_number_of_items'] ?? $summary_items_default )
-			)
+		$request->summaryItems = self::clamp_value(
+			(int) ( $payload['nuclen_selected_summary_number_of_items'] ?? $limits['items_default'] ),
+			$limits['items_min'],
+			$limits['items_max']
 		);
+	}
 
-		// Generation ID.
-		$request->generationId = ! empty( $payload['generation_id'] )
+	/**
+	 * Get summary limits from constants or defaults.
+	 *
+	 * @return array Summary limits.
+	 */
+	private static function get_summary_limits(): array {
+		return array(
+			'length_min'     => defined( 'NUCLEN_SUMMARY_LENGTH_MIN' ) ? NUCLEN_SUMMARY_LENGTH_MIN : 20,
+			'length_max'     => defined( 'NUCLEN_SUMMARY_LENGTH_MAX' ) ? NUCLEN_SUMMARY_LENGTH_MAX : 50,
+			'length_default' => defined( 'NUCLEN_SUMMARY_LENGTH_DEFAULT' ) ? NUCLEN_SUMMARY_LENGTH_DEFAULT : 30,
+			'items_min'      => defined( 'NUCLEN_SUMMARY_ITEMS_MIN' ) ? NUCLEN_SUMMARY_ITEMS_MIN : 3,
+			'items_max'      => defined( 'NUCLEN_SUMMARY_ITEMS_MAX' ) ? NUCLEN_SUMMARY_ITEMS_MAX : 7,
+			'items_default'  => defined( 'NUCLEN_SUMMARY_ITEMS_DEFAULT' ) ? NUCLEN_SUMMARY_ITEMS_DEFAULT : 3,
+		);
+	}
+
+	/**
+	 * Clamp value between min and max.
+	 *
+	 * @param int $value Value to clamp.
+	 * @param int $min   Minimum value.
+	 * @param int $max   Maximum value.
+	 * @return int Clamped value.
+	 */
+	private static function clamp_value( int $value, int $min, int $max ): int {
+		return max( $min, min( $max, $value ) );
+	}
+
+	/**
+	 * Generate or extract generation ID.
+	 *
+	 * @param array $payload Payload data.
+	 * @return string Generation ID.
+	 */
+	private static function generate_id( array $payload ): string {
+		return ! empty( $payload['generation_id'] )
 			? sanitize_text_field( $payload['generation_id'] )
 			: 'gen_' . uniqid( 'manual_', true );
-
-		return $request;
 	}
 }

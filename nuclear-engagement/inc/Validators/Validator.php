@@ -18,18 +18,29 @@ namespace NuclearEngagement\Validators;
 
 use NuclearEngagement\Contracts\ValidatorInterface;
 use NuclearEngagement\Contracts\ValidationResult;
+use NuclearEngagement\Validators\Rules\ValidationRules;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
 /**
- * Input validator implementation.
+ * Input validator implementation - simplified for better maintainability.
  */
 class Validator implements ValidatorInterface {
 
 	/** @var array */
 	private array $custom_rules = array();
+
+	/** @var ValidationRules */
+	private ValidationRules $validation_rules;
+
+	/**
+	 * Constructor
+	 */
+	public function __construct() {
+		$this->validation_rules = new ValidationRules();
+	}
 
 	/**
 	 * Validate data against rules.
@@ -132,7 +143,7 @@ class Validator implements ValidatorInterface {
 	}
 
 	/**
-	 * Apply single validation rule.
+	 * Apply single validation rule - simplified using ValidationRules class.
 	 *
 	 * @param string $field      Field name.
 	 * @param mixed  $value      Field value.
@@ -142,130 +153,58 @@ class Validator implements ValidatorInterface {
 	 * @return string|null Error message or null.
 	 */
 	private function apply_rule( string $field, $value, string $rule_name, $rule_value, array $all_data ): ?string {
+		// Use dedicated validation rules class for better organization
 		switch ( $rule_name ) {
 			case 'string':
-				if ( ! is_string( $value ) ) {
-					/* translators: %s: placeholder description */
-					return sprintf( __( 'The %s field must be a string.', 'nuclear-engagement' ), $field );
-				}
-				break;
-
+				return $this->validation_rules->validate_string( $value, $field );
 			case 'integer':
-				if ( ! is_numeric( $value ) || (int) $value != $value ) {
-					/* translators: %s: placeholder description */
-					return sprintf( __( 'The %s field must be an integer.', 'nuclear-engagement' ), $field );
-				}
-				break;
-
+				return $this->validation_rules->validate_integer( $value, $field );
 			case 'numeric':
-				if ( ! is_numeric( $value ) ) {
-					/* translators: %s: placeholder description */
-					return sprintf( __( 'The %s field must be numeric.', 'nuclear-engagement' ), $field );
-				}
-				break;
-
+				return $this->validation_rules->validate_numeric( $value, $field );
 			case 'boolean':
-				if ( ! is_bool( $value ) && ! in_array( $value, array( '0', '1', 0, 1, 'true', 'false' ), true ) ) {
-					/* translators: %s: placeholder description */
-					return sprintf( __( 'The %s field must be a boolean.', 'nuclear-engagement' ), $field );
-				}
-				break;
-
+				return $this->validation_rules->validate_boolean( $value, $field );
 			case 'array':
-				if ( ! is_array( $value ) ) {
-					/* translators: %s: placeholder description */
-					return sprintf( __( 'The %s field must be an array.', 'nuclear-engagement' ), $field );
-				}
-				break;
-
+				return $this->validation_rules->validate_array( $value, $field );
 			case 'email':
-				if ( ! is_email( $value ) ) {
-					/* translators: %s: placeholder description */
-					return sprintf( __( 'The %s field must be a valid email.', 'nuclear-engagement' ), $field );
-				}
-				break;
-
+				return $this->validation_rules->validate_email( $value, $field );
 			case 'url':
-				if ( ! filter_var( $value, FILTER_VALIDATE_URL ) ) {
-					/* translators: %s: placeholder description */
-					return sprintf( __( 'The %s field must be a valid URL.', 'nuclear-engagement' ), $field );
-				}
-				break;
-
+				return $this->validation_rules->validate_url( $value, $field );
 			case 'min':
-				$min = (int) $rule_value;
-				if ( is_string( $value ) && strlen( $value ) < $min ) {
-					return sprintf( __( 'The %1$s field must be at least %2$d characters.', 'nuclear-engagement' ), $field, $min );
-				}
-				if ( is_numeric( $value ) && $value < $min ) {
-					return sprintf( __( 'The %1$s field must be at least %2$d.', 'nuclear-engagement' ), $field, $min );
-				}
-				if ( is_array( $value ) && count( $value ) < $min ) {
-					return sprintf( __( 'The %1$s field must have at least %2$d items.', 'nuclear-engagement' ), $field, $min );
-				}
-				break;
-
+				return $this->validation_rules->validate_min( $value, (int) $rule_value, $field );
 			case 'max':
-				$max = (int) $rule_value;
-				if ( is_string( $value ) && strlen( $value ) > $max ) {
-					return sprintf( __( 'The %1$s field must not exceed %2$d characters.', 'nuclear-engagement' ), $field, $max );
-				}
-				if ( is_numeric( $value ) && $value > $max ) {
-					return sprintf( __( 'The %1$s field must not exceed %2$d.', 'nuclear-engagement' ), $field, $max );
-				}
-				if ( is_array( $value ) && count( $value ) > $max ) {
-					return sprintf( __( 'The %1$s field must not have more than %2$d items.', 'nuclear-engagement' ), $field, $max );
-				}
-				break;
-
+				return $this->validation_rules->validate_max( $value, (int) $rule_value, $field );
 			case 'in':
-				$allowed_values = explode( ',', $rule_value );
-				if ( ! in_array( $value, $allowed_values, true ) ) {
-					return sprintf( __( 'The %1$s field must be one of: %2$s.', 'nuclear-engagement' ), $field, implode( ', ', $allowed_values ) );
-				}
-				break;
-
-			case 'not_in':
-				$forbidden_values = explode( ',', $rule_value );
-				if ( in_array( $value, $forbidden_values, true ) ) {
-					return sprintf( __( 'The %1$s field must not be one of: %2$s.', 'nuclear-engagement' ), $field, implode( ', ', $forbidden_values ) );
-				}
-				break;
-
+				return $this->validation_rules->validate_in( $value, $rule_value, $field );
 			case 'regex':
-				if ( ! preg_match( $rule_value, $value ) ) {
-					/* translators: %s: placeholder description */
-					return sprintf( __( 'The %s field format is invalid.', 'nuclear-engagement' ), $field );
-				}
-				break;
-
+				return $this->validation_rules->validate_regex( $value, $rule_value, $field );
 			case 'post_exists':
-				if ( ! get_post( $value ) ) {
-					/* translators: %s: placeholder description */
-					return sprintf( __( 'The selected %s is invalid.', 'nuclear-engagement' ), $field );
-				}
-				break;
-
+				return $this->validation_rules->validate_post_exists( $value, $field );
 			case 'user_exists':
-				if ( ! get_user_by( 'id', $value ) ) {
-					/* translators: %s: placeholder description */
-					return sprintf( __( 'The selected %s is invalid.', 'nuclear-engagement' ), $field );
-				}
-				break;
-
+				return $this->validation_rules->validate_user_exists( $value, $field );
 			default:
-				// Check custom rules.
-				if ( isset( $this->custom_rules[ $rule_name ] ) ) {
-					$callback = $this->custom_rules[ $rule_name ];
-					$result   = $callback( $value, $rule_value, $field, $all_data );
-
-					if ( $result !== true && is_string( $result ) ) {
-						return $result;
-					}
-				}
-				break;
+				return $this->handle_custom_rule( $rule_name, $value, $rule_value, $field, $all_data );
 		}
+	}
 
+	/**
+	 * Handle custom validation rules.
+	 *
+	 * @param string $rule_name  Rule name.
+	 * @param mixed  $value      Field value.
+	 * @param mixed  $rule_value Rule value.
+	 * @param string $field      Field name.
+	 * @param array  $all_data   All form data.
+	 * @return string|null Error message or null.
+	 */
+	private function handle_custom_rule( string $rule_name, $value, $rule_value, string $field, array $all_data ): ?string {
+		if ( isset( $this->custom_rules[ $rule_name ] ) ) {
+			$callback = $this->custom_rules[ $rule_name ];
+			$result = $callback( $value, $rule_value, $field, $all_data );
+
+			if ( $result !== true && is_string( $result ) ) {
+				return $result;
+			}
+		}
 		return null;
 	}
 
