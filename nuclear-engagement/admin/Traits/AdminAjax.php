@@ -48,4 +48,19 @@ trait AdminAjax {
 		$controller = $container->get( 'generate_controller' );
 		$controller->handle();
 	}
+
+	/**
+	 * AJAX to load editor assets on demand
+	 */
+	public function nuclen_load_editor_assets() {
+		// Verify nonce
+		if ( ! wp_verify_nonce( $_POST['nonce'] ?? '', 'nuclen_load_assets' ) ) {
+			wp_die( 'Security check failed' );
+		}
+
+		// Load the admin assets
+		$this->enqueue_admin_assets();
+		
+		wp_send_json_success();
+	}
 }

@@ -84,6 +84,13 @@ trait AdminAssets {
 			return;
 		}
 
+		// Special handling for post-new.php - minimal assets only
+		if ( 'post-new.php' === $hook ) {
+			// Defer heavy script loading until actually needed
+			add_action( 'admin_footer', array( $this, 'maybe_load_deferred_assets' ), 100 );
+			return;
+		}
+
 		// Use conditional loading to reduce memory usage
 		if ( $this->is_post_editor_page( $hook ) ) {
 			$this->maybe_enqueue_editor_assets();
@@ -99,6 +106,11 @@ trait AdminAssets {
 	 * @return bool Whether to load assets.
 	 */
 	private function should_load_assets( string $hook ): bool {
+		// Quick bailout for post-new.php if post type not supported
+		if ( 'post-new.php' === $hook && ! $this->is_new_post_supported() ) {
+			return false;
+		}
+		
 		$allowed_hooks = array(
 			'post.php',
 			'post-new.php',
@@ -109,6 +121,17 @@ trait AdminAssets {
 		);
 
 		return in_array( $hook, $allowed_hooks, true );
+	}
+
+	/**
+	 * Check if new post creation is supported for current post type.
+	 *
+	 * @return bool
+	 */
+	private function is_new_post_supported(): bool {
+		$post_type = isset( $_GET['post_type'] ) ? sanitize_key( $_GET['post_type'] ) : 'post';
+		$allowed_types = $this->get_allowed_post_types_cached();
+		return in_array( $post_type, $allowed_types, true );
 	}
 
 	/**
@@ -135,25 +158,41 @@ trait AdminAssets {
 
 	/**
 	 * Check if current post type is supported.
-	 * Uses transient caching to reduce database calls.
+	 * Uses static caching to eliminate redundant calls.
 	 *
 	 * @return bool Whether current post type is supported.
 	 */
 	private function is_supported_post_type(): bool {
-		// Use transient for caching settings
-		$allowed_post_types = get_transient( 'nuclen_allowed_post_types' );
-		
-		if ( false === $allowed_post_types ) {
-			$settings = get_option( 'nuclen_settings', array() );
-			$allowed_post_types = isset( $settings['generation_post_types'] ) ? 
-				$settings['generation_post_types'] : array( 'post' );
-			
-			// Cache for 10 minutes
-			set_transient( 'nuclen_allowed_post_types', $allowed_post_types, 10 * MINUTE_IN_SECONDS );
-		}
-
+		$allowed_post_types = $this->get_allowed_post_types_cached();
 		$post_type = $this->get_current_post_type();
 		return in_array( $post_type, $allowed_post_types, true );
+	}
+
+	/**
+	 * Get allowed post types with unified caching.
+	 *
+	 * @return array
+	 */
+	private function get_allowed_post_types_cached(): array {
+		static $cached_types = null;
+		
+		if ( null !== $cached_types ) {
+			return $cached_types;
+		}
+		
+		// Use shared transient key
+		$cached_types = get_transient( 'nuclear_engagement_allowed_post_types' );
+		
+		if ( false === $cached_types ) {
+			$settings = get_option( 'nuclear_engagement_settings', array() );
+			$cached_types = isset( $settings['generation_post_types'] ) ? 
+				$settings['generation_post_types'] : array( 'post' );
+			
+			// Cache for 1 hour to reduce database calls
+			set_transient( 'nuclear_engagement_allowed_post_types', $cached_types, HOUR_IN_SECONDS );
+		}
+		
+		return $cached_types;
 	}
 
 	/**
@@ -328,5 +367,40 @@ trait AdminAssets {
 				'all'
 			);
 		}
+	}
+
+	/**
+	 * Maybe load deferred assets on post-new.php.
+	 * Only loads if user interaction indicates they need the features.
+	 */
+	public function maybe_load_deferred_assets(): void {
+		// Only load if we detect the user might need our features
+		// This could be enhanced with JavaScript to detect user interaction
+		?>
+		<script>
+		// Defer loading Nuclear Engagement assets until user interaction
+		(function() {
+			let assetsLoaded = false;
+			const loadAssets = () => {
+				if (assetsLoaded) return;
+				assetsLoaded = true;
+				
+				// Trigger asset loading via AJAX
+				fetch(ajaxurl, {
+					method: 'POST',
+					headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+					body: 'action=nuclen_load_editor_assets&nonce=' + '<?php echo wp_create_nonce( 'nuclen_load_assets' ); ?>'
+				});
+			};
+			
+			// Load on first meaningful interaction
+			document.addEventListener('click', loadAssets, {once: true});
+			document.addEventListener('keydown', loadAssets, {once: true});
+			
+			// Or load after a delay if no interaction
+			setTimeout(loadAssets, 5000);
+		})();
+		</script>
+		<?php
 	}
 }

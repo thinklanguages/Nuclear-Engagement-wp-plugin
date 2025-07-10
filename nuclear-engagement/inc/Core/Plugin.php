@@ -136,7 +136,10 @@ class Plugin {
 		$this->loader->nuclen_add_action( 'wp_ajax_nuclen_fetch_app_updates', $updates_controller, 'handle' );
 		$this->loader->nuclen_add_action( 'wp_ajax_nuclen_get_posts_count', $posts_count_controller, 'handle' );
 
-		// Setup actions (menu registration is now handled in AdminMenu trait).
+		// Register admin menu
+		$this->loader->nuclen_add_action( 'admin_menu', $plugin_admin, 'nuclen_add_admin_menu' );
+
+		// Setup actions
 		$setup = new \NuclearEngagement\Admin\Setup( $this->settings_repository );
 		$this->loader->nuclen_add_action( 'admin_post_nuclen_connect_app', $setup, 'nuclen_handle_connect_app' );
 		$this->loader->nuclen_add_action( 'admin_post_nuclen_generate_app_password', $setup, 'nuclen_handle_generate_app_password' );

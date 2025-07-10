@@ -60,16 +60,33 @@ class OptinData {
 
 	/**
 	 * Check whether the opt-in table already exists.
+	 * Uses transient caching to minimize database queries.
 	 */
 	public static function table_exists(): bool {
+		// First check in-memory cache
 		if ( null !== self::$table_exists_cache ) {
 			return self::$table_exists_cache;
 		}
 
+		// Check transient cache
+		$cache_key = 'nuclen_optin_table_exists';
+		$cached_result = get_transient( $cache_key );
+		
+		if ( false !== $cached_result ) {
+			self::$table_exists_cache = (bool) $cached_result;
+			return self::$table_exists_cache;
+		}
+
+		// Only run the query if not cached
 		global $wpdb;
-		$table                    = self::table_name();
-		self::$table_exists_cache = // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-		$wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table ) ) === $table;
+		$table = self::table_name();
+		$exists = // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+			$wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table ) ) === $table;
+		
+		// Cache the result
+		self::$table_exists_cache = $exists;
+		set_transient( $cache_key, $exists ? '1' : '0', DAY_IN_SECONDS );
+		
 		return self::$table_exists_cache;
 	}
 
@@ -110,6 +127,8 @@ class OptinData {
 		}
 
 		self::$table_exists_cache = true;
+		// Update transient cache when table is created
+		set_transient( 'nuclen_optin_table_exists', '1', DAY_IN_SECONDS );
 		return true;
 	}
 

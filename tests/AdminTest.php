@@ -24,7 +24,7 @@ class AdminTest extends TestCase {
 	private $settings_repository;
 	private $container;
 	private $plugin_name = 'nuclear-engagement';
-	private $version = '2.0.0';
+	private $version = '2.0.3';
 
 	protected function setUp(): void {
 		parent::setUp();

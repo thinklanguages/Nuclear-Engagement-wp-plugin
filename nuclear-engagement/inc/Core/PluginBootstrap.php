@@ -89,6 +89,26 @@ final class PluginBootstrap {
 	}
 
 	/**
+	 * Check if we're in a minimal load context (like post-new.php).
+	 *
+	 * @return bool
+	 */
+	private function isMinimalLoadContext(): bool {
+		global $pagenow;
+		return 'post-new.php' === $pagenow;
+	}
+
+	/**
+	 * Check if we're on the post-new.php page.
+	 *
+	 * @return bool
+	 */
+	private function isPostNewPage(): bool {
+		global $pagenow;
+		return 'post-new.php' === $pagenow;
+	}
+
+	/**
 	 * Register the plugin autoloader.
 	 *
 	 * CRITICAL: DO NOT CHANGE THE PATH!
@@ -128,13 +148,19 @@ final class PluginBootstrap {
 		// Load additional constants.
 		$this->loadConstants();
 
-		// Initialize OptinData hooks.
-		if ( class_exists( 'NuclearEngagement\OptinData' ) ) {
-			\NuclearEngagement\OptinData::init();
+		// Defer OptinData initialization to reduce overhead
+		if ( ! $this->isMinimalLoadContext() ) {
+			// Initialize OptinData hooks.
+			if ( class_exists( 'NuclearEngagement\OptinData' ) ) {
+				\NuclearEngagement\OptinData::init();
+			}
 		}
 
-		// Load all modules.
-		if ( class_exists( 'NuclearEngagement\Core\ModuleLoader' ) ) {
+		// Use lazy module loading for better performance
+		if ( class_exists( 'NuclearEngagement\Core\LazyModuleLoader' ) ) {
+			\NuclearEngagement\Core\LazyModuleLoader::init();
+		} elseif ( ! $this->isPostNewPage() && class_exists( 'NuclearEngagement\Core\ModuleLoader' ) ) {
+			// Fallback to old module loader if lazy loader not available
 			( new \NuclearEngagement\Core\ModuleLoader() )->load_all();
 		}
 
@@ -150,6 +176,8 @@ final class PluginBootstrap {
 		// Without this, NO shortcodes or blocks will work!
 		if ( class_exists( 'NuclearEngagement\Core\Plugin' ) ) {
 			new \NuclearEngagement\Core\Plugin();
+			// Mark that full plugin is loaded so we don't duplicate menu registration
+			$this->lazy_services['plugin_loaded'] = true;
 		}
 
 		// Initialize error handling.
@@ -302,7 +330,7 @@ final class PluginBootstrap {
 			add_action( 'admin_enqueue_scripts', array( $admin, 'wp_enqueue_scripts' ) );
 			add_action( 'admin_enqueue_scripts', array( $admin, 'nuclen_enqueue_dashboard_styles' ) );
 			add_action( 'admin_enqueue_scripts', array( $admin, 'nuclen_enqueue_generate_page_scripts' ) );
-			add_action( 'admin_menu', array( $admin, 'nuclen_add_admin_menu' ) );
+			// Don't register admin menu here - Plugin class already handles it
 
 			// REMOVED: Block registration is now handled by Plugin class
 			// to avoid duplicate registration. DO NOT add block registration here!
@@ -416,21 +444,27 @@ final class PluginBootstrap {
 	 * Initialize modular system.
 	 */
 	public function initializeModules(): void {
+		// Skip if lazy loading is enabled
+		if ( class_exists( 'NuclearEngagement\Core\LazyModuleLoader' ) ) {
+			// Lazy loader will handle module registration
+			return;
+		}
+		
 		// Register modules.
 		$registry = \NuclearEngagement\Core\Module\ModuleRegistry::getInstance();
 
-		// Register TOC module.
-		if ( class_exists( 'NuclearEngagement\Modules\TOC\TocModule' ) ) {
+		// Register TOC module if not already registered.
+		if ( class_exists( 'NuclearEngagement\Modules\TOC\TocModule' ) && ! $registry->hasModule( 'toc' ) ) {
 			$registry->register( new \NuclearEngagement\Modules\TOC\TocModule() );
 		}
 
 		// Register Quiz module (would need to be created).
-		// if (class_exists('NuclearEngagement\Modules\Quiz\QuizModule')) {.
+		// if (class_exists('NuclearEngagement\Modules\Quiz\QuizModule') && !$registry->hasModule('quiz')) {.
 		// $registry->register(new \NuclearEngagement\Modules\Quiz\QuizModule());.
 		// }.
 
 		// Register Summary module (would need to be created).
-		// if (class_exists('NuclearEngagement\Modules\Summary\SummaryModule')) {.
+		// if (class_exists('NuclearEngagement\Modules\Summary\SummaryModule') && !$registry->hasModule('summary')) {.
 		// $registry->register(new \NuclearEngagement\Modules\Summary\SummaryModule());.
 		// }.
 
@@ -443,8 +477,14 @@ final class PluginBootstrap {
 	 * This prevents loading heavy services on irrelevant pages.
 	 */
 	private function loadMinimalAdminServices(): void {
-		// Only load essential services needed for menu registration
-		add_action( 'admin_menu', array( $this, 'registerAdminMenu' ) );
+		// Skip heavy initialization on post-new.php unless needed
+		global $pagenow;
+		if ( 'post-new.php' === $pagenow ) {
+			// Don't register menu here - Plugin class handles it
+			return;
+		}
+		
+		// Don't register menu here - Plugin class handles it via AdminMenu trait
 		
 		// Load AJAX handlers (lightweight)
 		$this->registerCriticalAjaxHooks();
@@ -454,6 +494,28 @@ final class PluginBootstrap {
 	 * Register admin menu without loading full admin services.
 	 */
 	public function registerAdminMenu(): void {
+		// Don't register menu if Plugin class is already loaded
+		if ( isset( $this->lazy_services['plugin_loaded'] ) && $this->lazy_services['plugin_loaded'] === true ) {
+			return;
+		}
+		
+		// Check if menu is already registered by Plugin class
+		global $menu;
+		$menu_exists = false;
+		if ( is_array( $menu ) ) {
+			foreach ( $menu as $item ) {
+				if ( isset( $item[2] ) && $item[2] === 'nuclear-engagement' ) {
+					$menu_exists = true;
+					break;
+				}
+			}
+		}
+		
+		// If menu already exists, don't register again
+		if ( $menu_exists ) {
+			return;
+		}
+		
 		// Simple menu registration without heavy dependencies
 		add_menu_page(
 			__( 'Nuclear Engagement', 'nuclear-engagement' ),
@@ -461,21 +523,46 @@ final class PluginBootstrap {
 			'manage_options',
 			'nuclear-engagement',
 			array( $this, 'renderMinimalAdminPage' ),
-			'dashicons-admin-tools',
+			'dashicons-airplane',
 			30
 		);
 
-		// Add submenus
-		$submenus = array(
-			array( 'nuclear-engagement', __( 'Dashboard', 'nuclear-engagement' ), __( 'Dashboard', 'nuclear-engagement' ), 'manage_options', 'nuclear-engagement' ),
-			array( 'nuclear-engagement', __( 'Generate', 'nuclear-engagement' ), __( 'Generate', 'nuclear-engagement' ), 'manage_options', 'nuclear-engagement-generate' ),
-			array( 'nuclear-engagement', __( 'Settings', 'nuclear-engagement' ), __( 'Settings', 'nuclear-engagement' ), 'manage_options', 'nuclear-engagement-settings' ),
-			array( 'nuclear-engagement', __( 'Setup', 'nuclear-engagement' ), __( 'Setup', 'nuclear-engagement' ), 'manage_options', 'nuclear-engagement-setup' ),
+		// Add submenus with callbacks
+		add_submenu_page(
+			'nuclear-engagement',
+			__( 'Dashboard', 'nuclear-engagement' ),
+			__( 'Dashboard', 'nuclear-engagement' ),
+			'manage_options',
+			'nuclear-engagement',
+			array( $this, 'renderMinimalAdminPage' )
 		);
 
-		foreach ( $submenus as $submenu ) {
-			add_submenu_page( ...$submenu );
-		}
+		add_submenu_page(
+			'nuclear-engagement',
+			__( 'Generate', 'nuclear-engagement' ),
+			__( 'Generate', 'nuclear-engagement' ),
+			'manage_options',
+			'nuclear-engagement-generate',
+			array( $this, 'renderMinimalGeneratePage' )
+		);
+
+		add_submenu_page(
+			'nuclear-engagement',
+			__( 'Settings', 'nuclear-engagement' ),
+			__( 'Settings', 'nuclear-engagement' ),
+			'manage_options',
+			'nuclear-engagement-settings',
+			array( $this, 'renderMinimalSettingsPage' )
+		);
+
+		add_submenu_page(
+			'nuclear-engagement',
+			__( 'Setup', 'nuclear-engagement' ),
+			__( 'Setup', 'nuclear-engagement' ),
+			'manage_options',
+			'nuclear-engagement-setup',
+			array( $this, 'renderMinimalSetupPage' )
+		);
 	}
 
 	/**
@@ -507,14 +594,7 @@ final class PluginBootstrap {
 
 		// Check if on post editor for supported post types
 		if ( in_array( $screen->base, array( 'post', 'edit' ), true ) ) {
-			$allowed_post_types = get_transient( 'nuclear_engagement_allowed_post_types' );
-			
-			if ( false === $allowed_post_types ) {
-				$settings = get_option( 'nuclear_engagement_settings', array() );
-				$allowed_post_types = isset( $settings['generation_post_types'] ) ? 
-					$settings['generation_post_types'] : array( 'post' );
-				set_transient( 'nuclear_engagement_allowed_post_types', $allowed_post_types, 10 * MINUTE_IN_SECONDS );
-			}
+			$allowed_post_types = $this->getAllowedPostTypes();
 
 			if ( in_array( $screen->post_type, $allowed_post_types, true ) ) {
 				$load_full_services = true;
@@ -534,6 +614,7 @@ final class PluginBootstrap {
 		// Only register absolutely essential AJAX hooks
 		// Most AJAX hooks can be loaded when full admin services load
 		add_action( 'wp_ajax_nuclen_dismiss_pointer', array( $this, 'handleDismissPointer' ) );
+		add_action( 'wp_ajax_nuclen_load_editor_assets', array( $this, 'handleLoadEditorAssets' ) );
 	}
 
 	/**
@@ -549,15 +630,104 @@ final class PluginBootstrap {
 		$container = ServiceContainer::getInstance();
 		if ( $container->has( 'admin' ) ) {
 			$admin = $container->get( 'admin' );
-			// Call appropriate method based on page
-		} else {
-			echo '<div class="wrap"><h1>' . esc_html__( 'Nuclear Engagement', 'nuclear-engagement' ) . '</h1><p>' . esc_html__( 'Loading...', 'nuclear-engagement' ) . '</p></div>';
+			if ( method_exists( $admin, 'nuclen_display_dashboard' ) ) {
+				$admin->nuclen_display_dashboard();
+				return;
+			}
 		}
+		
+		// Only show loading if we couldn't render the dashboard
+		echo '<div class="wrap"><h1>' . esc_html__( 'Nuclear Engagement', 'nuclear-engagement' ) . '</h1><p>' . esc_html__( 'Loading...', 'nuclear-engagement' ) . '</p></div>';
 	}
 
 	/**
-	 * Handle pointer dismissal without full admin load.
+	 * Minimal generate page callback.
 	 */
+	public function renderMinimalGeneratePage(): void {
+		// This will trigger full admin loading when the page is accessed
+		if ( ! $this->isServiceLoaded( 'admin' ) ) {
+			$this->loadService( 'admin' );
+		}
+
+		// Defer to actual admin class
+		$container = ServiceContainer::getInstance();
+		if ( $container->has( 'admin' ) ) {
+			$admin = $container->get( 'admin' );
+			if ( method_exists( $admin, 'nuclen_display_generate_page' ) ) {
+				$admin->nuclen_display_generate_page();
+				return;
+			}
+		}
+		
+		// Only show loading if we couldn't render the page
+		echo '<div class="wrap"><h1>' . esc_html__( 'Generate', 'nuclear-engagement' ) . '</h1><p>' . esc_html__( 'Loading...', 'nuclear-engagement' ) . '</p></div>';
+	}
+
+	/**
+	 * Minimal settings page callback.
+	 */
+	public function renderMinimalSettingsPage(): void {
+		// This will trigger full admin loading when the page is accessed
+		if ( ! $this->isServiceLoaded( 'admin' ) ) {
+			$this->loadService( 'admin' );
+		}
+
+		// Defer to actual admin class
+		$container  = ServiceContainer::getInstance();
+		$settings_repo = SettingsRepository::get_instance( Defaults::nuclen_get_default_settings() );
+		$settings = new \NuclearEngagement\Admin\Settings( $settings_repo );
+		$settings->nuclen_display_settings_page();
+		return;
+	}
+
+	/**
+	 * Minimal setup page callback.
+	 */
+	public function renderMinimalSetupPage(): void {
+		// This will trigger full admin loading when the page is accessed
+		if ( ! $this->isServiceLoaded( 'admin' ) ) {
+			$this->loadService( 'admin' );
+		}
+
+		// Defer to actual admin class
+		$container = ServiceContainer::getInstance();
+		if ( $container->has( 'admin' ) ) {
+			$admin = $container->get( 'admin' );
+			if ( method_exists( $admin, 'nuclen_display_setup_page' ) ) {
+				$admin->nuclen_display_setup_page();
+				return;
+			}
+		}
+		
+		// Only show loading if we couldn't render the page
+		echo '<div class="wrap"><h1>' . esc_html__( 'Setup', 'nuclear-engagement' ) . '</h1><p>' . esc_html__( 'Loading...', 'nuclear-engagement' ) . '</p></div>';
+	}
+
+	/**
+	 * Get allowed post types with caching.
+	 * Centralized to avoid duplicate transient calls.
+	 *
+	 * @return array
+	 */
+	private function getAllowedPostTypes(): array {
+		static $cached_types = null;
+		
+		if ( null !== $cached_types ) {
+			return $cached_types;
+		}
+		
+		$cached_types = get_transient( 'nuclear_engagement_allowed_post_types' );
+		
+		if ( false === $cached_types ) {
+			$settings = get_option( 'nuclear_engagement_settings', array() );
+			$cached_types = isset( $settings['generation_post_types'] ) ? 
+				$settings['generation_post_types'] : array( 'post' );
+			set_transient( 'nuclear_engagement_allowed_post_types', $cached_types, HOUR_IN_SECONDS );
+		}
+		
+		return $cached_types;
+	}
+
 	public function handleDismissPointer(): void {
 		if ( ! wp_verify_nonce( $_POST['nonce'] ?? '', 'nuclen_admin_ajax_nonce' ) ) {
 			wp_die( 'Security check failed' );
@@ -572,6 +742,22 @@ final class PluginBootstrap {
 				$dismissed_pointers[] = $pointer_id;
 				update_user_meta( get_current_user_id(), 'dismissed_wp_pointers', implode( ',', $dismissed_pointers ) );
 			}
+		}
+
+		wp_send_json_success();
+	}
+
+	/**
+	 * Handle deferred asset loading request.
+	 */
+	public function handleLoadEditorAssets(): void {
+		if ( ! wp_verify_nonce( $_POST['nonce'] ?? '', 'nuclen_load_assets' ) ) {
+			wp_die( 'Security check failed' );
+		}
+
+		// Load admin services if not already loaded
+		if ( ! $this->isServiceLoaded( 'admin' ) ) {
+			$this->loadService( 'admin' );
 		}
 
 		wp_send_json_success();

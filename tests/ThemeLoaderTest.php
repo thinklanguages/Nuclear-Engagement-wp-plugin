@@ -49,10 +49,10 @@ class ThemeLoaderTest extends TestCase {
 			define('NUCLEN_PLUGIN_URL', 'http://example.com/wp-content/plugins/nuclear-engagement/');
 		}
 		if (!defined('NUCLEN_PLUGIN_VERSION')) {
-			define('NUCLEN_PLUGIN_VERSION', '2.0.0');
+			define('NUCLEN_PLUGIN_VERSION', '2.0.3');
 		}
 		if (!defined('NUCLEN_VERSION')) {
-			define('NUCLEN_VERSION', '2.0.0');
+			define('NUCLEN_VERSION', '2.0.3');
 		}
 		
 		// Create theme loader instance
