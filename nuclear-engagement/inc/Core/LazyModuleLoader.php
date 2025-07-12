@@ -71,15 +71,34 @@ class LazyModuleLoader {
 	 * Register hooks that trigger module loading.
 	 */
 	public static function register_lazy_hooks(): void {
-		foreach ( self::$module_definitions as $module_id => $definition ) {
-			if ( isset( $definition['hooks'] ) ) {
-				foreach ( $definition['hooks'] as $hook ) {
-					add_action( $hook, function() use ( $module_id ) {
-						self::load_module( $module_id );
-					}, 1 );
-				}
-			}
-		}
+                foreach ( self::$module_definitions as $module_id => $definition ) {
+                        if ( ! isset( $definition['hooks'] ) ) {
+                                continue;
+                        }
+
+                        foreach ( $definition['hooks'] as $hook ) {
+                                if ( 'the_content' === $hook ) {
+                                        add_filter(
+                                                $hook,
+                                                function ( $content ) use ( $module_id ) {
+                                                        self::load_module( $module_id );
+                                                        return $content;
+                                                },
+                                                1,
+                                                1
+                                        );
+                                } else {
+                                        add_action(
+                                                $hook,
+                                                function () use ( $module_id ) {
+                                                        self::load_module( $module_id );
+                                                },
+                                                1,
+                                                0
+                                        );
+                                }
+                        }
+                }
 	}
 
 	/**
