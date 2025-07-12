@@ -43,8 +43,12 @@ trait ShortcodesTrait {
 	}
 
 	/* ---------- Auto-insert into content ---------- */
-	public function nuclen_auto_insert_shortcodes( $content ) {
-		$settings_repo    = $this->nuclen_get_settings_repository();
+       public function nuclen_auto_insert_shortcodes( $content ) {
+               if ( ! is_singular() || ! in_the_loop() || ! is_main_query() ) {
+                       return $content;
+               }
+
+               $settings_repo    = $this->nuclen_get_settings_repository();
 		$summary_position = $settings_repo->get( 'display_summary', 'none' );
 		$quiz_position    = $settings_repo->get( 'display_quiz', 'none' );
 		$toc_position     = $settings_repo->get( 'display_toc', 'manual' );
