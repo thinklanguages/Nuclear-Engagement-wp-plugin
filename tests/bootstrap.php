@@ -17,9 +17,7 @@ if ( ! defined( 'NUCLEN_PLUGIN_FILE' ) ) {
 if ( ! defined( 'NUCLEN_VERSION' ) ) {
 	define( 'NUCLEN_VERSION', '1.0.0' );
 }
-if ( ! defined( 'NUCLEN_ASSET_VERSION' ) ) {
-	define( 'NUCLEN_ASSET_VERSION', 'dev' );
-}
+// NUCLEN_ASSET_VERSION is loaded from constants.php
 
 // Load composer autoloader
 $autoloader = dirname(__DIR__) . '/vendor/autoload.php';
@@ -63,6 +61,60 @@ if ( ! defined( 'GB_IN_BYTES' ) ) {
 if ( ! defined( 'TB_IN_BYTES' ) ) {
 	define( 'TB_IN_BYTES', 1024 * GB_IN_BYTES );
 }
+
+// Define Nuclear Engagement constants
+if ( ! defined( 'NUCLEN_LOG_FILE_MAX_SIZE' ) ) {
+	define( 'NUCLEN_LOG_FILE_MAX_SIZE', MB_IN_BYTES );
+}
+if ( ! defined( 'NUCLEN_BUFFER_LOGS' ) ) {
+	define( 'NUCLEN_BUFFER_LOGS', true );
+}
+if ( ! defined( 'NUCLEN_API_TIMEOUT' ) ) {
+	define( 'NUCLEN_API_TIMEOUT', 30 );
+}
+if ( ! defined( 'NUCLEN_INITIAL_POLL_DELAY' ) ) {
+	define( 'NUCLEN_INITIAL_POLL_DELAY', 15 );
+}
+if ( ! defined( 'NUCLEN_MAX_POLL_ATTEMPTS' ) ) {
+	define( 'NUCLEN_MAX_POLL_ATTEMPTS', 10 );
+}
+if ( ! defined( 'NUCLEN_ACTIVATION_REDIRECT_TTL' ) ) {
+	define( 'NUCLEN_ACTIVATION_REDIRECT_TTL', 30 );
+}
+if ( ! defined( 'NUCLEN_POLL_RETRY_DELAY' ) ) {
+	define( 'NUCLEN_POLL_RETRY_DELAY', MINUTE_IN_SECONDS );
+}
+if ( ! defined( 'NUCLEN_GENERATION_POLL_DELAY' ) ) {
+	define( 'NUCLEN_GENERATION_POLL_DELAY', 30 );
+}
+if ( ! defined( 'NUCLEN_POST_FETCH_CHUNK' ) ) {
+	define( 'NUCLEN_POST_FETCH_CHUNK', 200 );
+}
+if ( ! defined( 'NUCLEN_SUMMARY_LENGTH_DEFAULT' ) ) {
+	define( 'NUCLEN_SUMMARY_LENGTH_DEFAULT', 30 );
+}
+if ( ! defined( 'NUCLEN_SUMMARY_LENGTH_MIN' ) ) {
+	define( 'NUCLEN_SUMMARY_LENGTH_MIN', 20 );
+}
+if ( ! defined( 'NUCLEN_SUMMARY_LENGTH_MAX' ) ) {
+	define( 'NUCLEN_SUMMARY_LENGTH_MAX', 50 );
+}
+if ( ! defined( 'NUCLEN_SUMMARY_ITEMS_DEFAULT' ) ) {
+	define( 'NUCLEN_SUMMARY_ITEMS_DEFAULT', 3 );
+}
+if ( ! defined( 'NUCLEN_SUMMARY_ITEMS_MIN' ) ) {
+	define( 'NUCLEN_SUMMARY_ITEMS_MIN', 3 );
+}
+if ( ! defined( 'NUCLEN_SUMMARY_ITEMS_MAX' ) ) {
+	define( 'NUCLEN_SUMMARY_ITEMS_MAX', 7 );
+}
+if ( ! defined( 'NUCLEN_TOC_SCROLL_OFFSET_DEFAULT' ) ) {
+	define( 'NUCLEN_TOC_SCROLL_OFFSET_DEFAULT', 72 );
+}
+if ( ! defined( 'NUCLEN_ADMIN_MENU_POSITION' ) ) {
+	define( 'NUCLEN_ADMIN_MENU_POSITION', 30 );
+}
+
 // Track calls to dbDelta in unit tests
 global $dbDelta_called;
 $dbDelta_called = false;
@@ -412,6 +464,17 @@ require_once __DIR__ . '/../nuclear-engagement/inc/Core/SettingsSanitizer.php';
 require_once __DIR__ . '/../nuclear-engagement/front/traits/AssetsTrait.php';
 require_once __DIR__ . '/../nuclear-engagement/front/traits/RestTrait.php';
 require_once __DIR__ . '/../nuclear-engagement/front/traits/ShortcodesTrait.php';
+
+// Include exception classes
+require_once __DIR__ . '/../nuclear-engagement/inc/Exceptions/BaseException.php';
+require_once __DIR__ . '/../nuclear-engagement/inc/Exceptions/ApiException.php';
+require_once __DIR__ . '/../nuclear-engagement/inc/Exceptions/NuclenException.php';
+require_once __DIR__ . '/../nuclear-engagement/inc/Services/ApiException.php';
+
+// Include constants file (if not already loaded by autoloader)
+if (file_exists(__DIR__ . '/../nuclear-engagement/inc/Core/constants.php')) {
+    require_once __DIR__ . '/../nuclear-engagement/inc/Core/constants.php';
+}
 
 // Include admin classes and dependencies
 $required_files = [

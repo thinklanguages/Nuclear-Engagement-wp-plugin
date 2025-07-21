@@ -12,27 +12,16 @@ import {
 	nuclenUpdateProgressBarStep,
 } from './generate-page-utils';
 import type { GeneratePageElements } from './elements';
+import { error } from '../../../shared/logger';
 import {
 	nuclenAlertApiError,
-	nuclenStoreGenerationResults,
 } from '../generation/results';
 import { displayError } from '../utils/displayError';
-import * as logger from '../utils/logger';
 
-async function storeResults(workflow: string, results: unknown): Promise<void> {
-	if (!results || typeof results !== 'object') {
-		return;
-	}
-	try {
-		const { ok, data } = await nuclenStoreGenerationResults(workflow, results);
-		const respData = data as Record<string, unknown>;
-		if (!ok || 'code' in respData) {
-			logger.error('Error storing bulk content in WP meta:', respData);
-		}
-	} catch (err) {
-		logger.error('Error storing bulk content in WP meta:', err);
-	}
-}
+// Store active polling cleanup function
+let activePollingCleanup: (() => void) | null = null;
+
+// Function removed - results are stored by backend during polling
 
 function updateCompletionUi(
 	elements: GeneratePageElements,
@@ -40,11 +29,19 @@ function updateCompletionUi(
 	finalReport: { message?: string } | undefined,
 ): void {
 	if (elements.updatesContent) {
+		// Disabled for now - will be re-enabled later
+		// if (failCount && finalReport) {
+		// 	elements.updatesContent.innerText = `Some posts failed. ${finalReport.message || ''}`;
+		// 	nuclenUpdateProgressBarStep(elements.stepBar4, 'failed');
+		// } else {
+		// 	elements.updatesContent.innerText = 'All posts processed successfully! Your content has been saved.';
+		// 	nuclenUpdateProgressBarStep(elements.stepBar4, 'done');
+		// }
+		// Keep progress bar updates but clear the text
+		elements.updatesContent.innerText = '';
 		if (failCount && finalReport) {
-			elements.updatesContent.innerText = `Some posts failed. ${finalReport.message || ''}`;
 			nuclenUpdateProgressBarStep(elements.stepBar4, 'failed');
 		} else {
-			elements.updatesContent.innerText = 'All posts processed successfully! Your content has been saved.';
 			nuclenUpdateProgressBarStep(elements.stepBar4, 'done');
 		}
 	}
@@ -57,6 +54,12 @@ function updateCompletionUi(
 export function initStep2(elements: GeneratePageElements): void {
 	elements.generateForm?.addEventListener('submit', async (event) => {
 		event.preventDefault();
+		
+		// Clean up any existing polling
+		if (activePollingCleanup) {
+			activePollingCleanup();
+			activePollingCleanup = null;
+		}
 		if (!window.nuclenAdminVars || !window.nuclenAdminVars.ajax_url) {
 			displayError('Error: WP Ajax config not found. Please check the plugin settings.');
 			return;
@@ -65,7 +68,7 @@ export function initStep2(elements: GeneratePageElements): void {
 		nuclenUpdateProgressBarStep(elements.stepBar3, 'current');
 		nuclenShowElement(elements.updatesSection);
 		if (elements.updatesContent) {
-			elements.updatesContent.innerText = 'Processing posts... Do NOT leave this page until the process is complete.';
+			elements.updatesContent.innerHTML = `<span class="spinner is-active"></span><b>Processing posts... this can take a few minutes.</b> Stay on this page to see progress updates in real time. Or else, you can safely leave this page - generation will continue in the background. You can track progress on the tasks page. The generated content will be available in the post editor and on the frontend when the process is complete.`;
 		}
 		nuclenHideElement(elements.step2);
 		if (elements.submitBtn) {
@@ -76,34 +79,68 @@ export function initStep2(elements: GeneratePageElements): void {
 			const startResp: StartGenerationResponse = await NuclenStartGeneration(
 				formDataObj
 			);
-			const generationId =
-		startResp.data?.generation_id || startResp.generation_id || 'gen_' + Math.random().toString(36).substring(2);
-			NuclenPollAndPullUpdates({
+			// Extract generation_id - WordPress returns it in data object
+			let generationId = '';
+			
+			// The actual structure from WordPress wp_send_json_success is:
+			// { success: true, data: { generation_id: "...", ... } }
+			if (startResp && startResp.data && startResp.data.generation_id) {
+				generationId = String(startResp.data.generation_id);
+			}
+			// Fallback checks for other possible structures
+			else if (startResp && startResp.generation_id) {
+				generationId = String(startResp.generation_id);
+			}
+			
+			// Final fallback to random ID if not found
+			if (!generationId) {
+				error('Generation ID not found in response, using fallback');
+				generationId = 'gen_' + Math.random().toString(36).substring(2);
+			}
+			activePollingCleanup = NuclenPollAndPullUpdates({
 				intervalMs: 5000,
 				generationId,
 				onProgress: (processed, total) => {
 					const safeProcessed = processed === undefined ? 0 : processed;
-					const safeTotal = total === undefined ? '' : total;
+					const safeTotal = total === undefined ? 0 : total;
 					if (elements.updatesContent) {
-						elements.updatesContent.innerText = `Processed ${safeProcessed} of ${safeTotal} posts so far...`;
+						// Show simple progress message
+						const progressPercent = safeTotal > 0 ? Math.round((safeProcessed / safeTotal) * 100) : 0;
+						elements.updatesContent.innerHTML = `<span class="spinner is-active"></span> Processing: ${safeProcessed} of ${safeTotal} posts completed (${progressPercent}%)`;
 					}
 				},
-				onComplete: async ({ failCount, finalReport, results, workflow }: PollingUpdateData) => {
+				onComplete: async ({ failCount, finalReport }: PollingUpdateData) => {
+					// Clear the cleanup function since polling completed
+					activePollingCleanup = null;
 					nuclenUpdateProgressBarStep(elements.stepBar3, 'done');
 					nuclenUpdateProgressBarStep(elements.stepBar4, 'current');
-					await storeResults(workflow, results);
+					// Results are already stored by the backend during polling
+					// await storeResults(workflow, results);
 					updateCompletionUi(elements, failCount, finalReport);
 				},
 				onError: (errMsg: string) => {
-					nuclenUpdateProgressBarStep(elements.stepBar3, 'failed');
-					nuclenAlertApiError(errMsg);
-					if (elements.updatesContent) {
-						elements.updatesContent.innerText = `Error: ${errMsg}`;
+					// Clear the cleanup function since polling errored
+					activePollingCleanup = null;
+					
+					// Check if this is a polling timeout or error
+					if (errMsg.startsWith('polling-timeout:') || errMsg.startsWith('polling-error:')) {
+						const generationId = errMsg.split(':')[1];
+						// Redirect to tasks page
+						window.location.href = `${window.nuclenAdminVars?.admin_url || '/wp-admin/'}admin.php?page=nuclear-engagement-tasks&highlight=${generationId}`;
+					} else {
+						// Handle other errors as failures
+						nuclenUpdateProgressBarStep(elements.stepBar3, 'failed');
+						nuclenAlertApiError(errMsg);
+						
+						if (elements.updatesContent) {
+							elements.updatesContent.innerText = `Error: ${errMsg}`;
+						}
+						
+						if (elements.submitBtn) {
+							elements.submitBtn.disabled = false;
+						}
+						nuclenShowElement(elements.restartBtn);
 					}
-					if (elements.submitBtn) {
-						elements.submitBtn.disabled = false;
-					}
-					nuclenShowElement(elements.restartBtn);
 				},
 			});
 		} catch (error: unknown) {
@@ -114,6 +151,14 @@ export function initStep2(elements: GeneratePageElements): void {
 				elements.submitBtn.disabled = false;
 			}
 			nuclenShowElement(elements.restartBtn);
+		}
+	});
+	
+	// Clean up active polling when page unloads
+	window.addEventListener('beforeunload', () => {
+		if (activePollingCleanup) {
+			activePollingCleanup();
+			activePollingCleanup = null;
 		}
 	});
 }

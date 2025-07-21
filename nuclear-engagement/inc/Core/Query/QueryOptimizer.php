@@ -62,7 +62,7 @@ final class QueryOptimizer {
 		// Log slow queries.
 		if ( $execution_time > 1.0 ) { // > 1 second.
 			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-			error_log( "Slow query detected ({$execution_time}s): {$prepared_sql}" );
+			error_log( "[Nuclear Engagement] Slow query detected ({$execution_time}s): {$prepared_sql}" );
 		}
 
 		// Cache results.

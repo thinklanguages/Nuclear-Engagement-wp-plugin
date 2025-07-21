@@ -47,6 +47,7 @@ $utils->display_nuclen_page_header();
 		</div>
 
 	<h1 class="nuclen-heading"><?php esc_html_e( 'Generate Content', 'nuclear-engagement' ); ?></h1>
+	
 <?php
 		$generate_dir = plugin_dir_path( __FILE__ ) . 'generate/';
 		require $generate_dir . 'filters.php';

@@ -122,7 +122,7 @@ abstract class BaseController {
 		string $nonce_field = 'security'
 	): bool {
 		// Note: Rate limiting is skipped - handled by SaaS backend
-		
+
 		// Verify nonce.
 		if ( ! $this->verify_nonce( $nonce_action, $nonce_field ) ) {
 			$this->send_error(

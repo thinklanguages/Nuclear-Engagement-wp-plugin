@@ -225,9 +225,15 @@ final class Quiz_Service {
 		$updated = update_post_meta( $post_id, self::META_KEY, $formatted );
 
 		// Handle save failure with logging and admin notification.
+		// Note: update_post_meta returns false if the value is unchanged, which is not an error
 		if ( $updated === false ) {
-			LoggingService::log( 'Failed to update quiz data for post ' . $post_id );
-			LoggingService::notify_admin( 'Failed to update quiz data for post ' . $post_id );
+			// Check if the update actually failed or if the value was just unchanged
+			$current_value = get_post_meta( $post_id, self::META_KEY, true );
+			if ( $current_value !== $formatted ) {
+				// This is a real failure
+				LoggingService::log( 'Failed to update quiz data for post ' . $post_id );
+				LoggingService::notify_admin( 'Failed to update quiz data for post ' . $post_id );
+			}
 		}
 
 		// Clear post cache to ensure fresh data on next request.

@@ -14,6 +14,7 @@ declare global {
 		security?: string;
 		rest_receive_content?: string;
 		rest_nonce?: string;
+		admin_url?: string;
 	};
 	tinymce?: Record<string, unknown>;
 	wp?: Record<string, unknown>;

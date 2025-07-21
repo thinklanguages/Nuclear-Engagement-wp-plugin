@@ -117,8 +117,13 @@ final class Nuclen_Summary_Metabox {
 		/* ---- Save to DB --------------------------------------------------- */
 				$updated = update_post_meta( $post_id, Summary_Service::META_KEY, $formatted );
 		if ( $updated === false ) {
-			\NuclearEngagement\Services\LoggingService::log( 'Failed to update summary data for post ' . $post_id );
-			\NuclearEngagement\Services\LoggingService::notify_admin( 'Failed to update summary data for post ' . $post_id );
+			// Check if the update actually failed or if the value was just unchanged
+			$current_value = get_post_meta( $post_id, Summary_Service::META_KEY, true );
+			if ( $current_value !== $formatted ) {
+				// This is a real failure
+				\NuclearEngagement\Services\LoggingService::log( 'Failed to update summary data for post ' . $post_id );
+				\NuclearEngagement\Services\LoggingService::notify_admin( 'Failed to update summary data for post ' . $post_id );
+			}
 		}
 		clean_post_cache( $post_id );
 

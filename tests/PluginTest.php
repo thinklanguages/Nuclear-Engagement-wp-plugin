@@ -91,7 +91,7 @@ namespace NuclearEngagement {
 namespace {
 	use PHPUnit\Framework\TestCase;
 	use NuclearEngagement\Core\Plugin;
-	use NuclearEngagement\Core\Container;
+	use NuclearEngagement\Core\ServiceContainer as Container;
 	use NuclearEngagement\Core\SettingsRepository;
 	use NuclearEngagement\Core\Defaults;
 	if (!defined('NUCLEN_PLUGIN_DIR')) {

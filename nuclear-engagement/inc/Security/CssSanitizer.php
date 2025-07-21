@@ -284,8 +284,8 @@ class CssSanitizer {
 
 		// RGBA format
 		if ( preg_match( '/^rgba\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*([\d.]+)\s*\)$/i', $color, $matches ) ) {
-			if ( self::validate_rgb_values( (int) $matches[1], (int) $matches[2], (int) $matches[3] ) && 
-				 self::validate_alpha_value( (float) $matches[4] ) ) {
+			if ( self::validate_rgb_values( (int) $matches[1], (int) $matches[2], (int) $matches[3] ) &&
+				self::validate_alpha_value( (float) $matches[4] ) ) {
 				return $color;
 			}
 		}
@@ -311,8 +311,8 @@ class CssSanitizer {
 
 		// HSLA format
 		if ( preg_match( '/^hsla\s*\(\s*(\d+)\s*,\s*(\d+)%\s*,\s*(\d+)%\s*,\s*([\d.]+)\s*\)$/i', $color, $matches ) ) {
-			if ( self::validate_hsl_values( (int) $matches[1], (int) $matches[2], (int) $matches[3] ) && 
-				 self::validate_alpha_value( (float) $matches[4] ) ) {
+			if ( self::validate_hsl_values( (int) $matches[1], (int) $matches[2], (int) $matches[3] ) &&
+				self::validate_alpha_value( (float) $matches[4] ) ) {
 				return $color;
 			}
 		}
@@ -345,9 +345,22 @@ class CssSanitizer {
 	 */
 	private static function validate_named_color( string $color ): ?string {
 		$valid_color_names = array(
-			'black', 'white', 'red', 'green', 'blue', 'yellow',
-			'cyan', 'magenta', 'gray', 'grey', 'orange', 'purple',
-			'pink', 'brown', 'lime', 'navy',
+			'black',
+			'white',
+			'red',
+			'green',
+			'blue',
+			'yellow',
+			'cyan',
+			'magenta',
+			'gray',
+			'grey',
+			'orange',
+			'purple',
+			'pink',
+			'brown',
+			'lime',
+			'navy',
 		);
 
 		if ( in_array( strtolower( $color ), $valid_color_names, true ) ) {

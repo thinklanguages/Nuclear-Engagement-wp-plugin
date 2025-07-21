@@ -17,27 +17,27 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Handles migration from Nuclen naming to Nuclear Engagement naming
  */
 class NamingMigration {
-	
+
 	/**
 	 * Migration mappings for different naming patterns
 	 */
 	private const OPTION_MIGRATIONS = array(
-		'nuclen_settings' => 'nuclear_engagement_settings',
-		'nuclen_error_tracking' => 'nuclear_engagement_error_tracking',
-		'nuclen_rate_limits' => 'nuclear_engagement_rate_limits',
-		'nuclen_custom_css_version' => 'nuclear_engagement_custom_css_version',
+		'nuclen_settings'                  => 'nuclear_engagement_settings',
+		'nuclen_error_tracking'            => 'nuclear_engagement_error_tracking',
+		'nuclen_rate_limits'               => 'nuclear_engagement_rate_limits',
+		'nuclen_custom_css_version'        => 'nuclear_engagement_custom_css_version',
 		'nuclen_theme_migration_completed' => 'nuclear_engagement_theme_migration_completed',
 	);
 
 	private const META_KEY_MIGRATIONS = array(
-		'nuclen-quiz-data' => 'nuclear-engagement-quiz-data',
+		'nuclen-quiz-data'      => 'nuclear-engagement-quiz-data',
 		'nuclen_quiz_protected' => 'nuclear_engagement_quiz_protected',
-		'nuclen_toc_disabled' => 'nuclear_engagement_toc_disabled',
+		'nuclen_toc_disabled'   => 'nuclear_engagement_toc_disabled',
 	);
 
 	private const TABLE_MIGRATIONS = array(
-		'nuclen_optins' => 'nuclear_engagement_optins',
-		'nuclen_error_log' => 'nuclear_engagement_error_log',
+		'nuclen_optins'          => 'nuclear_engagement_optins',
+		'nuclen_error_log'       => 'nuclear_engagement_error_log',
 		'nuclen_security_events' => 'nuclear_engagement_security_events',
 	);
 

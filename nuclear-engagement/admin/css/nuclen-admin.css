@@ -307,6 +307,10 @@ Alerts, progress indicators, etc.
 	border-radius: 3px;
 	margin-bottom: 15px;
 	font-size: 14px;
+	min-height: 40px;
+	position: relative;
+	display: flex;
+	align-items: center;
 }
 
 .nuclen-alert-success {
@@ -410,6 +414,34 @@ Quick helper classes for display, text alignment, etc.
 				z-index: 100000;
 }
 
+/* Status message for polling timeouts */
+.nuclen-status-message {
+				background: #f0f6fc;
+				border: 1px solid #72aee6;
+				border-radius: 4px;
+				padding: 12px 16px;
+				margin: 10px 0;
+}
+
+.nuclen-status-message p {
+				margin: 0 0 8px 0;
+}
+
+.nuclen-status-message p:last-child {
+				margin-bottom: 0;
+}
+
+.nuclen-status-message a {
+				color: #2271b1;
+				text-decoration: none;
+				font-weight: 500;
+}
+
+.nuclen-status-message a:hover {
+				color: #135e96;
+				text-decoration: underline;
+}
+
 /* Spacing utilities */
 .u-mt-sm { margin-top: var(--nuclen-spacing-sm); }
 .u-mt-md { margin-top: var(--nuclen-spacing-md); }
@@ -418,7 +450,66 @@ Quick helper classes for display, text alignment, etc.
 .u-mb-md { margin-bottom: var(--nuclen-spacing-md); }
 .u-mb-lg { margin-bottom: var(--nuclen-spacing-lg); }
 
+/* WordPress admin notices minimum height fix */
+.notice.notice-success,
+.notice.notice-error,
+.notice.notice-warning,
+.notice.notice-info {
+	min-height: 40px;
+	display: flex;
+	align-items: center;
+}
+
+.notice.is-dismissible {
+	padding-right: 38px;
+}
+
+.notice .notice-dismiss {
+	position: absolute;
+	top: 50%;
+	transform: translateY(-50%);
+}
+
 /* Ensure onboarding pointers appear above sidebar */
 .wp-pointer {
 	z-index: 100600 !important;
+}
+
+/* Generate page credit balance */
+.nuclen-generate-credits {
+	margin: 10px 0 20px 0;
+	padding: 10px 15px;
+	background: #f0f0f1;
+	border-left: 4px solid #2271b1;
+	border-radius: 4px;
+}
+
+.nuclen-generate-credits-container {
+	margin: 0;
+}
+
+.nuclen-generate-credits .nuclen-credit-balance-display {
+	margin: 0;
+	font-size: 14px;
+}
+
+/* Refresh button icon animation */
+.button .dashicons-update {
+	transition: transform 0.3s ease;
+}
+
+.button:hover .dashicons-update {
+	transform: rotate(180deg);
+}
+
+/* Spinner styles for generation progress */
+#nuclen-updates-content .spinner {
+	float: none;
+	margin: 0 5px 0 0;
+	vertical-align: middle;
+	display: inline-block;
+}
+
+#nuclen-updates-content .spinner.is-active {
+	visibility: visible;
 }

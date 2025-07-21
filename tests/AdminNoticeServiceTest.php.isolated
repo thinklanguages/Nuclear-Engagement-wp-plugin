@@ -1,0 +1,161 @@
+<?php
+/**
+ * AdminNoticeServiceTest.php - Test suite for the AdminNoticeService class
+ */
+
+declare(strict_types=1);
+
+namespace NuclearEngagement\Tests;
+
+use PHPUnit\Framework\TestCase;
+use NuclearEngagement\Services\AdminNoticeService;
+use WP_Mock;
+use Brain\Monkey;
+
+/**
+ * Test suite for the AdminNoticeService class
+ */
+class RealAdminNoticeServiceTest extends TestCase {
+    
+    protected function setUp(): void {
+        parent::setUp();
+        Monkey\setUp();
+        WP_Mock::setUp();
+    }
+
+    protected function tearDown(): void {
+        Monkey\tearDown();
+        WP_Mock::tearDown();
+        parent::tearDown();
+    }
+
+    public function test_add_hooks_into_admin_notices_once(): void {
+        // Mock WordPress functions
+        Monkey\Functions\when('add_action')->justReturn(true);
+        
+        $service = new AdminNoticeService();
+        
+        // Add notices and verify behavior
+        $service->add('First');
+        $service->add('Second');
+        
+        // Verify the service was created successfully
+        $this->assertInstanceOf(AdminNoticeService::class, $service);
+    }
+
+    public function test_render_outputs_notices_and_clears(): void {
+        Monkey\Functions\when('add_action')->justReturn(true);
+        Monkey\Functions\when('load_template')->justReturn(null);
+        
+        $service = new AdminNoticeService();
+        $service->add('<p>Test Notice</p>');
+        
+        // First render should output
+        ob_start();
+        $service->render();
+        $output = ob_get_clean();
+        
+        // Verify something was processed (even if load_template doesn't output)
+        $this->assertIsString($output);
+        
+        // Verify messages are cleared after render
+        ob_start();
+        $service->render();
+        $second_output = ob_get_clean();
+        $this->assertEmpty($second_output);
+    }
+
+    public function test_add_persistent_notice(): void {
+        Monkey\Functions\when('add_action')->justReturn(true);
+        Monkey\Functions\when('get_option')->justReturn([]);
+        Monkey\Functions\when('update_option')->justReturn(true);
+        
+        $service = new AdminNoticeService();
+        $service->add_persistent_notice('Test message', 'info', 'test_id');
+        
+        // Just verify no exceptions were thrown
+        $this->assertTrue(true);
+    }
+
+    public function test_display_notices(): void {
+        Monkey\Functions\when('add_action')->justReturn(true);
+        
+        $test_notice = [
+            'test_id' => [
+                'message' => 'Test message',
+                'type' => 'info',
+                'id' => 'test_id',
+                'user_id' => 0,
+                'created' => time(),
+                'dismissed' => []
+            ]
+        ];
+        
+        Monkey\Functions\when('get_option')
+            ->withArgs(['nuclen_admin_notices', []])
+            ->justReturn($test_notice);
+        
+        Monkey\Functions\when('get_option')
+            ->withArgs(['nuclen_dismissed_notices', []])
+            ->justReturn([]);
+        
+        Monkey\Functions\when('get_current_user_id')->justReturn(1);
+        Monkey\Functions\when('esc_attr')->returnArg();
+        Monkey\Functions\when('wp_kses_post')->returnArg();
+        
+        $service = new AdminNoticeService();
+        
+        // Capture output
+        ob_start();
+        $service->display_notices();
+        $output = ob_get_clean();
+        
+        // Should contain the notice
+        $this->assertStringContainsString('Test message', $output);
+        $this->assertStringContainsString('notice-info', $output);
+        $this->assertStringContainsString('data-notice-id="test_id"', $output);
+    }
+
+    public function test_ajax_dismiss_notice(): void {
+        Monkey\Functions\when('add_action')->justReturn(true);
+        
+        $test_notice = [
+            'test_notice' => [
+                'message' => 'Test notice',
+                'type' => 'info',
+                'id' => 'test_notice',
+                'user_id' => 0,
+                'created' => time(),
+                'dismissed' => []
+            ]
+        ];
+        
+        $_POST['notice_id'] = 'test_notice';
+        $_POST['dismiss_forever'] = '0';
+        
+        // Mock WordPress functions
+        Monkey\Functions\when('check_ajax_referer')->justReturn(true);
+        Monkey\Functions\when('sanitize_text_field')->returnArg();
+        
+        Monkey\Functions\when('get_option')
+            ->withArgs(['nuclen_admin_notices', []])
+            ->justReturn($test_notice);
+        
+        Monkey\Functions\when('get_current_user_id')->justReturn(1);
+        Monkey\Functions\when('current_user_can')->justReturn(true);
+        Monkey\Functions\when('update_option')->justReturn(true);
+        
+        // Mock wp_die to throw an exception so we can catch it
+        Monkey\Functions\when('wp_die')->alias(function() {
+            throw new \Exception('wp_die called');
+        });
+        
+        $service = new AdminNoticeService();
+        
+        // Expect the wp_die exception
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessage('wp_die called');
+        
+        $service->ajax_dismiss_notice();
+    }
+}

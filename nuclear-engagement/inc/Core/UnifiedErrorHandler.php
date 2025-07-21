@@ -66,6 +66,16 @@ final class UnifiedErrorHandler {
 	private array $error_stats = array();
 
 	/**
+	 * Recovery strategies registry.
+	 */
+	private array $recovery_strategies = array();
+
+	/**
+	 * Recovery attempt history.
+	 */
+	private array $recovery_history = array();
+
+	/**
 	 * Get singleton instance.
 	 */
 	public static function get_instance(): self {
@@ -80,6 +90,7 @@ final class UnifiedErrorHandler {
 	 */
 	private function __construct() {
 		$this->init_error_handlers();
+		$this->register_recovery_strategies();
 	}
 
 	/**
@@ -125,6 +136,9 @@ final class UnifiedErrorHandler {
 			// Log error.
 			$this->log_error( $error_data );
 
+			// Trigger metrics tracking
+			do_action( 'nuclen_error_logged', $error_data, $context['service'] ?? 'unknown' );
+
 			// Handle security events specially.
 			if ( $category === self::CATEGORY_SECURITY ) {
 				$this->handle_security_event( $error_data );
@@ -138,7 +152,14 @@ final class UnifiedErrorHandler {
 		} catch ( \Throwable $e ) {
 			// Fallback logging to prevent error loops.
 			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-			error_log( 'Nuclear Engagement: Error handler failed: ' . $e->getMessage() );
+			error_log(
+				sprintf(
+					'[CRITICAL] Error handler failed: %s | File: %s:%d',
+					$e->getMessage(),
+					$e->getFile(),
+					$e->getLine()
+				)
+			);
 			return false;
 		}
 	}
@@ -147,6 +168,11 @@ final class UnifiedErrorHandler {
 	 * Handle PHP errors.
 	 */
 	public function handle_php_error( int $errno, string $errstr, string $errfile = '', int $errline = 0 ): bool {
+		// Only handle errors from our plugin
+		if ( ! $this->is_plugin_error( $errfile ) ) {
+			return false;
+		}
+
 		$severity = $this->map_php_error_severity( $errno );
 		$category = $this->categorize_error_message( $errstr );
 
@@ -166,6 +192,11 @@ final class UnifiedErrorHandler {
 	 * Handle uncaught exceptions.
 	 */
 	public function handle_exception( \Throwable $exception ): void {
+		// Only handle exceptions from our plugin
+		if ( ! $this->is_plugin_error( $exception->getFile() ) && ! $this->is_plugin_exception( $exception ) ) {
+			return;
+		}
+
 		$severity = $this->map_exception_severity( $exception );
 		$category = $this->categorize_error_message( $exception->getMessage() );
 
@@ -186,6 +217,11 @@ final class UnifiedErrorHandler {
 		$error = error_get_last();
 
 		if ( $error && in_array( $error['type'], array( E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR ), true ) ) {
+			// Only handle fatal errors from our plugin
+			if ( ! $this->is_plugin_error( $error['file'] ?? '' ) ) {
+				return;
+			}
+
 			$context = array(
 				'file'       => $error['file'] ?? '',
 				'line'       => $error['line'] ?? 0,
@@ -286,27 +322,27 @@ final class UnifiedErrorHandler {
 	 * Log error to appropriate destinations.
 	 */
 	private function log_error( array $error_data ): void {
+		// Format log entry with consistent structure
 		$log_entry = sprintf(
-			'[%s] %s (%s/%s) - Context: %s',
-			gmdate( 'Y-m-d H:i:s' ),
-			$error_data['message'],
-			$error_data['category'],
+			'[%s] %s | File: %s:%d | User: %d | Memory: %.2fMB | Context: %s',
 			$error_data['severity'],
-			wp_json_encode( $error_data['context'] )
+			$error_data['message'],
+			$error_data['context']['file'] ?? 'unknown',
+			$error_data['context']['line'] ?? 0,
+			$error_data['context']['user_id'] ?? 0,
+			( $error_data['context']['memory_usage'] ?? 0 ) / MB_IN_BYTES,
+			wp_json_encode( $this->get_essential_context( $error_data['context'] ) )
 		);
 
 		// Use LoggingService if available.
-		if ( class_exists( 'NuclearEngagement\Services\LoggingService' ) ) {
+		if ( class_exists( LoggingService::class ) ) {
 			LoggingService::log( $log_entry );
 		} else {
 			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-			error_log( "Nuclear Engagement: {$log_entry}" );
+			error_log( '[Nuclear Engagement] ' . $log_entry );
 		}
 
-		// Log critical errors to separate file.
-		if ( $error_data['severity'] === self::SEVERITY_CRITICAL ) {
-			$this->log_critical_error( $log_entry );
-		}
+		// Critical errors are now logged through LoggingService only
 	}
 
 	/**
@@ -315,15 +351,17 @@ final class UnifiedErrorHandler {
 	private function handle_security_event( array $error_data ): void {
 		// Log security event with high priority.
 		$security_log = sprintf(
-			'SECURITY ALERT [%s]: %s | IP: %s | User: %d',
+			'[SECURITY] [%s] %s | IP: %s | User: %d | Request: %s %s',
 			$error_data['severity'],
 			$error_data['message'],
 			$error_data['context']['ip'] ?? 'unknown',
-			$error_data['context']['user_id'] ?? 0
+			$error_data['context']['user_id'] ?? 0,
+			$error_data['context']['request_method'] ?? 'UNKNOWN',
+			$error_data['context']['request_uri'] ?? 'unknown'
 		);
 
 		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-		error_log( $security_log );
+		error_log( '[Nuclear Engagement] ' . $security_log );
 
 		// Trigger action for security monitoring.
 		do_action( 'nuclen_security_event', $error_data );
@@ -333,13 +371,43 @@ final class UnifiedErrorHandler {
 	 * Attempt automatic error recovery.
 	 */
 	private function attempt_recovery( array $error_data ): void {
-		switch ( $error_data['category'] ) {
-			case self::CATEGORY_DATABASE:
-				$this->attempt_database_recovery( $error_data );
-				break;
-			case self::CATEGORY_RESOURCE:
-				$this->attempt_resource_recovery( $error_data );
-				break;
+		// Check if recovery should be attempted
+		if ( ! $this->should_attempt_recovery( $error_data ) ) {
+			return;
+		}
+
+		// Get applicable strategies
+		$strategies = $this->get_applicable_strategies( $error_data );
+
+		foreach ( $strategies as $strategy ) {
+			try {
+				$recovery_id = wp_generate_uuid4();
+				$this->log_recovery_attempt( $recovery_id, $strategy['name'], $error_data );
+
+				if ( call_user_func( $strategy['handler'], $error_data ) ) {
+					$this->log_recovery_success( $recovery_id, $strategy['name'] );
+
+					// Execute post-recovery actions
+					if ( isset( $strategy['post_recovery'] ) ) {
+						call_user_func( $strategy['post_recovery'], $error_data );
+					}
+
+					break; // Stop on first successful recovery
+				} else {
+					$this->log_recovery_failure( $recovery_id, $strategy['name'] );
+				}
+			} catch ( \Throwable $e ) {
+				// Log recovery strategy failure
+				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+				error_log(
+					sprintf(
+						'[WARNING] Recovery strategy %s failed: %s | Category: %s',
+						$strategy['name'],
+						$e->getMessage(),
+						$error_data['category']
+					)
+				);
+			}
 		}
 	}
 
@@ -461,13 +529,6 @@ final class UnifiedErrorHandler {
 		return $types[ $type ] ?? 'UNKNOWN';
 	}
 
-	/**
-	 * Log critical errors to separate file.
-	 */
-	private function log_critical_error( string $entry ): void {
-		$log_file = WP_CONTENT_DIR . '/nuclen-critical-errors.log';
-		file_put_contents( $log_file, $entry . PHP_EOL, FILE_APPEND | LOCK_EX );
-	}
 
 	/**
 	 * Attempt database recovery.
@@ -478,7 +539,7 @@ final class UnifiedErrorHandler {
 
 		// Log recovery attempt.
 		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-		error_log( 'Nuclear Engagement: Attempting database recovery after error' );
+		error_log( '[Nuclear Engagement] INFO: Attempting database recovery - clearing caches and reconnecting' );
 	}
 
 	/**
@@ -494,7 +555,37 @@ final class UnifiedErrorHandler {
 		}
 
 		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-		error_log( 'Nuclear Engagement: Attempting resource recovery after error' );
+		error_log(
+			sprintf(
+				'[INFO] Attempting resource recovery - Memory: %.2fMB/%.2fMB',
+				memory_get_usage( true ) / MB_IN_BYTES,
+				$this->get_memory_limit() / MB_IN_BYTES
+			)
+		);
+	}
+
+	/**
+	 * Get essential context for logging.
+	 * Reduces context to most important fields to avoid log bloat.
+	 */
+	private function get_essential_context( array $context ): array {
+		$essential = array(
+			'error_type'      => $context['error_type'] ?? null,
+			'exception_class' => $context['exception_class'] ?? null,
+			'wp_die'          => $context['wp_die'] ?? null,
+			'service'         => $context['service'] ?? null,
+			'operation'       => $context['operation'] ?? null,
+			'post_id'         => $context['post_id'] ?? null,
+			'generation_id'   => $context['generation_id'] ?? null,
+		);
+
+		// Remove null values
+		return array_filter(
+			$essential,
+			function ( $value ) {
+				return $value !== null;
+			}
+		);
 	}
 
 	/**
@@ -502,5 +593,454 @@ final class UnifiedErrorHandler {
 	 */
 	public function get_error_stats(): array {
 		return $this->error_stats;
+	}
+
+	/**
+	 * Register recovery strategies.
+	 */
+	private function register_recovery_strategies(): void {
+		// Database recovery strategies
+		$this->register_strategy( self::CATEGORY_DATABASE, 'reconnect_database', array( $this, 'recover_database_connection' ), 1 );
+		$this->register_strategy( self::CATEGORY_DATABASE, 'clear_db_cache', array( $this, 'recover_database_cache' ), 2 );
+		$this->register_strategy( self::CATEGORY_DATABASE, 'repair_tables', array( $this, 'recover_database_tables' ), 3 );
+
+		// Resource recovery strategies
+		$this->register_strategy( self::CATEGORY_RESOURCE, 'free_memory', array( $this, 'recover_memory' ), 1 );
+		$this->register_strategy( self::CATEGORY_RESOURCE, 'extend_limits', array( $this, 'recover_execution_limits' ), 2 );
+		$this->register_strategy( self::CATEGORY_RESOURCE, 'cleanup_temp', array( $this, 'recover_disk_space' ), 3 );
+
+		// Network recovery strategies
+		$this->register_strategy( self::CATEGORY_NETWORK, 'clear_dns', array( $this, 'recover_network_dns' ), 1 );
+		$this->register_strategy( self::CATEGORY_NETWORK, 'reset_http', array( $this, 'recover_http_transport' ), 2 );
+
+		// Security recovery strategies
+		$this->register_strategy( self::CATEGORY_SECURITY, 'clear_auth', array( $this, 'recover_security_auth' ), 1 );
+		$this->register_strategy( self::CATEGORY_SECURITY, 'reset_nonces', array( $this, 'recover_security_nonces' ), 2 );
+
+		// Allow external strategies
+		do_action( 'nuclen_register_recovery_strategies', $this );
+	}
+
+	/**
+	 * Register a recovery strategy.
+	 */
+	public function register_strategy( string $category, string $name, callable $handler, int $priority = 10, ?callable $post_recovery = null ): void {
+		if ( ! isset( $this->recovery_strategies[ $category ] ) ) {
+			$this->recovery_strategies[ $category ] = array();
+		}
+
+		$this->recovery_strategies[ $category ][] = array(
+			'name'          => $name,
+			'handler'       => $handler,
+			'priority'      => $priority,
+			'post_recovery' => $post_recovery,
+		);
+
+		// Sort by priority
+		usort(
+			$this->recovery_strategies[ $category ],
+			function ( $a, $b ) {
+				return $a['priority'] <=> $b['priority'];
+			}
+		);
+	}
+
+	/**
+	 * Check if recovery should be attempted.
+	 */
+	private function should_attempt_recovery( array $error_data ): bool {
+		// Don't attempt recovery for low severity errors
+		if ( $error_data['severity'] === self::SEVERITY_LOW ) {
+			return false;
+		}
+
+		// Check recovery history to prevent loops
+		$history_key = md5( $error_data['category'] . $error_data['message'] );
+		if ( isset( $this->recovery_history[ $history_key ] ) ) {
+			$attempts     = $this->recovery_history[ $history_key ]['attempts'];
+			$last_attempt = $this->recovery_history[ $history_key ]['last_attempt'];
+
+			// Don't retry if attempted 3 times in last hour
+			if ( $attempts >= 3 && ( time() - $last_attempt ) < 3600 ) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	/**
+	 * Get applicable recovery strategies.
+	 */
+	private function get_applicable_strategies( array $error_data ): array {
+		$strategies = array();
+
+		// Get category-specific strategies
+		if ( isset( $this->recovery_strategies[ $error_data['category'] ] ) ) {
+			$strategies = array_merge( $strategies, $this->recovery_strategies[ $error_data['category'] ] );
+		}
+
+		// Add general strategies for critical errors
+		if ( $error_data['severity'] === self::SEVERITY_CRITICAL && isset( $this->recovery_strategies[ self::CATEGORY_GENERAL ] ) ) {
+			$strategies = array_merge( $strategies, $this->recovery_strategies[ self::CATEGORY_GENERAL ] );
+		}
+
+		// Filter strategies based on context
+		return apply_filters( 'nuclen_recovery_strategies', $strategies, $error_data );
+	}
+
+	/**
+	 * Log recovery attempt.
+	 */
+	private function log_recovery_attempt( string $recovery_id, string $strategy_name, array $error_data ): void {
+		$history_key = md5( $error_data['category'] . $error_data['message'] );
+
+		if ( ! isset( $this->recovery_history[ $history_key ] ) ) {
+			$this->recovery_history[ $history_key ] = array(
+				'attempts'     => 0,
+				'last_attempt' => 0,
+				'strategies'   => array(),
+			);
+		}
+
+		++$this->recovery_history[ $history_key ]['attempts'];
+		$this->recovery_history[ $history_key ]['last_attempt'] = time();
+		$this->recovery_history[ $history_key ]['strategies'][] = $strategy_name;
+
+		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+		error_log(
+			sprintf(
+				'[INFO] Attempting recovery [%s] using strategy: %s | Error: %s (%s)',
+				$recovery_id,
+				$strategy_name,
+				substr( $error_data['message'], 0, 100 ),
+				$error_data['category']
+			)
+		);
+	}
+
+	/**
+	 * Log recovery success.
+	 */
+	private function log_recovery_success( string $recovery_id, string $strategy_name ): void {
+		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+		error_log(
+			sprintf(
+				'[SUCCESS] Recovery successful [%s] using strategy: %s',
+				$recovery_id,
+				$strategy_name
+			)
+		);
+
+		do_action( 'nuclen_recovery_success', $recovery_id, $strategy_name );
+	}
+
+	/**
+	 * Log recovery failure.
+	 */
+	private function log_recovery_failure( string $recovery_id, string $strategy_name ): void {
+		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+		error_log(
+			sprintf(
+				'[WARNING] Recovery failed [%s] using strategy: %s',
+				$recovery_id,
+				$strategy_name
+			)
+		);
+	}
+
+	/**
+	 * Database connection recovery.
+	 */
+	private function recover_database_connection( array $error_data ): bool {
+		global $wpdb;
+
+		if ( ! $wpdb->check_connection( false ) ) {
+			// Attempt to reconnect
+			$wpdb->db_connect( false );
+			return $wpdb->check_connection( false );
+		}
+
+		return true;
+	}
+
+	/**
+	 * Database cache recovery.
+	 */
+	private function recover_database_cache( array $error_data ): bool {
+		global $wpdb;
+
+		// Clear query cache
+		$wpdb->flush();
+
+		// Clear object cache
+		wp_cache_flush();
+
+		// Clear transients if possible
+		if ( ! wp_using_ext_object_cache() ) {
+			$wpdb->query( "DELETE FROM {$wpdb->options} WHERE option_name LIKE '_transient_%'" );
+		}
+
+		return true;
+	}
+
+	/**
+	 * Database table repair recovery.
+	 */
+	private function recover_database_tables( array $error_data ): bool {
+		global $wpdb;
+
+		// Only attempt if error mentions specific table
+		if ( preg_match( '/Table\s+[\'"]?([^\s\'"]+)[\'"]?/i', $error_data['message'], $matches ) ) {
+			$table = $matches[1];
+
+			// Only repair plugin tables
+			if ( strpos( $table, 'nuclen_' ) !== false ) {
+				$result = $wpdb->query( "REPAIR TABLE {$table}" );
+				return $result !== false;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Memory recovery.
+	 */
+	private function recover_memory( array $error_data ): bool {
+		// Clear all caches
+		wp_cache_flush();
+
+		// Clear plugin-specific caches
+		delete_transient( 'nuclen_batch_jobs' );
+		delete_transient( 'nuclen_generation_queue' );
+
+		// Force garbage collection
+		if ( function_exists( 'gc_collect_cycles' ) ) {
+			gc_collect_cycles();
+		}
+
+		// Check if memory usage improved
+		$current_usage = memory_get_usage( true );
+		$limit         = $this->get_memory_limit();
+
+		return ( $current_usage / $limit ) < 0.8; // Less than 80% usage
+	}
+
+	/**
+	 * Execution limits recovery.
+	 */
+	private function recover_execution_limits( array $error_data ): bool {
+		// Try to extend time limit
+		if ( ! ini_get( 'safe_mode' ) ) {
+			@set_time_limit( 300 ); // 5 minutes
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Disk space recovery.
+	 */
+	private function recover_disk_space( array $error_data ): bool {
+		// Clear temporary files
+		$temp_dir = get_temp_dir();
+		$cleared  = 0;
+
+		// Clean old Nuclear Engagement temp files
+		foreach ( glob( $temp_dir . '/nuclen_*' ) as $file ) {
+			if ( filemtime( $file ) < time() - 3600 ) { // Older than 1 hour
+				if ( @unlink( $file ) ) {
+					++$cleared;
+				}
+			}
+		}
+
+		// Log file cleanup is now handled by LoggingService rotation
+
+		return $cleared > 0;
+	}
+
+	/**
+	 * Network DNS recovery.
+	 */
+	private function recover_network_dns( array $error_data ): bool {
+		// Clear DNS cache if possible
+		if ( function_exists( 'dns_get_record' ) ) {
+			// Force DNS refresh by doing a lookup
+			@dns_get_record( 'api.nuclearengagement.com', DNS_A );
+		}
+
+		// Clear WordPress HTTP cache
+		delete_transient( '_transient_timeout_http_api_' );
+
+		return true;
+	}
+
+	/**
+	 * HTTP transport recovery.
+	 */
+	private function recover_http_transport( array $error_data ): bool {
+		// Reset HTTP transport settings
+		delete_option( 'nuclen_http_transport_error' );
+
+		// Clear any stuck requests
+		delete_transient( 'nuclen_api_request_lock' );
+
+		return true;
+	}
+
+	/**
+	 * Security auth recovery.
+	 */
+	private function recover_security_auth( array $error_data ): bool {
+		// Clear auth cookies for current user
+		wp_clear_auth_cookie();
+
+		// Clear any stuck auth transients
+		delete_transient( 'nuclen_auth_check' );
+
+		return true;
+	}
+
+	/**
+	 * Security nonces recovery.
+	 */
+	private function recover_security_nonces( array $error_data ): bool {
+		// Clear nonce-related transients
+		global $wpdb;
+		$wpdb->query(
+			$wpdb->prepare(
+				"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s",
+				'%_transient_nuclen_nonce_%'
+			)
+		);
+
+		return true;
+	}
+
+	/**
+	 * Get memory limit in bytes.
+	 */
+	private function get_memory_limit(): int {
+		$limit = ini_get( 'memory_limit' );
+
+		if ( $limit == -1 ) {
+			return PHP_INT_MAX;
+		}
+
+		$value = (int) $limit;
+		$unit  = strtolower( substr( $limit, -1 ) );
+
+		switch ( $unit ) {
+			case 'g':
+				$value *= 1024 * 1024 * 1024;
+				break;
+			case 'm':
+				$value *= 1024 * 1024;
+				break;
+			case 'k':
+				$value *= 1024;
+				break;
+		}
+
+		return $value;
+	}
+
+	/**
+	 * Handle custom exceptions.
+	 */
+	public function handle_custom_exception( \NuclearEngagement\Exceptions\NuclenException $exception ): void {
+		$error_data = array(
+			'message'  => $exception->getMessage(),
+			'category' => $this->map_exception_category( $exception ),
+			'severity' => $exception->getSeverity(),
+			'context'  => array_merge(
+				$exception->getContext(),
+				array(
+					'file'         => $exception->getFile(),
+					'line'         => $exception->getLine(),
+					'user_message' => $exception->getUserMessage(),
+				)
+			),
+		);
+
+		$this->handle_error(
+			$error_data['message'],
+			$error_data['category'],
+			$error_data['severity'],
+			$error_data['context']
+		);
+	}
+
+	/**
+	 * Map exception to category.
+	 */
+	private function map_exception_category( \Throwable $exception ): string {
+		if ( $exception instanceof \NuclearEngagement\Exceptions\DatabaseException ) {
+			return self::CATEGORY_DATABASE;
+		}
+		if ( $exception instanceof \NuclearEngagement\Exceptions\ApiException ) {
+			return self::CATEGORY_NETWORK;
+		}
+		if ( $exception instanceof \NuclearEngagement\Exceptions\ValidationException ) {
+			return self::CATEGORY_VALIDATION;
+		}
+		if ( $exception instanceof \NuclearEngagement\Exceptions\ResourceException ) {
+			return self::CATEGORY_RESOURCE;
+		}
+		if ( $exception instanceof \NuclearEngagement\Exceptions\SecurityException ) {
+			return self::CATEGORY_SECURITY;
+		}
+
+		return self::CATEGORY_GENERAL;
+	}
+
+	/**
+	 * Check if error file is from our plugin.
+	 *
+	 * @param string $file File path where error occurred.
+	 * @return bool True if error is from our plugin.
+	 */
+	private function is_plugin_error( string $file ): bool {
+		if ( empty( $file ) ) {
+			return false;
+		}
+
+		// Normalize paths for comparison
+		$file       = wp_normalize_path( $file );
+		$plugin_dir = wp_normalize_path( NUCLEN_PLUGIN_DIR );
+
+		// Check if error file is within our plugin directory
+		return strpos( $file, $plugin_dir ) === 0;
+	}
+
+	/**
+	 * Check if exception originated from our plugin.
+	 *
+	 * @param \Throwable $exception The exception to check.
+	 * @return bool True if exception is from our plugin.
+	 */
+	private function is_plugin_exception( \Throwable $exception ): bool {
+		// Check if it's a Nuclear Engagement custom exception
+		if ( strpos( get_class( $exception ), 'NuclearEngagement\\' ) === 0 ) {
+			return true;
+		}
+
+		// Check the stack trace for plugin files
+		$trace      = $exception->getTrace();
+		$plugin_dir = wp_normalize_path( NUCLEN_PLUGIN_DIR );
+
+		foreach ( $trace as $frame ) {
+			if ( isset( $frame['file'] ) ) {
+				$file = wp_normalize_path( $frame['file'] );
+				if ( strpos( $file, $plugin_dir ) === 0 ) {
+					return true;
+				}
+			}
+		}
+
+		return false;
 	}
 }

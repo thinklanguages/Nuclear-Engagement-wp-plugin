@@ -41,8 +41,8 @@ class PostsQueryService {
 	 * Constructor
 	 */
 	public function __construct() {
-		$this->query_builder = new QueryBuilder();
-		$this->cache_manager = new CacheManager();
+		$this->query_builder   = new QueryBuilder();
+		$this->cache_manager   = new CacheManager();
 		$this->batch_processor = new BatchProcessor();
 	}
 
@@ -98,7 +98,7 @@ class PostsQueryService {
 
 		global $wpdb;
 
-		$sql = $this->build_sql_clauses( $request );
+		$sql      = $this->build_sql_clauses( $request );
 		$post_ids = $this->batch_processor->fetch_posts_in_batches( $sql );
 
 		if ( $wpdb->last_error ) {
@@ -106,7 +106,7 @@ class PostsQueryService {
 		}
 
 		$post_ids = array_unique( array_map( 'intval', $post_ids ) );
-		$count = count( $post_ids );
+		$count    = count( $post_ids );
 
 		$result = array(
 			'count'    => $count,
@@ -130,15 +130,37 @@ class PostsQueryService {
 			return $cached;
 		}
 
-		$optimizer = QueryOptimizer::getInstance();
-		$sql = $this->build_optimized_sql( $request );
-		$params = $this->get_query_params( $request );
+		// Get total count first
+		$total_count = $this->get_posts_count_only( $request );
 
-		$post_ids = $optimizer->query( $sql, $params, 600 );
+		// Fetch all post IDs in batches
+		$all_post_ids = array();
+		$batch_size   = 500;
+		$offset       = 0;
+
+		while ( $offset < $total_count ) {
+			$optimizer = QueryOptimizer::getInstance();
+			$sql       = $this->build_optimized_sql( $request, $batch_size, $offset );
+			$params    = $this->get_query_params( $request );
+
+			$batch_results = $optimizer->query( $sql, $params, 600 );
+			if ( empty( $batch_results ) ) {
+				break;
+			}
+
+			$all_post_ids = array_merge( $all_post_ids, array_column( $batch_results, 'ID' ) );
+			$offset      += $batch_size;
+
+			// Memory check
+			if ( memory_get_usage( true ) > $this->get_memory_limit() * 0.8 ) {
+				LoggingService::log( 'Memory limit approaching, stopping batch fetch' );
+				break;
+			}
+		}
 
 		$result = array(
-			'count'    => count( $post_ids ),
-			'post_ids' => array_column( $post_ids, 'ID' ),
+			'count'    => count( $all_post_ids ),
+			'post_ids' => array_unique( $all_post_ids ),
 		);
 
 		$this->cache_manager->cache_result( $request, $result );
@@ -150,11 +172,22 @@ class PostsQueryService {
 	 * Build optimized SQL query.
 	 *
 	 * @param PostsCountRequest $request The posts count request.
+	 * @param int               $limit Optional limit for the query.
+	 * @param int               $offset Optional offset for the query.
 	 * @return string The optimized SQL query.
 	 */
-	private function build_optimized_sql( PostsCountRequest $request ): string {
+	private function build_optimized_sql( PostsCountRequest $request, int $limit = 0, int $offset = 0 ): string {
 		$clauses = $this->build_sql_clauses( $request );
-		return "SELECT DISTINCT p.ID {$clauses} ORDER BY p.ID ASC LIMIT 1000";
+		$sql     = "SELECT DISTINCT p.ID {$clauses} ORDER BY p.ID ASC";
+
+		if ( $limit > 0 ) {
+			$sql .= " LIMIT {$limit}";
+			if ( $offset > 0 ) {
+				$sql .= " OFFSET {$offset}";
+			}
+		}
+
+		return $sql;
 	}
 
 	/**
@@ -189,7 +222,7 @@ class PostsQueryService {
 	 */
 	public function get_posts_count_only( PostsCountRequest $request ): int {
 		$cache_key = $this->cache_manager->get_count_cache_key( $request );
-		$cached = wp_cache_get( $cache_key, 'nuclen_posts_query' );
+		$cached    = wp_cache_get( $cache_key, 'nuclen_posts_query' );
 
 		if ( $cached !== false ) {
 			return (int) $cached;
@@ -197,13 +230,43 @@ class PostsQueryService {
 
 		global $wpdb;
 
-		$sql = $this->build_sql_clauses( $request );
+		$sql         = $this->build_sql_clauses( $request );
 		$count_query = "SELECT COUNT(DISTINCT p.ID) {$sql}";
-		$count = (int) DatabaseUtils::execute_query( $count_query, 'posts_count_query' );
+		$count       = (int) DatabaseUtils::execute_query( $count_query, 'posts_count_query' );
 
-		wp_cache_set( $cache_key, $count, 'nuclen_posts_query', 600 );
+		// Cache for longer period (1 hour instead of 10 minutes)
+		wp_cache_set( $cache_key, $count, 'nuclen_posts_query', 3600 );
 
 		return $count;
 	}
 
+	/**
+	 * Get memory limit in bytes.
+	 *
+	 * @return int Memory limit in bytes.
+	 */
+	private function get_memory_limit(): int {
+		$memory_limit = ini_get( 'memory_limit' );
+
+		if ( $memory_limit == -1 ) {
+			return PHP_INT_MAX;
+		}
+
+		$value = (int) $memory_limit;
+		$unit  = strtolower( substr( $memory_limit, -1 ) );
+
+		switch ( $unit ) {
+			case 'g':
+				$value *= 1024 * 1024 * 1024;
+				break;
+			case 'm':
+				$value *= 1024 * 1024;
+				break;
+			case 'k':
+				$value *= 1024;
+				break;
+		}
+
+		return $value;
+	}
 }

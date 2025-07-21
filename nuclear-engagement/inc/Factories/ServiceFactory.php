@@ -16,7 +16,7 @@ declare(strict_types=1);
 
 namespace NuclearEngagement\Factories;
 
-use NuclearEngagement\Core\Container;
+use NuclearEngagement\Core\ServiceContainer as Container;
 use NuclearEngagement\Contracts\LoggerInterface;
 use NuclearEngagement\Contracts\CacheInterface;
 use NuclearEngagement\Contracts\ValidatorInterface;

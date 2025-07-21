@@ -1,3 +1,4 @@
+/* eslint-env browser */
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { JSDOM } from 'jsdom';
 
@@ -6,8 +7,8 @@ import { JSDOM } from 'jsdom';
  */
 describe('Gutenberg Blocks Editor', () => {
   let dom: JSDOM;
-  let window: Window;
-  let document: Document;
+  let window: any; // Use any to avoid ESLint issues with global types
+  let document: any;
 
   beforeEach(() => {
     // Set up DOM environment similar to WordPress admin
@@ -21,10 +22,10 @@ describe('Gutenberg Blocks Editor', () => {
           <div id="editor" class="block-editor"></div>
           <script id="nuclen-admin-js-extra">
             var nuclenAdminVars = {
-              "ajaxUrl": "http://example.com/wp-admin/admin-ajax.php",
-              "nonce": "test123",
+              "ajax_url": "http://example.com/wp-admin/admin-ajax.php",
+              "security": "test123",
               "restUrl": "http://example.com/wp-json/",
-              "restNonce": "rest456"
+              "rest_nonce": "rest456"
             };
           </script>
         </body>
@@ -34,7 +35,7 @@ describe('Gutenberg Blocks Editor', () => {
       pretendToBeVisual: true
     });
 
-    window = dom.window as unknown as Window;
+    window = dom.window as any;
     document = window.document;
     global.window = window as any;
     global.document = document;
@@ -65,10 +66,10 @@ describe('Gutenberg Blocks Editor', () => {
 
     // Mock admin variables
     (window as any).nuclenAdminVars = {
-      ajaxUrl: 'http://example.com/wp-admin/admin-ajax.php',
-      nonce: 'test123',
+      ajax_url: 'http://example.com/wp-admin/admin-ajax.php',
+      security: 'test123',
       restUrl: 'http://example.com/wp-json/',
-      restNonce: 'rest456'
+      rest_nonce: 'rest456'
     };
   });
 
@@ -78,16 +79,18 @@ describe('Gutenberg Blocks Editor', () => {
 
   it('should have WordPress block editor environment available', () => {
     expect(window.wp).toBeDefined();
-    expect(window.wp.blocks).toBeDefined();
-    expect(window.wp.blocks.registerBlockType).toBeDefined();
-    expect(window.wp.element).toBeDefined();
-    expect(window.wp.components).toBeDefined();
+    expect(window.wp?.blocks).toBeDefined();
+    expect((window.wp?.blocks as any)?.registerBlockType).toBeDefined();
+    expect(window.wp?.element).toBeDefined();
+    expect(window.wp?.components).toBeDefined();
   });
 
   it('should register Nuclear Engagement blocks when admin script loads', () => {
     // Simulate block registration calls that would happen in nuclen-admin.js
     const mockRegisterBlockType = vi.fn();
-    window.wp.blocks.registerBlockType = mockRegisterBlockType;
+    if (window.wp?.blocks) {
+      (window.wp.blocks as any).registerBlockType = mockRegisterBlockType;
+    }
 
     // Simulate the block registration that should happen in admin script
     const blocks = [
@@ -125,7 +128,9 @@ describe('Gutenberg Blocks Editor', () => {
 
     // Simulate block registration
     blocks.forEach(block => {
-      window.wp.blocks.registerBlockType(block.name, block.settings);
+      if (window.wp?.blocks) {
+        (window.wp.blocks as any).registerBlockType(block.name, block.settings);
+      }
     });
 
     // Verify blocks were registered
@@ -137,15 +142,17 @@ describe('Gutenberg Blocks Editor', () => {
 
   it('should handle block edit interface correctly', () => {
     const mockServerSideRender = vi.fn().mockReturnValue('rendered-content');
-    window.wp.components.ServerSideRender = mockServerSideRender;
+    if (window.wp?.components) {
+      (window.wp.components as any).ServerSideRender = mockServerSideRender;
+    }
 
     // Mock block edit function (this would be defined in admin script)
     const mockEditFunction = (props: any) => {
       // This simulates the edit function for Nuclear Engagement blocks
-      return window.wp.components.ServerSideRender({
+      return window.wp?.components ? (window.wp.components as any).ServerSideRender({
         block: props.name,
         attributes: props.attributes
-      });
+      }) : null;
     };
 
     // Test edit function for quiz block
@@ -175,10 +182,10 @@ describe('Gutenberg Blocks Editor', () => {
 
   it('should handle admin AJAX variables correctly', () => {
     expect(window.nuclenAdminVars).toBeDefined();
-    expect(window.nuclenAdminVars.ajaxUrl).toBe('http://example.com/wp-admin/admin-ajax.php');
-    expect(window.nuclenAdminVars.nonce).toBe('test123');
-    expect(window.nuclenAdminVars.restUrl).toBe('http://example.com/wp-json/');
-    expect(window.nuclenAdminVars.restNonce).toBe('rest456');
+    expect(window.nuclenAdminVars?.ajax_url).toBe('http://example.com/wp-admin/admin-ajax.php');
+    expect(window.nuclenAdminVars?.security).toBe('test123');
+    expect((window.nuclenAdminVars as any)?.restUrl).toBe('http://example.com/wp-json/');
+    expect(window.nuclenAdminVars?.rest_nonce).toBe('rest456');
   });
 
   it('should validate block icons and categories are correct', () => {
@@ -258,7 +265,9 @@ describe('Gutenberg Blocks Editor', () => {
       }
     });
 
-    window.wp.components.ServerSideRender = mockServerSideRender;
+    if (window.wp?.components) {
+      (window.wp.components as any).ServerSideRender = mockServerSideRender;
+    }
 
     // Test each block type preview
     const quizPreview = mockServerSideRender({ block: 'nuclear-engagement/quiz' });
@@ -272,7 +281,9 @@ describe('Gutenberg Blocks Editor', () => {
 
   it('should handle translation strings in block editor', () => {
     const mockTranslate = vi.fn((text: string) => text);
-    window.wp.i18n.__ = mockTranslate;
+    if (window.wp?.i18n) {
+      (window.wp.i18n as any).__ = mockTranslate;
+    }
 
     // Simulate translation calls that would happen in block registration
     const translations = [
@@ -285,7 +296,9 @@ describe('Gutenberg Blocks Editor', () => {
     ];
 
     translations.forEach(text => {
-      window.wp.i18n.__(text, 'nuclear-engagement');
+      if (window.wp?.i18n) {
+        (window.wp.i18n as any).__(text, 'nuclear-engagement');
+      }
     });
 
     expect(mockTranslate).toHaveBeenCalledTimes(translations.length);

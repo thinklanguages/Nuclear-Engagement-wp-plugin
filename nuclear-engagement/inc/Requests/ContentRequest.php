@@ -16,6 +16,8 @@ declare(strict_types=1);
 
 namespace NuclearEngagement\Requests;
 
+use NuclearEngagement\Exceptions\ValidationException;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -45,18 +47,30 @@ class ContentRequest {
 		$request = new self();
 
 		if ( empty( $data['workflow'] ) ) {
-			throw new \InvalidArgumentException( 'No workflow found in request' );
+			throw new ValidationException(
+				'No workflow found in request',
+				array( 'request_keys' => array_keys( $data ) )
+			);
 		}
 
 		if ( empty( $data['results'] ) || ! is_array( $data['results'] ) ) {
-			throw new \InvalidArgumentException( 'No results data found in request' );
+			throw new ValidationException(
+				'No results data found in request',
+				array( 'request_keys' => array_keys( $data ) )
+			);
 		}
 
 		$request->workflow = sanitize_text_field( $data['workflow'] );
 
 		// Validate workflow.
 		if ( ! in_array( $request->workflow, array( 'quiz', 'summary' ), true ) ) {
-			throw new \InvalidArgumentException( 'Invalid workflow type: ' . $request->workflow );
+			throw new ValidationException(
+				'Invalid workflow type',
+				array(
+					'workflow'      => $request->workflow,
+					'allowed_types' => array( 'quiz', 'summary' ),
+				)
+			);
 		}
 
 		$request->results = $data['results'];

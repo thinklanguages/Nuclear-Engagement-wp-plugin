@@ -14,6 +14,7 @@ use NuclearEngagement\Core\ContainerRegistrar;
 use NuclearEngagement\Core\SettingsRepository;
 use NuclearEngagement\Core\Defaults;
 use NuclearEngagement\Core\Plugin;
+use NuclearEngagement\Services\LoggingService;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -38,9 +39,11 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @package NuclearEngagement\Core
  */
 final class PluginBootstrap {
-	private static ?self $instance = null;
-	private bool $initialized      = false;
-	private array $lazy_services   = array();
+	private static ?self $instance             = null;
+	private bool $initialized                  = false;
+	private array $lazy_services               = array();
+	private static array $initialized_services = array();
+	private static int $init_count             = 0;
 
 	private function __construct() {}
 
@@ -56,36 +59,64 @@ final class PluginBootstrap {
 			return;
 		}
 
-		// CRITICAL: DO NOT CHANGE THE ORDER OF THESE CALLS!
-		// The initialization order is extremely important for the plugin to work correctly.
+		// Track initialization attempts
+		++self::$init_count;
 
-		// 1. Define essential constants first - MUST be before any class loading
-		// This defines NUCLEN_PLUGIN_DIR, NUCLEN_PLUGIN_URL, NUCLEN_PLUGIN_VERSION.
-		$this->defineEssentialConstants();
+		try {
+			// CRITICAL: DO NOT CHANGE THE ORDER OF THESE CALLS!
+			// The initialization order is extremely important for the plugin to work correctly.
 
-		// 2. Register autoloader - MUST be after constants are defined
-		// The autoloader uses NUCLEN_PLUGIN_DIR constant.
-		$this->registerAutoloader();
+			// 1. Define essential constants first - MUST be before any class loading
+			// This defines NUCLEN_PLUGIN_DIR, NUCLEN_PLUGIN_URL, NUCLEN_PLUGIN_VERSION.
+			$this->defineEssentialConstants();
 
-		// 3. Register activation/deactivation hooks
-		$this->registerLifecycleHooks();
+			// 2. Register autoloader - MUST be after constants are defined
+			// The autoloader uses NUCLEN_PLUGIN_DIR constant.
+			$this->registerAutoloader();
 
-		// 4. Initialize only essential services immediately
-		$this->initializeEssentialServices();
+			// 3. Register activation/deactivation hooks
+			$this->registerLifecycleHooks();
 
-		// 5. Register lazy loading for heavy services
-		$this->registerLazyServices();
+			// 4. Initialize only essential services immediately
+			$this->initializeEssentialServices();
 
-		// 6. Register WordPress hooks
-		$this->registerWordPressHooks();
+			// 5. Register lazy loading for heavy services
+			$this->registerLazyServices();
 
-		// 7. CRITICAL: Load admin services selectively in admin context
-		// Only load essential services immediately, defer heavy services
-		if ( is_admin() ) {
-			$this->loadMinimalAdminServices();
+			// 6. Register WordPress hooks
+			$this->registerWordPressHooks();
+
+			// 7. CRITICAL: Load admin services selectively in admin context
+			// Only load essential services immediately, defer heavy services
+			if ( is_admin() ) {
+				$this->loadMinimalAdminServices();
+			}
+
+			$this->initialized = true;
+
+			// Clear any previous bootstrap errors if we got this far
+			delete_option( 'nuclen_bootstrap_error' );
+
+		} catch ( \Throwable $e ) {
+			// Log the error but allow partial initialization
+			LoggingService::log(
+				sprintf(
+					'Partial initialization error: %s in %s:%d',
+					$e->getMessage(),
+					$e->getFile(),
+					$e->getLine()
+				)
+			);
+
+			// Try to continue with minimal functionality
+			$this->loadMinimalFunctionality();
+			$this->initialized = true;
+
+			// Re-throw if in debug mode
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				throw $e;
+			}
 		}
-
-		$this->initialized = true;
 	}
 
 	/**
@@ -117,9 +148,25 @@ final class PluginBootstrap {
 	 * the plugin is installed.
 	 */
 	private function registerAutoloader(): void {
+		$autoloader_path = __DIR__ . '/Autoloader.php';
+
+		if ( ! file_exists( $autoloader_path ) ) {
+			throw new \RuntimeException(
+				sprintf(
+					'Autoloader not found at expected path: %s',
+					$autoloader_path
+				)
+			);
+		}
+
 		// CRITICAL: This MUST be __DIR__ . '/Autoloader.php'
 		// Do NOT use dirname(__DIR__) or any other path!
-		require_once __DIR__ . '/Autoloader.php';
+		require_once $autoloader_path;
+
+		if ( ! class_exists( 'NuclearEngagement\Core\Autoloader' ) ) {
+			throw new \RuntimeException( 'Autoloader class not found after including file' );
+		}
+
 		Autoloader::register();
 	}
 
@@ -129,13 +176,23 @@ final class PluginBootstrap {
 	}
 
 	public function onActivation(): void {
-		// Only run essential setup on activation.
-		if ( ! \NuclearEngagement\OptinData::table_exists() ) {
-			\NuclearEngagement\OptinData::maybe_create_table();
-		}
+		try {
+			// Only run essential setup on activation.
+			if ( class_exists( '\NuclearEngagement\OptinData' ) &&
+				! \NuclearEngagement\OptinData::table_exists() ) {
+				\NuclearEngagement\OptinData::maybe_create_table();
+			}
 
-		// Schedule theme migration for next request.
-		wp_schedule_single_event( time() + 30, 'nuclen_theme_migration' );
+			// Schedule theme migration for next request.
+			wp_schedule_single_event( time() + 30, 'nuclen_theme_migration' );
+
+			// Clear any bootstrap errors from previous activation attempts
+			delete_option( 'nuclen_bootstrap_error' );
+
+		} catch ( \Throwable $e ) {
+			// Log but don't block activation
+			LoggingService::log( 'Activation error: ' . $e->getMessage() );
+		}
 	}
 
 	public function onDeactivation(): void {
@@ -260,6 +317,18 @@ final class PluginBootstrap {
 
 		// Register auto-generation hooks after admin services are loaded.
 		add_action( 'init', array( $this, 'registerAutoGenerationHooks' ), 10 );
+
+		// Initialize batch processing handler after plugins are loaded
+		add_action( 'init', array( $this, 'initializeBatchProcessing' ), 5 );
+
+		// Initialize error metrics tracking
+		add_action( 'init', array( $this, 'initializeErrorMetrics' ), 5 );
+
+		// Initialize circuit breaker service
+		add_action( 'init', array( $this, 'initializeCircuitBreaker' ), 5 );
+
+		// Initialize task timeout handler
+		add_action( 'init', array( $this, 'initializeTaskTimeoutHandler' ), 5 );
 
 		// Register theme migration hook.
 		add_action( 'nuclen_theme_migration', array( $this, 'runThemeMigration' ) );
@@ -431,12 +500,96 @@ final class PluginBootstrap {
 	}
 
 	public function registerAutoGenerationHooks(): void {
-		if ( is_admin() ) {
-			$container = ServiceContainer::getInstance();
-			if ( $container->has( 'auto_generation_service' ) ) {
-				$auto_generation_service = $container->get( 'auto_generation_service' );
-				$auto_generation_service->register_hooks();
-			}
+		// Check if already initialized
+		if ( isset( self::$initialized_services['auto_generation'] ) ) {
+			return;
+		}
+
+		// Auto-generation hooks need to work on all requests
+		// including frontend, REST API, and AJAX requests
+
+		$container = ServiceContainer::getInstance();
+		$settings  = SettingsRepository::get_instance();
+
+		// Ensure core services and container are registered
+		if ( ! $container->has( 'settings' ) ) {
+			$container->registerCoreServices();
+			ContainerRegistrar::register( $container, $settings );
+		}
+
+		if ( $container->has( 'auto_generation_service' ) ) {
+			// Mark as initialized BEFORE calling register_hooks to prevent any recursive calls
+			self::$initialized_services['auto_generation'] = true;
+
+			$auto_generation_service = $container->get( 'auto_generation_service' );
+			$auto_generation_service->register_hooks();
+		}
+	}
+
+	/**
+	 * Initialize batch processing handler.
+	 */
+	public function initializeBatchProcessing(): void {
+		// Check if already initialized
+		if ( isset( self::$initialized_services['batch_processing'] ) ) {
+			return;
+		}
+
+		// Ensure BatchProcessingHandler is initialized
+		if ( class_exists( '\NuclearEngagement\Services\BatchProcessingHandler' ) ) {
+			// Mark as initialized BEFORE calling init to prevent any recursive calls
+			self::$initialized_services['batch_processing'] = true;
+
+			// Always initialize to ensure hooks are registered
+			\NuclearEngagement\Services\BatchProcessingHandler::init();
+
+		} else {
+			\NuclearEngagement\Services\LoggingService::log(
+				'ERROR: BatchProcessingHandler class not found during initialization',
+				'error'
+			);
+		}
+	}
+
+	/**
+	 * Initialize task timeout handler.
+	 */
+	public function initializeTaskTimeoutHandler(): void {
+		// Check if already initialized
+		if ( isset( self::$initialized_services['task_timeout'] ) ) {
+			return;
+		}
+
+		$container = ServiceContainer::getInstance();
+		if ( $container->has( 'task_timeout_handler' ) ) {
+			$timeout_handler = $container->get( 'task_timeout_handler' );
+			$timeout_handler->register_hooks();
+			self::$initialized_services['task_timeout'] = true;
+		}
+	}
+
+	/**
+	 * Initialize error metrics tracking.
+	 */
+	public function initializeErrorMetrics(): void {
+		$container = ServiceContainer::getInstance();
+
+		// Ensure container has error metrics service
+		if ( $container->has( 'error_metrics_service' ) ) {
+			$error_metrics = $container->get( 'error_metrics_service' );
+
+			// Track all requests for error rate calculation
+			add_action( 'init', array( $error_metrics, 'track_request' ), 1 );
+		}
+	}
+
+	/**
+	 * Initialize circuit breaker service.
+	 */
+	public function initializeCircuitBreaker(): void {
+		// Initialize static circuit breaker service
+		if ( class_exists( '\NuclearEngagement\Services\CircuitBreakerService' ) ) {
+			\NuclearEngagement\Services\CircuitBreakerService::init();
 		}
 	}
 
@@ -449,7 +602,7 @@ final class PluginBootstrap {
 			// Lazy loader will handle module registration
 			return;
 		}
-		
+
 		// Register modules.
 		$registry = \NuclearEngagement\Core\Module\ModuleRegistry::getInstance();
 
@@ -473,6 +626,53 @@ final class PluginBootstrap {
 	}
 
 	/**
+	 * Load minimal functionality when full initialization fails
+	 */
+	private function loadMinimalFunctionality(): void {
+		try {
+			// Ensure error handler is available
+			if ( class_exists( 'NuclearEngagement\Core\UnifiedErrorHandler' ) ) {
+				$error_handler = UnifiedErrorHandler::get_instance();
+			}
+
+			// Load core settings if possible
+			if ( class_exists( 'NuclearEngagement\Core\SettingsRepository' ) ) {
+				$settings = SettingsRepository::get_instance();
+			}
+
+			// Register minimal admin notice functionality
+			if ( is_admin() ) {
+				add_action(
+					'admin_notices',
+					function () {
+						$error = get_option( 'nuclen_bootstrap_error' );
+						if ( $error && current_user_can( 'manage_options' ) ) {
+							echo '<div class="notice notice-warning is-dismissible">';
+							echo '<p><strong>' . esc_html__( 'Nuclear Engagement is running with limited functionality', 'nuclear-engagement' ) . '</strong></p>';
+							echo '<p>' . esc_html__( 'Some features may not be available. Please check the error logs for details.', 'nuclear-engagement' ) . '</p>';
+							echo '</div>';
+						}
+					}
+				);
+			}
+
+			// Register deactivation cleanup
+			register_deactivation_hook(
+				NUCLEN_PLUGIN_FILE,
+				function () {
+					delete_option( 'nuclen_bootstrap_error' );
+					wp_clear_scheduled_hook( 'nuclen_theme_migration' );
+					wp_clear_scheduled_hook( 'nuclen_cleanup_logs' );
+				}
+			);
+
+		} catch ( \Throwable $e ) {
+			// Even minimal functionality failed - just log it
+			LoggingService::log( 'Failed to load minimal functionality: ' . $e->getMessage() );
+		}
+	}
+
+	/**
 	 * Load only minimal admin services on all admin pages.
 	 * This prevents loading heavy services on irrelevant pages.
 	 */
@@ -483,9 +683,9 @@ final class PluginBootstrap {
 			// Don't register menu here - Plugin class handles it
 			return;
 		}
-		
+
 		// Don't register menu here - Plugin class handles it via AdminMenu trait
-		
+
 		// Load AJAX handlers (lightweight)
 		$this->registerCriticalAjaxHooks();
 	}
@@ -498,7 +698,7 @@ final class PluginBootstrap {
 		if ( isset( $this->lazy_services['plugin_loaded'] ) && $this->lazy_services['plugin_loaded'] === true ) {
 			return;
 		}
-		
+
 		// Check if menu is already registered by Plugin class
 		global $menu;
 		$menu_exists = false;
@@ -510,12 +710,12 @@ final class PluginBootstrap {
 				}
 			}
 		}
-		
+
 		// If menu already exists, don't register again
 		if ( $menu_exists ) {
 			return;
 		}
-		
+
 		// Simple menu registration without heavy dependencies
 		add_menu_page(
 			__( 'Nuclear Engagement', 'nuclear-engagement' ),
@@ -570,7 +770,7 @@ final class PluginBootstrap {
 	 */
 	public function conditionallyLoadAdminServices(): void {
 		$screen = get_current_screen();
-		
+
 		if ( ! $screen ) {
 			return;
 		}
@@ -578,11 +778,11 @@ final class PluginBootstrap {
 		// Check if we're on a plugin-related page
 		$plugin_pages = array(
 			'toplevel_page_nuclear-engagement',
-			'nuclear-engagement_page_nuclear-engagement-generate', 
+			'nuclear-engagement_page_nuclear-engagement-generate',
 			'nuclear-engagement_page_nuclear-engagement-settings',
 			'nuclear-engagement_page_nuclear-engagement-setup',
 			'post',
-			'page'
+			'page',
 		);
 
 		$load_full_services = false;
@@ -635,7 +835,7 @@ final class PluginBootstrap {
 				return;
 			}
 		}
-		
+
 		// Only show loading if we couldn't render the dashboard
 		echo '<div class="wrap"><h1>' . esc_html__( 'Nuclear Engagement', 'nuclear-engagement' ) . '</h1><p>' . esc_html__( 'Loading...', 'nuclear-engagement' ) . '</p></div>';
 	}
@@ -658,7 +858,7 @@ final class PluginBootstrap {
 				return;
 			}
 		}
-		
+
 		// Only show loading if we couldn't render the page
 		echo '<div class="wrap"><h1>' . esc_html__( 'Generate', 'nuclear-engagement' ) . '</h1><p>' . esc_html__( 'Loading...', 'nuclear-engagement' ) . '</p></div>';
 	}
@@ -673,9 +873,9 @@ final class PluginBootstrap {
 		}
 
 		// Defer to actual admin class
-		$container  = ServiceContainer::getInstance();
+		$container     = ServiceContainer::getInstance();
 		$settings_repo = SettingsRepository::get_instance( Defaults::nuclen_get_default_settings() );
-		$settings = new \NuclearEngagement\Admin\Settings( $settings_repo );
+		$settings      = new \NuclearEngagement\Admin\Settings( $settings_repo );
 		$settings->nuclen_display_settings_page();
 		return;
 	}
@@ -698,7 +898,7 @@ final class PluginBootstrap {
 				return;
 			}
 		}
-		
+
 		// Only show loading if we couldn't render the page
 		echo '<div class="wrap"><h1>' . esc_html__( 'Setup', 'nuclear-engagement' ) . '</h1><p>' . esc_html__( 'Loading...', 'nuclear-engagement' ) . '</p></div>';
 	}
@@ -711,20 +911,20 @@ final class PluginBootstrap {
 	 */
 	private function getAllowedPostTypes(): array {
 		static $cached_types = null;
-		
+
 		if ( null !== $cached_types ) {
 			return $cached_types;
 		}
-		
+
 		$cached_types = get_transient( 'nuclear_engagement_allowed_post_types' );
-		
+
 		if ( false === $cached_types ) {
-			$settings = get_option( 'nuclear_engagement_settings', array() );
-			$cached_types = isset( $settings['generation_post_types'] ) ? 
+			$settings     = get_option( 'nuclear_engagement_settings', array() );
+			$cached_types = isset( $settings['generation_post_types'] ) ?
 				$settings['generation_post_types'] : array( 'post' );
 			set_transient( 'nuclear_engagement_allowed_post_types', $cached_types, HOUR_IN_SECONDS );
 		}
-		
+
 		return $cached_types;
 	}
 
@@ -737,7 +937,7 @@ final class PluginBootstrap {
 		if ( $pointer_id ) {
 			$dismissed_pointers = get_user_meta( get_current_user_id(), 'dismissed_wp_pointers', true );
 			$dismissed_pointers = $dismissed_pointers ? explode( ',', $dismissed_pointers ) : array();
-			
+
 			if ( ! in_array( $pointer_id, $dismissed_pointers, true ) ) {
 				$dismissed_pointers[] = $pointer_id;
 				update_user_meta( get_current_user_id(), 'dismissed_wp_pointers', implode( ',', $dismissed_pointers ) );

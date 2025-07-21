@@ -84,7 +84,10 @@
       "Bash(./vendor/bin/phpcs:*)",
       "Bash(./setup-test-post.sh:*)",
       "Bash(./scripts/test-property-naming.sh:*)",
-      "Bash(timeout 60 vendor/bin/phpunit:*)"
+      "Bash(timeout 60 vendor/bin/phpunit:*)",
+      "Bash(wp cron event:*)",
+      "Bash(echo:*)",
+      "Bash(timeout 120 composer test)"
     ],
     "deny": []
   }

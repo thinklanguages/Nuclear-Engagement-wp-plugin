@@ -20,6 +20,7 @@ export default defineConfig({
       input: {
         admin: path.resolve(__dirname, 'src/admin/ts/nuclen-admin.ts'),
         front: path.resolve(__dirname, 'src/front/ts/nuclen-front.ts'),
+        tasks: path.resolve(__dirname, 'src/admin/ts/tasks.ts'),
         tocAdmin: path.resolve(
           __dirname,
           'src/modules/toc/ts/nuclen-toc-admin.ts',
@@ -37,6 +38,9 @@ export default defineConfig({
           }
           if (chunkInfo.name === 'front') {
             return 'front/js/nuclen-front.js';
+          }
+          if (chunkInfo.name === 'tasks') {
+            return 'admin/js/nuclen-tasks.js';
           }
           if (chunkInfo.name === 'tocAdmin') {
             return 'modules/toc/assets/js/nuclen-toc-admin.js';

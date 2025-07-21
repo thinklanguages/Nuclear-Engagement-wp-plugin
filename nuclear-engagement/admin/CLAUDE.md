@@ -15,7 +15,7 @@ This directory contains all administrative functionality for the Nuclear Engagem
 - **Traits/** - Reusable admin functionality traits
   - Admin UI traits (assets, menu, metaboxes)
   - Settings management traits (collect, persist, sanitize)
-  - Security traits for setup handlers
+  - Security traits for general admin functionality
 
 - **Core Files**
   - `Admin.php` - Main admin class orchestrating all admin functionality

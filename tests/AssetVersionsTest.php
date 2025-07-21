@@ -20,9 +20,7 @@ namespace {
 			if (!defined('NUCLEN_PLUGIN_VERSION')) {
 				define('NUCLEN_PLUGIN_VERSION', '1.0');
 			}
-			if (!defined('NUCLEN_ASSET_VERSION')) {
-				define('NUCLEN_ASSET_VERSION', 'default');
-			}
+			// NUCLEN_ASSET_VERSION is loaded from constants.php
 			require_once dirname(__DIR__) . '/nuclear-engagement/inc/Core/AssetVersions.php';
 		}
 

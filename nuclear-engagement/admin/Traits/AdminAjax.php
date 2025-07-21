@@ -60,7 +60,7 @@ trait AdminAjax {
 
 		// Load the admin assets
 		$this->enqueue_admin_assets();
-		
+
 		wp_send_json_success();
 	}
 }

@@ -17,6 +17,7 @@ declare(strict_types=1);
 namespace NuclearEngagement\Services;
 
 use NuclearEngagement\Modules\Summary\Summary_Service;
+use NuclearEngagement\Exceptions\DatabaseException;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -55,12 +56,14 @@ class PostDataFetcher {
 	/**
 	 * Retrieve post rows for the given IDs.
 	 *
-	 * Posts are filtered to published status and exclude those
-	 * with quiz or summary protection meta set.
+	 * Fetches all requested posts without filtering. The validation
+	 * and filtering should be done in the request processing stage,
+	 * not during data fetching.
 	 *
 	 * @param array  $ids Post IDs.
-	 * @param string $workflowType Optional. Workflow type to check protection for. If empty, checks both.
+	 * @param string $workflowType Optional. Workflow type (for future use).
 	 * @return array Rows from the posts table.
+	 * @throws DatabaseException When database query fails
 	 */
 	public function fetch( array $ids, string $workflowType = '' ): array {
 			global $wpdb;
@@ -81,70 +84,44 @@ class PostDataFetcher {
 			$order_ids    = implode( ',', $ids );
 
 				// Build SQL based on workflow type.
-		if ( $workflowType === 'quiz' ) {
-			// Only check quiz protection for quiz generation.
-			$base_query = "SELECT p.ID, p.post_title, p.post_content
-				 FROM {$wpdb->posts} p
-				 LEFT JOIN {$wpdb->postmeta} pmq
-				   ON pmq.post_id = p.ID
-				  AND pmq.meta_key = %s
-				 WHERE p.ID IN ($placeholders)
-				   AND p.post_status = 'publish'
-				   AND pmq.meta_id IS NULL
-				 ORDER BY FIELD(p.ID, $placeholders)";
+		// Since posts were already validated in Step 1, we should fetch ALL requested posts
+		// The protection check should be done at the storage level, not here
+		$base_query = "SELECT p.ID, p.post_title, p.post_content
+			 FROM {$wpdb->posts} p
+			 WHERE p.ID IN ($placeholders)
+			 ORDER BY FIELD(p.ID, $placeholders)";
 
-			// Prepare the complete query with all parameters.
-			$sql = $wpdb->prepare(
-				$base_query,
-				array_merge( array( 'nuclen_quiz_protected' ), $ids, $ids )
-			);
+		// Prepare the complete query with all parameters.
+		$sql = $wpdb->prepare(
+			$base_query,
+			array_merge( $ids, $ids )
+		);
 
-		} elseif ( $workflowType === 'summary' ) {
-			// Only check summary protection for summary generation.
-			$base_query = "SELECT p.ID, p.post_title, p.post_content
-				 FROM {$wpdb->posts} p
-				 LEFT JOIN {$wpdb->postmeta} pms
-				   ON pms.post_id = p.ID
-				  AND pms.meta_key = %s
-				 WHERE p.ID IN ($placeholders)
-				   AND p.post_status = 'publish'
-				   AND pms.meta_id IS NULL
-				 ORDER BY FIELD(p.ID, $placeholders)";
-
-			// Prepare the complete query with all parameters.
-			$sql = $wpdb->prepare(
-				$base_query,
-				array_merge( array( Summary_Service::PROTECTED_KEY ), $ids, $ids )
-			);
-
-		} else {
-			// Default behavior: check both protections (backward compatibility).
-			$base_query = "SELECT p.ID, p.post_title, p.post_content
-				 FROM {$wpdb->posts} p
-				 LEFT JOIN {$wpdb->postmeta} pmq
-				   ON pmq.post_id = p.ID
-				  AND pmq.meta_key = %s
-				 LEFT JOIN {$wpdb->postmeta} pms
-				   ON pms.post_id = p.ID
-				  AND pms.meta_key = %s
-				 WHERE p.ID IN ($placeholders)
-				   AND p.post_status = 'publish'
-				   AND pmq.meta_id IS NULL
-				   AND pms.meta_id IS NULL
-				 ORDER BY FIELD(p.ID, $placeholders)";
-
-			// Prepare the complete query with all parameters.
-			$sql = $wpdb->prepare(
-				$base_query,
-				array_merge( array( 'nuclen_quiz_protected', Summary_Service::PROTECTED_KEY ), $ids, $ids )
-			);
-		}
+			LoggingService::log( 'PostDataFetcher SQL: ' . $sql );
 
 			$rows = $wpdb->get_results( $sql );
 
 		if ( ! empty( $wpdb->last_error ) ) {
 					LoggingService::log( 'Post fetch error: ' . $wpdb->last_error );
-					return array();
+					throw new DatabaseException(
+						'Failed to fetch post data',
+						$wpdb->last_error,
+						$sql
+					);
+		}
+
+				LoggingService::log( 'PostDataFetcher found ' . count( $rows ) . ' posts out of ' . count( $ids ) . ' requested' );
+
+				// Log which posts were not found
+		if ( count( $rows ) < count( $ids ) ) {
+			$found_ids   = array_map(
+				function ( $row ) {
+					return (int) $row->ID;
+				},
+				$rows
+			);
+			$missing_ids = array_diff( $ids, $found_ids );
+			LoggingService::log( 'PostDataFetcher missing post IDs: ' . implode( ', ', $missing_ids ) );
 		}
 
 				wp_cache_set( $cache_key, $rows, self::CACHE_GROUP, self::CACHE_TTL );

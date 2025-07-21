@@ -65,7 +65,7 @@ class UnifiedErrorManager {
 
 			// Last resort: WordPress error log.
 			$log_message = sprintf(
-				'[%s][%s] %s %s',
+				'[Nuclear Engagement] [%s][%s] %s %s',
 				$category,
 				$severity,
 				$message,
@@ -79,7 +79,7 @@ class UnifiedErrorManager {
 		} catch ( \Throwable $e ) {
 			// Prevent infinite recursion.
 			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-			error_log( 'UnifiedErrorManager failed: ' . $e->getMessage() );
+			error_log( '[Nuclear Engagement] UnifiedErrorManager failed: ' . $e->getMessage() );
 			return false;
 		}
 	}

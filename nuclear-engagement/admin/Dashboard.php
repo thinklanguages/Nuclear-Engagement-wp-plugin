@@ -108,8 +108,6 @@ class Dashboard {
 			$by_category_summary  = $inventory_cache['by_category_summary'] ?? array();
 		}
 
-		$scheduled_tasks = $this->data_service->get_scheduled_generations();
-
 		return array(
 			'by_status_quiz'       => $by_status_quiz,
 			'by_status_summary'    => $by_status_summary,
@@ -119,7 +117,6 @@ class Dashboard {
 			'by_author_summary'    => $by_author_summary,
 			'by_category_quiz'     => $by_category_quiz,
 			'by_category_summary'  => $by_category_summary,
-			'scheduled_tasks'      => $scheduled_tasks,
 		);
 	}
 

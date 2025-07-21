@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace NuclearEngagement\Core;
 
+use NuclearEngagement\Services\LoggingService;
 use NuclearEngagement\Utils\ServerUtils;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -367,13 +368,13 @@ final class ErrorHandler {
 			wp_json_encode( $error_context->get_context() )
 		);
 
-		// WordPress error log.
-		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-		error_log( "Nuclear Engagement: {$log_entry}" );
-
-		// Custom log file for critical errors.
-		if ( $error_context->get_severity() === self::SEVERITY_CRITICAL ) {
-			self::write_to_error_log( $log_entry );
+		// Use LoggingService for all error logging
+		if ( class_exists( LoggingService::class ) ) {
+			LoggingService::log( $log_entry );
+		} else {
+			// Fallback to WordPress error log
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+			error_log( "Nuclear Engagement: {$log_entry}" );
 		}
 	}
 
@@ -557,11 +558,5 @@ final class ErrorHandler {
 	private static function is_suspicious_activity( ErrorContext $context ): bool {
 		// Implement suspicious activity detection.
 		return false;
-	}
-
-	private static function write_to_error_log( string $entry ): void {
-		$log_file = WP_CONTENT_DIR . '/nuclen-errors.log';
-		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents
-		file_put_contents( $log_file, $entry . PHP_EOL, FILE_APPEND | LOCK_EX );
 	}
 }

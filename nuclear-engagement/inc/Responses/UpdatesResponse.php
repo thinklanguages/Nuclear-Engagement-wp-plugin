@@ -33,6 +33,9 @@ class UpdatesResponse {
 	public ?int $remainingCredits = null;
 	public ?string $message       = null;
 	public ?int $statusCode       = null;
+	public ?int $success_count    = null;
+	public ?int $fail_count       = null;
+	public ?int $processed_count  = null;
 
 	/**
 	 * Convert to array for JSON response.
@@ -62,6 +65,15 @@ class UpdatesResponse {
 		}
 		if ( $this->statusCode !== null ) {
 			$data['status_code'] = $this->statusCode;
+		}
+		if ( $this->success_count !== null ) {
+			$data['success_count'] = $this->success_count;
+		}
+		if ( $this->fail_count !== null ) {
+			$data['fail_count'] = $this->fail_count;
+		}
+		if ( $this->processed_count !== null ) {
+			$data['processed_count'] = $this->processed_count;
 		}
 
 		return $data;

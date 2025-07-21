@@ -44,16 +44,19 @@ class Deactivator {
 	 * @param SettingsRepository|null $settings Optional settings repository instance
 	 */
 	public static function nuclen_deactivate( ?SettingsRepository $settings = null ) {
-			// Clear scheduled cron hooks.
-			wp_clear_scheduled_hook( AutoGenerationService::START_HOOK );
-			wp_clear_scheduled_hook( AutoGenerationService::QUEUE_HOOK );
-			wp_clear_scheduled_hook( 'nuclen_poll_generation' );
+		// Clear scheduled cron hooks.
+		if ( class_exists( '\NuclearEngagement\Services\AutoGenerationService' ) ) {
+			\wp_clear_scheduled_hook( AutoGenerationService::START_HOOK );
+		} else {
+			\wp_clear_scheduled_hook( 'nuclen_start_generation' );
+		}
+		\wp_clear_scheduled_hook( 'nuclen_poll_generation' );
 
-			// Remove any pending generation records.
-			delete_option( 'nuclen_active_generations' );
+		// Remove any pending generation records.
+		\delete_option( 'nuclen_active_generations' );
 
-			// Clear any scheduled hooks or transients if needed.
-			delete_transient( 'nuclen_plugin_activation_redirect' );
+		// Clear any scheduled hooks or transients if needed.
+		\delete_transient( 'nuclen_plugin_activation_redirect' );
 
 		// If settings instance is provided, perform any necessary cleanup.
 		if ( $settings !== null ) {

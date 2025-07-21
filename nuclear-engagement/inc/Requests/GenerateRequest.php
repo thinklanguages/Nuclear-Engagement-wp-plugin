@@ -16,6 +16,8 @@ declare(strict_types=1);
 
 namespace NuclearEngagement\Requests;
 
+use NuclearEngagement\Exceptions\ValidationException;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -81,23 +83,73 @@ class GenerateRequest {
 	public string $postType = 'post';
 
 	/**
+	 * Generation priority (high for manual, low for auto).
+	 *
+	 * @var string
+	 */
+	public string $priority = 'high';
+
+	/**
+	 * Source of generation request (manual, auto, bulk).
+	 *
+	 * @var string
+	 */
+	public string $source = 'manual';
+
+	/**
+	 * Current retry attempt number.
+	 *
+	 * @var int
+	 */
+	public int $retryCount = 0;
+
+	/**
+	 * Maximum retry attempts.
+	 *
+	 * @var int
+	 */
+	public int $maxRetries = 0;
+
+	/**
 	 * Create from POST data.
 	 *
 	 * @param array $post POST data.
 	 * @return self
-	 * @throws \InvalidArgumentException On validation errors.
+	 * @throws ValidationException On validation errors.
 	 */
 	public static function from_post( array $post ): self {
-		$request = new self();
+		$request           = new self();
+		$validation_errors = array();
 
-		$payload = self::parse_payload( $post );
-		\NuclearEngagement\Services\LoggingService::log( 'GenerateRequest payload: ' . print_r( $payload, true ) );
+		try {
+			$payload = self::parse_payload( $post );
+			\NuclearEngagement\Services\LoggingService::log( 'GenerateRequest payload received' );
+		} catch ( \InvalidArgumentException $e ) {
+			$validation_errors['payload'] = $e->getMessage();
+			throw new ValidationException( $validation_errors );
+		}
 
-		$request->postIds = self::extract_and_validate_post_ids( $payload );
+		try {
+			$request->postIds = self::extract_and_validate_post_ids( $payload );
+		} catch ( \InvalidArgumentException $e ) {
+			$validation_errors['post_ids'] = $e->getMessage();
+		}
+
 		self::map_basic_fields( $request, $payload );
-		self::validate_workflow_type( $request->workflowType );
+
+		try {
+			self::validate_workflow_type( $request->workflowType );
+		} catch ( \InvalidArgumentException $e ) {
+			$validation_errors['workflow_type'] = $e->getMessage();
+		}
+
+		if ( ! empty( $validation_errors ) ) {
+			throw new ValidationException( $validation_errors );
+		}
+
 		self::map_summary_fields( $request, $payload );
 		$request->generationId = self::generate_id( $payload );
+		self::map_optional_fields( $request, $payload );
 
 		return $request;
 	}
@@ -111,15 +163,62 @@ class GenerateRequest {
 	 */
 	private static function parse_payload( array $post ): array {
 		if ( empty( $post['payload'] ) ) {
-			return array();
+			// If no payload field, validate and sanitize POST data
+			$required_fields = array( 'nuclen_selected_post_ids', 'nuclen_selected_generate_workflow' );
+			foreach ( $required_fields as $field ) {
+				if ( empty( $post[ $field ] ) ) {
+					throw new \InvalidArgumentException(
+						sprintf( 'Missing required field: %s', $field )
+					);
+				}
+			}
+
+			// Ensure POST data is properly structured
+			return self::sanitize_post_data( $post );
 		}
 
 		$payload = json_decode( wp_unslash( $post['payload'] ), true );
 		if ( json_last_error() !== JSON_ERROR_NONE ) {
-			throw new \InvalidArgumentException( 'Invalid JSON payload: ' . json_last_error_msg() );
+			throw new \InvalidArgumentException(
+				sprintf( 'Invalid JSON payload: %s', json_last_error_msg() )
+			);
 		}
 
 		return $payload;
+	}
+
+	/**
+	 * Sanitize raw POST data
+	 *
+	 * @param array $post Raw POST data
+	 * @return array Sanitized data
+	 */
+	private static function sanitize_post_data( array $post ): array {
+		$sanitized = array();
+
+		// Define allowed fields and their sanitization methods
+		$field_map = array(
+			'nuclen_selected_post_ids'                => 'sanitize_text_field',
+			'nuclen_selected_generate_workflow'       => 'sanitize_text_field',
+			'nuclen_selected_post_status'             => 'sanitize_text_field',
+			'nuclen_selected_post_type'               => 'sanitize_text_field',
+			'nuclen_selected_summary_format'          => 'sanitize_text_field',
+			'nuclen_selected_summary_length'          => 'absint',
+			'nuclen_selected_summary_number_of_items' => 'absint',
+			'generation_id'                           => 'sanitize_text_field',
+			'priority'                                => 'sanitize_text_field',
+			'source'                                  => 'sanitize_text_field',
+			'retry_count'                             => 'absint',
+			'max_retries'                             => 'absint',
+		);
+
+		foreach ( $field_map as $field => $sanitizer ) {
+			if ( isset( $post[ $field ] ) ) {
+				$sanitized[ $field ] = call_user_func( $sanitizer, $post[ $field ] );
+			}
+		}
+
+		return $sanitized;
 	}
 
 	/**
@@ -131,17 +230,43 @@ class GenerateRequest {
 	 */
 	private static function extract_and_validate_post_ids( array $payload ): array {
 		$post_ids_json = $payload['nuclen_selected_post_ids'] ?? '';
+
+		\NuclearEngagement\Services\LoggingService::log(
+			'Processing post IDs from request'
+		);
+
 		$post_ids = json_decode( $post_ids_json, true ) ?: array();
 
+		\NuclearEngagement\Services\LoggingService::log(
+			'Post IDs decoded successfully: ' . count( $post_ids ) . ' posts'
+		);
+
 		if ( empty( $post_ids ) || ! is_array( $post_ids ) ) {
-			throw new \InvalidArgumentException( 'No valid posts selected' );
+			throw new ValidationException(
+				__( 'Please select at least one post to generate content for.', 'nuclear-engagement' ),
+				array( 'post_ids' => $post_ids )
+			);
 		}
 
-		$post_ids = self::sanitize_post_ids( $post_ids );
+		try {
+			$post_ids = self::sanitize_post_ids( $post_ids );
+		} catch ( \InvalidArgumentException $e ) {
+			throw new ValidationException(
+				__( 'Invalid post IDs provided. Please refresh and try again.', 'nuclear-engagement' ),
+				array( 'invalid_ids' => array_diff( $post_ids, $sanitized ) )
+			);
+		}
+
 		$post_ids = self::filter_accessible_posts( $post_ids );
 
 		if ( empty( $post_ids ) ) {
-			throw new \InvalidArgumentException( 'No posts available for generation - insufficient permissions or invalid post IDs' );
+			throw new ValidationException(
+				__( 'You do not have permission to generate content for the selected posts.', 'nuclear-engagement' ),
+				array(
+					'user_id'             => get_current_user_id(),
+					'required_capability' => 'edit_post',
+				)
+			);
 		}
 
 		return $post_ids;
@@ -155,12 +280,21 @@ class GenerateRequest {
 	 */
 	private static function sanitize_post_ids( array $post_ids ): array {
 		$sanitized = array_map( 'intval', $post_ids );
-		$sanitized = array_filter( $sanitized, function ( $id ) {
-			return $id > 0;
-		});
+		$sanitized = array_filter(
+			$sanitized,
+			function ( $id ) {
+				return $id > 0;
+			}
+		);
 
 		if ( empty( $sanitized ) ) {
-			throw new \InvalidArgumentException( 'No valid post IDs after sanitization' );
+			throw new ValidationException(
+				'No valid post IDs after sanitization',
+				array(
+					'original_count'  => count( $post_ids ),
+					'sanitized_count' => 0,
+				)
+			);
 		}
 
 		return $sanitized;
@@ -173,14 +307,40 @@ class GenerateRequest {
 	 * @return array Accessible post IDs.
 	 */
 	private static function filter_accessible_posts( array $post_ids ): array {
-		return array_filter( $post_ids, function ( $id ) {
-			if ( ! current_user_can( 'edit_post', $id ) ) {
-				return false;
-			}
+		$filtered = array_filter(
+			$post_ids,
+			function ( $id ) {
+				if ( ! current_user_can( 'edit_post', $id ) ) {
+					\NuclearEngagement\Services\LoggingService::log(
+						"Post ID {$id} filtered out - user cannot edit"
+					);
+					return false;
+				}
 
-			$post = get_post( $id );
-			return $post && 'publish' === $post->post_status;
-		});
+				$post = get_post( $id );
+				if ( ! $post ) {
+					\NuclearEngagement\Services\LoggingService::log(
+						"Post ID {$id} filtered out - post not found"
+					);
+					return false;
+				}
+
+				if ( 'publish' !== $post->post_status ) {
+					\NuclearEngagement\Services\LoggingService::log(
+						"Post ID {$id} filtered out - status is '{$post->post_status}', not 'publish'"
+					);
+					return false;
+				}
+
+				return true;
+			}
+		);
+
+		\NuclearEngagement\Services\LoggingService::log(
+			'Filtered post IDs: ' . var_export( array_values( $filtered ), true )
+		);
+
+		return $filtered;
 	}
 
 	/**
@@ -202,8 +362,21 @@ class GenerateRequest {
 	 * @throws \InvalidArgumentException On invalid workflow type.
 	 */
 	private static function validate_workflow_type( string $workflow_type ): void {
+		if ( empty( $workflow_type ) ) {
+			throw new ValidationException(
+				__( 'Please select a content type (Quiz or Summary).', 'nuclear-engagement' ),
+				array( 'workflow_type' => 'empty' )
+			);
+		}
+
 		if ( ! in_array( $workflow_type, array( 'quiz', 'summary' ), true ) ) {
-			throw new \InvalidArgumentException( 'Invalid workflow type: ' . $workflow_type );
+			throw new ValidationException(
+				__( 'Invalid content type selected. Please choose Quiz or Summary.', 'nuclear-engagement' ),
+				array(
+					'workflow_type' => $workflow_type,
+					'allowed_types' => array( 'quiz', 'summary' ),
+				)
+			);
 		}
 	}
 
@@ -219,13 +392,13 @@ class GenerateRequest {
 			$request->summaryFormat = 'paragraph';
 		}
 
-		$limits = self::get_summary_limits();
+		$limits                 = self::get_summary_limits();
 		$request->summaryLength = self::clamp_value(
 			(int) ( $payload['nuclen_selected_summary_length'] ?? $limits['length_default'] ),
 			$limits['length_min'],
 			$limits['length_max']
 		);
-		$request->summaryItems = self::clamp_value(
+		$request->summaryItems  = self::clamp_value(
 			(int) ( $payload['nuclen_selected_summary_number_of_items'] ?? $limits['items_default'] ),
 			$limits['items_min'],
 			$limits['items_max']
@@ -270,5 +443,31 @@ class GenerateRequest {
 		return ! empty( $payload['generation_id'] )
 			? sanitize_text_field( $payload['generation_id'] )
 			: 'gen_' . uniqid( 'manual_', true );
+	}
+
+	/**
+	 * Map optional fields from payload to request.
+	 *
+	 * @param self  $request Request object.
+	 * @param array $payload Payload data.
+	 */
+	private static function map_optional_fields( self $request, array $payload ): void {
+		if ( isset( $payload['priority'] ) ) {
+			$priority          = sanitize_text_field( $payload['priority'] );
+			$request->priority = in_array( $priority, array( 'high', 'low' ), true ) ? $priority : 'high';
+		}
+
+		if ( isset( $payload['source'] ) ) {
+			$source          = sanitize_text_field( $payload['source'] );
+			$request->source = in_array( $source, array( 'manual', 'auto', 'bulk' ), true ) ? $source : 'manual';
+		}
+
+		if ( isset( $payload['retry_count'] ) ) {
+			$request->retryCount = absint( $payload['retry_count'] );
+		}
+
+		if ( isset( $payload['max_retries'] ) ) {
+			$request->maxRetries = absint( $payload['max_retries'] );
+		}
 	}
 }

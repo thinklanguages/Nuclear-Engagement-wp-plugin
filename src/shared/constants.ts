@@ -2,8 +2,19 @@
 export const API_CONFIG = {
 	RETRY_COUNT: 3,
 	INITIAL_DELAY_MS: 500,
-	POLLING_INTERVAL_MS: 5000,
+	POLLING_INTERVAL_MS: 10000,
 	MAX_BACKOFF_MS: 30000,
+	// Progressive polling configuration
+	POLLING_INTERVALS: [
+		// First 1 minute: 10 second intervals (6 polls)
+		{ duration: 60000, interval: 10000 },
+		// Next 4 minutes: 30 second intervals (8 polls)
+		{ duration: 240000, interval: 30000 },
+		// Remaining time: 60 second intervals
+		{ duration: Infinity, interval: 60000 }
+	],
+	MAX_POLLING_ATTEMPTS: 240, // Increased from 120
+	MAX_POLLING_TIMEOUT_MS: 1800000, // 30 minutes
 } as const;
 
 // Action Names

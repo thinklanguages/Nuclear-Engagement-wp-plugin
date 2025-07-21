@@ -47,7 +47,14 @@ for ( $q_index = 0; $q_index < 10; $q_index++ ) :
 		foreach ( $answers as $a_index => $answer ) :
 			$class = $a_index === 0 ? 'nuclen-answer-correct' : '';
 			?>
-			<p class="nuclen-answer-label <?php echo esc_attr( $class ); ?>"><?php printf( esc_html__( 'Answer %d', 'nuclear-engagement' ), $a_index + 1 ); ?><br>
+			<p class="nuclen-answer-label <?php echo esc_attr( $class ); ?>">
+				<?php if ( $a_index === 0 ) : ?>
+					<?php esc_html_e( 'Correct answer', 'nuclear-engagement' ); ?>
+					<span nuclen-tooltip="<?php esc_attr_e( 'Enter the correct answer here. Its position will be randomized when visitors open the page.', 'nuclear-engagement' ); ?>">🛈</span>
+				<?php else : ?>
+					<?php printf( esc_html__( 'Answer %d', 'nuclear-engagement' ), $a_index + 1 ); ?>
+				<?php endif; ?>
+				<br>
 				<input type="text" name="nuclen_quiz_data[questions][<?php echo esc_attr( $q_index ); ?>][answers][<?php echo esc_attr( $a_index ); ?>]" value="<?php echo esc_attr( $answer ); ?>" class="nuclen-width-full" />
 			</p>
 		<?php endforeach; ?>

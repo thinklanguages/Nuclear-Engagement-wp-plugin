@@ -1,0 +1,311 @@
+/**
+ * Nuclear Engagement Tasks Page Styles
+ */
+
+/* Notices container */
+.nuclen-tasks-notices {
+	margin: 20px 0;
+}
+
+/* Refresh button */
+.nuclen-refresh-button {
+	position: relative;
+}
+
+.nuclen-refresh-button .spinner {
+	float: none !important;
+	margin: 0 5px 0 0 !important;
+	vertical-align: middle;
+}
+
+.nuclen-refresh-button[disabled] {
+	opacity: 0.7;
+	cursor: not-allowed;
+}
+
+/* Task status badges */
+.nuclen-badge {
+	display: inline-block;
+	padding: 2px 8px;
+	font-size: 12px;
+	font-weight: 600;
+	border-radius: 3px;
+	text-transform: uppercase;
+}
+
+.nuclen-badge-success {
+	background-color: #d4edda;
+	color: #155724;
+}
+
+.nuclen-badge-info {
+	background-color: #d1ecf1;
+	color: #0c5460;
+}
+
+.nuclen-badge-warning {
+	background-color: #fff3cd;
+	color: #856404;
+}
+
+.nuclen-badge-error {
+	background-color: #f8d7da;
+	color: #721c24;
+}
+
+.nuclen-badge-default {
+	background-color: #e2e3e5;
+	color: #383d41;
+}
+
+/* Table improvements */
+.nuclen-tasks-table {
+	margin-top: 20px;
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	box-shadow: 0 1px 1px rgba(0,0,0,.04);
+}
+
+.nuclen-tasks-table th {
+	font-weight: 600;
+}
+
+.nuclen-tasks-table td {
+	vertical-align: middle;
+}
+
+/* Action buttons */
+.nuclen-tasks-table .button {
+	margin-right: 5px;
+}
+
+.nuclen-tasks-table .button.disabled {
+	opacity: 0.6;
+	cursor: not-allowed;
+}
+
+/* Processing spinner */
+.nuclen-tasks-table .spinner {
+	float: none;
+	margin: 0;
+	vertical-align: middle;
+}
+
+/* Progress column */
+.column-progress {
+	width: 80px;
+	text-align: center;
+}
+
+/* Actions column */
+.column-actions {
+	width: 180px;
+}
+
+/* Status column */
+.column-status {
+	width: 120px;
+}
+
+/* Scheduled column */
+.column-scheduled {
+	width: 150px;
+}
+
+/* Overdue indicator */
+.overdue {
+	color: #d63638;
+	font-weight: 600;
+}
+
+/* Credit balance section */
+.nuclen-credit-balance {
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	box-shadow: 0 1px 1px rgba(0,0,0,.04);
+	padding: 15px;
+	margin-bottom: 20px;
+}
+
+.nuclen-credit-balance h3 {
+	margin-top: 0;
+}
+
+/* Cron status section */
+.nuclen-cron-status {
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	box-shadow: 0 1px 1px rgba(0,0,0,.04);
+	padding: 15px;
+	margin-top: 20px;
+}
+
+.nuclen-cron-status.status-ok {
+	border-left: 4px solid #00a32a;
+}
+
+.nuclen-cron-status.status-warning {
+	border-left: 4px solid #dba617;
+}
+
+.nuclen-cron-status.status-error {
+	border-left: 4px solid #d63638;
+}
+
+/* Progress bar styles */
+.nuclen-progress-container {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.nuclen-progress-bar {
+	flex: 1;
+	height: 20px;
+	background: #f0f0f0;
+	border-radius: 10px;
+	overflow: hidden;
+}
+
+.nuclen-progress-fill {
+	height: 100%;
+	background: #2271b1;
+	transition: width 0.3s ease;
+}
+
+.nuclen-progress-text {
+	min-width: 40px;
+	text-align: right;
+	font-weight: 600;
+}
+
+/* Error text */
+.nuclen-error-text {
+	color: #d63638;
+	font-size: 0.9em;
+}
+
+/* Task actions */
+.nuclen-task-actions {
+	white-space: nowrap;
+}
+
+.nuclen-no-actions {
+	color: #646970;
+}
+
+/* Card styles */
+.nuclen-card {
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	box-shadow: 0 1px 1px rgba(0,0,0,.04);
+	padding: 20px;
+	margin-bottom: 20px;
+}
+
+.nuclen-card h2,
+.nuclen-card h3 {
+	margin-top: 0;
+}
+
+/* Credits info */
+.nuclen-credits-info p {
+	margin: 0.5em 0;
+}
+
+/* Pagination */
+.tablenav {
+	margin: 1em 0;
+	height: auto;
+	clear: both;
+}
+
+.tablenav-pages {
+	float: right;
+	margin: 0;
+	text-align: right;
+}
+
+.tablenav-pages .displaying-num {
+	margin-right: 10px;
+	font-size: 13px;
+	font-style: italic;
+}
+
+.tablenav-pages .pagination-links {
+	display: inline-block;
+}
+
+.tablenav-pages .page-numbers {
+	display: inline-block;
+	min-width: 17px;
+	border: 1px solid #dcdcde;
+	padding: 3px 5px 7px;
+	background: #f6f7f7;
+	font-size: 13px;
+	line-height: 1;
+	font-weight: 400;
+	text-align: center;
+	text-decoration: none;
+	margin-left: 2px;
+}
+
+.tablenav-pages .page-numbers:hover {
+	background: #fff;
+	border-color: #a7aaad;
+	color: #2271b1;
+}
+
+.tablenav-pages .page-numbers.current {
+	background: #fff;
+	border-color: #a7aaad;
+	font-weight: 600;
+}
+
+.tablenav-pages .page-numbers.dots {
+	border: none;
+	background: transparent;
+}
+
+/* Responsive improvements */
+@media screen and (max-width: 782px) {
+	.nuclen-tasks-table .button {
+		margin-bottom: 5px;
+	}
+
+	.column-actions {
+		width: auto;
+	}
+
+	.nuclen-badge {
+		font-size: 11px;
+		padding: 1px 6px;
+	}
+
+	.nuclen-progress-container {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 5px;
+	}
+
+	.nuclen-progress-bar {
+		width: 100%;
+	}
+
+	/* Pagination on mobile */
+	.tablenav-pages {
+		float: none;
+		text-align: center;
+		margin-top: 10px;
+	}
+
+	.tablenav-pages .displaying-num {
+		display: block;
+		margin-bottom: 10px;
+	}
+
+	.tablenav-pages .page-numbers {
+		padding: 8px 10px;
+		font-size: 14px;
+	}
+}

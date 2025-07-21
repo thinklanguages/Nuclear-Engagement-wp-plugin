@@ -106,10 +106,16 @@ abstract class AbstractRepository implements RepositoryInterface {
 
 		if ( $wpdb->last_error ) {
 			$this->logger->error(
-				'Database error in find',
+				'Database query failed',
 				array(
-					'error' => $wpdb->last_error,
-					'query' => $sql,
+					'operation'    => 'find_by_id',
+					'table'        => $table,
+					'primary_key'  => $primary_key,
+					'id'           => $id,
+					'error'        => $wpdb->last_error,
+					'query'        => $sql,
+					'mysql_errno'  => $wpdb->last_error_no ?? null,
+					'caller'       => debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS, 2 )[1]['function'] ?? 'unknown',
 				)
 			);
 			return null;

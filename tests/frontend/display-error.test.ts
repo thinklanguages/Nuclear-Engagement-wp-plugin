@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { displayError } from '../../src/admin/ts/utils/displayError';
+import * as logger from '../../src/admin/ts/utils/logger';
 
 describe('displayError', () => {
   beforeEach(() => {
@@ -13,11 +14,11 @@ describe('displayError', () => {
   });
 
   it('adds and removes toast and logs to console', async () => {
-	const log = vi.spyOn(console, 'error').mockImplementation(() => {});
+	const log = vi.spyOn(logger, 'error').mockImplementation(() => {});
 	displayError('boom');
 	const toast = document.querySelector('.nuclen-error-toast');
 	expect(toast).not.toBeNull();
-	expect(log).toHaveBeenCalledWith('boom');
+	expect(log).toHaveBeenCalledWith('[ERROR] UI Error | boom');
 	vi.advanceTimersByTime(5000);
 	await Promise.resolve();
 	expect(document.querySelector('.nuclen-error-toast')).toBeNull();

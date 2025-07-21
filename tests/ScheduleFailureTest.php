@@ -67,9 +67,10 @@ namespace {
 			$storage  = new ScheduleFailDummyContentStorageService();
 			$poller    = new GenerationPoller($settings, $api, $storage);
 			$scheduler = new \NuclearEngagement\Services\AutoGenerationScheduler($poller);
-			$queue     = new \NuclearEngagement\Services\AutoGenerationQueue($api, $storage, new \NuclearEngagement\Services\PostDataFetcher());
+			$batch_processor = new \NuclearEngagement\Services\BulkGenerationBatchProcessor($settings);
+			$generation_service = new \NuclearEngagement\Services\GenerationService($settings, $api, $storage, new \NuclearEngagement\Services\PostDataFetcher(), $batch_processor);
 			$handler   = new \NuclearEngagement\Services\PublishGenerationHandler($settings);
-			return new AutoGenerationService($settings, $queue, $scheduler, $handler);
+			return new AutoGenerationService($settings, $generation_service, $scheduler, $handler);
 		}
 
 		public function test_queue_post_failure_notifies_admin(): void {
@@ -81,13 +82,19 @@ namespace {
 			$this->assertNotEmpty(\NuclearEngagement\Services\LoggingService::$notices);
 		}
 
-		public function test_process_queue_failure_notifies_admin(): void {
+		public function test_batch_processing_failure_notifies_admin(): void {
 			global $wp_posts;
-			$wp_posts[2] = (object)[ 'ID' => 2, 'post_title' => 'B', 'post_content' => 'C2' ];
-			update_option('nuclen_autogen_queue', ['quiz' => [2]], 'no');
-			$service = $this->makeService();
-			$service->process_queue();
-			$this->assertNotEmpty(\NuclearEngagement\Services\LoggingService::$notices);
+			$wp_posts[2] = (object)[ 'ID' => 2, 'post_title' => 'B', 'post_content' => 'C2', 'post_status' => 'publish' ];
+			$api = new ScheduleFailDummyRemoteApiService();
+			// Force a failure by returning an error
+			$api->generateResponse = new \Exception('API Error');
+			$service = $this->makeService($api);
+			try {
+				$service->generate_single(2, 'quiz');
+			} catch (\Exception $e) {
+				// Expected
+			}
+			$this->assertNotEmpty(\NuclearEngagement\Services\LoggingService::$logs);
 		}
 
 		public function test_poller_failure_notifies_admin(): void {

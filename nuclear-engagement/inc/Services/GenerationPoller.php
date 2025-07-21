@@ -84,7 +84,18 @@ class GenerationPoller {
 			$data = $this->remote_api->fetch_updates( $generation_id );
 
 			if ( ! empty( $data['results'] ) && is_array( $data['results'] ) ) {
-					$statuses = $this->content_storage->storeResults( $data['results'], $workflow_type );
+					// Filter out summary statistics from results
+					$post_results = array_filter( 
+						$data['results'], 
+						function( $key ) {
+							// Only keep numeric post IDs, filter out summary keys
+							return is_numeric( $key ) && ! in_array( $key, ['success_count', 'fail_count', 'processed_count'], true );
+						},
+						ARRAY_FILTER_USE_KEY
+					);
+
+					if ( ! empty( $post_results ) ) {
+						$statuses = $this->content_storage->storeResults( $post_results, $workflow_type );
 				if ( array_filter( $statuses, static fn( $s ) => $s !== true ) ) {
 								\NuclearEngagement\Services\LoggingService::notify_admin(
 									sprintf( 'Failed to store results for generation %s', $generation_id )
@@ -93,9 +104,16 @@ class GenerationPoller {
 									\NuclearEngagement\Services\LoggingService::log(
 										"Poll success for generation {$generation_id}"
 									);
+
+					// Mark generation as complete in centralized queue
+					$container = \NuclearEngagement\Core\ServiceContainer::getInstance();
+					if ( $container->has( 'centralized_polling_queue' ) ) {
+						$queue = $container->get( 'centralized_polling_queue' );
+						$queue->mark_generation_complete( $generation_id );
+					}
 				}
-										$this->cleanup_generation( $generation_id );
-										return;
+						return;
+					}
 			}
 
 			if ( isset( $data['success'] ) && $data['success'] === true ) {
@@ -108,7 +126,6 @@ class GenerationPoller {
 									"Polling error for generation {$generation_id}: " . $e->getMessage()
 								);
 			if ( $attempt >= $max_attempts ) {
-				$this->cleanup_generation( $generation_id );
 				return;
 			}
 		} catch ( \Throwable $e ) {
@@ -116,53 +133,42 @@ class GenerationPoller {
 									"Polling error for generation {$generation_id}: " . $e->getMessage()
 								);
 			if ( $attempt >= $max_attempts ) {
-				$this->cleanup_generation( $generation_id );
 				return;
 			}
 		}
 
 		if ( $attempt < $max_attempts ) {
+			// Use centralized queue if available
+			$container = \NuclearEngagement\Core\ServiceContainer::getInstance();
+			if ( $container->has( 'centralized_polling_queue' ) ) {
+				$queue = $container->get( 'centralized_polling_queue' );
+				// Re-add to queue with updated attempt count
+				$priority = $workflow_type === 'quiz' ? 3 : 5; // Higher priority for quizzes
+				$queue->add_to_queue( $generation_id, $workflow_type, $post_ids, $priority );
+			} else {
+				// Fallback to old method
 				$event_args = array( $generation_id, $workflow_type, $post_ids, $attempt + 1 );
 				$scheduled  = wp_schedule_single_event(
 					time() + $retry_delay,
 					'nuclen_poll_generation',
 					$event_args
 				);
-			if ( $scheduled === false ) {
-				\NuclearEngagement\Services\LoggingService::log(
-					'Failed to schedule event nuclen_poll_generation for generation ' . $generation_id
-				);
-				\NuclearEngagement\Services\LoggingService::notify_admin(
-					sprintf(
-						__( 'Failed to schedule event nuclen_poll_generation for generation %s', 'nuclear-engagement' ),
-						$generation_id
-					)
-				);
+				if ( $scheduled === false ) {
+					\NuclearEngagement\Services\LoggingService::log(
+						'Failed to schedule event nuclen_poll_generation for generation ' . $generation_id
+					);
+					\NuclearEngagement\Services\LoggingService::notify_admin(
+						sprintf(
+							__( 'Failed to schedule event nuclen_poll_generation for generation %s', 'nuclear-engagement' ),
+							$generation_id
+						)
+					);
+				}
 			}
 		} else {
 			\NuclearEngagement\Services\LoggingService::log(
 				"Polling aborted after {$max_attempts} attempts for generation {$generation_id}"
 			);
-			$this->cleanup_generation( $generation_id );
 		}
-	}
-
-	/**
-	 * Remove a completed or failed generation from the tracking option.
-	 *
-	 * @param string $generation_id Generation ID to remove
-	 */
-	private function cleanup_generation( string $generation_id ): void {
-		$generations = get_option( 'nuclen_active_generations', array() );
-
-		if ( ! isset( $generations[ $generation_id ] ) ) {
-			return;
-		}
-
-		unset( $generations[ $generation_id ] );
-
-		empty( $generations )
-			? delete_option( 'nuclen_active_generations' )
-			: update_option( 'nuclen_active_generations', $generations, 'no' );
 	}
 }

@@ -53,14 +53,12 @@ define('NUCLEN_PLUGIN_FILE', NUCLEN_PLUGIN_DIR . 'nuclear-engagement.php');
 if (!defined('NUCLEN_PLUGIN_VERSION')) {
 define('NUCLEN_PLUGIN_VERSION', '1.0');
 }
-if (!defined('NUCLEN_ASSET_VERSION')) {
-define('NUCLEN_ASSET_VERSION', 'dev');
-}
+// NUCLEN_ASSET_VERSION is loaded from constants.php
 
 }
 
 public function test_render_setup_page_outputs_steps(): void {
-$setup = new Setup(SettingsRepository::get_instance());
+$setup = new \NuclearEngagement\Admin\Setup(\NuclearEngagement\Core\SettingsRepository::get_instance());
 ob_start();
 $setup->nuclen_render_setup_page();
 $html = ob_get_clean();
@@ -69,8 +67,8 @@ $this->assertStringContainsString('nuclen-setup-step-2', $html);
 }
 
 public function test_display_generate_page_shows_notice_when_not_setup(): void {
-$repo = SettingsRepository::get_instance();
-$container = ServiceContainer::getInstance();
+$repo = \NuclearEngagement\Core\SettingsRepository::get_instance();
+$container = \NuclearEngagement\Core\ServiceContainer::getInstance();
 $container->register('dashboard_data_service', static function(){ return new class { public function get_scheduled_generations(){ return []; } }; });
 $admin = new DummyAdmin($repo, $container);
 ob_start();
@@ -90,8 +88,8 @@ InventoryCache::set([
 'by_category_quiz'=>[],
 'by_category_summary'=>[],
 ]);
-$repo = SettingsRepository::get_instance();
-$container = ServiceContainer::getInstance();
+$repo = \NuclearEngagement\Core\SettingsRepository::get_instance();
+$container = \NuclearEngagement\Core\ServiceContainer::getInstance();
 $container->register('dashboard_data_service', static function(){ return new class { public function get_scheduled_generations(){ return []; } }; });
 $admin = new DummyAdmin($repo, $container);
 ob_start();
@@ -101,7 +99,7 @@ $this->assertStringContainsString('Post Inventory', $html);
 }
 
 public function test_display_settings_page_renders_form(): void {
-$settings = new Settings(SettingsRepository::get_instance());
+$settings = new \NuclearEngagement\Admin\Settings(\NuclearEngagement\Core\SettingsRepository::get_instance());
 ob_start();
 $settings->nuclen_display_settings_page();
 $html = ob_get_clean();

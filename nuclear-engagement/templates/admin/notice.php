@@ -13,10 +13,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 	* Single admin notice.
 	*
 	* Variables:
-	*   - $msg (string) Notice message.
+	*   - $args['msg'] (string) Notice message.
 	*
 	* @package NuclearEngagement\Admin
 	*/
+
+// Extract the message from $args array
+$msg = isset( $args['msg'] ) ? $args['msg'] : '';
 ?>
-<div class="notice notice-error"><p><?php echo esc_html( $msg ); ?></p></div>
+<div class="notice notice-error"><p><strong>[NUCLEAR ENGAGEMENT]</strong> <?php echo esc_html( $msg ); ?></p></div>
 

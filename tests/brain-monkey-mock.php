@@ -37,4 +37,22 @@ namespace Brain\Monkey\Functions {
     function when($function) {
         return expect($function);
     }
+    
+    function expectOnce($function) {
+        return expect($function)->once();
+    }
+    
+    function expectAdded($filter) {
+        return expect('add_filter')->with($filter);
+    }
+}
+
+namespace Brain\Monkey\Actions {
+    function expectDone($action) {
+        return \Brain\Monkey\Functions\expect('do_action')->with($action);
+    }
+    
+    function expectAdded($action) {
+        return \Brain\Monkey\Functions\expect('add_action')->with($action);
+    }
 }

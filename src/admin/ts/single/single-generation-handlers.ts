@@ -13,6 +13,9 @@ import type { StartGenerationResponse, PollingUpdateData } from '../generation/a
 import { displayError } from '../utils/displayError';
 import * as logger from '../utils/logger';
 
+// Store active polling cleanup functions
+const activePollingCleanups = new Map<string, () => void>();
+
 export function initSingleGenerationButtons(): void {
 	// Use passive listener for better scroll performance
 	document.addEventListener('click', async (event: MouseEvent) => {
@@ -26,6 +29,14 @@ export function initSingleGenerationButtons(): void {
 		if (!postId || !workflow) {
 			displayError('Missing data attributes: postId or workflow not found.');
 			return;
+		}
+
+		// Clean up any existing polling for this button
+		const buttonKey = `${postId}-${workflow}`;
+		const existingCleanup = activePollingCleanups.get(buttonKey);
+		if (existingCleanup) {
+			existingCleanup();
+			activePollingCleanups.delete(buttonKey);
 		}
 
 		btn.disabled = true;
@@ -55,13 +66,15 @@ export function initSingleGenerationButtons(): void {
 		startResp.generation_id ||
 		'gen_' + Math.random().toString(36).substring(2);
 
-			NuclenPollAndPullUpdates({
+			const cleanupPolling = NuclenPollAndPullUpdates({
 				intervalMs: 5000,
 				generationId,
 				onProgress() {
 					btn.textContent = 'Generating...';
 				},
 				async onComplete({ results, workflow: wf }: PollingUpdateData) {
+					// Remove cleanup function since polling completed
+					activePollingCleanups.delete(buttonKey);
 					if (results && typeof results === 'object') {
 						try {
 							const { ok, data } = await storeGenerationResults(wf, results);
@@ -91,16 +104,35 @@ export function initSingleGenerationButtons(): void {
 					btn.disabled = false;
 				},
 				onError(errMsg) {
-					alertApiError(errMsg);
-					btn.textContent = 'Generate';
-					btn.disabled = false;
+					// Remove cleanup function since polling errored
+					activePollingCleanups.delete(buttonKey);
+					
+					// Check if this is a polling timeout or error
+					if (errMsg.startsWith('polling-timeout:') || errMsg.startsWith('polling-error:')) {
+						const generationId = errMsg.split(':')[1];
+						// Redirect to tasks page
+						window.location.href = `${window.nuclenAdminVars?.admin_url || '/wp-admin/'}admin.php?page=nuclear-engagement-tasks&highlight=${generationId}`;
+					} else {
+						alertApiError(errMsg);
+						btn.textContent = 'Generate';
+						btn.disabled = false;
+					}
 				},
 			});
+			
+			// Store the cleanup function
+			activePollingCleanups.set(buttonKey, cleanupPolling);
 		} catch (err: unknown) {
 			const message = err instanceof Error ? err.message : 'Unknown error';
 			alertApiError(message);
 			btn.textContent = 'Generate';
 			btn.disabled = false;
 		}
+	});
+	
+	// Clean up all active polling when page unloads
+	window.addEventListener('beforeunload', () => {
+		activePollingCleanups.forEach(cleanup => cleanup());
+		activePollingCleanups.clear();
 	});
 }

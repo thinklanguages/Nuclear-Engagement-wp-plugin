@@ -19,6 +19,7 @@ namespace NuclearEngagement\Services;
 use NuclearEngagement\Core\SettingsRepository;
 use NuclearEngagement\Utils\Utils;
 use NuclearEngagement\Modules\Summary\Summary_Service;
+use NuclearEngagement\Core\BaseService;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -27,7 +28,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Service for storing generated content
  */
-class ContentStorageService {
+class ContentStorageService extends BaseService {
 	/**
 	 * @var SettingsRepository
 	 */
@@ -44,8 +45,13 @@ class ContentStorageService {
 	 * @param SettingsRepository $settings
 	 */
 	public function __construct( SettingsRepository $settings ) {
+		parent::__construct();
+
 		$this->settings = $settings;
 		$this->utils    = new Utils();
+
+		// Set service-specific cache TTL
+		$this->cache_ttl = 3600; // 1 hour for content data
 	}
 
 	/**
@@ -62,6 +68,10 @@ class ContentStorageService {
 
 			$statuses = array();
 
+			\NuclearEngagement\Services\LoggingService::log(
+				'storeResults called with ' . count( $results ) . ' results'
+			);
+
 		foreach ( $results as $post_idString => $data ) {
 			$post_id = (int) $post_idString;
 
@@ -71,7 +81,6 @@ class ContentStorageService {
 			}
 
 			try {
-				\NuclearEngagement\Services\LoggingService::log( "Storing {$workflowType} data for post {$post_id}: " . wp_json_encode( $data ) );
 				if ( $workflowType === 'quiz' ) {
 								$this->storeQuizData( $post_id, $data );
 				} else {
@@ -85,8 +94,7 @@ class ContentStorageService {
 						clean_post_cache( $post_id );
 				}
 
-										\NuclearEngagement\Services\LoggingService::log( "Stored {$workflowType} data for post {$post_id}" );
-
+							
 										$statuses[ $post_id ] = true;
 
 			} catch ( \Throwable $e ) {
@@ -137,7 +145,7 @@ class ContentStorageService {
 	 */
 	private function process_quiz_questions( int $post_id, array $raw_questions ): array {
 		$max_answers = $this->settings->get_int( 'answers_per_question', 4 );
-		$questions = array();
+		$questions   = array();
 
 		foreach ( $raw_questions as $question ) {
 			if ( ! is_array( $question ) ) {
@@ -166,7 +174,7 @@ class ContentStorageService {
 	 * @return array|null Processed question or null if invalid.
 	 */
 	private function process_single_question( array $question, int $max_answers ): ?array {
-		$q_text = trim( (string) ( $question['question'] ?? '' ) );
+		$q_text  = trim( (string) ( $question['question'] ?? '' ) );
 		$answers = $this->process_question_answers( $question );
 
 		if ( $q_text === '' || empty( $answers ) ) {
@@ -192,9 +200,12 @@ class ContentStorageService {
 		}
 
 		$answers = array_map( 'trim', $question['answers'] );
-		return array_filter( $answers, static function ( $a ) {
-			return $a !== '';
-		} );
+		return array_filter(
+			$answers,
+			static function ( $a ) {
+				return $a !== '';
+			}
+		);
 	}
 
 	/**
@@ -219,26 +230,66 @@ class ContentStorageService {
 	 * @throws \RuntimeException On database errors.
 	 */
 	private function save_quiz_data_transaction( int $post_id, array $formatted ): void {
-		global $wpdb;
+		// Use atomic locking instead of transactions for metadata
+		$lock_key      = "nuclen_content_lock_quiz_{$post_id}";
+		$lock_acquired = false;
+		$max_attempts  = 10;
+		$attempt       = 0;
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
-		$wpdb->query( 'START TRANSACTION' );
+		// Try to acquire lock with exponential backoff
+		while ( ! $lock_acquired && $attempt < $max_attempts ) {
+			$lock_value = wp_generate_password( 12, false );
+
+			// Use add_option for atomic lock acquisition
+			if ( add_option(
+				$lock_key,
+				array(
+					'value' => $lock_value,
+					'time'  => time(),
+				),
+				'',
+				'no'
+			) ) {
+				$lock_acquired = true;
+			} else {
+				// Check if existing lock is expired (older than 30 seconds)
+				$existing = get_option( $lock_key );
+				if ( is_array( $existing ) && isset( $existing['time'] ) ) {
+					if ( time() - $existing['time'] > 30 ) {
+						// Try to take over expired lock
+						if ( update_option(
+							$lock_key,
+							array(
+								'value' => $lock_value,
+								'time'  => time(),
+							)
+						) ) {
+							$lock_acquired = true;
+							continue;
+						}
+					}
+				}
+
+				++$attempt;
+				// Exponential backoff: 10ms, 20ms, 40ms, etc.
+				usleep( 10000 * pow( 2, $attempt - 1 ) );
+			}
+		}
+
+		if ( ! $lock_acquired ) {
+			throw new \RuntimeException( "Failed to acquire lock for post {$post_id} after {$max_attempts} attempts" );
+		}
 
 		try {
+			// Double-check data hasn't changed while waiting for lock
 			if ( $this->is_data_unchanged( $post_id, $formatted ) ) {
-				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
-				$wpdb->query( 'COMMIT' );
 				return;
 			}
 
 			$this->update_quiz_meta( $post_id, $formatted );
-
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
-			$wpdb->query( 'COMMIT' );
-		} catch ( \Throwable $e ) {
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
-			$wpdb->query( 'ROLLBACK' );
-			throw $e;
+		} finally {
+			// Always release lock
+			delete_option( $lock_key );
 		}
 	}
 
@@ -315,17 +366,60 @@ class ContentStorageService {
 					'summary' => wp_kses( $data['summary'], $allowedHtml ),
 				);
 
-				// Use WordPress database transactions for race condition prevention.
-				global $wpdb;
+				// Use atomic locking for race condition prevention
+				$lock_key      = "nuclen_content_lock_summary_{$post_id}";
+				$lock_acquired = false;
+				$max_attempts  = 10;
+				$attempt       = 0;
 
-				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
-				$wpdb->query( 'START TRANSACTION' );
+				// Try to acquire lock with exponential backoff
+				while ( ! $lock_acquired && $attempt < $max_attempts ) {
+					$lock_value = wp_generate_password( 12, false );
+
+					// Use add_option for atomic lock acquisition
+					if ( add_option(
+						$lock_key,
+						array(
+							'value' => $lock_value,
+							'time'  => time(),
+						),
+						'',
+						'no'
+					) ) {
+						$lock_acquired = true;
+					} else {
+						// Check if existing lock is expired (older than 30 seconds)
+						$existing = get_option( $lock_key );
+						if ( is_array( $existing ) && isset( $existing['time'] ) ) {
+							if ( time() - $existing['time'] > 30 ) {
+								// Try to take over expired lock
+								if ( update_option(
+									$lock_key,
+									array(
+										'value' => $lock_value,
+										'time'  => time(),
+									)
+								) ) {
+									$lock_acquired = true;
+									continue;
+								}
+							}
+						}
+
+						++$attempt;
+						// Exponential backoff: 10ms, 20ms, 40ms, etc.
+						usleep( 10000 * pow( 2, $attempt - 1 ) );
+					}
+				}
+
+				if ( ! $lock_acquired ) {
+					throw new \RuntimeException( "Failed to acquire lock for post {$post_id} after {$max_attempts} attempts" );
+				}
 
 				try {
+					// Double-check data hasn't changed while waiting for lock
 					$current = get_post_meta( $post_id, Summary_Service::META_KEY, true );
 					if ( $current === $formatted ) {
-						// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
-						$wpdb->query( 'COMMIT' );
 						return;
 					}
 
@@ -337,14 +431,55 @@ class ContentStorageService {
 							throw new \RuntimeException( "Failed to update summary data for post {$post_id}" );
 						}
 					}
-
-					// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
-					$wpdb->query( 'COMMIT' );
-				} catch ( \Throwable $e ) {
-					// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
-					$wpdb->query( 'ROLLBACK' );
-					throw $e;
+				} finally {
+					// Always release lock
+					delete_option( $lock_key );
 				}
+	}
+
+	/**
+	 * Queue content save as background job.
+	 *
+	 * @param int    $post_id Post ID.
+	 * @param array  $data Data to save.
+	 * @param string $type Content type (quiz or summary).
+	 */
+	private function queue_async_save( int $post_id, array $data, string $type ): void {
+		// Check if BackgroundProcessor is available
+		if ( ! class_exists( '\NuclearEngagement\Core\BackgroundProcessor' ) ) {
+			// Fallback to synchronous save
+			if ( $type === 'quiz' ) {
+				$this->update_quiz_meta( $post_id, $data );
+			} else {
+				update_post_meta( $post_id, Summary_Service::META_KEY, $data );
+			}
+			return;
+		}
+
+		// Check if there's already a pending save for this post
+		$pending_key = "nuclen_pending_save_{$type}_{$post_id}";
+		if ( get_transient( $pending_key ) ) {
+			// Already queued, skip to prevent duplicate jobs
+			return;
+		}
+
+		// Queue background job
+		$job_id = \NuclearEngagement\Core\BackgroundProcessor::queue_job(
+			'content_storage_save',
+			array(
+				'post_id' => $post_id,
+				'data'    => $data,
+				'type'    => $type,
+			),
+			5, // High priority
+			0  // No delay
+		);
+
+		// Store temporary flag with job ID for tracking
+		set_transient( $pending_key, $job_id, 300 );
+
+		// Schedule cleanup in case job fails
+		wp_schedule_single_event( time() + 310, 'nuclen_cleanup_pending_save', array( $type, $post_id ) );
 	}
 
 	/**
@@ -354,18 +489,91 @@ class ContentStorageService {
 	 */
 	private function updatePostModifiedTime( int $post_id ): void {
 		$time   = current_time( 'mysql' );
-		$result = wp_update_post(
-			array(
-				'ID'                => $post_id,
-				'post_modified'     => $time,
-				'post_modified_gmt' => get_gmt_from_date( $time ),
-			)
+		$result = $this->execute_db_operation(
+			function () use ( $post_id, $time ) {
+				return wp_update_post(
+					array(
+						'ID'                => $post_id,
+						'post_modified'     => $time,
+						'post_modified_gmt' => get_gmt_from_date( $time ),
+					)
+				);
+			},
+			'update_post_modified_time'
 		);
 
 		if ( is_wp_error( $result ) ) {
-			\NuclearEngagement\Services\LoggingService::log( "Failed to update modified time for post {$post_id}: " . $result->get_error_message() );
+			throw DatabaseException::fromWpError( $result, array( 'post_id' => $post_id ) );
 		}
 
 		clean_post_cache( $post_id );
+	}
+
+	/**
+	 * Register background job handler.
+	 */
+	public static function register_background_handler(): void {
+		if ( ! class_exists( '\NuclearEngagement\Core\BackgroundProcessor' ) ) {
+			return;
+		}
+
+		\NuclearEngagement\Core\BackgroundProcessor::register_handler(
+			'content_storage_save',
+			array( __CLASS__, 'handle_background_save' )
+		);
+
+		// Register cleanup action
+		add_action( 'nuclen_cleanup_pending_save', array( __CLASS__, 'cleanup_pending_save' ), 10, 2 );
+	}
+
+	/**
+	 * Handle background save job.
+	 *
+	 * @param \NuclearEngagement\Core\BackgroundJobContext $context Job context.
+	 */
+	public static function handle_background_save( $context ): void {
+		$data         = $context->get_data();
+		$post_id      = $data['post_id'] ?? 0;
+		$type         = $data['type'] ?? '';
+		$content_data = $data['data'] ?? array();
+
+		if ( ! $post_id || ! $type ) {
+			return;
+		}
+
+		try {
+			$context->update_progress( 50, 'Saving content...' );
+
+			if ( $type === 'quiz' ) {
+				update_post_meta( $post_id, 'nuclen-quiz-data', $content_data );
+			} else {
+				update_post_meta( $post_id, Summary_Service::META_KEY, $content_data );
+			}
+
+			$context->update_progress( 100, 'Content saved successfully' );
+		} finally {
+			// Always clear pending flag to prevent memory leak
+			delete_transient( "nuclen_pending_save_{$type}_{$post_id}" );
+			wp_clear_scheduled_hook( 'nuclen_cleanup_pending_save', array( $type, $post_id ) );
+		}
+	}
+
+	/**
+	 * Clean up pending save transients.
+	 *
+	 * @param string $type Content type.
+	 * @param int    $post_id Post ID.
+	 */
+	public static function cleanup_pending_save( string $type, int $post_id ): void {
+		delete_transient( "nuclen_pending_save_{$type}_{$post_id}" );
+	}
+
+	/**
+	 * Get service name for logging and caching.
+	 *
+	 * @return string Service name.
+	 */
+	protected function get_service_name(): string {
+		return 'content_storage_service';
 	}
 }

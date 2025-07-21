@@ -14,6 +14,7 @@ namespace NuclearEngagement\Core {
 	if (!function_exists(__NAMESPACE__ . '\update_option')) {
 		function update_option($name, $value) {
 			$GLOBALS['wp_options'][$name] = $value;
+			$GLOBALS['update_option_calls'][$name] = ($GLOBALS['update_option_calls'][$name] ?? 0) + 1;
 			return true;
 		}
 	}

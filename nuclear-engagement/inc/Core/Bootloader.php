@@ -24,6 +24,8 @@ use NuclearEngagement\Core\Autoloader;
 use NuclearEngagement\Services\PostsQueryService;
 use NuclearEngagement\Services\PostDataFetcher;
 use NuclearEngagement\Services\LoggingService;
+use NuclearEngagement\Services\CircuitBreakerService;
+use NuclearEngagement\Services\ContentStorageService;
 
 /**
  * Simplified bootstraps the plugin using dependency injection.
@@ -156,10 +158,6 @@ final class Bootloader {
 			define( 'NUCLEN_PLUGIN_VERSION', $data['Version'] ?? '1.0.0' );
 		}
 
-		if ( ! defined( 'NUCLEN_ASSET_VERSION' ) ) {
-			// Manual version - update this when CSS/JS changes.
-			define( 'NUCLEN_ASSET_VERSION', '1.2.1' );
-		}
 	}
 
 	/**
@@ -364,6 +362,12 @@ final class Bootloader {
 			}
 			if ( class_exists( PostDataFetcher::class ) ) {
 				PostDataFetcher::register_hooks();
+			}
+			if ( class_exists( CircuitBreakerService::class ) ) {
+				CircuitBreakerService::init();
+			}
+			if ( class_exists( ContentStorageService::class ) ) {
+				ContentStorageService::register_background_handler();
 			}
 
 			self::$initialized['services'] = true;

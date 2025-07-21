@@ -69,9 +69,9 @@ class OptinData {
 		}
 
 		// Check transient cache
-		$cache_key = 'nuclen_optin_table_exists';
+		$cache_key     = 'nuclen_optin_table_exists';
 		$cached_result = get_transient( $cache_key );
-		
+
 		if ( false !== $cached_result ) {
 			self::$table_exists_cache = (bool) $cached_result;
 			return self::$table_exists_cache;
@@ -79,14 +79,14 @@ class OptinData {
 
 		// Only run the query if not cached
 		global $wpdb;
-		$table = self::table_name();
+		$table  = self::table_name();
 		$exists = // phpcs:ignore WordPress.DB.DirectDatabaseQuery
 			$wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table ) ) === $table;
-		
+
 		// Cache the result
 		self::$table_exists_cache = $exists;
 		set_transient( $cache_key, $exists ? '1' : '0', DAY_IN_SECONDS );
-		
+
 		return self::$table_exists_cache;
 	}
 

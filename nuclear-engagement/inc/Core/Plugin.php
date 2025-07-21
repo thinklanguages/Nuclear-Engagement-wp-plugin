@@ -27,7 +27,7 @@ use NuclearEngagement\Core\Defaults;
 use NuclearEngagement\Core\SettingsRepository;
 use NuclearEngagement\Core\ServiceContainer;
 use NuclearEngagement\OptinData;
-use NuclearEngagement\Services\{GenerationService, RemoteApiService, ContentStorageService, PointerService, PostsQueryService, AutoGenerationService, ThemeMigrationService, ThemeLoader};
+use NuclearEngagement\Services\{GenerationService, RemoteApiService, ContentStorageService, PointerService, PostsQueryService, AutoGenerationService, ThemeMigrationService, ThemeLoader, LoggingService};
 use NuclearEngagement\Admin\Controller\Ajax\{GenerateController, UpdatesController, PointerController, PostsCountController};
 use NuclearEngagement\Front\Controller\Rest\ContentController;
 use NuclearEngagement\Core\ContainerRegistrar;
@@ -69,6 +69,31 @@ class Plugin {
 				// Run theme migration.
 				$migration_service = new ThemeMigrationService();
 				$migration_service->migrate_legacy_settings();
+
+				// Schedule batch cleanup cron
+				if ( ! wp_next_scheduled( 'nuclen_cleanup_old_batches' ) ) {
+					wp_schedule_event( time(), 'hourly', 'nuclen_cleanup_old_batches' );
+				}
+
+				// Schedule orphaned batch cleanup
+				if ( ! wp_next_scheduled( 'nuclen_cleanup_orphaned_batches' ) ) {
+					wp_schedule_event( time(), 'twicedaily', 'nuclen_cleanup_orphaned_batches' );
+				}
+
+				// Schedule content lock cleanup
+				if ( ! wp_next_scheduled( 'nuclen_cleanup_content_locks' ) ) {
+					wp_schedule_event( time(), 'hourly', 'nuclen_cleanup_content_locks' );
+				}
+			}
+		);
+
+		// Register deactivation hook to clean up scheduled events
+		register_deactivation_hook(
+			NUCLEN_PLUGIN_FILE,
+			function () {
+				wp_clear_scheduled_hook( 'nuclen_cleanup_old_batches' );
+				wp_clear_scheduled_hook( 'nuclen_cleanup_orphaned_batches' );
+				wp_clear_scheduled_hook( 'nuclen_cleanup_content_locks' );
 			}
 		);
 
@@ -86,9 +111,17 @@ class Plugin {
 		// Run the loader immediately to register all hooks.
 		$this->loader->nuclen_run();
 
-		// Register hooks for auto-generation after admin/public hooks are defined.
-		$auto_generation_service = $this->container->get( 'auto_generation_service' );
-		$auto_generation_service->register_hooks();
+		// Auto-generation hooks are registered by PluginBootstrap::registerAutoGenerationHooks()
+		// Do not register them here to avoid duplication
+
+		// Register circuit breaker health check handlers
+		\NuclearEngagement\Services\CircuitBreaker::register_health_check_handlers();
+
+		// Initialize centralized polling queue
+		if ( $this->container->has( 'centralized_polling_queue' ) ) {
+			$polling_queue = $this->container->get( 'centralized_polling_queue' );
+			$polling_queue->register_hooks();
+		}
 	}
 
 	/*
@@ -110,6 +143,9 @@ class Plugin {
 	──────────────────────────────────────────── */
 	private function nuclen_define_admin_hooks() {
 		try {
+			// Initialize admin notice service early to ensure hooks are registered
+			$this->container->get( 'admin_notice_service' );
+
 			$plugin_admin = new Admin( $this->nuclen_get_plugin_name(), $this->nuclen_get_version(), $this->settings_repository, $this->container );
 
 			// Scripts registration.
@@ -121,23 +157,30 @@ class Plugin {
 			$this->loader->nuclen_add_action( 'admin_enqueue_scripts', $plugin_admin, 'nuclen_enqueue_dashboard_styles' );
 			$this->loader->nuclen_add_action( 'admin_enqueue_scripts', $plugin_admin, 'nuclen_enqueue_generate_page_scripts' );
 		} catch ( \Throwable $e ) {
-			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-			error_log( 'Nuclear Engagement: Failed to initialize admin hooks - ' . $e->getMessage() );
-			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-			error_log( 'Nuclear Engagement: Stack trace - ' . $e->getTraceAsString() );
+			LoggingService::log( 'Failed to initialize admin hooks - ' . $e->getMessage() );
+			LoggingService::log( 'Stack trace - ' . $e->getTraceAsString() );
 		}
 
 		// AJAX - now using controllers.
 		$generate_controller    = $this->container->get( 'generate_controller' );
 		$updates_controller     = $this->container->get( 'updates_controller' );
 		$posts_count_controller = $this->container->get( 'posts_count_controller' );
+		$tasks_controller       = $this->container->get( 'tasks_controller' );
 
 		$this->loader->nuclen_add_action( 'wp_ajax_nuclen_trigger_generation', $generate_controller, 'handle' );
 		$this->loader->nuclen_add_action( 'wp_ajax_nuclen_fetch_app_updates', $updates_controller, 'handle' );
 		$this->loader->nuclen_add_action( 'wp_ajax_nuclen_get_posts_count', $posts_count_controller, 'handle' );
+		$this->loader->nuclen_add_action( 'wp_ajax_nuclen_run_task', $tasks_controller, 'run_task' );
+		$this->loader->nuclen_add_action( 'wp_ajax_nuclen_cancel_task', $tasks_controller, 'cancel_task' );
+		$this->loader->nuclen_add_action( 'wp_ajax_nuclen_get_task_status', $tasks_controller, 'get_task_status' );
+		$this->loader->nuclen_add_action( 'wp_ajax_nuclen_get_recent_completions', $tasks_controller, 'get_recent_completions' );
+		$this->loader->nuclen_add_action( 'wp_ajax_nuclen_refresh_tasks_data', $tasks_controller, 'refresh_tasks_data' );
 
 		// Register admin menu
 		$this->loader->nuclen_add_action( 'admin_menu', $plugin_admin, 'nuclen_add_admin_menu' );
+
+		// Register early redirect handler for Tasks page
+		$this->loader->nuclen_add_action( 'admin_init', $plugin_admin, 'nuclen_handle_tasks_early_redirects' );
 
 		// Setup actions
 		$setup = new \NuclearEngagement\Admin\Setup( $this->settings_repository );
@@ -159,6 +202,16 @@ class Plugin {
 		$optin_export_controller = $this->container->get( 'optin_export_controller' );
 		$this->loader->nuclen_add_action( 'admin_post_nuclen_export_optin', $optin_export_controller, 'handle' );
 		$this->loader->nuclen_add_action( 'wp_ajax_nuclen_export_optin', $optin_export_controller, 'handle' );
+
+		/* Batch cleanup cron jobs */
+		$this->loader->nuclen_add_action( 'nuclen_cleanup_old_batches', $this, 'cleanup_old_batches' );
+		$this->loader->nuclen_add_action( 'nuclen_cleanup_orphaned_batches', $this, 'cleanup_orphaned_batches' );
+
+		/* Generation recovery */
+		$this->loader->nuclen_add_action( 'nuclen_recover_generation', $this, 'recover_generation', 10, 1 );
+
+		/* Content lock cleanup */
+		$this->loader->nuclen_add_action( 'nuclen_cleanup_content_locks', $this, 'cleanup_content_locks' );
 	}
 
 	/*
@@ -248,9 +301,127 @@ class Plugin {
 	/**
 	 * Get the container instance (mainly for testing)
 	 *
-	 * @return Container
+	 * @return ServiceContainer
 	 */
-	public function get_container(): Container {
+	public function get_container(): ServiceContainer {
 		return $this->container;
+	}
+
+	/**
+	 * Clean up old batch transients
+	 */
+	public function cleanup_old_batches(): void {
+		try {
+			$batch_processor = $this->container->get( 'bulk_generation_batch_processor' );
+			if ( $batch_processor ) {
+				$cleaned = $batch_processor->cleanup_old_batches( 24 ); // Clean batches older than 24 hours
+				if ( $cleaned > 0 ) {
+					\NuclearEngagement\Services\LoggingService::log(
+						sprintf( 'Cleaned up %d old batch transients', $cleaned )
+					);
+				}
+			}
+		} catch ( \Exception $e ) {
+			\NuclearEngagement\Services\LoggingService::log(
+				'Error during batch cleanup: ' . $e->getMessage()
+			);
+		}
+	}
+
+	/**
+	 * Clean up orphaned batch transients
+	 */
+	public function cleanup_orphaned_batches(): void {
+		try {
+			$batch_processor = $this->container->get( 'bulk_generation_batch_processor' );
+			if ( $batch_processor ) {
+				$cleaned = $batch_processor->cleanup_orphaned_batches();
+				if ( $cleaned > 0 ) {
+					\NuclearEngagement\Services\LoggingService::log(
+						sprintf( 'Cleaned up %d orphaned batch transients', $cleaned )
+					);
+				}
+			}
+		} catch ( \Exception $e ) {
+			\NuclearEngagement\Services\LoggingService::log(
+				'Error during orphaned batch cleanup: ' . $e->getMessage()
+			);
+		}
+	}
+
+	/**
+	 * Recover a generation
+	 *
+	 * @param string $generation_id Generation ID to recover
+	 */
+	public function recover_generation( string $generation_id ): void {
+		try {
+			$generation_service = $this->container->get( 'generation_service' );
+			if ( $generation_service ) {
+				$generation_service->recoverGeneration( $generation_id );
+			}
+		} catch ( \Exception $e ) {
+			\NuclearEngagement\Services\LoggingService::log(
+				sprintf( 'Error recovering generation %s: %s', $generation_id, $e->getMessage() )
+			);
+		}
+	}
+
+	/**
+	 * Clean up expired content locks
+	 */
+	public function cleanup_content_locks(): void {
+		global $wpdb;
+
+		try {
+			// Find and remove expired content locks (older than 5 minutes)
+			$expired_time = time() - 300;
+			$cleaned      = 0;
+			$batch_size   = 50; // Process in batches to avoid memory issues
+
+			// Find all content lock options with LIMIT for performance
+			$locks = $wpdb->get_results(
+				$wpdb->prepare(
+					"SELECT option_name, option_value FROM $wpdb->options 
+					WHERE (option_name LIKE %s OR option_name LIKE %s)
+					LIMIT %d",
+					'nuclen_content_lock_quiz_%',
+					'nuclen_content_lock_summary_%',
+					$batch_size
+				)
+			);
+
+			if ( ! empty( $locks ) ) {
+				$to_delete = array();
+
+				foreach ( $locks as $lock ) {
+					$value = maybe_unserialize( $lock->option_value );
+					if ( is_array( $value ) && isset( $value['time'] ) && $value['time'] < $expired_time ) {
+						$to_delete[] = $lock->option_name;
+					}
+				}
+
+				// Bulk delete for better performance
+				if ( ! empty( $to_delete ) ) {
+					$placeholders = implode( ',', array_fill( 0, count( $to_delete ), '%s' ) );
+					$cleaned      = $wpdb->query(
+						$wpdb->prepare(
+							"DELETE FROM $wpdb->options WHERE option_name IN ($placeholders)",
+							$to_delete
+						)
+					);
+				}
+			}
+
+			if ( $cleaned > 0 ) {
+				\NuclearEngagement\Services\LoggingService::log(
+					sprintf( 'Cleaned up %d expired content locks', $cleaned )
+				);
+			}
+		} catch ( \Exception $e ) {
+			\NuclearEngagement\Services\LoggingService::log(
+				'Error during content lock cleanup: ' . $e->getMessage()
+			);
+		}
 	}
 }

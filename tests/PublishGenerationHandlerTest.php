@@ -60,6 +60,28 @@ namespace {
 			$this->assertSame([1,'summary'], $GLOBALS['scheduled'][1]['args']);
 		}
 
+		public function test_skips_generation_when_content_exists(): void {
+			$handler = $this->makeHandler();
+			// Set existing quiz and summary data
+			$GLOBALS['meta'][7]['nuclen-quiz-data'] = 'existing quiz data';
+			$GLOBALS['meta'][7]['nuclen-summary-data'] = 'existing summary data';
+			$post = (object)[ 'ID' => 7, 'post_type' => 'post' ];
+			$handler->handle_post_publish('publish', 'draft', $post);
+			// Should not schedule any generation since content already exists
+			$this->assertEmpty($GLOBALS['scheduled']);
+		}
+
+		public function test_generates_only_missing_content(): void {
+			$handler = $this->makeHandler();
+			// Set only existing quiz data, but no summary
+			$GLOBALS['meta'][8]['nuclen-quiz-data'] = 'existing quiz data';
+			$post = (object)[ 'ID' => 8, 'post_type' => 'post' ];
+			$handler->handle_post_publish('publish', 'draft', $post);
+			// Should only schedule summary generation
+			$this->assertCount(1, $GLOBALS['scheduled']);
+			$this->assertSame([8,'summary'], $GLOBALS['scheduled'][0]['args']);
+		}
+
 		public function test_skips_for_protected_or_unauthorized(): void {
 			$handler = $this->makeHandler();
 			$GLOBALS['can_publish'] = false;

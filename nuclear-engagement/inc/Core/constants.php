@@ -38,7 +38,7 @@ define( 'NUCLEN_API_TIMEOUT', 30 );
 define( 'NUCLEN_INITIAL_POLL_DELAY', 15 );
 
 /** Maximum attempts when polling the API for generation results. */
-define( 'NUCLEN_MAX_POLL_ATTEMPTS', 10 );
+define( 'NUCLEN_MAX_POLL_ATTEMPTS', 240 );
 
 /** Lifetime of the activation redirect transient in seconds. */
 define( 'NUCLEN_ACTIVATION_REDIRECT_TTL', 30 );
@@ -82,5 +82,5 @@ define( 'NUCLEN_ADMIN_MENU_POSITION', 30 );
 
 /** Asset version for cache busting. */
 if ( ! defined( 'NUCLEN_ASSET_VERSION' ) ) {
-	define( 'NUCLEN_ASSET_VERSION', '1.2.1' );
+	define( 'NUCLEN_ASSET_VERSION', '20250720-2' );
 }

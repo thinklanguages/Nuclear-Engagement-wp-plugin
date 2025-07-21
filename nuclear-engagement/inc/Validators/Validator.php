@@ -199,7 +199,7 @@ class Validator implements ValidatorInterface {
 	private function handle_custom_rule( string $rule_name, $value, $rule_value, string $field, array $all_data ): ?string {
 		if ( isset( $this->custom_rules[ $rule_name ] ) ) {
 			$callback = $this->custom_rules[ $rule_name ];
-			$result = $callback( $value, $rule_value, $field, $all_data );
+			$result   = $callback( $value, $rule_value, $field, $all_data );
 
 			if ( $result !== true && is_string( $result ) ) {
 				return $result;

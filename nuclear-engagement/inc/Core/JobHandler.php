@@ -203,8 +203,8 @@ final class JobHandler {
 		register_shutdown_function(
 			function () use ( $start_time, $timeout ) {
 				if ( time() - $start_time > $timeout ) {
-                      // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-						error_log( 'Nuclear Engagement: Background job timed out after ' . $timeout . ' seconds' );
+					// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+					error_log( 'Nuclear Engagement: Background job timed out after ' . $timeout . ' seconds' );
 				}
 			}
 		);

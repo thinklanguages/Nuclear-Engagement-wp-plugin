@@ -152,9 +152,9 @@ class LoggingService {
 
 		/** Write one or more messages to the log. */
 	private function write_messages( array $messages ): void {
-		$info = self::get_log_file_info();
+		$info       = self::get_log_file_info();
 		$log_folder = $info['dir'];
-		$log_file = $info['path'];
+		$log_file   = $info['path'];
 
 		if ( ! $this->ensure_log_directory( $log_folder, $messages ) ) {
 			return;
@@ -251,12 +251,12 @@ class LoggingService {
 
 		if ( ! file_exists( $log_file ) ) {
 			$timestamp = gmdate( 'Y-m-d H:i:s' );
-			$data .= "[{$timestamp}] Log file created\n";
+			$data     .= "[{$timestamp}] Log file created\n";
 		}
 
 		foreach ( $messages as $msg ) {
 			$timestamp = gmdate( 'Y-m-d H:i:s' );
-			$data .= "[{$timestamp}] {$msg}\n";
+			$data     .= "[{$timestamp}] {$msg}\n";
 		}
 
 		return $data;

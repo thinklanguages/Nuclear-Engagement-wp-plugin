@@ -67,7 +67,7 @@ async function updateCreditsInfo(elements: GeneratePageElements, count: number):
 			elements.creditsInfoEl.textContent = `Unable to retrieve your credits: ${message}`;
 		}
 		if (elements.submitBtn) {
-			elements.submitBtn.disabled = false;
+			nuclenHideElement(elements.submitBtn);
 		}
 	}
 }

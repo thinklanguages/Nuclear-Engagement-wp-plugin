@@ -58,6 +58,15 @@ trait AdminMenu {
 			array( $this, 'nuclen_display_generate_page' )
 		);
 
+		add_submenu_page(
+			'nuclear-engagement',
+			esc_html__( 'Nuclear Engagement – Tasks', 'nuclear-engagement' ),
+			esc_html__( 'Tasks', 'nuclear-engagement' ),
+			'manage_options',
+			'nuclear-engagement-tasks',
+			array( $this, 'nuclen_display_tasks_page' )
+		);
+
 		$settings = new Settings( $this->nuclen_get_settings_repository() );
 		add_submenu_page(
 			'nuclear-engagement',
@@ -107,6 +116,13 @@ trait AdminMenu {
 				return;
 		}
 
+		// Check if cron is enabled
+		$container            = \NuclearEngagement\Core\ServiceContainer::getInstance();
+		$admin_notice_service = $container->get( 'admin_notice_service' );
+		if ( $admin_notice_service ) {
+			$admin_notice_service->check_cron_and_notify();
+		}
+
 				include NUCLEN_PLUGIN_DIR . 'templates/admin/nuclen-admin-generate.php';
 	}
 
@@ -147,5 +163,35 @@ trait AdminMenu {
 	public function nuclen_display_setup_page() {
 		$setup = new \NuclearEngagement\Admin\Setup( $this->nuclen_get_settings_repository() );
 		$setup->nuclen_render_setup_page();
+	}
+
+	/**
+	 * Tasks page callback.
+	 */
+	public function nuclen_display_tasks_page() {
+		$settings_repo       = $this->nuclen_get_settings_repository();
+		$connected           = $settings_repo->get( 'connected', false );
+		$wp_app_pass_created = $settings_repo->get( 'wp_app_pass_created', false );
+
+		// Block access unless the API key and plugin password are present.
+		if ( ! $connected || ! $wp_app_pass_created ) {
+			echo '<div class="notice notice-warning"><p>'
+				. esc_html__(
+					'Please finish the plugin setup (Step 1: API key and Step 2: plugin password) before viewing tasks. Go to the Setup page to complete the configuration.',
+					'nuclear-engagement'
+				)
+				. '</p></div>';
+			return;
+		}
+
+		// Check if cron is enabled
+		$container            = \NuclearEngagement\Core\ServiceContainer::getInstance();
+		$admin_notice_service = $container->get( 'admin_notice_service' );
+		if ( $admin_notice_service ) {
+			$admin_notice_service->check_cron_and_notify();
+		}
+
+		$tasks = new \NuclearEngagement\Admin\Tasks( $settings_repo, $container );
+		$tasks->render();
 	}
 }

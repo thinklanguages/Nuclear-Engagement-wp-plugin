@@ -17,11 +17,11 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Validation rules separated for better maintainability
  */
 class ValidationRules {
-	
+
 	/**
 	 * Validate string type.
 	 *
-	 * @param mixed $value Value to validate.
+	 * @param mixed  $value Value to validate.
 	 * @param string $field Field name.
 	 * @return string|null Error message or null.
 	 */
@@ -35,7 +35,7 @@ class ValidationRules {
 	/**
 	 * Validate integer type.
 	 *
-	 * @param mixed $value Value to validate.
+	 * @param mixed  $value Value to validate.
 	 * @param string $field Field name.
 	 * @return string|null Error message or null.
 	 */
@@ -49,7 +49,7 @@ class ValidationRules {
 	/**
 	 * Validate numeric type.
 	 *
-	 * @param mixed $value Value to validate.
+	 * @param mixed  $value Value to validate.
 	 * @param string $field Field name.
 	 * @return string|null Error message or null.
 	 */
@@ -63,7 +63,7 @@ class ValidationRules {
 	/**
 	 * Validate boolean type.
 	 *
-	 * @param mixed $value Value to validate.
+	 * @param mixed  $value Value to validate.
 	 * @param string $field Field name.
 	 * @return string|null Error message or null.
 	 */
@@ -77,7 +77,7 @@ class ValidationRules {
 	/**
 	 * Validate array type.
 	 *
-	 * @param mixed $value Value to validate.
+	 * @param mixed  $value Value to validate.
 	 * @param string $field Field name.
 	 * @return string|null Error message or null.
 	 */
@@ -91,7 +91,7 @@ class ValidationRules {
 	/**
 	 * Validate email format.
 	 *
-	 * @param mixed $value Value to validate.
+	 * @param mixed  $value Value to validate.
 	 * @param string $field Field name.
 	 * @return string|null Error message or null.
 	 */
@@ -105,7 +105,7 @@ class ValidationRules {
 	/**
 	 * Validate URL format.
 	 *
-	 * @param mixed $value Value to validate.
+	 * @param mixed  $value Value to validate.
 	 * @param string $field Field name.
 	 * @return string|null Error message or null.
 	 */
@@ -119,8 +119,8 @@ class ValidationRules {
 	/**
 	 * Validate minimum constraint.
 	 *
-	 * @param mixed $value Value to validate.
-	 * @param int $min Minimum value.
+	 * @param mixed  $value Value to validate.
+	 * @param int    $min Minimum value.
 	 * @param string $field Field name.
 	 * @return string|null Error message or null.
 	 */
@@ -140,8 +140,8 @@ class ValidationRules {
 	/**
 	 * Validate maximum constraint.
 	 *
-	 * @param mixed $value Value to validate.
-	 * @param int $max Maximum value.
+	 * @param mixed  $value Value to validate.
+	 * @param int    $max Maximum value.
 	 * @param string $field Field name.
 	 * @return string|null Error message or null.
 	 */
@@ -161,7 +161,7 @@ class ValidationRules {
 	/**
 	 * Validate value is in allowed list.
 	 *
-	 * @param mixed $value Value to validate.
+	 * @param mixed  $value Value to validate.
 	 * @param string $allowed_values Comma-separated allowed values.
 	 * @param string $field Field name.
 	 * @return string|null Error message or null.
@@ -177,7 +177,7 @@ class ValidationRules {
 	/**
 	 * Validate regex pattern.
 	 *
-	 * @param mixed $value Value to validate.
+	 * @param mixed  $value Value to validate.
 	 * @param string $pattern Regex pattern.
 	 * @param string $field Field name.
 	 * @return string|null Error message or null.
@@ -192,7 +192,7 @@ class ValidationRules {
 	/**
 	 * Validate post exists.
 	 *
-	 * @param mixed $value Value to validate.
+	 * @param mixed  $value Value to validate.
 	 * @param string $field Field name.
 	 * @return string|null Error message or null.
 	 */
@@ -206,7 +206,7 @@ class ValidationRules {
 	/**
 	 * Validate user exists.
 	 *
-	 * @param mixed $value Value to validate.
+	 * @param mixed  $value Value to validate.
 	 * @param string $field Field name.
 	 * @return string|null Error message or null.
 	 */

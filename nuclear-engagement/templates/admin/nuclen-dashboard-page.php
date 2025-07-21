@@ -30,7 +30,6 @@ $utils->display_nuclen_page_header();
 		$dash_dir = plugin_dir_path( __FILE__ ) . 'dashboard/';
 		require $dash_dir . 'inventory.php';
 		require $dash_dir . 'analytics.php';
-		require $dash_dir . 'scheduled.php';
-		require $dash_dir . 'credits.php';
+		// Scheduled tasks and credits moved to Tasks page
 	?>
 </div><!-- .wrap .nuclen-container -->

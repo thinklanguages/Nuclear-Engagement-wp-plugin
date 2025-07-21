@@ -37,7 +37,6 @@ class ApiResponseHandler {
 
 		$code = wp_remote_retrieve_response_code( $response );
 		$body = wp_remote_retrieve_body( $response );
-		LoggingService::debug( "API response body: {$body}" );
 		LoggingService::log( "API response code: {$code}" );
 
 		if ( 401 === $code || 403 === $code ) {
@@ -46,7 +45,6 @@ class ApiResponseHandler {
 		}
 
 		if ( 200 !== $code ) {
-			LoggingService::log( "Unexpected response code: {$code}, body: {$body}" );
 			$parsed = $this->parse_error_response( $body );
 			$msg    = $parsed['message'] ?? "Failed request, code: {$code}";
 			throw new ApiException( $msg, $code, $parsed['error_code'] );

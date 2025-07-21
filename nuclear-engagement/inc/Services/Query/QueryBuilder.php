@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Builds query arguments and SQL clauses for posts queries
  */
 class QueryBuilder {
-	
+
 	/**
 	 * Build query args from request.
 	 *
@@ -28,8 +28,8 @@ class QueryBuilder {
 	 * @return array The query arguments.
 	 */
 	public function build_query_args( PostsCountRequest $request ): array {
-		$meta_query = array( 'relation' => 'AND' );
-		$post_type = ! empty( $request->postType ) ? $request->postType : 'post';
+		$meta_query  = array( 'relation' => 'AND' );
+		$post_type   = ! empty( $request->postType ) ? $request->postType : 'post';
 		$post_status = $this->get_post_status( $request->postStatus );
 
 		$query_args = array(
@@ -60,8 +60,8 @@ class QueryBuilder {
 	public function build_sql_clauses( PostsCountRequest $request ): string {
 		global $wpdb;
 
-		$joins = array();
-		$wheres = array();
+		$joins     = array();
+		$wheres    = array();
 		$post_type = ! empty( $request->postType ) ? $request->postType : 'post';
 
 		$this->add_basic_filters( $wheres, $request, $post_type );
@@ -92,7 +92,7 @@ class QueryBuilder {
 	/**
 	 * Add taxonomy filters to query args.
 	 *
-	 * @param array $query_args Query arguments.
+	 * @param array             $query_args Query arguments.
 	 * @param PostsCountRequest $request The request.
 	 */
 	private function add_taxonomy_filters( array &$query_args, PostsCountRequest $request ): void {
@@ -104,7 +104,7 @@ class QueryBuilder {
 	/**
 	 * Add author filter to query args.
 	 *
-	 * @param array $query_args Query arguments.
+	 * @param array             $query_args Query arguments.
 	 * @param PostsCountRequest $request The request.
 	 */
 	private function add_author_filter( array &$query_args, PostsCountRequest $request ): void {
@@ -116,12 +116,12 @@ class QueryBuilder {
 	/**
 	 * Add meta query filters.
 	 *
-	 * @param array $meta_query Meta query array.
+	 * @param array             $meta_query Meta query array.
 	 * @param PostsCountRequest $request The request.
 	 */
 	private function add_meta_query_filters( array &$meta_query, PostsCountRequest $request ): void {
 		if ( ! $request->allowRegenerate ) {
-			$meta_key = 'quiz' === $request->workflow ? 'nuclen-quiz-data' : Summary_Service::META_KEY;
+			$meta_key     = 'quiz' === $request->workflow ? 'nuclen-quiz-data' : Summary_Service::META_KEY;
 			$meta_query[] = array(
 				'key'     => $meta_key,
 				'compare' => 'NOT EXISTS',
@@ -130,7 +130,7 @@ class QueryBuilder {
 
 		if ( ! $request->regenerateProtected ) {
 			$protected_key = 'quiz' === $request->workflow ? 'nuclen_quiz_protected' : Summary_Service::PROTECTED_KEY;
-			$meta_query[] = array(
+			$meta_query[]  = array(
 				'relation' => 'OR',
 				array(
 					'key'     => $protected_key,
@@ -153,15 +153,15 @@ class QueryBuilder {
 	private function add_cache_optimization( array &$query_args ): void {
 		$query_args['update_post_meta_cache'] = false;
 		$query_args['update_post_term_cache'] = false;
-		$query_args['cache_results'] = false;
+		$query_args['cache_results']          = false;
 	}
 
 	/**
 	 * Add basic filters to WHERE clause.
 	 *
-	 * @param array $wheres WHERE conditions.
+	 * @param array             $wheres WHERE conditions.
 	 * @param PostsCountRequest $request The request.
-	 * @param string $post_type Post type.
+	 * @param string            $post_type Post type.
 	 */
 	private function add_basic_filters( array &$wheres, PostsCountRequest $request, string $post_type ): void {
 		global $wpdb;
@@ -172,10 +172,10 @@ class QueryBuilder {
 			$wheres[] = $wpdb->prepare( 'p.post_status = %s', $request->postStatus );
 		} else {
 			$viewable_statuses = array( 'publish', 'private', 'draft', 'pending', 'future' );
-			$placeholders = implode( ', ', array_fill( 0, count( $viewable_statuses ), '%s' ) );
-			$prepared_args = array( "p.post_status IN ($placeholders)" );
-			$prepared_args = array_merge( $prepared_args, $viewable_statuses );
-			$wheres[] = call_user_func_array( array( $wpdb, 'prepare' ), $prepared_args );
+			$placeholders      = implode( ', ', array_fill( 0, count( $viewable_statuses ), '%s' ) );
+			$prepared_args     = array( "p.post_status IN ($placeholders)" );
+			$prepared_args     = array_merge( $prepared_args, $viewable_statuses );
+			$wheres[]          = call_user_func_array( array( $wpdb, 'prepare' ), $prepared_args );
 		}
 
 		if ( $request->authorId ) {
@@ -186,16 +186,16 @@ class QueryBuilder {
 	/**
 	 * Add taxonomy joins to query.
 	 *
-	 * @param array $joins JOIN clauses.
-	 * @param array $wheres WHERE conditions.
+	 * @param array             $joins JOIN clauses.
+	 * @param array             $wheres WHERE conditions.
 	 * @param PostsCountRequest $request The request.
 	 */
 	private function add_taxonomy_joins( array &$joins, array &$wheres, PostsCountRequest $request ): void {
 		global $wpdb;
 
 		if ( $request->categoryId ) {
-			$joins[] = "JOIN {$wpdb->term_relationships} tr ON tr.object_id = p.ID";
-			$joins[] = "JOIN {$wpdb->term_taxonomy} tt ON tt.term_taxonomy_id = tr.term_taxonomy_id AND tt.taxonomy = 'category'";
+			$joins[]  = "JOIN {$wpdb->term_relationships} tr ON tr.object_id = p.ID";
+			$joins[]  = "JOIN {$wpdb->term_taxonomy} tt ON tt.term_taxonomy_id = tr.term_taxonomy_id AND tt.taxonomy = 'category'";
 			$wheres[] = $wpdb->prepare( 'tt.term_id = %d', $request->categoryId );
 		}
 	}
@@ -203,8 +203,8 @@ class QueryBuilder {
 	/**
 	 * Add meta joins to query.
 	 *
-	 * @param array $joins JOIN clauses.
-	 * @param array $wheres WHERE conditions.
+	 * @param array             $joins JOIN clauses.
+	 * @param array             $wheres WHERE conditions.
 	 * @param PostsCountRequest $request The request.
 	 */
 	private function add_meta_joins( array &$joins, array &$wheres, PostsCountRequest $request ): void {
@@ -212,18 +212,18 @@ class QueryBuilder {
 
 		if ( ! $request->allowRegenerate ) {
 			$meta_key = 'quiz' === $request->workflow ? 'nuclen-quiz-data' : Summary_Service::META_KEY;
-			$joins[] = $wpdb->prepare( 
-				"LEFT JOIN {$wpdb->postmeta} pm_exist ON pm_exist.post_id = p.ID AND pm_exist.meta_key = %s", 
-				$meta_key 
+			$joins[]  = $wpdb->prepare(
+				"LEFT JOIN {$wpdb->postmeta} pm_exist ON pm_exist.post_id = p.ID AND pm_exist.meta_key = %s",
+				$meta_key
 			);
 			$wheres[] = 'pm_exist.meta_id IS NULL';
 		}
 
 		if ( ! $request->regenerateProtected ) {
 			$prot_key = 'quiz' === $request->workflow ? 'nuclen_quiz_protected' : Summary_Service::PROTECTED_KEY;
-			$joins[] = $wpdb->prepare( 
-				"LEFT JOIN {$wpdb->postmeta} pm_prot ON pm_prot.post_id = p.ID AND pm_prot.meta_key = %s", 
-				$prot_key 
+			$joins[]  = $wpdb->prepare(
+				"LEFT JOIN {$wpdb->postmeta} pm_prot ON pm_prot.post_id = p.ID AND pm_prot.meta_key = %s",
+				$prot_key
 			);
 			$wheres[] = "(pm_prot.meta_id IS NULL OR pm_prot.meta_value != '1')";
 		}

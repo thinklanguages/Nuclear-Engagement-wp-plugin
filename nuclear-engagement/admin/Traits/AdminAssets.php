@@ -32,7 +32,7 @@ trait AdminAssets {
 			'nuclen-logger',
 			NUCLEN_PLUGIN_URL . 'logger-CjYDh3vN.js',
 			array(),
-			defined( 'NUCLEN_ASSET_VERSION' ) ? NUCLEN_ASSET_VERSION : NUCLEN_PLUGIN_VERSION,
+			NUCLEN_ASSET_VERSION,
 			true
 		);
 
@@ -41,7 +41,7 @@ trait AdminAssets {
 			'nuclen-admin',
 			NUCLEN_PLUGIN_URL . 'admin/js/nuclen-admin.js',
 			array( 'nuclen-logger' ),
-			defined( 'NUCLEN_ASSET_VERSION' ) ? NUCLEN_ASSET_VERSION : NUCLEN_PLUGIN_VERSION,
+			NUCLEN_ASSET_VERSION,
 			true
 		);
 
@@ -67,9 +67,21 @@ trait AdminAssets {
 			$this->nuclen_get_plugin_name(),
 			NUCLEN_PLUGIN_URL . 'admin/css/nuclen-admin.css',
 			array(),
-			defined( 'NUCLEN_ASSET_VERSION' ) ? NUCLEN_ASSET_VERSION : NUCLEN_PLUGIN_VERSION,
+			NUCLEN_ASSET_VERSION,
 			'all'
 		);
+
+		// Enqueue tasks page styles
+		global $hook_suffix;
+		if ( 'nuclear-engagement_page_nuclear-engagement-tasks' === $hook_suffix ) {
+			wp_enqueue_style(
+				'nuclen-tasks',
+				NUCLEN_PLUGIN_URL . 'admin/css/nuclen-tasks.css',
+				array(),
+				NUCLEN_ASSET_VERSION,
+				'all'
+			);
+		}
 	}
 
 	/**
@@ -110,7 +122,7 @@ trait AdminAssets {
 		if ( 'post-new.php' === $hook && ! $this->is_new_post_supported() ) {
 			return false;
 		}
-		
+
 		$allowed_hooks = array(
 			'post.php',
 			'post-new.php',
@@ -118,6 +130,7 @@ trait AdminAssets {
 			'nuclear-engagement_page_nuclear-engagement-generate',
 			'nuclear-engagement_page_nuclear-engagement-settings',
 			'nuclear-engagement_page_nuclear-engagement-setup',
+			'nuclear-engagement_page_nuclear-engagement-tasks',
 		);
 
 		return in_array( $hook, $allowed_hooks, true );
@@ -129,7 +142,7 @@ trait AdminAssets {
 	 * @return bool
 	 */
 	private function is_new_post_supported(): bool {
-		$post_type = isset( $_GET['post_type'] ) ? sanitize_key( $_GET['post_type'] ) : 'post';
+		$post_type     = isset( $_GET['post_type'] ) ? sanitize_key( $_GET['post_type'] ) : 'post';
 		$allowed_types = $this->get_allowed_post_types_cached();
 		return in_array( $post_type, $allowed_types, true );
 	}
@@ -164,7 +177,7 @@ trait AdminAssets {
 	 */
 	private function is_supported_post_type(): bool {
 		$allowed_post_types = $this->get_allowed_post_types_cached();
-		$post_type = $this->get_current_post_type();
+		$post_type          = $this->get_current_post_type();
 		return in_array( $post_type, $allowed_post_types, true );
 	}
 
@@ -175,23 +188,23 @@ trait AdminAssets {
 	 */
 	private function get_allowed_post_types_cached(): array {
 		static $cached_types = null;
-		
+
 		if ( null !== $cached_types ) {
 			return $cached_types;
 		}
-		
+
 		// Use shared transient key
 		$cached_types = get_transient( 'nuclear_engagement_allowed_post_types' );
-		
+
 		if ( false === $cached_types ) {
-			$settings = get_option( 'nuclear_engagement_settings', array() );
-			$cached_types = isset( $settings['generation_post_types'] ) ? 
+			$settings     = get_option( 'nuclear_engagement_settings', array() );
+			$cached_types = isset( $settings['generation_post_types'] ) ?
 				$settings['generation_post_types'] : array( 'post' );
-			
+
 			// Cache for 1 hour to reduce database calls
 			set_transient( 'nuclear_engagement_allowed_post_types', $cached_types, HOUR_IN_SECONDS );
 		}
-		
+
 		return $cached_types;
 	}
 
@@ -202,7 +215,7 @@ trait AdminAssets {
 	 */
 	private function get_current_post_type(): string {
 		global $post;
-		
+
 		if ( $post && $post->post_type ) {
 			return $post->post_type;
 		}
@@ -235,7 +248,7 @@ trait AdminAssets {
 			array(),
 			AssetVersions::get( 'admin_js' ),
 			array(
-				'strategy' => 'defer',
+				'strategy'  => 'defer',
 				'in_footer' => true,
 			)
 		);
@@ -254,7 +267,7 @@ trait AdminAssets {
 			array( 'nuclen-logger' ),
 			AssetVersions::get( 'admin_js' ),
 			array(
-				'strategy' => 'defer',
+				'strategy'  => 'defer',
 				'in_footer' => true,
 			)
 		);
@@ -269,7 +282,7 @@ trait AdminAssets {
 	private function localize_admin_scripts(): void {
 		// Cache nonces to avoid multiple calls
 		static $admin_vars = null;
-		
+
 		if ( null === $admin_vars ) {
 			$admin_vars = array(
 				'ajax_url'             => admin_url( 'admin-ajax.php' ),
@@ -280,9 +293,12 @@ trait AdminAssets {
 		}
 
 		wp_localize_script( 'nuclen-admin', 'nuclenAdminVars', $admin_vars );
-		
+
 		// Enqueue generate page scripts if needed
 		$this->nuclen_enqueue_generate_page_scripts( $this->get_current_hook() );
+		
+		// Enqueue tasks page scripts if needed
+		$this->nuclen_enqueue_tasks_page_scripts( $this->get_current_hook() );
 	}
 
 	/**
@@ -333,7 +349,7 @@ trait AdminAssets {
 		$generate_pages = array(
 			'nuclear-engagement_page_nuclear-engagement-generate',
 			'post.php',
-			'post-new.php'
+			'post-new.php',
 		);
 
 		if ( ! in_array( $hook, $generate_pages, true ) ) {
@@ -342,7 +358,7 @@ trait AdminAssets {
 
 		// Cache ajax config to avoid duplicate calls
 		static $ajax_config = null;
-		
+
 		if ( null === $ajax_config ) {
 			$ajax_config = array(
 				'ajax_url'     => admin_url( 'admin-ajax.php' ),
@@ -352,6 +368,50 @@ trait AdminAssets {
 		}
 
 		wp_localize_script( 'nuclen-admin', 'nuclenAjax', $ajax_config );
+	}
+
+	/**
+	 * Enqueue scripts for Tasks page.
+	 *
+	 * @param string $hook Current page hook.
+	 */
+	public function nuclen_enqueue_tasks_page_scripts( $hook ) {
+		if ( 'nuclear-engagement_page_nuclear-engagement-tasks' !== $hook ) {
+			return;
+		}
+
+		wp_enqueue_script(
+			'nuclen-tasks',
+			NUCLEN_PLUGIN_URL . 'admin/js/nuclen-tasks.js',
+			array( 'nuclen-logger' ),
+			AssetVersions::get( 'admin_js' ),
+			array(
+				'strategy'  => 'defer',
+				'in_footer' => true,
+			)
+		);
+
+		// Make it a module
+		add_filter( 'script_loader_tag', function( $tag, $handle ) {
+			if ( 'nuclen-tasks' === $handle ) {
+				return str_replace( '<script ', '<script type="module" ', $tag );
+			}
+			return $tag;
+		}, 10, 2 );
+
+		wp_localize_script(
+			'nuclen-tasks',
+			'nuclen_tasks',
+			array(
+				'nonce' => wp_create_nonce( 'nuclen_task_action' ),
+				'i18n'  => array(
+					'running'    => __( 'Running...', 'nuclear-engagement' ),
+					'cancelling' => __( 'Cancelling...', 'nuclear-engagement' ),
+					'error'      => __( 'An error occurred', 'nuclear-engagement' ),
+					'success'    => __( 'Operation completed successfully', 'nuclear-engagement' ),
+				),
+			)
+		);
 	}
 
 	/**

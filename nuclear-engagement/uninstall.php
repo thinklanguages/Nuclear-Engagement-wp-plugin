@@ -138,8 +138,13 @@ if ( $delete_settings || $delete_generated ) {
 	if ( preg_match( '/^[a-zA-Z0-9_]+$/', $table_suffix ) ) {
 		// Safely escape table name using WordPress standards.
 		$escaped_table = esc_sql( $table_name );
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
-		$wpdb->query( "DROP TABLE IF EXISTS `{$escaped_table}`" );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.SchemaChange
+		$wpdb->query(
+			$wpdb->prepare(
+				'DROP TABLE IF EXISTS %i',
+				$table_name
+			)
+		);
 
 		// Also clean up any related options.
 		delete_option( 'nuclen_optins_version' );

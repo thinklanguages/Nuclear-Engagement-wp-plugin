@@ -3,7 +3,7 @@ namespace {
 	use PHPUnit\Framework\TestCase;
 	use NuclearEngagement\Modules\TOC\Nuclen_TOC_Render;
 	use NuclearEngagement\Core\SettingsRepository;
-	use NuclearEngagement\Core\Container;
+	use NuclearEngagement\Core\ServiceContainer as Container;
 
 // ------------------------------------------------------
 // Constants and WordPress function stubs

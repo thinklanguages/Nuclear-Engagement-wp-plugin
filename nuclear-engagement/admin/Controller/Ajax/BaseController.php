@@ -53,7 +53,7 @@ abstract class BaseController {
 	 * @return bool Always returns false (no rate limiting).
 	 */
 	protected function is_rate_limited(): bool {
-		// Rate limiting is handled by the SaaS backend - always allow through
+		// Rate limiting is handled by the SaaS backend - always allow through.
 		return false;
 	}
 
@@ -72,7 +72,7 @@ abstract class BaseController {
 		string $nonce_field = 'security',
 		string $capability = 'manage_options'
 	): bool {
-		// Note: Rate limiting is skipped - handled by SaaS backend
+		// Note: Rate limiting is skipped - handled by SaaS backend.
 
 		if ( ! check_ajax_referer( $nonce_action, $nonce_field, false ) ) {
 			$this->send_error(
@@ -99,11 +99,13 @@ abstract class BaseController {
 	 * @return int|null Sanitized value or null if invalid.
 	 */
 	protected function validate_post_int( string $key, int $min = 0, int $max = PHP_INT_MAX ): ?int {
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verification should be done before calling this method
 		if ( ! isset( $_POST[ $key ] ) ) {
 			return null;
 		}
 
-		return ValidationUtils::validate_int( $_POST[ $key ], $min, $max );
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Sanitization handled by ValidationUtils
+		return ValidationUtils::validate_int( wp_unslash( $_POST[ $key ] ), $min, $max );
 	}
 
 	/**
@@ -114,12 +116,14 @@ abstract class BaseController {
 	 * @param array  $allowed     Allowed values (whitelist).
 	 * @return string|null Sanitized value or null if invalid.
 	 */
-	protected function validatePostString( string $key, int $max_length = 255, array $allowed = array() ): ?string {
+	protected function validate_post_string( string $key, int $max_length = 255, array $allowed = array() ): ?string {
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verification should be done before calling this method
 		if ( ! isset( $_POST[ $key ] ) ) {
 			return null;
 		}
 
-		return ValidationUtils::validate_string( $_POST[ $key ], $max_length, $allowed );
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Sanitization handled by ValidationUtils
+		return ValidationUtils::validate_string( wp_unslash( $_POST[ $key ] ), $max_length, $allowed );
 	}
 
 	/**
@@ -130,12 +134,14 @@ abstract class BaseController {
 	 * @param string $item_type   Type validation for items ('int', 'string').
 	 * @return array|null Sanitized array or null if invalid.
 	 */
-	protected function validatePostArray( string $key, int $max_items = 100, string $item_type = 'string' ): ?array {
+	protected function validate_post_array( string $key, int $max_items = 100, string $item_type = 'string' ): ?array {
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verification should be done before calling this method
 		if ( ! isset( $_POST[ $key ] ) ) {
 			return null;
 		}
 
-		return ValidationUtils::validate_array( $_POST[ $key ], $max_items, $item_type );
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Sanitization handled by ValidationUtils
+		return ValidationUtils::validate_array( wp_unslash( $_POST[ $key ] ), $max_items, $item_type );
 	}
 
 	/**
@@ -146,12 +152,14 @@ abstract class BaseController {
 	 * @param int    $max_length  Maximum JSON string length.
 	 * @return mixed|null Decoded JSON or null if invalid.
 	 */
-	protected function validatePostJson( string $key, int $max_depth = 10, int $max_length = 10000 ) {
+	protected function validate_post_json( string $key, int $max_depth = 10, int $max_length = 10000 ) {
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verification should be done before calling this method
 		if ( ! isset( $_POST[ $key ] ) ) {
 			return null;
 		}
 
-		$json_string = $_POST[ $key ];
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Sanitization handled below
+		$json_string = wp_unslash( $_POST[ $key ] );
 
 		if ( ! is_string( $json_string ) || strlen( $json_string ) > $max_length ) {
 			return null;

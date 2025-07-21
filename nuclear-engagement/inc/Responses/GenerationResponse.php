@@ -55,6 +55,21 @@ class GenerationResponse {
 	public ?int $statusCode = null;
 
 	/**
+	 * @var string|null Success message
+	 */
+	public ?string $message = null;
+
+	/**
+	 * @var int|null Total number of posts
+	 */
+	public ?int $totalPosts = null;
+
+	/**
+	 * @var int|null Total number of batches
+	 */
+	public ?int $totalBatches = null;
+
+	/**
 	 * Convert to array for JSON response
 	 *
 	 * @return array
@@ -76,6 +91,18 @@ class GenerationResponse {
 
 		if ( $this->statusCode !== null ) {
 			$data['status_code'] = $this->statusCode;
+		}
+
+		if ( $this->message !== null ) {
+			$data['message'] = $this->message;
+		}
+
+		if ( $this->totalPosts !== null ) {
+			$data['total_posts'] = $this->totalPosts;
+		}
+
+		if ( $this->totalBatches !== null ) {
+			$data['total_batches'] = $this->totalBatches;
 		}
 
 		return $data;

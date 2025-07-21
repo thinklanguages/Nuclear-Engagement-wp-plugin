@@ -10,6 +10,8 @@ declare(strict_types=1);
 namespace NuclearEngagement\Services\Remote;
 
 use NuclearEngagement\Core\SettingsRepository;
+use NuclearEngagement\Services\ApiRetryHandler;
+use NuclearEngagement\Exceptions\ApiException;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -24,8 +26,11 @@ class RemoteRequest {
 
 	private SettingsRepository $settings_repository;
 
+	private ApiRetryHandler $retry_handler;
+
 	public function __construct( SettingsRepository $settings_repository ) {
 		$this->settings_repository = $settings_repository;
+		$this->retry_handler       = new ApiRetryHandler( 3, array( 1000, 2000, 4000 ) );
 	}
 
 	/**
@@ -48,20 +53,48 @@ class RemoteRequest {
 	 * @param array  $payload Request payload.
 	 * @param string $api_key API key header.
 	 * @return mixed Array response or WP_Error on failure.
+	 * @throws ApiException On API errors after retries
 	 */
 	public function post( string $path, array $payload, string $api_key ) {
-		return wp_remote_post(
-			$this->get_api_base() . $path,
+		$url = $this->get_api_base() . $path;
+
+		return $this->retry_handler->execute(
+			function () use ( $url, $payload, $api_key ) {
+				$response = wp_remote_post(
+					$url,
+					array(
+						'method'             => 'POST',
+						'headers'            => array(
+							'Content-Type' => 'application/json',
+							'X-API-Key'    => $api_key,
+						),
+						'body'               => wp_json_encode( $payload ),
+						'timeout'            => NUCLEN_API_TIMEOUT,
+						'reject_unsafe_urls' => true,
+						'user-agent'         => 'NuclearEngagement/' . NUCLEN_PLUGIN_VERSION,
+					)
+				);
+
+				// Check for WP_Error
+				if ( is_wp_error( $response ) ) {
+					throw ApiException::networkError( $url, $response->get_error_message() );
+				}
+
+				// Check HTTP status code
+				$status_code = wp_remote_retrieve_response_code( $response );
+				if ( $status_code >= 400 ) {
+					$body          = wp_remote_retrieve_body( $response );
+					$response_data = json_decode( $body, true ) ?: array();
+
+					throw ApiException::httpError( $url, $status_code, $response_data );
+				}
+
+				return $response;
+			},
+			'nuclear_engagement_api',
 			array(
-				'method'             => 'POST',
-				'headers'            => array(
-					'Content-Type' => 'application/json',
-					'X-API-Key'    => $api_key,
-				),
-				'body'               => wp_json_encode( $payload ),
-				'timeout'            => NUCLEN_API_TIMEOUT,
-				'reject_unsafe_urls' => true,
-				'user-agent'         => 'NuclearEngagement/' . NUCLEN_PLUGIN_VERSION,
+				'path'   => $path,
+				'method' => 'POST',
 			)
 		);
 	}
