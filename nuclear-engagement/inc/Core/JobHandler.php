@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace NuclearEngagement\Core;
 
+use NuclearEngagement\Services\LoggingService;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -57,7 +59,7 @@ final class JobHandler {
 		$job_type = $job['type'];
 
 		// Update job status.
-		JobStatus::update_job_status( $job_id, 'processing', 0, 'Starting job processing' );
+		JobStatus::update_job_status( $job_id, 'running', 0, 'Starting job processing' );
 
 		PerformanceMonitor::start( "background_job_{$job_type}" );
 
@@ -103,17 +105,9 @@ final class JobHandler {
 				);
 			}
 
-			ErrorRecovery::addErrorContext(
-				"Background job failed: {$job_type}",
-				array(
-					'job_id'   => $job_id,
-					'job_type' => $job_type,
-					'attempts' => $attempts,
-					'error'    => $e->getMessage(),
-					'file'     => $e->getFile(),
-					'line'     => $e->getLine(),
-				),
-				'error'
+			LoggingService::log_exception( $e );
+			LoggingService::log(
+				"Background job failed: {$job_type} (job_id: {$job_id}, attempts: {$attempts})"
 			);
 		}
 

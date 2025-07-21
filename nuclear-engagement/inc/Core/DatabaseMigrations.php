@@ -31,7 +31,7 @@ class DatabaseMigrations {
 	private const DB_VERSION_OPTION = 'nuclen_db_version';
 
 	/** Current database version. */
-	private const CURRENT_DB_VERSION = '1.1.0';
+	private const CURRENT_DB_VERSION = '1.3.0';
 
 	/**
 	 * Run all necessary database migrations.
@@ -48,6 +48,16 @@ class DatabaseMigrations {
 		try {
 			// Add meta key indexes for performance.
 			self::add_meta_indexes();
+			
+			// Add composite indexes for v1.2.0
+			if ( version_compare( $current_version, '1.2.0', '<' ) ) {
+				self::add_composite_indexes();
+			}
+			
+			// Add constraints and additional indexes for v1.3.0
+			if ( version_compare( $current_version, '1.3.0', '<' ) ) {
+				self::add_constraints_and_indexes();
+			}
 
 			// Update version.
 			update_option( self::DB_VERSION_OPTION, self::CURRENT_DB_VERSION, false );
@@ -121,6 +131,95 @@ class DatabaseMigrations {
 				}
 			}
 		}
+	}
+
+	/**
+	 * Add composite indexes for better query performance.
+	 */
+	private static function add_composite_indexes(): void {
+		global $wpdb;
+		
+		// Add composite index for themes table
+		$themes_table = $wpdb->prefix . 'nuclen_themes';
+		if ( $wpdb->get_var( "SHOW TABLES LIKE '$themes_table'" ) === $themes_table ) {
+			// Index for is_active queries
+			$wpdb->query( "ALTER TABLE $themes_table ADD INDEX idx_active_type (is_active, type)" );
+			// Index for type queries
+			$wpdb->query( "ALTER TABLE $themes_table ADD INDEX idx_type (type)" );
+		}
+		
+		// Add composite index for background jobs table
+		$jobs_table = $wpdb->prefix . 'nuclen_background_jobs';
+		if ( $wpdb->get_var( "SHOW TABLES LIKE '$jobs_table'" ) === $jobs_table ) {
+			// Index for status and scheduled queries
+			$wpdb->query( "ALTER TABLE $jobs_table ADD INDEX idx_status_scheduled (status, scheduled)" );
+			// Index for job type queries
+			$wpdb->query( "ALTER TABLE $jobs_table ADD INDEX idx_type_status (type, status)" );
+		}
+	}
+
+	/**
+	 * Add constraints and additional indexes for v1.3.0.
+	 */
+	private static function add_constraints_and_indexes(): void {
+		global $wpdb;
+		
+		// Add indexes for opt-in table
+		$optin_table = $wpdb->prefix . 'nuclen_opt_ins';
+		if ( $wpdb->get_var( "SHOW TABLES LIKE '$optin_table'" ) === $optin_table ) {
+			// Check if indexes already exist
+			$email_index_exists = $wpdb->get_var(
+				"SHOW INDEX FROM $optin_table WHERE Key_name = 'idx_email'"
+			);
+			
+			if ( ! $email_index_exists ) {
+				// Index for email lookups
+				$wpdb->query( "ALTER TABLE $optin_table ADD INDEX idx_email (email)" );
+				// Index for post ID queries
+				$wpdb->query( "ALTER TABLE $optin_table ADD INDEX idx_post_id (post_id)" );
+				// Index for created_at sorting
+				$wpdb->query( "ALTER TABLE $optin_table ADD INDEX idx_created_at (created_at)" );
+			}
+		}
+		
+		// Add unique constraint for themes table
+		$themes_table = $wpdb->prefix . 'nuclen_themes';
+		if ( $wpdb->get_var( "SHOW TABLES LIKE '$themes_table'" ) === $themes_table ) {
+			// Check if constraint exists
+			$constraint_exists = $wpdb->get_var(
+				"SELECT COUNT(*) FROM information_schema.TABLE_CONSTRAINTS 
+				WHERE TABLE_SCHEMA = DATABASE() 
+				AND TABLE_NAME = '$themes_table' 
+				AND CONSTRAINT_NAME = 'unique_theme_name'"
+			);
+			
+			if ( ! $constraint_exists ) {
+				// Add unique constraint on theme name
+				$wpdb->query( "ALTER TABLE $themes_table ADD CONSTRAINT unique_theme_name UNIQUE (name)" );
+			}
+		}
+		
+		// Add indexes for transient lookups (for plugins that use custom transient storage)
+		$options_table = $wpdb->options;
+		
+		// Check if our plugin transient index exists
+		$transient_index_exists = $wpdb->get_var(
+			$wpdb->prepare(
+				"SHOW INDEX FROM $options_table WHERE Key_name = %s",
+				'idx_nuclen_transients'
+			)
+		);
+		
+		if ( ! $transient_index_exists ) {
+			// Index for our plugin's transients
+			$wpdb->query( 
+				"ALTER TABLE $options_table 
+				ADD INDEX idx_nuclen_transients (option_name(50)) 
+				USING BTREE"
+			);
+		}
+		
+		LoggingService::log( 'Added database constraints and indexes for v1.3.0' );
 	}
 
 	/**

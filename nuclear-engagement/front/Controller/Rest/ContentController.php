@@ -121,7 +121,8 @@ class ContentController {
 
 		} catch ( \InvalidArgumentException $e ) {
 					\NuclearEngagement\Services\LoggingService::log_exception( $e );
-					return new \WP_Error( 'ne_invalid', $e->getMessage(), array( 'status' => 400 ) );
+					// Use generic error message to avoid exposing internal details
+					return new \WP_Error( 'ne_invalid', __( 'Invalid request data provided', 'nuclear-engagement' ), array( 'status' => 400 ) );
 		} catch ( \Throwable $e ) {
 				\NuclearEngagement\Services\LoggingService::log_exception( $e );
 				return new \WP_Error( 'ne_error', __( 'An error occurred', 'nuclear-engagement' ), array( 'status' => 500 ) );

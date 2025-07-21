@@ -105,29 +105,121 @@ final class BackgroundProcessor {
 	 * Process queued jobs.
 	 */
 	public static function process_jobs(): void {
-		// Prevent overlapping job processing.
-		$lock_key   = 'nuclen_job_processing_lock';
-		$lock_value = time();
+		// Check memory before starting
+		if ( PerformanceMonitor::isMemoryUsageHigh( 70.0 ) ) {
+			\NuclearEngagement\Services\LoggingService::log(
+				sprintf(
+					'Skipping job processing due to high memory usage: %s / %s (%.1f%%)',
+					size_format( memory_get_usage( true ) ),
+					size_format( PerformanceMonitor::getMemoryUsage()['limit'] ),
+					PerformanceMonitor::getMemoryUsage()['percentage']
+				),
+				'warning'
+			);
+			return;
+		}
 
-		if ( ! self::acquire_lock( $lock_key, $lock_value ) ) {
+		// Prevent overlapping job processing with distributed lock.
+		$lock_name = 'job_processing';
+		$lock_value = wp_generate_uuid4();
+
+		// Use distributed lock for multi-server support
+		if ( ! DistributedLock::acquire( $lock_name, $lock_value, 300 ) ) {
+			// Check if lock is stale
+			$lock_info = DistributedLock::get_info( $lock_name );
+			if ( $lock_info && $lock_info['is_expired'] ) {
+				\NuclearEngagement\Services\LoggingService::log(
+					sprintf(
+						'Stale job processing lock detected from server %s, attempting takeover',
+						$lock_info['server'] ?? 'unknown'
+					)
+				);
+			}
 			return;
 		}
 
 		try {
 			$jobs      = JobQueue::get_ready_jobs();
 			$processed = 0;
+			
+			// Dynamically adjust concurrent jobs based on memory
+			$max_jobs = self::calculate_max_concurrent_jobs();
 
 			foreach ( $jobs as $job ) {
-				if ( $processed >= self::MAX_CONCURRENT_JOBS ) {
+				if ( $processed >= $max_jobs ) {
 					break;
 				}
 
-				JobHandler::process_job( $job );
+				// Check memory before each job
+				if ( PerformanceMonitor::isMemoryUsageHigh( 80.0 ) ) {
+					\NuclearEngagement\Services\LoggingService::log(
+						sprintf(
+							'Stopping job processing due to memory limit: %s / %s (%.1f%%)',
+							size_format( memory_get_usage( true ) ),
+							size_format( PerformanceMonitor::getMemoryUsage()['limit'] ),
+							PerformanceMonitor::getMemoryUsage()['percentage']
+						),
+						'warning'
+					);
+					break;
+				}
+
+				// Monitor job memory usage
+				PerformanceMonitor::start( 'job_' . $job['id'] );
+				
+				try {
+					JobHandler::process_job( $job );
+				} finally {
+					PerformanceMonitor::stop( 'job_' . $job['id'] );
+					
+					// Log memory usage for this job
+					$metrics = PerformanceMonitor::getMetrics( 'job_' . $job['id'] );
+					if ( $metrics && $metrics['memory_usage'] > 10 * 1024 * 1024 ) { // More than 10MB
+						\NuclearEngagement\Services\LoggingService::log(
+							sprintf(
+								'Job %s used significant memory: %s',
+								$job['id'],
+								size_format( $metrics['memory_usage'] )
+							)
+						);
+					}
+				}
+				
 				++$processed;
+				
+				// Force garbage collection after memory-intensive jobs
+				if ( $metrics && $metrics['memory_usage'] > 50 * 1024 * 1024 ) { // More than 50MB
+					if ( function_exists( 'gc_collect_cycles' ) ) {
+						gc_collect_cycles();
+					}
+				}
 			}
 		} finally {
-			self::release_lock( $lock_key, $lock_value );
+			DistributedLock::release( $lock_name, $lock_value );
 		}
+	}
+
+	/**
+	 * Calculate maximum concurrent jobs based on available memory.
+	 *
+	 * @return int Maximum number of concurrent jobs.
+	 */
+	private static function calculate_max_concurrent_jobs(): int {
+		$memory_usage = PerformanceMonitor::getMemoryUsage();
+		
+		// If unlimited memory, use default
+		if ( $memory_usage['limit'] < 0 ) {
+			return self::MAX_CONCURRENT_JOBS;
+		}
+		
+		// Reduce concurrent jobs if memory usage is high
+		if ( $memory_usage['percentage'] > 60 ) {
+			return 1;
+		} elseif ( $memory_usage['percentage'] > 40 ) {
+			return 2;
+		}
+		
+		return self::MAX_CONCURRENT_JOBS;
 	}
 
 	/**
@@ -150,36 +242,6 @@ final class BackgroundProcessor {
 		return JobQueue::get_statistics();
 	}
 
-	/**
-	 * Acquire processing lock.
-	 *
-	 * @param string $key   Lock key.
-	 * @param mixed  $value Lock value.
-	 * @return bool Whether lock was acquired.
-	 */
-	private static function acquire_lock( string $key, $value ): bool {
-		$existing = get_transient( $key );
-
-		if ( $existing && ( time() - $existing ) < 300 ) { // 5 minute lock.
-			return false;
-		}
-
-		return set_transient( $key, $value, 300 );
-	}
-
-	/**
-	 * Release processing lock.
-	 *
-	 * @param string $key   Lock key.
-	 * @param mixed  $value Lock value.
-	 */
-	private static function release_lock( string $key, $value ): void {
-		$existing = get_transient( $key );
-
-		if ( $existing === $value ) {
-			delete_transient( $key );
-		}
-	}
 }
 
 /**

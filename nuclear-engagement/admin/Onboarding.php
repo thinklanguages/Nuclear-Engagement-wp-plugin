@@ -77,8 +77,12 @@ class Onboarding {
 		$current_user_id = get_current_user_id();
 		$undismissed     = array();
 
+		// Fetch all user meta at once to avoid N+1 queries
+		$all_user_meta = get_user_meta( $current_user_id );
+		
 		foreach ( $pointers_for_this_page as $ptr ) {
-			$dismissed = get_user_meta( $current_user_id, 'nuclen_pointer_dismissed_' . $ptr['id'], true );
+			$meta_key = 'nuclen_pointer_dismissed_' . $ptr['id'];
+			$dismissed = isset( $all_user_meta[ $meta_key ] ) && $all_user_meta[ $meta_key ][0];
 			if ( ! $dismissed ) {
 				$undismissed[] = $ptr;
 			}

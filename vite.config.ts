@@ -53,8 +53,12 @@ export default defineConfig({
         },
 
         // If you have dynamic imports or code-splitting, place those chunks here:
-        chunkFileNames: (_chunkInfo) => {
-          // Place chunks at the root level for easier resolution
+        chunkFileNames: (chunkInfo) => {
+          // Place quiz chunks in the front/js directory for consistency
+          if (chunkInfo.name.includes('quiz')) {
+            return 'front/js/nuclen-[name]-[hash].js';
+          }
+          // Place other chunks at the root level for easier resolution
           return '[name]-[hash].js';
         },
         

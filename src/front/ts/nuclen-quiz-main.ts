@@ -15,12 +15,7 @@ import type {
 	NuclenSettings as NuclenSettingsType,
 } from './nuclen-quiz-types';
 import { escapeHtml } from './nuclen-quiz-utils';
-import {
-	QuizUIRefs,
-	QuizState,
-	renderFinal,
-	renderOptinBeforeResultsFlow,
-} from './nuclen-quiz-results';
+import type { QuizUIRefs, QuizState } from './nuclen-quiz-results';
 import * as logger from './logger';
 import { renderQuestion } from './nuclen-quiz-question';
 
@@ -89,10 +84,32 @@ export function initQuiz(): void {
 	};
 
 	const state: QuizState = { currIdx: 0, score: 0, userAnswers: [] };
+	
+	// Store event listener reference for cleanup
+	const nextBtnClickHandler = showNext;
 
 	/* Start */
-	nextBtn.addEventListener('click', showNext);
+	nextBtn.addEventListener('click', nextBtnClickHandler);
 	renderQuestion(questions, state, ui, checkAnswer);
+	
+	// Cleanup function for page navigation
+	const cleanup = () => {
+		nextBtn.removeEventListener('click', nextBtnClickHandler);
+		// Clean up global functions
+		if (window.nuclearEngagementShowQuizQuestionDetails) {
+			delete window.nuclearEngagementShowQuizQuestionDetails;
+		}
+		if (window.nuclearEngagementRetakeQuiz) {
+			delete window.nuclearEngagementRetakeQuiz;
+		}
+	};
+	
+	// Listen for page navigation to cleanup
+	if ('onpagehide' in window) {
+		window.addEventListener('pagehide', cleanup);
+	} else {
+		window.addEventListener('beforeunload', cleanup);
+	}
 
 
 	/* ───────────────────────────────────────────────────────────
@@ -135,13 +152,18 @@ export function initQuiz(): void {
 			return quizContainer!.scrollIntoView();
 		}
 
-		const finalCb = () =>
+		const finalCb = async () => {
+			const { renderFinal } = await import('./nuclen-quiz-results');
 			renderFinal(ui, optin, questions, state, () =>
 				renderQuestion(questions, state, ui, checkAnswer),
 			);
+		};
 
 		if (optin.enabled && optin.position === 'before_results') {
-			return renderOptinBeforeResultsFlow(ui, optin, finalCb);
+			import('./nuclen-quiz-results').then(({ renderOptinBeforeResultsFlow }) => {
+				renderOptinBeforeResultsFlow(ui, optin, finalCb);
+			});
+			return;
 		}
 		finalCb();
 	}

@@ -25,7 +25,9 @@ class TaskTimeoutHandler extends BaseService {
 	 */
 	private const DEFAULT_TIMEOUTS = array(
 		'pending'    => 1800,      // 30 minutes for pending tasks
-		'processing' => 3600,   // 1 hour for processing tasks
+		'scheduled'  => 1800,      // 30 minutes for scheduled tasks
+		'running'    => 3600,      // 1 hour for running tasks
+		'processing' => 3600,      // 1 hour for processing tasks (legacy)
 		'polling'    => 1800,      // 30 minutes for polling operations
 	);
 
@@ -76,7 +78,7 @@ class TaskTimeoutHandler extends BaseService {
 	 * Check for timed out tasks
 	 */
 	public function check_timeouts(): void {
-		LoggingService::log( '[TaskTimeoutHandler] Starting timeout check' );
+		// Start timeout check silently
 
 		$timed_out_count = 0;
 
@@ -88,8 +90,14 @@ class TaskTimeoutHandler extends BaseService {
 
 		// Clean up old timeout records
 		$this->cleanup_old_records();
+		
+		// Check for stuck tasks (tasks showing as processing but all batches are complete)
+		$this->check_stuck_tasks();
 
-		LoggingService::log( sprintf( '[TaskTimeoutHandler] Timeout check complete. Found %d timed out tasks', $timed_out_count ) );
+		// Only log if tasks were found
+		if ( $timed_out_count > 0 ) {
+			LoggingService::log( sprintf( '[TaskTimeoutHandler] Found %d timed out tasks', $timed_out_count ) );
+		}
 	}
 
 	/**
@@ -488,8 +496,22 @@ class TaskTimeoutHandler extends BaseService {
 			}
 		}
 
-		LoggingService::log( sprintf( '[TaskTimeoutHandler] Force expired %d stuck tasks older than %d hours', $count, $age_hours ) );
+		if ( $count > 0 ) {
+			LoggingService::log( sprintf( '[TaskTimeoutHandler] Force expired %d stuck tasks older than %d hours', $count, $age_hours ) );
+		}
 
 		return $count;
+	}
+	
+	/**
+	 * Check for stuck tasks and trigger recovery
+	 */
+	private function check_stuck_tasks(): void {
+		$container = \NuclearEngagement\Core\ServiceContainer::getInstance();
+		
+		if ( $container->has( 'bulk_generation_batch_processor' ) ) {
+			$processor = $container->get( 'bulk_generation_batch_processor' );
+			$processor->check_and_recover_stuck_tasks();
+		}
 	}
 }

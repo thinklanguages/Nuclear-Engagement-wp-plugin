@@ -35,8 +35,7 @@ export function initRestart(elements: GeneratePageElements): void {
 		nuclenShowElement(elements.step1);
 		nuclenUpdateProgressBarStep(elements.stepBar1, 'current');
 		nuclenUpdateProgressBarStep(elements.stepBar2, 'todo');
-		nuclenUpdateProgressBarStep(elements.stepBar3, 'todo');
-		nuclenUpdateProgressBarStep(elements.stepBar4, 'todo');
+		// Removed step 3 & 4 updates - no longer needed
 	});
 }
 

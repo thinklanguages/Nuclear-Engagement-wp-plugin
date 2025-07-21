@@ -42,12 +42,14 @@ class LazyModuleLoader {
 		'quiz'    => array(
 			'class'        => 'NuclearEngagement\Modules\Quiz\QuizModule',
 			'hooks'        => array( 'init' ),
+			'admin_pages'  => array( 'post.php', 'post-new.php' ),
 			'shortcodes'   => array( 'nuclear-quiz' ),
 			'settings_key' => 'quiz_enabled',
 		),
 		'summary' => array(
 			'class'        => 'NuclearEngagement\Modules\Summary\SummaryModule',
 			'hooks'        => array( 'init' ),
+			'admin_pages'  => array( 'post.php', 'post-new.php' ),
 			'shortcodes'   => array( 'nuclear-summary' ),
 			'settings_key' => 'summary_enabled',
 		),
@@ -112,10 +114,10 @@ class LazyModuleLoader {
 
 		global $pagenow;
 
-		// Skip loading on post-new.php for better performance
-		if ( 'post-new.php' === $pagenow ) {
-			return;
-		}
+		// Don't skip loading on post-new.php - we need metaboxes there
+		// if ( 'post-new.php' === $pagenow ) {
+		// 	return;
+		// }
 
 		foreach ( self::$module_definitions as $module_id => $definition ) {
 			if ( isset( $definition['admin_pages'] ) &&

@@ -129,35 +129,42 @@ export function initStickyToc(): void {
 			});
 		};
 
+		// Debounce resize handler
+		let resizeTimeout: number | null = null;
 		const onResize = (): void => {
-			if (raf) {
-				window.cancelAnimationFrame(raf);
+			if (resizeTimeout !== null) {
+				clearTimeout(resizeTimeout);
 			}
-			raf = window.requestAnimationFrame(() => {
-				raf = null;
-				rect = wrapper.getBoundingClientRect();
-				originalLeft = rect.left;
-				originalWidth = rect.width;
-
-				const w = dataMax > 0 ? Math.min(originalWidth, dataMax) : originalWidth;
-
-				ph.style.width = `${w}px`;
-				ph.style.height = `${rect.height}px`;
-
-				if (isStuck) {
-					const h = availHeight();
-					applyStickyStyles(
-						wrapper,
-						toc,
-						ph,
-						calcLeft(w),
-						w,
-						h,
-						headerOffset,
-						rect.height,
-					);
+			resizeTimeout = window.setTimeout(() => {
+				if (raf) {
+					window.cancelAnimationFrame(raf);
 				}
-			});
+				raf = window.requestAnimationFrame(() => {
+					raf = null;
+					rect = wrapper.getBoundingClientRect();
+					originalLeft = rect.left;
+					originalWidth = rect.width;
+
+					const w = dataMax > 0 ? Math.min(originalWidth, dataMax) : originalWidth;
+
+					ph.style.width = `${w}px`;
+					ph.style.height = `${rect.height}px`;
+
+					if (isStuck) {
+						const h = availHeight();
+						applyStickyStyles(
+							wrapper,
+							toc,
+							ph,
+							calcLeft(w),
+							w,
+							h,
+							headerOffset,
+							rect.height,
+						);
+					}
+				});
+			}, 150); // 150ms debounce
 		};
 
 		window.addEventListener('scroll', onScroll, { passive: true });

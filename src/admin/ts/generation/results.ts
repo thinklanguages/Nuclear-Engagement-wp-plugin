@@ -24,7 +24,7 @@ export function nuclenAlertApiError(errMsg: string): void {
 		logger.log('Task cancelled - redirecting to tasks page');
 		displayError('Task has been cancelled. Redirecting to tasks page...');
 		setTimeout(() => {
-			const tasksUrl = `${window.nuclenAdminVars?.admin_url || '/wp-admin/'}admin.php?page=nuclear-engagement-tasks${generationId ? '&highlight=' + generationId : ''}`;
+			const tasksUrl = `${window.nuclenAdminVars?.admin_url || '/wp-admin/'}admin.php?page=nuclear-engagement-tasks`;
 			window.location.href = tasksUrl;
 		}, 2000);
 		return;
@@ -48,7 +48,7 @@ export function nuclenAlertApiError(errMsg: string): void {
 		
 		// Instead of showing a notice, redirect directly to tasks page
 		logger.log('Polling timeout/error detected - redirecting to tasks page');
-		const tasksUrl = `${window.nuclenAdminVars?.admin_url || '/wp-admin/'}admin.php?page=nuclear-engagement-tasks${generationId ? '&highlight=' + generationId : ''}`;
+		const tasksUrl = `${window.nuclenAdminVars?.admin_url || '/wp-admin/'}admin.php?page=nuclear-engagement-tasks`;
 		window.location.href = tasksUrl;
 		return;
 	}

@@ -46,7 +46,18 @@ trait RestTrait {
 			$storage->storeQuizData( $post_id, $quiz_data );
 			return true;
 		} catch ( \Throwable $e ) {
+				\NuclearEngagement\Services\LoggingService::log(
+					sprintf(
+						'[ERROR] Failed to store quiz data for post %d: %s',
+						$post_id,
+						$e->getMessage()
+					),
+					'error'
+				);
 				\NuclearEngagement\Services\LoggingService::log_exception( $e );
+				
+				// Fire action hook to allow error recovery or notification
+				do_action( 'nuclen_quiz_storage_failed', $post_id, $quiz_data, $e );
 				return false;
 		}
 	}
@@ -57,7 +68,19 @@ trait RestTrait {
 						$api       = $container->get( 'remote_api' );
 						return $api->send_posts_to_generate( $data_to_send );
 		} catch ( \RuntimeException $e ) {
+				$post_count = is_array( $data_to_send ) && isset( $data_to_send['posts'] ) ? count( $data_to_send['posts'] ) : 0;
+				\NuclearEngagement\Services\LoggingService::log(
+					sprintf(
+						'[ERROR] Failed to send %d posts to backend API: %s',
+						$post_count,
+						$e->getMessage()
+					),
+					'error'
+				);
 				\NuclearEngagement\Services\LoggingService::log_exception( $e );
+				
+				// Fire action hook to allow error recovery or retry
+				do_action( 'nuclen_api_send_failed', $data_to_send, $e );
 				return false;
 		}
 	}

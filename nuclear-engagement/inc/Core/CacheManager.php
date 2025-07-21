@@ -464,7 +464,8 @@ final class CacheManager {
 	 * @return string Prefixed key.
 	 */
 	private static function get_prefixed_key( string $key, string $group ): string {
-		return "nuclen_{$group}_{$key}";
+		// Use CacheUtils for secure key generation
+		return \NuclearEngagement\Utils\CacheUtils::generate_key( array( $group, $key ) );
 	}
 
 	/**

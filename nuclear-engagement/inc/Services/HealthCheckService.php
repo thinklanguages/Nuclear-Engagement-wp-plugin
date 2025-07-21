@@ -11,7 +11,6 @@ namespace NuclearEngagement\Services;
 
 use NuclearEngagement\Core\SettingsRepository;
 use NuclearEngagement\Services\CircuitBreakerService;
-use NuclearEngagement\Services\ErrorMetricsService;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -28,8 +27,6 @@ class HealthCheckService {
 	/** @var CircuitBreakerService */
 	private CircuitBreakerService $circuit_breaker_service;
 
-	/** @var ErrorMetricsService */
-	private ErrorMetricsService $error_metrics_service;
 
 	/** @var array */
 	private array $checks = array();
@@ -42,12 +39,10 @@ class HealthCheckService {
 
 	public function __construct(
 		SettingsRepository $settings,
-		CircuitBreakerService $circuit_breaker_service,
-		ErrorMetricsService $error_metrics_service
+		CircuitBreakerService $circuit_breaker_service
 	) {
 		$this->settings                = $settings;
 		$this->circuit_breaker_service = $circuit_breaker_service;
-		$this->error_metrics_service   = $error_metrics_service;
 		$this->register_default_checks();
 	}
 
@@ -124,9 +119,10 @@ class HealthCheckService {
 					$wpdb->prepare(
 						"SELECT COUNT(*) FROM $wpdb->options 
 					WHERE option_name LIKE %s 
-					AND option_value LIKE %s
+					AND (option_value LIKE %s OR option_value LIKE %s)
 					AND option_value LIKE %s",
 						'_transient_nuclen_batch_%',
+						'%"status":"running"%',
 						'%"status":"processing"%',
 						'%"updated_at":%'
 					)
@@ -139,9 +135,10 @@ class HealthCheckService {
 						$wpdb->prepare(
 							"SELECT option_value FROM $wpdb->options 
 						WHERE option_name LIKE %s 
-						AND option_value LIKE %s
+						AND (option_value LIKE %s OR option_value LIKE %s)
 						LIMIT 10",
 							'_transient_nuclen_batch_%',
+							'%"status":"running"%',
 							'%"status":"processing"%'
 						)
 					);
@@ -169,38 +166,6 @@ class HealthCheckService {
 			}
 		);
 
-		// Error rate check
-		$this->register_check(
-			'error_rate',
-			function () {
-				// Use the error metrics service for more detailed health status
-				$health_status = $this->error_metrics_service->get_health_status();
-
-				if ( ! $health_status['healthy'] ) {
-					// Determine severity based on alerts vs warnings
-					$status   = ! empty( $health_status['alerts'] ) ? 'error' : 'warning';
-					$messages = array_merge( $health_status['alerts'], $health_status['warnings'] );
-
-					return array(
-						'status'  => $status,
-						'message' => implode( '; ', $messages ),
-					);
-				}
-
-				// Get summary for additional context
-				$summary = $this->error_metrics_service->get_metrics_summary( 'hour' );
-
-				return array(
-					'status'  => 'ok',
-					'message' => sprintf(
-						'Error rate: %.1f%% (%d errors, %d recoveries)',
-						$summary['error_rate'] * 100,
-						$summary['total_errors'],
-						$summary['total_recoveries']
-					),
-				);
-			}
-		);
 
 		// Memory usage check
 		$this->register_check(
@@ -397,8 +362,8 @@ class HealthCheckService {
 	 * @return \WP_REST_Response
 	 */
 	public static function rest_health_check( \WP_REST_Request $request ): \WP_REST_Response {
-		$settings       = SettingsRepository::get_instance();
-		$health_service = new self( $settings );
+		$container = \NuclearEngagement\Core\ServiceContainer::getInstance();
+		$health_service = $container->get( 'health_check_service' );
 
 		$use_cache = $request->get_param( 'refresh' ) !== '1';
 		$results   = $health_service->run_checks( $use_cache );
@@ -414,8 +379,8 @@ class HealthCheckService {
 			return;
 		}
 
-		$settings       = SettingsRepository::get_instance();
-		$health_service = new self( $settings );
+		$container = \NuclearEngagement\Core\ServiceContainer::getInstance();
+		$health_service = $container->get( 'health_check_service' );
 		$status         = $health_service->get_status();
 
 		$icon  = '⬤';

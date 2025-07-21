@@ -33,12 +33,10 @@ $pagination       = $data['pagination'] ?? array();
 
 		<!-- Generation Tasks Section -->
 		<div class="nuclen-card">
-			<h2>
-				<?php esc_html_e( 'Generation Tasks', 'nuclear-engagement' ); ?>
-				<span class="dashicons dashicons-info-outline" 
-						style="font-size: 16px; vertical-align: middle; margin-left: 5px; cursor: help;" 
-						title="<?php esc_attr_e( 'Manage content generation tasks here. Click the Refresh button to see the latest status.', 'nuclear-engagement' ); ?>"></span>
-			</h2>
+			<h2><?php esc_html_e( 'Generation Tasks', 'nuclear-engagement' ); ?></h2>
+			<p style="margin-top: 5px; margin-bottom: 15px; color: #666;">
+				<?php esc_html_e( 'Here you can manage the content generation tasks. Allow for a few minutes per task to complete depending on the number of posts. Click the Refresh button to see the latest status.', 'nuclear-engagement' ); ?>
+			</p>
 			<div style="margin-bottom: 15px;">
 				<a href="<?php echo esc_url( add_query_arg( 'refresh', '1' ) ); ?>" class="button button-small">
 					<span class="dashicons dashicons-update" style="vertical-align: text-bottom;"></span>
@@ -53,6 +51,8 @@ $pagination       = $data['pagination'] ?? array();
 						<thead>
 							<tr>
 								<th><?php esc_html_e( 'Created At', 'nuclear-engagement' ); ?></th>
+								<th><?php esc_html_e( 'Scheduled At', 'nuclear-engagement' ); ?></th>
+								<th><?php esc_html_e( 'Action', 'nuclear-engagement' ); ?></th>
 								<th><?php esc_html_e( 'Type', 'nuclear-engagement' ); ?></th>
 								<th><?php esc_html_e( 'Status', 'nuclear-engagement' ); ?></th>
 								<th><?php esc_html_e( 'Progress', 'nuclear-engagement' ); ?></th>
@@ -74,11 +74,36 @@ $pagination       = $data['pagination'] ?? array();
 										}
 										?>
 									</td>
+									<td>
+										<?php
+										if ( ! empty( $task['scheduled_at'] ) && $task['scheduled_at'] > 0 ) {
+											$date_format = get_option( 'date_format' );
+											$time_format = get_option( 'time_format' );
+											echo esc_html( date_i18n( $date_format . ' ' . $time_format, $task['scheduled_at'] ) );
+										} else {
+											echo '';
+										}
+										?>
+									</td>
+									<td>
+										<?php
+										$action = $task['action'] ?? '';
+										$action_labels = array(
+											'single' => __( 'Single post', 'nuclear-engagement' ),
+											'bulk'   => __( 'Bulk', 'nuclear-engagement' ),
+											'manual' => __( 'Bulk', 'nuclear-engagement' ),  // 'manual' is displayed as 'Bulk'
+											'auto'   => __( 'Auto on publish', 'nuclear-engagement' ),
+										);
+										echo esc_html( $action_labels[ $action ] ?? '' );
+										?>
+									</td>
 									<td><?php echo esc_html( ucfirst( $task['workflow_type'] ?? 'unknown' ) ); ?></td>
 									<td class="column-status">
 										<?php
 										$status_labels = array(
 											'pending'    => __( 'Pending', 'nuclear-engagement' ),
+											'scheduled'  => __( 'Scheduled', 'nuclear-engagement' ),
+											'running'    => __( 'Running', 'nuclear-engagement' ),
 											'processing' => __( 'Processing', 'nuclear-engagement' ),
 											'completed'  => __( 'Completed', 'nuclear-engagement' ),
 											'completed_with_errors' => __( 'Completed with Errors', 'nuclear-engagement' ),
@@ -89,6 +114,12 @@ $pagination       = $data['pagination'] ?? array();
 										switch ( $task['status'] ) {
 											case 'completed':
 												$status_class = 'nuclen-badge-success';
+												break;
+											case 'scheduled':
+												$status_class = 'nuclen-badge-warning';
+												break;
+											case 'running':
+												$status_class = 'nuclen-badge-info';
 												break;
 											case 'processing':
 												$status_class = 'nuclen-badge-info';
@@ -125,7 +156,7 @@ $pagination       = $data['pagination'] ?? array();
 										<?php endif; ?>
 									</td>
 									<td class="nuclen-task-actions column-actions">
-										<?php if ( $task['status'] === 'pending' ) : ?>
+										<?php if ( $task['status'] === 'pending' || $task['status'] === 'scheduled' ) : ?>
 											<button type="button" 
 													class="button button-small nuclen-run-now" 
 													data-task-id="<?php echo esc_attr( $task['id'] ); ?>"
@@ -138,7 +169,7 @@ $pagination       = $data['pagination'] ?? array();
 													title="<?php esc_attr_e( 'Cancel this task', 'nuclear-engagement' ); ?>">
 												<?php esc_html_e( 'Cancel', 'nuclear-engagement' ); ?>
 											</button>
-										<?php elseif ( $task['status'] === 'processing' ) : ?>
+										<?php elseif ( $task['status'] === 'running' || $task['status'] === 'processing' ) : ?>
 											<span class="spinner is-active"></span>
 											<button type="button" 
 													class="button button-small nuclen-cancel" 

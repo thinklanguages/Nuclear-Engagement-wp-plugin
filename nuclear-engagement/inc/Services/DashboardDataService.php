@@ -106,7 +106,6 @@ class DashboardDataService {
 		$rows = $wpdb->get_results( $sql, ARRAY_A );
 
 		if ( ! empty( $wpdb->last_error ) ) {
-			LoggingService::log( 'Dashboard query error: ' . $wpdb->last_error );
 			return array();
 		}
 
@@ -163,7 +162,6 @@ class DashboardDataService {
 		$rows = $wpdb->get_results( $sql, ARRAY_A );
 
 		if ( ! empty( $wpdb->last_error ) ) {
-			LoggingService::log( 'Dashboard query error: ' . $wpdb->last_error );
 			return array();
 		}
 
@@ -202,10 +200,10 @@ class DashboardDataService {
 		$sql = $wpdb->prepare(
 			"SELECT COALESCE(t.term_id, 0) AS term_id,
 		 COALESCE(t.name, 'Uncategorized') AS cat_name,
-		 SUM(CASE WHEN pm_q.meta_id IS NULL THEN 0 ELSE 1 END) AS quiz_with,
-		 SUM(CASE WHEN pm_q.meta_id IS NULL THEN 1 ELSE 0 END) AS quiz_without,
-		 SUM(CASE WHEN pm_s.meta_id IS NULL THEN 0 ELSE 1 END) AS summary_with,
-		 SUM(CASE WHEN pm_s.meta_id IS NULL THEN 1 ELSE 0 END) AS summary_without
+		 COUNT(DISTINCT CASE WHEN pm_q.meta_id IS NOT NULL THEN p.ID END) AS quiz_with,
+		 COUNT(DISTINCT CASE WHEN pm_q.meta_id IS NULL THEN p.ID END) AS quiz_without,
+		 COUNT(DISTINCT CASE WHEN pm_s.meta_id IS NOT NULL THEN p.ID END) AS summary_with,
+		 COUNT(DISTINCT CASE WHEN pm_s.meta_id IS NULL THEN p.ID END) AS summary_without
 		FROM {$wpdb->posts} p
 		LEFT JOIN {$wpdb->term_relationships} tr ON tr.object_id = p.ID
 		LEFT JOIN {$wpdb->term_taxonomy}  tt ON tt.term_taxonomy_id = tr.term_taxonomy_id AND tt.taxonomy = 'category'
@@ -215,7 +213,7 @@ class DashboardDataService {
 		WHERE p.post_type  IN ($placeholders_pt)
 		AND p.post_status IN ($placeholders_st)
 		GROUP BY COALESCE(t.term_id, 0), COALESCE(t.name, 'Uncategorized')
-		ORDER BY SUM(CASE WHEN pm_q.meta_id IS NULL THEN 0 ELSE 1 END) + SUM(CASE WHEN pm_s.meta_id IS NULL THEN 0 ELSE 1 END) DESC
+		ORDER BY COUNT(DISTINCT CASE WHEN pm_q.meta_id IS NOT NULL THEN p.ID END) + COUNT(DISTINCT CASE WHEN pm_s.meta_id IS NOT NULL THEN p.ID END) DESC
 		LIMIT %d",
 			array_merge( $post_types, $statuses, array( $limit ) )
 		);
@@ -223,7 +221,6 @@ class DashboardDataService {
 		$rows = $wpdb->get_results( $sql, ARRAY_A );
 
 		if ( ! empty( $wpdb->last_error ) ) {
-			LoggingService::log( 'Category stats query error: ' . $wpdb->last_error );
 			return array();
 		}
 
@@ -301,16 +298,6 @@ class DashboardDataService {
 
 			$results = $wpdb->get_results( $sql );
 
-			// Debug logging
-			\NuclearEngagement\Services\LoggingService::log(
-				sprintf( 'DashboardDataService: SQL query: %s', $sql )
-			);
-			\NuclearEngagement\Services\LoggingService::log(
-				sprintf( 'DashboardDataService: Found %d bulk job transients', count( $results ) )
-			);
-
-			$results = $wpdb->get_results( $sql );
-
 			// Check for database errors
 			if ( ! empty( $wpdb->last_error ) ) {
 				LoggingService::log( 'DashboardDataService query error: ' . $wpdb->last_error );
@@ -333,20 +320,8 @@ class DashboardDataService {
 		foreach ( $results as $row ) {
 			$data = maybe_unserialize( $row->option_value );
 			if ( ! is_array( $data ) ) {
-				\NuclearEngagement\Services\LoggingService::log(
-					sprintf( 'DashboardDataService: Skipping non-array transient: %s', $row->option_name )
-				);
 				continue;
 			}
-
-			\NuclearEngagement\Services\LoggingService::log(
-				sprintf(
-					'DashboardDataService: Processing job from transient %s, status: %s, posts: %d',
-					$row->option_name,
-					$data['status'] ?? 'unknown',
-					$data['total_posts'] ?? 0
-				)
-			);
 
 			// Determine the status
 			$status = 'active';

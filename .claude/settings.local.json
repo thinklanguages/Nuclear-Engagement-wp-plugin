@@ -87,7 +87,9 @@
       "Bash(timeout 60 vendor/bin/phpunit:*)",
       "Bash(wp cron event:*)",
       "Bash(echo:*)",
-      "Bash(timeout 120 composer test)"
+      "Bash(timeout 120 composer test)",
+      "Bash(git checkout:*)",
+      "Bash(wp cache:*)"
     ],
     "deny": []
   }

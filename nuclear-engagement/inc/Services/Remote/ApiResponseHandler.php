@@ -37,7 +37,10 @@ class ApiResponseHandler {
 
 		$code = wp_remote_retrieve_response_code( $response );
 		$body = wp_remote_retrieve_body( $response );
-		LoggingService::log( "API response code: {$code}" );
+		// Only log error responses
+		if ( $code >= 400 ) {
+			LoggingService::log( "API error response code: {$code}" );
+		}
 
 		if ( 401 === $code || 403 === $code ) {
 			$auth = $this->handle_auth_error( $body, $code );

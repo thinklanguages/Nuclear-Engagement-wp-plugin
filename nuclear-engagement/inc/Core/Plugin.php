@@ -133,8 +133,16 @@ class Plugin {
 		/* ► Ensure OptinData hooks are registered */
 		OptinData::init();
 
-				( new ModuleLoader() )->load_all();
-			$this->loader = new Loader();
+		// Use lazy module loading for better performance.
+		if ( class_exists( 'NuclearEngagement\Core\LazyModuleLoader' ) ) {
+			\NuclearEngagement\Core\LazyModuleLoader::init();
+		}
+
+		// Also load modules using the regular loader to ensure metaboxes work
+		$module_loader = new ModuleLoader();
+		$module_loader->load_all();
+
+		$this->loader = new Loader();
 	}
 
 	/*

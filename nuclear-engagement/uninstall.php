@@ -83,10 +83,7 @@ if ( $delete_settings ) {
 	delete_option( 'nuclen_custom_css_version' );
 
 	// Additional plugin options that need cleanup.
-	delete_option( 'nuclen_error_tracking' );
 	delete_option( 'nuclen_rate_limits' );
-	delete_option( 'nuclen_error_analytics_report' );
-	delete_option( 'nuclen_error_analytics_reports' );
 	delete_option( 'nuclen_security_events' );
 	delete_option( 'nuclen_meta_migration_error' );
 	delete_option( 'nuclen_meta_migration_done' );
@@ -99,13 +96,26 @@ if ( $delete_settings ) {
 	// Clean up any remaining options with nuclen prefix.
 	global $wpdb;
 	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
-	$wpdb->query(
+	$result = $wpdb->query(
 		$wpdb->prepare(
 			"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s OR option_name LIKE %s",
 			'nuclen_%',
 			'_transient_nuclen_%'
 		)
 	);
+	
+	if ( $result === false ) {
+		// Log error but continue with uninstall process
+		if ( class_exists( '\NuclearEngagement\Services\LoggingService' ) ) {
+			\NuclearEngagement\Services\LoggingService::log(
+				sprintf( '[ERROR] Failed to delete plugin options during uninstall. Database error: %s', $wpdb->last_error ),
+				'error'
+			);
+		} else {
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+			error_log( 'Nuclear Engagement: Failed to delete plugin options during uninstall. Database error: ' . $wpdb->last_error );
+		}
+	}
 }
 
 // Remove log file if requested.
@@ -139,12 +149,26 @@ if ( $delete_settings || $delete_generated ) {
 		// Safely escape table name using WordPress standards.
 		$escaped_table = esc_sql( $table_name );
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.SchemaChange
-		$wpdb->query(
+		$result = $wpdb->query(
 			$wpdb->prepare(
 				'DROP TABLE IF EXISTS %i',
 				$table_name
 			)
 		);
+		
+		if ( $result === false ) {
+			// Log error but continue with uninstall process
+			if ( class_exists( '\NuclearEngagement\Services\LoggingService' ) ) {
+				\NuclearEngagement\Services\LoggingService::log(
+					sprintf( '[ERROR] Failed to drop table %s during uninstall. Database error: %s', $table_name, $wpdb->last_error ),
+					'error'
+				);
+			} else {
+				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+				error_log( 'Nuclear Engagement: Failed to drop table ' . $table_name . ' during uninstall. Database error: ' . $wpdb->last_error );
+			}
+			// Try to continue with option cleanup even if table drop failed
+		}
 
 		// Also clean up any related options.
 		delete_option( 'nuclen_optins_version' );

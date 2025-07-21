@@ -11,7 +11,7 @@ namespace NuclearEngagement\Core;
 
 use NuclearEngagement\Utils\CacheUtils;
 use NuclearEngagement\Utils\ValidationUtils;
-use NuclearEngagement\Core\UnifiedErrorHandler;
+use NuclearEngagement\Services\LoggingService;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -38,17 +38,12 @@ abstract class BaseService {
 	 */
 	protected int $cache_ttl = 3600;
 
-	/**
-	 * Error handler instance.
-	 */
-	protected UnifiedErrorHandler $error_handler;
 
 	/**
 	 * Constructor.
 	 */
 	public function __construct() {
 		$this->service_name  = $this->get_service_name();
-		$this->error_handler = UnifiedErrorHandler::get_instance();
 	}
 
 	/**
@@ -58,24 +53,6 @@ abstract class BaseService {
 	 */
 	abstract protected function get_service_name(): string;
 
-	/**
-	 * Handle errors consistently across services.
-	 *
-	 * @param string $message  Error message.
-	 * @param string $category Error category.
-	 * @param string $severity Error severity.
-	 * @param array  $context  Additional context.
-	 * @return bool Whether error was handled successfully.
-	 */
-	protected function handle_error(
-		string $message,
-		string $category = 'general',
-		string $severity = 'medium',
-		array $context = array()
-	): bool {
-		$context['service'] = $this->service_name;
-		return $this->error_handler->handle_error( $message, $category, $severity, $context );
-	}
 
 	/**
 	 * Get cached data with service-specific key.
@@ -143,17 +120,7 @@ abstract class BaseService {
 	protected function validate_input( array $data, array $rules ): ?array {
 		$validated = ValidationUtils::validate_batch( $data, $rules );
 
-		if ( $validated === null ) {
-			$this->handle_error(
-				'Input validation failed',
-				'validation',
-				'medium',
-				array(
-					'data_keys' => array_keys( $data ),
-					'rules'     => array_keys( $rules ),
-				)
-			);
-		}
+		// Return null on validation failure
 
 		return $validated;
 	}
@@ -172,11 +139,8 @@ abstract class BaseService {
 			// Check for WordPress database errors.
 			global $wpdb;
 			if ( $wpdb->last_error ) {
-				$this->handle_error(
-					"Database error in {$operation_name}: {$wpdb->last_error}",
-					'database',
-					'high',
-					array( 'operation' => $operation_name )
+				LoggingService::log(
+					"[{$this->service_name}] Database error in {$operation_name}: {$wpdb->last_error}"
 				);
 				return false;
 			}
@@ -184,16 +148,9 @@ abstract class BaseService {
 			return $result;
 
 		} catch ( \Throwable $e ) {
-			$this->handle_error(
-				"Exception in {$operation_name}: {$e->getMessage()}",
-				'database',
-				'high',
-				array(
-					'operation' => $operation_name,
-					'exception' => get_class( $e ),
-					'file'      => $e->getFile(),
-					'line'      => $e->getLine(),
-				)
+			LoggingService::log_exception( $e );
+			LoggingService::log(
+				"[{$this->service_name}] Exception in {$operation_name}: {$e->getMessage()}"
 			);
 			return false;
 		}
@@ -232,15 +189,6 @@ abstract class BaseService {
 	 */
 	protected function check_capability( string $capability = 'manage_options', int $user_id = 0 ): bool {
 		if ( ! ValidationUtils::validate_capability( $capability, $user_id ) ) {
-			$this->handle_error(
-				"Capability check failed: {$capability}",
-				'permissions',
-				'high',
-				array(
-					'capability' => $capability,
-					'user_id'    => $user_id ?: get_current_user_id(),
-				)
-			);
 			return false;
 		}
 
@@ -275,12 +223,6 @@ abstract class BaseService {
 		$post = get_post( $post_id );
 
 		if ( ! $post ) {
-			$this->handle_error(
-				"Post not found: {$post_id}",
-				'validation',
-				'medium',
-				array( 'post_id' => $post_id )
-			);
 			return null;
 		}
 
@@ -297,12 +239,6 @@ abstract class BaseService {
 		$user = get_user_by( 'id', $user_id );
 
 		if ( ! $user ) {
-			$this->handle_error(
-				"User not found: {$user_id}",
-				'validation',
-				'medium',
-				array( 'user_id' => $user_id )
-			);
 			return null;
 		}
 
@@ -356,7 +292,6 @@ abstract class BaseService {
 		return array(
 			'service_name' => $this->service_name,
 			'cache_ttl'    => $this->cache_ttl,
-			'error_stats'  => $this->error_handler->get_error_stats(),
 		);
 	}
 }

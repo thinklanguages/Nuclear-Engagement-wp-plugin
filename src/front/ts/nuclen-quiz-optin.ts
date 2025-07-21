@@ -39,15 +39,54 @@ export function mountOptinBeforeResults(
 	</div>`;
 
 	document.getElementById('nuclen-optin-submit')?.addEventListener('click', async () => {
-		const name  = (document.getElementById('nuclen-optin-name')  as HTMLInputElement).value.trim();
-		const email = (document.getElementById('nuclen-optin-email') as HTMLInputElement).value.trim();
-		if (!isValidEmail(email)) return alert('Please enter a valid email');
-		await storeOptinLocally(name, email, window.location.href, ctx);
+		const submitBtn = document.getElementById('nuclen-optin-submit') as HTMLButtonElement;
+		const nameInput = document.getElementById('nuclen-optin-name') as HTMLInputElement;
+		const emailInput = document.getElementById('nuclen-optin-email') as HTMLInputElement;
+		
+		const name = nameInput.value.trim();
+		const email = emailInput.value.trim();
+		
+		// Clear previous error states
+		nameInput.classList.remove('nuclen-error');
+		emailInput.classList.remove('nuclen-error');
+		
+		// Validation
+		if (!name) {
+			nameInput.classList.add('nuclen-error');
+			nameInput.focus();
+			return;
+		}
+		
+		if (!isValidEmail(email)) {
+			emailInput.classList.add('nuclen-error');
+			emailInput.focus();
+			return;
+		}
+		
+		// Disable button and show loading state
+		submitBtn.disabled = true;
+		const originalText = submitBtn.textContent;
+		submitBtn.textContent = 'Submitting...';
+		
 		try {
+			await storeOptinLocally(name, email, window.location.href, ctx);
 			await submitToWebhook(name, email, ctx);
 			onComplete();
-		} catch {
-			alert('Network error – please try again later.');
+		} catch (error) {
+			console.error('[Optin] Submission error:', error);
+			
+			// Show user-friendly error message
+			const errorMsg = document.createElement('div');
+			errorMsg.className = 'nuclen-error-message';
+			errorMsg.textContent = 'Unable to submit. Please check your connection and try again.';
+			submitBtn.parentElement?.appendChild(errorMsg);
+			
+			// Remove error message after 5 seconds
+			setTimeout(() => errorMsg.remove(), 5000);
+			
+			// Re-enable button
+			submitBtn.disabled = false;
+			submitBtn.textContent = originalText || ctx.submitLabel;
 		}
 	});
 
@@ -59,14 +98,61 @@ export function mountOptinBeforeResults(
 
 export function attachInlineOptinHandlers(ctx: OptinContext): void {
 	document.getElementById('nuclen-optin-submit')?.addEventListener('click', async () => {
-		const name  = (document.getElementById('nuclen-optin-name')  as HTMLInputElement).value.trim();
-		const email = (document.getElementById('nuclen-optin-email') as HTMLInputElement).value.trim();
-		if (!isValidEmail(email)) return alert('Please enter a valid email');
-		await storeOptinLocally(name, email, window.location.href, ctx);
+		const submitBtn = document.getElementById('nuclen-optin-submit') as HTMLButtonElement;
+		const nameInput = document.getElementById('nuclen-optin-name') as HTMLInputElement;
+		const emailInput = document.getElementById('nuclen-optin-email') as HTMLInputElement;
+		
+		const name = nameInput.value.trim();
+		const email = emailInput.value.trim();
+		
+		// Clear previous error states
+		nameInput.classList.remove('nuclen-error');
+		emailInput.classList.remove('nuclen-error');
+		
+		// Validation
+		if (!name) {
+			nameInput.classList.add('nuclen-error');
+			nameInput.focus();
+			return;
+		}
+		
+		if (!isValidEmail(email)) {
+			emailInput.classList.add('nuclen-error');
+			emailInput.focus();
+			return;
+		}
+		
+		// Disable button and show loading state
+		submitBtn.disabled = true;
+		const originalText = submitBtn.textContent;
+		submitBtn.textContent = 'Submitting...';
+		
 		try {
+			await storeOptinLocally(name, email, window.location.href, ctx);
 			await submitToWebhook(name, email, ctx);
-		} catch {
-			alert('Unable to submit. Please try later.');
+			
+			// Show success message if configured
+			if (ctx.successMessage) {
+				const successMsg = document.createElement('div');
+				successMsg.className = 'nuclen-success-message';
+				successMsg.textContent = ctx.successMessage;
+				submitBtn.parentElement?.appendChild(successMsg);
+			}
+		} catch (error) {
+			console.error('[Optin] Submission error:', error);
+			
+			// Show user-friendly error message
+			const errorMsg = document.createElement('div');
+			errorMsg.className = 'nuclen-error-message';
+			errorMsg.textContent = 'Unable to submit. Please check your connection and try again.';
+			submitBtn.parentElement?.appendChild(errorMsg);
+			
+			// Remove error message after 5 seconds
+			setTimeout(() => errorMsg.remove(), 5000);
+			
+			// Re-enable button
+			submitBtn.disabled = false;
+			submitBtn.textContent = originalText || ctx.submitLabel;
 		}
 	});
 }

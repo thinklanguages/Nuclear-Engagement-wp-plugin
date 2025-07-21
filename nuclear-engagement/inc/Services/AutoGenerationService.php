@@ -168,18 +168,7 @@ class AutoGenerationService {
 	 * @param int    $attempt  Current attempt number
 	 */
 	public function poll_generation( string $generation_id, string $workflow_type, array $post_ids, int $attempt ): void {
-		\NuclearEngagement\Services\LoggingService::log(
-			sprintf(
-				'INFO: Polling generation status - ID: %s | Type: %s | Posts: %d (%s) | Attempt: %d/%d | Memory: %.2fMB',
-				$generation_id,
-				$workflow_type,
-				count( $post_ids ),
-				count( $post_ids ) > 5 ? implode( ',', array_slice( $post_ids, 0, 5 ) ) . '...' : implode( ',', $post_ids ),
-				$attempt,
-				$this->max_poll_attempts,
-				memory_get_usage( true ) / 1048576
-			)
-		);
+		// Polling generation status
 		$this->scheduler->poll_generation( $generation_id, $workflow_type, $post_ids, $attempt );
 	}
 

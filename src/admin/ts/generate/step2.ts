@@ -1,13 +1,13 @@
 import {
 	NuclenStartGeneration,
-	NuclenPollAndPullUpdates,
+	// NuclenPollAndPullUpdates, // Commented out - polling disabled for now
 } from '../nuclen-admin-generate';
 import type {
 	StartGenerationResponse,
-	PollingUpdateData,
+	// PollingUpdateData, // Commented out - polling disabled for now
 } from '../generation/api';
 import {
-	nuclenShowElement,
+	// nuclenShowElement, // Commented out - not needed anymore
 	nuclenHideElement,
 	nuclenUpdateProgressBarStep,
 } from './generate-page-utils';
@@ -17,63 +17,39 @@ import {
 	nuclenAlertApiError,
 } from '../generation/results';
 import { displayError } from '../utils/displayError';
+import { displaySuccess, displayPageMessage } from '../utils/displaySuccess';
 
 // Store active polling cleanup function
 let activePollingCleanup: (() => void) | null = null;
 
 // Function removed - results are stored by backend during polling
-
-function updateCompletionUi(
-	elements: GeneratePageElements,
-	failCount: number | undefined,
-	finalReport: { message?: string } | undefined,
-): void {
-	if (elements.updatesContent) {
-		// Disabled for now - will be re-enabled later
-		// if (failCount && finalReport) {
-		// 	elements.updatesContent.innerText = `Some posts failed. ${finalReport.message || ''}`;
-		// 	nuclenUpdateProgressBarStep(elements.stepBar4, 'failed');
-		// } else {
-		// 	elements.updatesContent.innerText = 'All posts processed successfully! Your content has been saved.';
-		// 	nuclenUpdateProgressBarStep(elements.stepBar4, 'done');
-		// }
-		// Keep progress bar updates but clear the text
-		elements.updatesContent.innerText = '';
-		if (failCount && finalReport) {
-			nuclenUpdateProgressBarStep(elements.stepBar4, 'failed');
-		} else {
-			nuclenUpdateProgressBarStep(elements.stepBar4, 'done');
-		}
-	}
-	if (elements.submitBtn) {
-		elements.submitBtn.disabled = false;
-	}
-	nuclenShowElement(elements.restartBtn);
-}
+// This function is no longer needed since we're redirecting to tasks page
 
 export function initStep2(elements: GeneratePageElements): void {
 	elements.generateForm?.addEventListener('submit', async (event) => {
 		event.preventDefault();
 		
-		// Clean up any existing polling
+		// Clean up any existing polling - commented out since polling is disabled
+		/*
 		if (activePollingCleanup) {
 			activePollingCleanup();
 			activePollingCleanup = null;
 		}
+		*/
 		if (!window.nuclenAdminVars || !window.nuclenAdminVars.ajax_url) {
 			displayError('Error: WP Ajax config not found. Please check the plugin settings.');
 			return;
 		}
 		nuclenUpdateProgressBarStep(elements.stepBar2, 'done');
-		nuclenUpdateProgressBarStep(elements.stepBar3, 'current');
-		nuclenShowElement(elements.updatesSection);
-		if (elements.updatesContent) {
-			elements.updatesContent.innerHTML = `<span class="spinner is-active"></span><b>Processing posts... this can take a few minutes.</b> Stay on this page to see progress updates in real time. Or else, you can safely leave this page - generation will continue in the background. You can track progress on the tasks page. The generated content will be available in the post editor and on the frontend when the process is complete.`;
-		}
+		// Remove step 3 & 4 - no longer showing real-time progress
 		nuclenHideElement(elements.step2);
 		if (elements.submitBtn) {
 			elements.submitBtn.disabled = true;
+			elements.submitBtn.innerHTML = '<span class="spinner is-active" style="float: none; margin: 0 8px 0 0;"></span>Starting generation...';
 		}
+		
+		// Show loading message in the page
+		displayPageMessage('Starting content generation...', 'info');
 		try {
 			const formDataObj = Object.fromEntries(new FormData(elements.generateForm!).entries());
 			const startResp: StartGenerationResponse = await NuclenStartGeneration(
@@ -97,6 +73,21 @@ export function initStep2(elements: GeneratePageElements): void {
 				error('Generation ID not found in response, using fallback');
 				generationId = 'gen_' + Math.random().toString(36).substring(2);
 			}
+			
+			// Show success message in the page
+			displayPageMessage('✅ Generation task started successfully! Content is being generated in the background.', 'success');
+			
+			// Also show a success toast
+			displaySuccess('Redirecting to tasks page in a moment...');
+			
+			// Redirect to tasks page after 3 seconds
+			setTimeout(() => {
+				const tasksUrl = `${window.nuclenAdminVars?.admin_url || '/wp-admin/'}admin.php?page=nuclear-engagement-tasks`;
+				window.location.href = tasksUrl;
+			}, 3000);
+			
+			// Comment out the polling code for later use
+			/*
 			activePollingCleanup = NuclenPollAndPullUpdates({
 				intervalMs: 5000,
 				generationId,
@@ -126,7 +117,7 @@ export function initStep2(elements: GeneratePageElements): void {
 					if (errMsg.startsWith('polling-timeout:') || errMsg.startsWith('polling-error:')) {
 						const generationId = errMsg.split(':')[1];
 						// Redirect to tasks page
-						window.location.href = `${window.nuclenAdminVars?.admin_url || '/wp-admin/'}admin.php?page=nuclear-engagement-tasks&highlight=${generationId}`;
+						window.location.href = `${window.nuclenAdminVars?.admin_url || '/wp-admin/'}admin.php?page=nuclear-engagement-tasks`;
 					} else {
 						// Handle other errors as failures
 						nuclenUpdateProgressBarStep(elements.stepBar3, 'failed');
@@ -143,22 +134,25 @@ export function initStep2(elements: GeneratePageElements): void {
 					}
 				},
 			});
+			*/
 		} catch (error: unknown) {
-			nuclenUpdateProgressBarStep(elements.stepBar3, 'failed');
+			// Handle error without step 3 references
 			const message = error instanceof Error ? error.message : 'Unknown error';
 			nuclenAlertApiError(message);
 			if (elements.submitBtn) {
 				elements.submitBtn.disabled = false;
 			}
-			nuclenShowElement(elements.restartBtn);
+			// Don't show restart button since we're redirecting
 		}
 	});
 	
-	// Clean up active polling when page unloads
+	// Clean up active polling when page unloads - commented out since polling is disabled
+	/*
 	window.addEventListener('beforeunload', () => {
 		if (activePollingCleanup) {
 			activePollingCleanup();
 			activePollingCleanup = null;
 		}
 	});
+	*/
 }

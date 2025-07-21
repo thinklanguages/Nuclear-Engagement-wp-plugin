@@ -83,7 +83,30 @@ const mutationObs = new MutationObserver((_mutations, obs) => {
 });
 mutationObs.observe(document.body, { childList: true, subtree: true });
 
+// Ensure observer is disconnected on page navigation
+const cleanupObserver = () => {
+	mutationObs.disconnect();
+};
+
+if ('onpagehide' in window) {
+	window.addEventListener('pagehide', cleanupObserver);
+} else {
+	window.addEventListener('beforeunload', cleanupObserver);
+}
+
 /**
-	 * 2d) Immediately call lazy-loading for the quiz container, telling it to run nuclearEngagementInitQuiz() once in view.
+	 * 2d) Set up dynamic quiz loading
+	 */
+window.nuclearEngagementInitQuiz = async () => {
+	try {
+		const { initQuiz } = await import('./nuclen-quiz-main');
+		initQuiz();
+	} catch (error) {
+		console.error('Failed to load quiz module:', error);
+	}
+};
+
+/**
+	 * 2e) Immediately call lazy-loading for the quiz container, telling it to run nuclearEngagementInitQuiz() once in view.
 	 */
 window.NuclenLazyLoadComponent('nuclen-quiz-container', 'nuclearEngagementInitQuiz');

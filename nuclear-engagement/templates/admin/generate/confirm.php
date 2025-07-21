@@ -19,6 +19,7 @@
 			<input type="hidden" name="nuclen_selected_summary_number_of_items" id="nuclen_selected_summary_number_of_items" />
 			<input type="hidden" name="nuclen_selected_post_status" id="nuclen_selected_post_status" />
 			<input type="hidden" name="nuclen_selected_post_type" id="nuclen_selected_post_type" />
+			<input type="hidden" name="source" value="manual" />
 
 			<button type="submit" id="nuclen-submit-btn" class="button button-primary nuclen-button-primary">
 				<?php esc_html_e( 'Generate Content', 'nuclear-engagement' ); ?>

@@ -289,6 +289,7 @@ trait AdminAssets {
 				'security'             => wp_create_nonce( 'nuclen_admin_ajax_nonce' ),
 				'rest_nonce'           => wp_create_nonce( 'wp_rest' ),
 				'rest_receive_content' => rest_url( 'nuclear-engagement/v1/receive-content' ),
+				'stream_nonce'         => wp_create_nonce( 'nuclen_stream_nonce' ),
 			);
 		}
 
@@ -361,7 +362,7 @@ trait AdminAssets {
 
 		if ( null === $ajax_config ) {
 			$ajax_config = array(
-				'ajax_url'     => admin_url( 'admin-ajax.php' ),
+				'ajax_url'     => esc_url( admin_url( 'admin-ajax.php' ) ),
 				'fetch_action' => 'nuclen_fetch_app_updates',
 				'nonce'        => wp_create_nonce( 'nuclen_admin_ajax_nonce' ),
 			);
@@ -449,7 +450,7 @@ trait AdminAssets {
 				fetch(ajaxurl, {
 					method: 'POST',
 					headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-					body: 'action=nuclen_load_editor_assets&nonce=' + '<?php echo wp_create_nonce( 'nuclen_load_assets' ); ?>'
+					body: 'action=nuclen_load_editor_assets&nonce=' + '<?php echo esc_js( wp_create_nonce( 'nuclen_load_assets' ) ); ?>'
 				});
 			};
 			

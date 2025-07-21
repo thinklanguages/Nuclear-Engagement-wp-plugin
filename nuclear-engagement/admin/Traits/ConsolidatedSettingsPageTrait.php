@@ -86,7 +86,18 @@ trait ConsolidatedSettingsPageTrait {
 			return true;
 
 		} catch ( \Exception $e ) {
-			$this->add_admin_notice( 'Error saving settings: ' . $e->getMessage(), 'error' );
+			\NuclearEngagement\Services\LoggingService::log(
+				sprintf( '[ERROR] Settings save failed: %s', $e->getMessage() ),
+				'error'
+			);
+			\NuclearEngagement\Services\LoggingService::log_exception( $e );
+			
+			// Use generic error message to avoid exposing internal details
+			if ( $e instanceof \NuclearEngagement\Exceptions\UserFriendlyException ) {
+				$this->add_admin_notice( 'Error saving settings: ' . $e->getMessage(), 'error' );
+			} else {
+				$this->add_admin_notice( 'Error saving settings. Please check your input and try again.', 'error' );
+			}
 			return false;
 		}
 	}
@@ -399,15 +410,40 @@ trait ConsolidatedSettingsPageTrait {
 
 			// Write CSS file with atomic operation.
 			$temp_file = $css_file_path . '.tmp';
-			if ( file_put_contents( $temp_file, $css_content, LOCK_EX ) !== false ) {
-				return rename( $temp_file, $css_file_path );
+			$bytes_written = file_put_contents( $temp_file, $css_content, LOCK_EX );
+			
+			if ( $bytes_written === false ) {
+				\NuclearEngagement\Services\LoggingService::log(
+					sprintf( '[ERROR] Failed to write CSS temp file: %s', $temp_file ),
+					'error'
+				);
+				return false;
 			}
-
-			return false;
+			
+			if ( ! rename( $temp_file, $css_file_path ) ) {
+				\NuclearEngagement\Services\LoggingService::log(
+					sprintf( '[ERROR] Failed to rename CSS file from %s to %s', $temp_file, $css_file_path ),
+					'error'
+				);
+				// Clean up temp file
+				@unlink( $temp_file );
+				return false;
+			}
+			
+			\NuclearEngagement\Services\LoggingService::log(
+				sprintf( '[INFO] Successfully wrote CSS file: %s (%d bytes)', $css_file_path, $bytes_written )
+			);
+			return true;
 
 		} catch ( \Exception $e ) {
-			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-			error_log( 'Nuclear Engagement: CSS generation failed - ' . $e->getMessage() );
+			\NuclearEngagement\Services\LoggingService::log(
+				sprintf( '[ERROR] CSS generation failed: %s', $e->getMessage() ),
+				'error'
+			);
+			\NuclearEngagement\Services\LoggingService::log_exception( $e );
+			
+			// Fire action hook to allow error recovery
+			do_action( 'nuclen_css_generation_failed', $settings, $e );
 			return false;
 		}
 	}

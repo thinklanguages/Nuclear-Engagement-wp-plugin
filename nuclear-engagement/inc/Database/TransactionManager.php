@@ -59,19 +59,23 @@ class TransactionManager {
 
 			$this->in_transaction = true;
 		} else {
-			// Nested transaction - use savepoint
-			$savepoint = 'sp_' . $this->transaction_level;
-			$result    = $this->wpdb->query( "SAVEPOINT $savepoint" );
+			// Nested transaction - use savepoint with proper escaping
+			$savepoint_id = 'sp_' . intval( $this->transaction_level );
+			// Use backticks to escape identifier and validate format
+			if ( ! preg_match( '/^sp_\d+$/', $savepoint_id ) ) {
+				throw new DatabaseException( 'Invalid savepoint identifier format' );
+			}
+			$result = $this->wpdb->query( sprintf( 'SAVEPOINT `%s`', $savepoint_id ) );
 
 			if ( $result === false ) {
 				throw new DatabaseException(
 					'Failed to create savepoint',
 					$this->wpdb->last_error,
-					"SAVEPOINT $savepoint"
+					sprintf( 'SAVEPOINT `%s`', $savepoint_id )
 				);
 			}
 
-			$this->savepoints[] = $savepoint;
+			$this->savepoints[] = $savepoint_id;
 		}
 
 		++$this->transaction_level;
@@ -134,15 +138,19 @@ class TransactionManager {
 			$this->in_transaction = false;
 			$this->savepoints     = array();
 		} else {
-			// Rollback to savepoint
+			// Rollback to savepoint with proper escaping
 			$savepoint = array_pop( $this->savepoints );
-			$result    = $this->wpdb->query( "ROLLBACK TO SAVEPOINT $savepoint" );
+			// Validate savepoint format before using
+			if ( ! preg_match( '/^sp_\d+$/', $savepoint ) ) {
+				throw new DatabaseException( 'Invalid savepoint identifier format for rollback' );
+			}
+			$result = $this->wpdb->query( sprintf( 'ROLLBACK TO SAVEPOINT `%s`', $savepoint ) );
 
 			if ( $result === false ) {
 				throw new DatabaseException(
 					'Failed to rollback to savepoint',
 					$this->wpdb->last_error,
-					"ROLLBACK TO SAVEPOINT $savepoint"
+					sprintf( 'ROLLBACK TO SAVEPOINT `%s`', $savepoint )
 				);
 			}
 		}
@@ -188,7 +196,7 @@ class TransactionManager {
 							'Transaction rollback failed - Rollback error: %s | Original error: %s | Transaction level: %d',
 							$rollback_exception->getMessage(),
 							$e->getMessage(),
-							$this->savepoint_level
+							$this->transaction_level
 						)
 					);
 				}

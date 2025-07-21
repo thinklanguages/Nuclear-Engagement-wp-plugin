@@ -255,6 +255,12 @@ class Tasks {
 	 * Gather all task data
 	 */
 	private function gather_tasks_data(): array {
+		// Check and recover any stuck tasks before displaying
+		if ( $this->container->has( 'bulk_generation_batch_processor' ) ) {
+			$processor = $this->container->get( 'bulk_generation_batch_processor' );
+			$processor->check_and_recover_stuck_tasks();
+		}
+		
 		// Get current page
 		$current_page = isset( $_GET['paged'] ) ? max( 1, intval( $_GET['paged'] ) ) : 1;
 
@@ -373,9 +379,22 @@ class Tasks {
 				foreach ( $job_data['batch_jobs'] as $batch_job ) {
 					$batch_data = get_transient( 'nuclen_batch_' . $batch_job['batch_id'] );
 					if ( $batch_data ) {
-						if ( $batch_data['status'] === 'completed' ) {
+						// Use actual success/fail counts if available
+						if ( isset( $batch_data['success_count'] ) ) {
+							$processed += $batch_data['success_count'];
+						} elseif ( isset( $batch_data['results']['success_count'] ) ) {
+							$processed += $batch_data['results']['success_count'];
+						} elseif ( $batch_data['status'] === 'completed' ) {
+							// Fallback to post count if no specific counts available
 							$processed += $batch_job['post_count'];
+						}
+						
+						if ( isset( $batch_data['fail_count'] ) ) {
+							$failed += $batch_data['fail_count'];
+						} elseif ( isset( $batch_data['results']['fail_count'] ) ) {
+							$failed += $batch_data['results']['fail_count'];
 						} elseif ( $batch_data['status'] === 'failed' ) {
+							// Fallback to post count if no specific counts available
 							$failed += $batch_job['post_count'];
 						}
 					}
@@ -391,14 +410,16 @@ class Tasks {
 			$tasks[] = array(
 				'id'             => $generation_id,
 				'created_at'     => $job_data['created_at'] ?? 0,
+				'scheduled_at'   => $job_data['scheduled_at'] ?? null,
 				'workflow_type'  => $job_data['workflow_type'] ?? 'unknown',
 				'status'         => $job_data['status'] ?? 'unknown',
 				'total_posts'    => $total_posts,
 				'processed'      => $processed,
 				'failed'         => $failed,
 				'progress'       => $progress,
+				'action'         => $job_data['action'] ?? 'bulk',
 				'details'        => sprintf(
-					__( '%1$d of %2$d posts processed', 'nuclear-engagement' ),
+					__( '%1$d of %2$d posts successfully processed', 'nuclear-engagement' ),
 					$processed,
 					$total_posts
 				),
@@ -502,17 +523,19 @@ class Tasks {
 			'status'            => $task_data['status'] ?? 'pending',
 			'workflow_type'     => $task_data['workflow_type'] ?? 'unknown',
 			'priority'          => $task_data['priority'] ?? 'normal',
+			'action'            => $task_data['action'] ?? 'bulk',
 			'total_posts'       => $total_posts,
 			'processed'         => $processed,
 			'failed'            => $failed,
 			'progress'          => $progress,
 			'created_at'        => $task_data['created_at'] ?? null,
+			'scheduled_at'      => $task_data['scheduled_at'] ?? null,
 			'completed_at'      => $task_data['completed_at'] ?? null,
 			'completed_batches' => $task_data['completed_batches'] ?? 0,
 			'failed_batches'    => $task_data['failed_batches'] ?? 0,
 			'total_batches'     => $task_data['total_batches'] ?? 0,
 			'details'           => sprintf(
-				__( '%1$d of %2$d posts processed', 'nuclear-engagement' ),
+				__( '%1$d of %2$d posts successfully processed', 'nuclear-engagement' ),
 				$processed,
 				$total_posts
 			),

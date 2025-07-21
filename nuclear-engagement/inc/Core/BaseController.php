@@ -12,7 +12,6 @@ namespace NuclearEngagement\Core;
 use NuclearEngagement\Utils\ValidationUtils;
 use NuclearEngagement\Utils\ServerUtils;
 use NuclearEngagement\Security\RateLimiter;
-use NuclearEngagement\Core\UnifiedErrorHandler;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -34,17 +33,12 @@ abstract class BaseController {
 	 */
 	protected string $controller_name;
 
-	/**
-	 * Error handler instance.
-	 */
-	protected UnifiedErrorHandler $error_handler;
 
 	/**
 	 * Constructor.
 	 */
 	public function __construct() {
 		$this->controller_name = $this->get_controller_name();
-		$this->error_handler   = UnifiedErrorHandler::get_instance();
 	}
 
 	/**
@@ -84,11 +78,12 @@ abstract class BaseController {
 	 */
 	protected function send_error( string $message, int $code = 500, array $data = array() ): void {
 		// Log error.
-		$this->error_handler->handle_error(
-			"Controller error: {$message}",
-			'general',
-			$code >= 500 ? 'high' : 'medium',
-			array_merge( $data, array( 'controller' => $this->controller_name ) )
+		error_log(
+			sprintf(
+				'[Nuclear Engagement] Controller error in %s: %s',
+				$this->controller_name,
+				$message
+			)
 		);
 
 		status_header( $code );
@@ -197,13 +192,10 @@ abstract class BaseController {
 		$validated = ValidationUtils::validate_batch( $_POST, $rules );
 
 		if ( $validated === null ) {
-			$this->error_handler->handle_error(
-				'POST data validation failed',
-				'validation',
-				'medium',
-				array(
-					'controller' => $this->controller_name,
-					'rules'      => array_keys( $rules ),
+			error_log(
+				sprintf(
+					'[Nuclear Engagement] POST data validation failed in %s',
+					$this->controller_name
 				)
 			);
 		}
@@ -362,17 +354,12 @@ abstract class BaseController {
 			return call_user_func( $action );
 
 		} catch ( \Throwable $e ) {
-			$this->error_handler->handle_error(
-				"Controller action failed: {$action_name}",
-				'general',
-				'high',
-				array(
-					'controller' => $this->controller_name,
-					'action'     => $action_name,
-					'exception'  => get_class( $e ),
-					'message'    => $e->getMessage(),
-					'file'       => $e->getFile(),
-					'line'       => $e->getLine(),
+			error_log(
+				sprintf(
+					'[Nuclear Engagement] Controller action failed in %s: %s - %s',
+					$this->controller_name,
+					$action_name,
+					$e->getMessage()
 				)
 			);
 

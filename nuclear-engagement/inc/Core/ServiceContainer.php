@@ -164,13 +164,6 @@ class ServiceContainer {
 			}
 		);
 
-		// Error Handler.
-		$this->register(
-			'error_handler',
-			function () {
-				return new ErrorHandler();
-			}
-		);
 
 		// Cache Manager.
 		$this->register(
@@ -187,8 +180,6 @@ class ServiceContainer {
 	 * @return void
 	 */
 	public function initializeCoreServices(): void {
-		// Initialize error handler early.
-		$this->get( 'error_handler' );
 
 		// Initialize settings repository.
 		$this->get( 'settings_repository' );

@@ -48,8 +48,8 @@ class PluginIntegrationTest extends TestCase {
      */
     public function testAutoloaderConfiguration() {
         $this->assertTrue(
-            class_exists('NuclearEngagement\Core\Bootloader'),
-            'Bootloader class should be autoloaded'
+            class_exists('NuclearEngagement\Core\PluginBootstrap'),
+            'PluginBootstrap class should be autoloaded'
         );
     }
     

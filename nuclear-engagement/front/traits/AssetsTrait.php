@@ -115,16 +115,40 @@ trait AssetsTrait {
 	private function get_optin_inline_js(): string {
 		$settings_repo   = $this->nuclen_get_settings_repository();
 		$inline_js       = '';
+		
+		// Sanitize boolean values
 		$inline_js      .= 'window.NuclenOptinEnabled  = ' . ( $settings_repo->get( 'enable_optin', false ) ? 'true' : 'false' ) . ";\n";
 		$raw_mandatory   = $settings_repo->get( 'optin_mandatory', false );
 		$optin_mandatory = ( $raw_mandatory === true || $raw_mandatory === 1 || $raw_mandatory === '1' );
 		$inline_js      .= 'window.NuclenOptinMandatory = ' . ( $optin_mandatory ? 'true' : 'false' ) . ";\n";
-		$inline_js      .= 'window.NuclenOptinPosition = ' . wp_json_encode( $settings_repo->get( 'optin_position', 'with_results' ) ) . ";\n";
-		$inline_js      .= 'window.NuclenOptinPromptText = ' . wp_json_encode( $settings_repo->get( 'optin_prompt_text', 'Please enter your details to view your score:' ) ) . ";\n";
-		$inline_js      .= 'window.NuclenOptinButtonText = ' . wp_json_encode( $settings_repo->get( 'optin_button_text', 'Submit' ) ) . ";\n";
-		$inline_js      .= 'window.NuclenOptinWebhook = ' . wp_json_encode( $settings_repo->get( 'optin_webhook', '' ) ) . ";\n";
-		$inline_js      .= 'window.NuclenOptinSuccessMessage = ' . wp_json_encode( $settings_repo->get( 'optin_success_message', '' ) ) . ";\n";
-		$inline_js      .= 'window.NuclenCustomQuizHtmlAfter = ' . wp_json_encode( $settings_repo->get( 'custom_quiz_html_after', '' ) ) . ";\n";
+		
+		// Sanitize and encode string values
+		$optin_position = sanitize_text_field( $settings_repo->get( 'optin_position', 'with_results' ) );
+		$inline_js      .= 'window.NuclenOptinPosition = ' . wp_json_encode( $optin_position ) . ";\n";
+		
+		// Sanitize text fields before encoding
+		$prompt_text = wp_kses_post( $settings_repo->get( 'optin_prompt_text', 'Please enter your details to view your score:' ) );
+		$inline_js      .= 'window.NuclenOptinPromptText = ' . wp_json_encode( $prompt_text ) . ";\n";
+		
+		$button_text = sanitize_text_field( $settings_repo->get( 'optin_button_text', 'Submit' ) );
+		$inline_js      .= 'window.NuclenOptinButtonText = ' . wp_json_encode( $button_text ) . ";\n";
+		
+		// Sanitize URL for webhook - don't expose if empty
+		$webhook_url = esc_url_raw( $settings_repo->get( 'optin_webhook', '' ) );
+		if ( ! empty( $webhook_url ) ) {
+			// Only expose webhook URL if it's properly configured
+			$inline_js      .= 'window.NuclenOptinWebhook = ' . wp_json_encode( $webhook_url ) . ";\n";
+		} else {
+			$inline_js      .= 'window.NuclenOptinWebhook = "";\n';
+		}
+		
+		$success_message = wp_kses_post( $settings_repo->get( 'optin_success_message', '' ) );
+		$inline_js      .= 'window.NuclenOptinSuccessMessage = ' . wp_json_encode( $success_message ) . ";\n";
+		
+		// Sanitize custom HTML more strictly
+		$custom_html = wp_kses_post( $settings_repo->get( 'custom_quiz_html_after', '' ) );
+		$inline_js      .= 'window.NuclenCustomQuizHtmlAfter = ' . wp_json_encode( $custom_html ) . ";\n";
+		
 		return $inline_js;
 	}
 

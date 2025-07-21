@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace NuclearEngagement\Core;
 
+use NuclearEngagement\Services\LoggingService;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -121,15 +123,9 @@ final class ServiceDiscovery {
 				call_user_func( $provider );
 				PerformanceMonitor::stop( "provider_{$name}" );
 			} catch ( \Throwable $e ) {
-				ErrorRecovery::addErrorContext(
-					"Failed to load service provider: {$name}",
-					array(
-						'provider' => $name,
-						'error'    => $e->getMessage(),
-						'file'     => $e->getFile(),
-						'line'     => $e->getLine(),
-					),
-					'error'
+				LoggingService::log_exception( $e );
+				LoggingService::log(
+					"Failed to load service provider: {$name}"
 				);
 			}
 		}

@@ -13,7 +13,6 @@ use NuclearEngagement\Services\BulkGenerationBatchProcessor;
 use NuclearEngagement\Services\TaskTransientManager;
 use NuclearEngagement\Services\CentralizedPollingQueue;
 use NuclearEngagement\Services\CircuitBreakerService;
-use NuclearEngagement\Services\ErrorMetricsService;
 use NuclearEngagement\Core\ServiceContainer;
 
 /**
@@ -25,7 +24,6 @@ class GenerationTaskStatesTest extends TestCase {
 	private BulkGenerationBatchProcessor $batch_processor;
 	private CentralizedPollingQueue $polling_queue;
 	private CircuitBreakerService $circuit_breaker;
-	private ErrorMetricsService $error_metrics;
 
 	public function setUp(): void {
 		parent::setUp();
@@ -39,7 +37,6 @@ class GenerationTaskStatesTest extends TestCase {
 		$this->batch_processor = $this->createMock(BulkGenerationBatchProcessor::class);
 		$this->polling_queue = $this->createMock(CentralizedPollingQueue::class);
 		$this->circuit_breaker = $this->createMock(CircuitBreakerService::class);
-		$this->error_metrics = $this->createMock(ErrorMetricsService::class);
 		
 		// Mock global functions
 		\Brain\Monkey\Functions\when('get_transient')->justReturn(false);

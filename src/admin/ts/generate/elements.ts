@@ -11,8 +11,7 @@ export interface GeneratePageElements {
 	postsCountEl: HTMLSpanElement | null;
 	stepBar1: HTMLElement | null;
 	stepBar2: HTMLElement | null;
-	stepBar3: HTMLElement | null;
-	stepBar4: HTMLElement | null;
+	// Removed stepBar3 and stepBar4 - no longer needed
 	creditsInfoEl: HTMLParagraphElement | null;
 }
 
@@ -30,8 +29,7 @@ export function getGeneratePageElements(): GeneratePageElements {
 		postsCountEl: document.getElementById('nuclen-posts-count') as HTMLSpanElement | null,
 		stepBar1: document.getElementById('nuclen-step-bar-1'),
 		stepBar2: document.getElementById('nuclen-step-bar-2'),
-		stepBar3: document.getElementById('nuclen-step-bar-3'),
-		stepBar4: document.getElementById('nuclen-step-bar-4'),
+		// Removed stepBar3 and stepBar4 - no longer needed
 		creditsInfoEl: document.getElementById('nuclen-credits-info') as HTMLParagraphElement | null,
 	};
 }

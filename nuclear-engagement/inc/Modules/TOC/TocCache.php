@@ -49,8 +49,14 @@ final class TocCache {
 		$levels = array_unique( array_map( 'intval', $levels ) );
 		sort( $levels );
 
-		$key       = md5( $post->post_content ) . '_' . implode( '', $levels );
-		$transient = 'nuclen_toc_' . $key;
+		// Use CacheUtils for secure key generation
+		$key_components = array(
+			'toc',
+			hash( 'sha256', $post->post_content ),
+			implode( '', $levels ),
+		);
+		$key = \NuclearEngagement\Utils\CacheUtils::generate_key( $key_components );
+		$transient = 'nuclen_toc_' . substr( $key, 0, 40 ); // Limit transient key length
 
 		wp_cache_delete( $key, self::CACHE_GROUP );
 		delete_transient( $transient );

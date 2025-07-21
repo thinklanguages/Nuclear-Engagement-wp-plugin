@@ -237,10 +237,6 @@ final class PluginBootstrap {
 			$this->lazy_services['plugin_loaded'] = true;
 		}
 
-		// Initialize error handling.
-		if ( class_exists( 'NuclearEngagement\Core\Error\ErrorContext' ) ) {
-			// New error system is available.
-		}
 	}
 
 	/**
@@ -321,8 +317,6 @@ final class PluginBootstrap {
 		// Initialize batch processing handler after plugins are loaded
 		add_action( 'init', array( $this, 'initializeBatchProcessing' ), 5 );
 
-		// Initialize error metrics tracking
-		add_action( 'init', array( $this, 'initializeErrorMetrics' ), 5 );
 
 		// Initialize circuit breaker service
 		add_action( 'init', array( $this, 'initializeCircuitBreaker' ), 5 );
@@ -423,11 +417,13 @@ final class PluginBootstrap {
 		$updates_controller     = $container->get( 'updates_controller' );
 		$posts_count_controller = $container->get( 'posts_count_controller' );
 		$pointer_controller     = $container->get( 'pointer_controller' );
+		$stream_controller      = $container->get( 'stream_controller' );
 
 		add_action( 'wp_ajax_nuclen_trigger_generation', array( $generate_controller, 'handle' ) );
 		add_action( 'wp_ajax_nuclen_fetch_app_updates', array( $updates_controller, 'handle' ) );
 		add_action( 'wp_ajax_nuclen_get_posts_count', array( $posts_count_controller, 'handle' ) );
 		add_action( 'wp_ajax_nuclen_dismiss_pointer', array( $pointer_controller, 'dismiss' ) );
+		add_action( 'wp_ajax_nuclen_stream_progress', array( $stream_controller, 'stream_progress' ) );
 	}
 
 	private function registerSetupHooks( SettingsRepository $settings ): void {
@@ -568,20 +564,6 @@ final class PluginBootstrap {
 		}
 	}
 
-	/**
-	 * Initialize error metrics tracking.
-	 */
-	public function initializeErrorMetrics(): void {
-		$container = ServiceContainer::getInstance();
-
-		// Ensure container has error metrics service
-		if ( $container->has( 'error_metrics_service' ) ) {
-			$error_metrics = $container->get( 'error_metrics_service' );
-
-			// Track all requests for error rate calculation
-			add_action( 'init', array( $error_metrics, 'track_request' ), 1 );
-		}
-	}
 
 	/**
 	 * Initialize circuit breaker service.
@@ -630,10 +612,6 @@ final class PluginBootstrap {
 	 */
 	private function loadMinimalFunctionality(): void {
 		try {
-			// Ensure error handler is available
-			if ( class_exists( 'NuclearEngagement\Core\UnifiedErrorHandler' ) ) {
-				$error_handler = UnifiedErrorHandler::get_instance();
-			}
 
 			// Load core settings if possible
 			if ( class_exists( 'NuclearEngagement\Core\SettingsRepository' ) ) {

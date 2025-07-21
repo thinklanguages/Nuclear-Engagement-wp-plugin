@@ -26,14 +26,15 @@ class BulkGenerationBatchProcessor extends BaseService {
 
 	/**
 	 * Maximum posts per batch to prevent timeouts.
-	 * 25 posts provides a good balance between efficiency and reliability.
+	 * Increased to 50 for better efficiency on modern servers.
 	 */
-	private const MAX_POSTS_PER_BATCH = 25;
+	private const MAX_POSTS_PER_BATCH = 50;
 
 	/**
 	 * Maximum concurrent batches
+	 * Increased to 12 for better parallelization.
 	 */
-	private const MAX_CONCURRENT_BATCHES = 6;
+	private const MAX_CONCURRENT_BATCHES = 12;
 
 	/**
 	 * Option name for processing lock.
@@ -62,8 +63,9 @@ class BulkGenerationBatchProcessor extends BaseService {
 
 	/**
 	 * Batch size for auto-generation.
+	 * Increased to 20 for better throughput.
 	 */
-	private const AUTO_BATCH_SIZE = 5;
+	private const AUTO_BATCH_SIZE = 20;
 
 	/**
 	 * @var SettingsRepository
@@ -107,28 +109,85 @@ class BulkGenerationBatchProcessor extends BaseService {
 	 */
 	public function create_batches( array $posts, string $priority = 'high' ): array {
 		// Use smaller batch size for auto-generation to avoid overwhelming the system
-		$batch_size = $priority === 'low' ? self::AUTO_BATCH_SIZE : self::MAX_POSTS_PER_BATCH;
+		$default_batch_size = $priority === 'low' ? self::AUTO_BATCH_SIZE : self::MAX_POSTS_PER_BATCH;
+		
+		// Adjust batch size based on available memory
+		$batch_size = $this->calculate_optimal_batch_size( $default_batch_size, $posts );
 
-		\NuclearEngagement\Services\LoggingService::log(
-			sprintf(
-				'[BulkGenerationBatchProcessor::create_batches] Creating batches from %d posts with batch size %d (priority: %s)',
-				count( $posts ),
-				$batch_size,
-				$priority
-			)
-		);
+		// Creating batches based on memory and priority
 
 		// array_chunk preserves keys when preserve_keys is true
 		$batches = array_chunk( $posts, $batch_size, true );
 
-		\NuclearEngagement\Services\LoggingService::log(
-			sprintf(
-				'[BulkGenerationBatchProcessor::create_batches] Created %d batches',
-				count( $batches )
-			)
-		);
+		// Batches created successfully
 
 		return $batches;
+	}
+
+	/**
+	 * Calculate optimal batch size based on available memory.
+	 *
+	 * @param int   $default_size Default batch size.
+	 * @param array $posts Sample posts to estimate memory usage.
+	 * @return int Optimal batch size.
+	 */
+	private function calculate_optimal_batch_size( int $default_size, array $posts ): int {
+		// Check current memory usage
+		$memory_usage = \NuclearEngagement\Core\PerformanceMonitor::getMemoryUsage();
+		
+		// If unlimited memory, use default
+		if ( $memory_usage['limit'] < 0 ) {
+			return $default_size;
+		}
+		
+		// Estimate memory per post (rough estimate based on content size)
+		$sample_size = min( 5, count( $posts ) );
+		$total_content_size = 0;
+		$count = 0;
+		
+		foreach ( array_slice( $posts, 0, $sample_size ) as $post ) {
+			if ( isset( $post['content'] ) ) {
+				$total_content_size += strlen( $post['content'] );
+				$count++;
+			}
+		}
+		
+		// Estimate memory usage per post (content + overhead)
+		$avg_content_size = $count > 0 ? $total_content_size / $count : 1000;
+		$estimated_memory_per_post = $avg_content_size * 10; // 10x content size for processing overhead
+		
+		// Calculate safe batch size based on available memory
+		$available_memory = \NuclearEngagement\Core\PerformanceMonitor::getAvailableMemory();
+		if ( $available_memory > 0 ) {
+			// Use 50% of available memory for safety
+			$safe_memory = $available_memory * 0.5;
+			$memory_based_batch_size = (int) ( $safe_memory / $estimated_memory_per_post );
+			
+			// Return the smaller of default and memory-based size
+			$optimal_size = min( $default_size, max( 1, $memory_based_batch_size ) );
+			
+			if ( $optimal_size < $default_size ) {
+				\NuclearEngagement\Services\LoggingService::log(
+					sprintf(
+						'[BulkGenerationBatchProcessor] Reduced batch size from %d to %d due to memory constraints',
+						$default_size,
+						$optimal_size
+					),
+					'warning'
+				);
+			}
+			
+			return $optimal_size;
+		}
+		
+		// If memory is already high, use smaller batches
+		if ( $memory_usage['percentage'] > 70 ) {
+			return max( 1, (int) ( $default_size * 0.25 ) );
+		} elseif ( $memory_usage['percentage'] > 50 ) {
+			return max( 1, (int) ( $default_size * 0.5 ) );
+		}
+		
+		return $default_size;
 	}
 
 	/**
@@ -186,16 +245,7 @@ class BulkGenerationBatchProcessor extends BaseService {
 				},
 				$batch
 			);
-			\NuclearEngagement\Services\LoggingService::log(
-				sprintf(
-					'[BulkGenerationBatchProcessor::create_batch_jobs] Creating batch %s (%d of %d) with %d posts: %s',
-					$batch_id,
-					$index + 1,
-					count( $batches ),
-					count( $valid_posts ),
-					implode( ', ', $post_ids )
-				)
-			);
+			// Creating batch with valid posts
 
 			// Store batch information in transient for background processing
 			TaskTransientManager::set_batch_transient(
@@ -236,25 +286,16 @@ class BulkGenerationBatchProcessor extends BaseService {
 			'batch_jobs'        => $batch_jobs,
 			'workflow'          => $workflow,
 			'workflow_type'     => $workflow['type'] ?? 'unknown',
-			'status'            => 'processing',
+			'status'            => 'scheduled',
 			'created_at'        => time(),
 			'completed_batches' => 0,
 			'failed_batches'    => 0,
+			'action'            => $workflow['source'] ?? 'bulk', // Add action field from source
 		);
 
 		$result = TaskTransientManager::set_task_transient( $parent_generation_id, $job_data, DAY_IN_SECONDS );
 
-		// Enhanced debug logging
-		\NuclearEngagement\Services\LoggingService::log(
-			sprintf(
-				'[BulkGenerationBatchProcessor::create_batch_jobs] Created bulk job transient for generation %s - Total posts: %d, Total batches: %d, Workflow: %s, Priority: %s',
-				$parent_generation_id,
-				$total_posts,
-				count( $batches ),
-				$workflow['type'] ?? 'unknown',
-				$workflow['priority'] ?? 'normal'
-			)
-		);
+		// Bulk job created successfully
 
 		// Add to task index for efficient querying
 		$container = \NuclearEngagement\Core\ServiceContainer::getInstance();
@@ -314,23 +355,12 @@ class BulkGenerationBatchProcessor extends BaseService {
 	public function schedule_batch_processing( array $batch_jobs ): bool {
 		$scheduled = 0;
 
-		\NuclearEngagement\Services\LoggingService::log(
-			sprintf(
-				'[BulkGenerationBatchProcessor::schedule_batch_processing] Scheduling %d batch jobs',
-				count( $batch_jobs )
-			)
-		);
+		// Schedule batch processing
 
 		// Check current processing count
 		$processing_count = $this->get_current_processing_count();
 
-		\NuclearEngagement\Services\LoggingService::log(
-			sprintf(
-				'[BulkGenerationBatchProcessor::schedule_batch_processing] Current processing count: %d/%d',
-				$processing_count,
-				self::MAX_CONCURRENT_BATCHES
-			)
-		);
+		// Check current processing capacity
 
 		// Process the first 3 batches immediately with 20-second gaps
 		$immediate_batch_count = 3;
@@ -341,15 +371,17 @@ class BulkGenerationBatchProcessor extends BaseService {
 			if ( ! wp_next_scheduled( 'nuclen_process_batch', array( $job['batch_id'] ) ) ) {
 				// Schedule with 20-second intervals (1s, 21s, 41s)
 				$delay = 1 + ( $index * $seconds_between_batches );
-				wp_schedule_single_event( time() + $delay, 'nuclen_process_batch', array( $job['batch_id'] ) );
-				\NuclearEngagement\Services\LoggingService::log(
-					sprintf(
-						'[BulkGenerationBatchProcessor::schedule_batch_processing] Immediate batch %d (%s) scheduled for processing in %d seconds',
-						$index + 1,
-						$job['batch_id'],
-						$delay
-					)
-				);
+				$scheduled_time = time() + $delay;
+				wp_schedule_single_event( $scheduled_time, 'nuclen_process_batch', array( $job['batch_id'] ) );
+				
+				// Update batch job with scheduled_at time
+				$batch_data = TaskTransientManager::get_batch_transient( $job['batch_id'] );
+				if ( $batch_data ) {
+					$batch_data['scheduled_at'] = $scheduled_time;
+					TaskTransientManager::set_batch_transient( $job['batch_id'], $batch_data, DAY_IN_SECONDS );
+				}
+				
+				// Immediate batch scheduled
 				++$scheduled;
 			}
 		}
@@ -369,29 +401,68 @@ class BulkGenerationBatchProcessor extends BaseService {
 				
 				// Base delay starts at 60 seconds (1 minute) for the first batch after immediate ones
 				$delay = 60 + ( $minute_offset * 60 ) + ( $position_in_minute * $seconds_between_batches );
+				$scheduled_time = time() + $delay;
 				
-				wp_schedule_single_event( time() + $delay, 'nuclen_process_batch', array( $job['batch_id'] ) );
+				wp_schedule_single_event( $scheduled_time, 'nuclen_process_batch', array( $job['batch_id'] ) );
 				
-				\NuclearEngagement\Services\LoggingService::log(
-					sprintf(
-						'[BulkGenerationBatchProcessor::schedule_batch_processing] Batch %s scheduled at minute %d, position %d (delay: %d seconds)',
-						$job['batch_id'],
-						$minute_offset + 1,
-						$position_in_minute + 1,
-						$delay
-					)
-				);
+				// Update batch job with scheduled_at time
+				$batch_data = TaskTransientManager::get_batch_transient( $job['batch_id'] );
+				if ( $batch_data ) {
+					$batch_data['scheduled_at'] = $scheduled_time;
+					TaskTransientManager::set_batch_transient( $job['batch_id'], $batch_data, DAY_IN_SECONDS );
+				}
+				
+				// Batch scheduled
 				++$scheduled;
 			}
 		}
 
-		\NuclearEngagement\Services\LoggingService::log(
-			sprintf(
-				'[BulkGenerationBatchProcessor::schedule_batch_processing] SUCCESS: Scheduled %d/%d batch jobs for processing',
-				$scheduled,
-				count( $batch_jobs )
-			)
-		);
+		// Only log if there were issues
+		if ( $scheduled < count( $batch_jobs ) ) {
+			\NuclearEngagement\Services\LoggingService::log(
+				sprintf(
+					'[BulkGenerationBatchProcessor] WARNING: Only scheduled %d/%d batch jobs',
+					$scheduled,
+					count( $batch_jobs )
+				),
+				'warning'
+			);
+		}
+
+		// Update parent job with scheduled_at time (earliest batch schedule time)
+		if ( $scheduled > 0 && ! empty( $batch_jobs ) ) {
+			$parent_id = null;
+			$earliest_scheduled_at = PHP_INT_MAX;
+			
+			// Find the parent ID and earliest scheduled time
+			foreach ( $batch_jobs as $job ) {
+				$batch_data = TaskTransientManager::get_batch_transient( $job['batch_id'] );
+				if ( $batch_data ) {
+					if ( ! $parent_id && isset( $batch_data['parent_id'] ) ) {
+						$parent_id = $batch_data['parent_id'];
+					}
+					if ( isset( $batch_data['scheduled_at'] ) && $batch_data['scheduled_at'] < $earliest_scheduled_at ) {
+						$earliest_scheduled_at = $batch_data['scheduled_at'];
+					}
+				}
+			}
+			
+			// Update parent job with scheduled_at
+			if ( $parent_id && $earliest_scheduled_at < PHP_INT_MAX ) {
+				$parent_data = TaskTransientManager::get_task_transient( $parent_id );
+				if ( $parent_data ) {
+					$parent_data['scheduled_at'] = $earliest_scheduled_at;
+					TaskTransientManager::set_task_transient( $parent_id, $parent_data, DAY_IN_SECONDS );
+					
+					// Update task index if available
+					$container = \NuclearEngagement\Core\ServiceContainer::getInstance();
+					if ( $container->has( 'task_index_service' ) ) {
+						$index_service = $container->get( 'task_index_service' );
+						$index_service->update_task( $parent_id, $parent_data );
+					}
+				}
+			}
+		}
 
 		// Trigger WordPress cron to process the scheduled events
 		if ( $scheduled > 0 && ! defined( 'DOING_CRON' ) ) {
@@ -400,12 +471,7 @@ class BulkGenerationBatchProcessor extends BaseService {
 			// Also try to process the first batch immediately if possible
 			if ( ! empty( $batch_jobs ) ) {
 				$first_batch_id = $batch_jobs[0]['batch_id'];
-				\NuclearEngagement\Services\LoggingService::log(
-					sprintf(
-						'[BulkGenerationBatchProcessor::schedule_batch_processing] Attempting immediate processing of first batch: %s',
-						$first_batch_id
-					)
-				);
+				// Attempt immediate processing of first batch
 				// Ensure BatchProcessingHandler is loaded
 				if ( ! class_exists( '\NuclearEngagement\Services\BatchProcessingHandler' ) ) {
 					require_once __DIR__ . '/BatchProcessingHandler.php';
@@ -427,21 +493,18 @@ class BulkGenerationBatchProcessor extends BaseService {
 
 						// Check again after registration
 						if ( has_action( 'nuclen_process_batch' ) ) {
-							\NuclearEngagement\Services\LoggingService::log(
-								'Successfully registered batch processing handler.'
-							);
+							// Handler registered successfully
 							// Trigger the action again now that it's registered
 							do_action( 'nuclen_process_batch', $first_batch_id );
 						} else {
 							// Still no handler, try direct processing as last resort
-							\NuclearEngagement\Services\LoggingService::log(
-								'Failed to register handler. Attempting direct batch processing as fallback.'
-							);
+							// Attempting fallback processing
 							\NuclearEngagement\Services\BatchProcessingHandler::process_batch_hook( $first_batch_id );
 						}
 					} else {
 						\NuclearEngagement\Services\LoggingService::log(
-							'ERROR: BatchProcessingHandler class not found!'
+							'[BulkGenerationBatchProcessor] ERROR: Handler class missing',
+							'error'
 						);
 					}
 				}
@@ -457,17 +520,11 @@ class BulkGenerationBatchProcessor extends BaseService {
 	 * @param array  $post_ids Post IDs to queue
 	 * @param string $workflow_type Workflow type
 	 * @param string $priority Priority level
+	 * @param string $source Source of generation (auto, manual, bulk, single)
 	 * @return string Generation ID
 	 */
-	public function queue_generation( array $post_ids, string $workflow_type, string $priority = 'low' ): string {
-		\NuclearEngagement\Services\LoggingService::log(
-			sprintf(
-				'[BulkGenerationBatchProcessor::queue_generation] Queuing %d posts for generation - Workflow: %s, Priority: %s',
-				count( $post_ids ),
-				$workflow_type,
-				$priority
-			)
-		);
+	public function queue_generation( array $post_ids, string $workflow_type, string $priority = 'low', string $source = '' ): string {
+		// Queue posts for generation
 
 		// Acquire lock for low priority to prevent race conditions
 		if ( $priority === 'low' && ! $this->acquire_lock() ) {
@@ -491,9 +548,7 @@ class BulkGenerationBatchProcessor extends BaseService {
 			// Create generation ID
 			$generation_id = 'gen_' . uniqid( $priority . '_', true );
 
-			\NuclearEngagement\Services\LoggingService::log(
-				sprintf( '[BulkGenerationBatchProcessor::queue_generation] Created generation ID: %s', $generation_id )
-			);
+			// Generation ID created
 
 			// Get posts data
 			$posts         = array();
@@ -546,7 +601,7 @@ class BulkGenerationBatchProcessor extends BaseService {
 			$workflow = array(
 				'type'     => $workflow_type,
 				'priority' => $priority,
-				'source'   => $priority === 'low' ? 'auto' : 'manual',
+				'source'   => ! empty( $source ) ? $source : ( $priority === 'low' ? 'auto' : 'manual' ),
 			);
 
 			if ( empty( $posts ) ) {
@@ -634,10 +689,38 @@ class BulkGenerationBatchProcessor extends BaseService {
 		foreach ( $job_data['batch_jobs'] as $batch ) {
 			$batch_data = TaskTransientManager::get_batch_transient( $batch['batch_id'] );
 			if ( is_array( $batch_data ) ) {
-				if ( $batch_data['status'] === 'completed' ) {
-					$total_processed += $batch['post_count'];
-				} elseif ( $batch_data['status'] === 'failed' ) {
-					$total_failed += $batch['post_count'];
+				if ( $batch_data['status'] === 'completed' || $batch_data['status'] === 'failed' ) {
+					// Check if we have actual count data
+					$has_success_count = isset( $batch_data['success_count'] ) || isset( $batch_data['results']['success_count'] );
+					$has_fail_count = isset( $batch_data['fail_count'] ) || isset( $batch_data['results']['fail_count'] );
+					
+					if ( $has_success_count || $has_fail_count ) {
+						// We have actual counts, use them (even if they're 0)
+						$success_count = 0;
+						$fail_count = 0;
+						
+						if ( isset( $batch_data['success_count'] ) ) {
+							$success_count = $batch_data['success_count'];
+						} elseif ( isset( $batch_data['results']['success_count'] ) ) {
+							$success_count = $batch_data['results']['success_count'];
+						}
+						
+						if ( isset( $batch_data['fail_count'] ) ) {
+							$fail_count = $batch_data['fail_count'];
+						} elseif ( isset( $batch_data['results']['fail_count'] ) ) {
+							$fail_count = $batch_data['results']['fail_count'];
+						}
+						
+						$total_processed += $success_count + $fail_count;
+						$total_failed += $fail_count;
+					} else {
+						// Fall back to scheduled count if no actual counts available
+						if ( $batch_data['status'] === 'completed' ) {
+							$total_processed += $batch['post_count'];
+						} else {
+							$total_failed += $batch['post_count'];
+						}
+					}
 				}
 			}
 		}
@@ -650,7 +733,7 @@ class BulkGenerationBatchProcessor extends BaseService {
 			'processed_posts'     => $total_processed,
 			'failed_posts'        => $total_failed,
 			'status'              => $job_data['status'],
-			'progress_percentage' => round( ( $total_processed / $job_data['total_posts'] ) * 100 ),
+			'progress_percentage' => $job_data['total_posts'] > 0 ? round( ( $total_processed / $job_data['total_posts'] ) * 100 ) : 0,
 		);
 	}
 
@@ -681,7 +764,7 @@ class BulkGenerationBatchProcessor extends BaseService {
 			$lock_data = array(
 				'value' => $lock_value,
 				'time'  => time(),
-				'pid'   => getmypid(),
+				'pid'   => \getmypid(),
 			);
 
 			if ( add_option( $lock_option, $lock_data, '', 'no' ) ) {
@@ -827,9 +910,11 @@ class BulkGenerationBatchProcessor extends BaseService {
 						$parent_data = TaskTransientManager::get_task_transient( $parent_id );
 
 						if ( is_array( $parent_data ) ) {
-							if ( $status === 'completed' ) {
+							// Only increment counters if the batch wasn't already in this state
+							// This prevents double-counting when a batch is updated multiple times with the same status
+							if ( $status === 'completed' && $current_status !== 'completed' ) {
 								$parent_data['completed_batches'] = ( $parent_data['completed_batches'] ?? 0 ) + 1;
-							} elseif ( $status === 'failed' ) {
+							} elseif ( $status === 'failed' && $current_status !== 'failed' ) {
 								$parent_data['failed_batches'] = ( $parent_data['failed_batches'] ?? 0 ) + 1;
 							}
 
@@ -861,29 +946,62 @@ class BulkGenerationBatchProcessor extends BaseService {
 
 							if ( $total_processed >= $parent_data['total_batches'] && ! isset( $parent_data['completed_at'] ) ) {
 								// Only process completion once (check if not already completed)
-								$parent_data['status']       = $parent_data['failed_batches'] > 0 ? 'completed_with_errors' : 'completed';
-								$parent_data['completed_at'] = time();
-
-								// Calculate success and fail counts
+								
+								// First, verify all batches have result counts available
+								$all_counts_available = true;
 								$success_count = 0;
 								$fail_count    = 0;
+								
 							foreach ( $parent_data['batch_jobs'] ?? array() as $batch_job ) {
 								$batch_data = TaskTransientManager::get_batch_transient( $batch_job['batch_id'] );
 								if ( is_array( $batch_data ) ) {
-											// Check top level first, then fall back to results array
-									if ( isset( $batch_data['success_count'] ) ) {
-										$success_count += $batch_data['success_count'];
-									} elseif ( isset( $batch_data['results']['success_count'] ) ) {
-										$success_count += $batch_data['results']['success_count'];
-									}
+									// Check if batch has been marked as completed or failed
+									if ( in_array( $batch_data['status'] ?? '', array( 'completed', 'failed' ), true ) ) {
+										// Check if we have actual count data
+										$has_counts = isset( $batch_data['success_count'] ) || 
+													 isset( $batch_data['fail_count'] ) ||
+													 isset( $batch_data['results']['success_count'] ) ||
+													 isset( $batch_data['results']['fail_count'] );
+										
+										if ( ! $has_counts ) {
+											// Batch marked complete/failed but no counts yet - data may still be processing
+											$all_counts_available = false;
+											\NuclearEngagement\Services\LoggingService::log(
+												sprintf(
+													'Batch %s is %s but has no result counts yet - deferring parent completion',
+													$batch_job['batch_id'],
+													$batch_data['status']
+												)
+											);
+											break;
+										}
+										
+										// Accumulate counts
+										if ( isset( $batch_data['success_count'] ) ) {
+											$success_count += $batch_data['success_count'];
+										} elseif ( isset( $batch_data['results']['success_count'] ) ) {
+											$success_count += $batch_data['results']['success_count'];
+										}
 
-									if ( isset( $batch_data['fail_count'] ) ) {
+										if ( isset( $batch_data['fail_count'] ) ) {
 											$fail_count += $batch_data['fail_count'];
-									} elseif ( isset( $batch_data['results']['fail_count'] ) ) {
-										$fail_count += $batch_data['results']['fail_count'];
+										} elseif ( isset( $batch_data['results']['fail_count'] ) ) {
+											$fail_count += $batch_data['results']['fail_count'];
+										}
 									}
 								}
 							}
+							
+								if ( $all_counts_available ) {
+									// Verify that all posts have been processed
+									$total_processed = $success_count + $fail_count;
+									$expected_total = $parent_data['total_posts'] ?? 0;
+									
+									// Only mark as completed if all posts are accounted for
+									if ( $total_processed >= $expected_total ) {
+										// All data is available and all posts processed, proceed with completion
+										$parent_data['status']       = $parent_data['failed_batches'] > 0 ? 'completed_with_errors' : 'completed';
+										$parent_data['completed_at'] = time();
 
 								\NuclearEngagement\Services\LoggingService::log(
 									sprintf(
@@ -912,12 +1030,12 @@ class BulkGenerationBatchProcessor extends BaseService {
 									}
 								}
 
-								// Store recent completion for tasks page notification
-								$recent_completions   = get_transient( 'nuclen_recent_completions' ) ?: array();
-								$recent_completions[] = array(
-									'task_id'       => $parent_id,
-									'status'        => $parent_data['status'],
-									'fail_count'    => $fail_count,
+									// Store recent completion for tasks page notification
+									$recent_completions   = get_transient( 'nuclen_recent_completions' ) ?: array();
+									$recent_completions[] = array(
+										'task_id'       => $parent_id,
+										'status'        => $parent_data['status'],
+										'fail_count'    => $fail_count,
 									'success_count' => $success_count,
 									'completed_at'  => time(),
 								);
@@ -937,6 +1055,30 @@ class BulkGenerationBatchProcessor extends BaseService {
 										$parent_data['completed_at']
 									)
 								);
+									} else {
+										// Not all posts processed yet - defer completion
+										\NuclearEngagement\Services\LoggingService::log(
+											sprintf(
+												'Deferring completion for parent %s - only %d/%d posts processed',
+												$parent_id,
+												$total_processed,
+												$expected_total
+											)
+										);
+										// Schedule a delayed check to handle edge cases
+										wp_schedule_single_event( time() + 5, 'nuclen_check_task_completion', array( $parent_id ) );
+									}
+								} else {
+								// Not all counts available yet - defer completion
+								\NuclearEngagement\Services\LoggingService::log(
+									sprintf(
+										'Deferring completion for parent %s - waiting for all batch result counts',
+										$parent_id
+									)
+								);
+								// Schedule a delayed check to handle the case where counts might be available soon
+								wp_schedule_single_event( time() + 5, 'nuclen_check_task_completion', array( $parent_id ) );
+							}
 						}
 
 							TaskTransientManager::set_task_transient( $parent_id, $parent_data, DAY_IN_SECONDS );
@@ -1250,10 +1392,10 @@ class BulkGenerationBatchProcessor extends BaseService {
 	private function get_current_processing_count(): int {
 		global $wpdb;
 
-		// Count batches in 'processing' status
+		// Count batches in 'running' or 'processing' status
 		$count = 0;
 
-		// Query for batch transients that are in processing state
+		// Query for batch transients that are in running/processing state
 		$transients = $wpdb->get_results(
 			$wpdb->prepare(
 				"SELECT option_value FROM $wpdb->options 
@@ -1267,7 +1409,7 @@ class BulkGenerationBatchProcessor extends BaseService {
 
 		foreach ( $transients as $transient ) {
 			$data = maybe_unserialize( $transient->option_value );
-			if ( is_array( $data ) && isset( $data['status'] ) && $data['status'] === 'processing' ) {
+			if ( is_array( $data ) && isset( $data['status'] ) && ( $data['status'] === 'running' || $data['status'] === 'processing' ) ) {
 				++$count;
 			}
 		}
@@ -1346,7 +1488,7 @@ class BulkGenerationBatchProcessor extends BaseService {
 		$lock_data = array(
 			'value' => $lock_value,
 			'time'  => time(),
-			'pid'   => getmypid(),
+			'pid'   => \getmypid(),
 		);
 
 		// Try atomic lock acquisition
@@ -1460,6 +1602,242 @@ class BulkGenerationBatchProcessor extends BaseService {
 			return delete_option( $option . '_blog_' . $blog_id );
 		}
 		return delete_option( $option );
+	}
+
+	/**
+	 * Force completion check for a specific task
+	 * 
+	 * @param string $task_id The task ID to check
+	 * @return bool True if task was completed, false otherwise
+	 */
+	public function force_task_completion_check( string $task_id ): bool {
+		$task_data = TaskTransientManager::get_task_transient( $task_id );
+		
+		if ( ! is_array( $task_data ) || ( $task_data['status'] !== 'running' && $task_data['status'] !== 'processing' ) ) {
+			return false;
+		}
+		
+		// Check if all batches are complete and have counts
+		$all_batches_complete = true;
+		$all_counts_available = true;
+		$total_success = 0;
+		$total_fail = 0;
+		
+		foreach ( $task_data['batch_jobs'] ?? array() as $batch_job ) {
+			$batch_data = TaskTransientManager::get_batch_transient( $batch_job['batch_id'] );
+			
+			if ( ! is_array( $batch_data ) ) {
+				return false; // Batch data missing
+			}
+			
+			// Check batch status
+			if ( ! in_array( $batch_data['status'] ?? '', array( 'completed', 'failed', 'cancelled' ), true ) ) {
+				$all_batches_complete = false;
+				break;
+			}
+			
+			// Check for counts
+			$has_counts = isset( $batch_data['success_count'] ) || 
+						  isset( $batch_data['fail_count'] ) ||
+						  isset( $batch_data['results']['success_count'] ) ||
+						  isset( $batch_data['results']['fail_count'] );
+			
+			if ( ! $has_counts ) {
+				$all_counts_available = false;
+			}
+			
+			// Accumulate counts
+			if ( isset( $batch_data['success_count'] ) ) {
+				$total_success += $batch_data['success_count'];
+			} elseif ( isset( $batch_data['results']['success_count'] ) ) {
+				$total_success += $batch_data['results']['success_count'];
+			}
+			
+			if ( isset( $batch_data['fail_count'] ) ) {
+				$total_fail += $batch_data['fail_count'];
+			} elseif ( isset( $batch_data['results']['fail_count'] ) ) {
+				$total_fail += $batch_data['results']['fail_count'];
+			}
+		}
+		
+		// If all batches are complete, force completion
+		if ( $all_batches_complete ) {
+			\NuclearEngagement\Services\LoggingService::log(
+				sprintf(
+					'[BulkGenerationBatchProcessor::force_task_completion_check] Forcing completion for task %s - Success: %d, Failed: %d',
+					$task_id,
+					$total_success,
+					$total_fail
+				)
+			);
+			
+			// Update the parent task status
+			$task_data['status'] = $task_data['failed_batches'] > 0 ? 'completed_with_errors' : 'completed';
+			$task_data['completed_at'] = time();
+			$task_data['success_count'] = $total_success;
+			$task_data['fail_count'] = $total_fail;
+			
+			// Save the updated task data
+			TaskTransientManager::set_task_transient( $task_id, $task_data, DAY_IN_SECONDS );
+			
+			// Update task index
+			$container = \NuclearEngagement\Core\ServiceContainer::getInstance();
+			if ( $container->has( 'task_index_service' ) ) {
+				$index_service = $container->get( 'task_index_service' );
+				$index_service->update_task_status(
+					$task_id,
+					$task_data['status'],
+					array(
+						'completed_at' => $task_data['completed_at'],
+						'success_count' => $total_success,
+						'fail_count' => $total_fail,
+					)
+				);
+			}
+			
+			// Clear tasks cache
+			if ( class_exists( '\NuclearEngagement\Admin\Tasks' ) ) {
+				\NuclearEngagement\Admin\Tasks::clear_tasks_cache();
+			}
+			
+			// Add completion notice
+			$container = \NuclearEngagement\Core\ServiceContainer::getInstance();
+			if ( $container->has( 'admin_notice_service' ) ) {
+				$notice_service = $container->get( 'admin_notice_service' );
+				$notice_service->add_generation_complete_notice(
+					$task_id,
+					$total_success + $total_fail,
+					$total_success,
+					$total_fail,
+					$task_data['workflow_type'] ?? 'unknown'
+				);
+			}
+			
+			return true;
+		}
+		
+		return false;
+	}
+
+	/**
+	 * Check and recover stuck parent tasks
+	 * This method checks if all batches are complete but the parent is still in processing status
+	 */
+	public function check_and_recover_stuck_tasks(): void {
+		global $wpdb;
+		
+		\NuclearEngagement\Services\LoggingService::log( '[BulkGenerationBatchProcessor::check_and_recover_stuck_tasks] Starting stuck task recovery check' );
+		
+		// Find all parent tasks that are still in 'running' or 'processing' status
+		$transients = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT option_name, option_value FROM $wpdb->options 
+				WHERE option_name LIKE %s 
+				AND option_name NOT LIKE %s 
+				AND option_name NOT LIKE %s",
+				'_transient_nuclen_task_gen_%',
+				'%_batch_%',
+				'_transient_timeout_%'
+			)
+		);
+		
+		$recovered_count = 0;
+		
+		foreach ( $transients as $transient ) {
+			$task_data = maybe_unserialize( $transient->option_value );
+			
+			if ( ! is_array( $task_data ) || ! isset( $task_data['status'] ) ) {
+				continue;
+			}
+			
+			// Only check tasks that are in 'running' or 'processing' status
+			if ( $task_data['status'] !== 'running' && $task_data['status'] !== 'processing' ) {
+				continue;
+			}
+			
+			// Extract task ID from option name
+			$task_id = str_replace( '_transient_nuclen_task_', '', $transient->option_name );
+			
+			// Check if all batches are complete
+			$all_batches_complete = true;
+			$total_success = 0;
+			$total_fail = 0;
+			
+			foreach ( $task_data['batch_jobs'] ?? array() as $batch_job ) {
+				$batch_data = TaskTransientManager::get_batch_transient( $batch_job['batch_id'] );
+				
+				if ( ! is_array( $batch_data ) ) {
+					// Batch data missing - can't determine status
+					$all_batches_complete = false;
+					break;
+				}
+				
+				// Check batch status
+				if ( ! in_array( $batch_data['status'] ?? '', array( 'completed', 'failed', 'cancelled' ), true ) ) {
+					$all_batches_complete = false;
+					break;
+				}
+				
+				// Accumulate counts
+				if ( isset( $batch_data['success_count'] ) ) {
+					$total_success += $batch_data['success_count'];
+				} elseif ( isset( $batch_data['results']['success_count'] ) ) {
+					$total_success += $batch_data['results']['success_count'];
+				}
+				
+				if ( isset( $batch_data['fail_count'] ) ) {
+					$total_fail += $batch_data['fail_count'];
+				} elseif ( isset( $batch_data['results']['fail_count'] ) ) {
+					$total_fail += $batch_data['results']['fail_count'];
+				}
+			}
+			
+			// If all batches are complete but parent is still processing, recover it
+			if ( $all_batches_complete ) {
+				\NuclearEngagement\Services\LoggingService::log(
+					sprintf(
+						'[BulkGenerationBatchProcessor::check_and_recover_stuck_tasks] Recovering stuck task %s - all batches complete but status is still running/processing',
+						$task_id
+					)
+				);
+				
+				// Update the parent task status
+				$task_data['status'] = $task_data['failed_batches'] > 0 ? 'completed_with_errors' : 'completed';
+				$task_data['completed_at'] = time();
+				
+				// Save the updated task data
+				TaskTransientManager::set_task_transient( $task_id, $task_data, DAY_IN_SECONDS );
+				
+				// Update task index
+				$container = \NuclearEngagement\Core\ServiceContainer::getInstance();
+				if ( $container->has( 'task_index_service' ) ) {
+					$index_service = $container->get( 'task_index_service' );
+					$index_service->update_task_status(
+						$task_id,
+						$task_data['status'],
+						array(
+							'completed_at' => $task_data['completed_at'],
+						)
+					);
+				}
+				
+				// Clear tasks cache
+				if ( class_exists( '\NuclearEngagement\Admin\Tasks' ) ) {
+					\NuclearEngagement\Admin\Tasks::clear_tasks_cache();
+				}
+				
+				$recovered_count++;
+			}
+		}
+		
+		if ( $recovered_count > 0 ) {
+			\NuclearEngagement\Services\LoggingService::log(
+				sprintf(
+					'[BulkGenerationBatchProcessor::check_and_recover_stuck_tasks] Recovered %d stuck tasks',
+					$recovered_count
+				)
+			);
+		}
 	}
 
 	/**

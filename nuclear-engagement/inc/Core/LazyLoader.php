@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace NuclearEngagement\Core;
 
+use NuclearEngagement\Services\LoggingService;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -118,15 +120,9 @@ final class LazyLoader {
 		} catch ( \Throwable $e ) {
 			PerformanceMonitor::stop( "lazy_load_{$service_id}" );
 
-			ErrorRecovery::addErrorContext(
-				"Failed to lazy load service: {$service_id}",
-				array(
-					'service' => $service_id,
-					'error'   => $e->getMessage(),
-					'file'    => $e->getFile(),
-					'line'    => $e->getLine(),
-				),
-				'error'
+			LoggingService::log_exception( $e );
+			LoggingService::log(
+				"Failed to lazy load service: {$service_id}"
 			);
 
 			return false;
@@ -236,13 +232,9 @@ final class LazyLoader {
 					call_user_func( $item['callback'] );
 					self::$loaded_services[ $item['service'] ] = true;
 				} catch ( \Throwable $e ) {
-					ErrorRecovery::addErrorContext(
-						"Failed to load deferred service: {$item['service']}",
-						array(
-							'service' => $item['service'],
-							'error'   => $e->getMessage(),
-						),
-						'error'
+					LoggingService::log_exception( $e );
+					LoggingService::log(
+						"Failed to load deferred service: {$item['service']}"
 					);
 				}
 
@@ -258,19 +250,6 @@ final class LazyLoader {
 	 */
 	private static function setup_default_configs(): void {
 		// Admin-only services.
-		self::register(
-			'dashboard_widgets',
-			function () {
-				// Load dashboard widgets only when needed.
-				if ( class_exists( 'NuclearEngagement\\Admin\\DashboardWidgets' ) ) {
-					ServiceContainer::resolve( 'NuclearEngagement\\Admin\\DashboardWidgets' )->register();
-				}
-			},
-			'admin_init',
-			function () {
-				return is_admin() && self::is_dashboard_page();
-			}
-		);
 
 		// Frontend-only services.
 		self::register(

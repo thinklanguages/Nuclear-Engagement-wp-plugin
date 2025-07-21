@@ -16,10 +16,11 @@ namespace NuclearEngagement\Core;
 
 use NuclearEngagement\Core\ServiceContainer;
 use NuclearEngagement\Services\{GenerationService, RemoteApiService, ContentStorageService, PointerService, PostsQueryService, AutoGenerationService, AutoGenerationScheduler, GenerationPoller, PublishGenerationHandler, VersionService, DashboardDataService, BulkGenerationBatchProcessor, CentralizedPollingQueue, TaskIndexService, TaskTimeoutHandler};
-use NuclearEngagement\Services\{AdminNoticeService, LoggingService, CircuitBreaker, CircuitBreakerService, ErrorMetricsService, HealthCheckService};
+use NuclearEngagement\Services\{AdminNoticeService, LoggingService, CircuitBreaker, CircuitBreakerService, HealthCheckService};
 use NuclearEngagement\Services\PostDataFetcher;
 use NuclearEngagement\Services\Remote\{RemoteRequest, ApiResponseHandler};
 use NuclearEngagement\Admin\Controller\Ajax\{GenerateController, UpdatesController, PointerController, PostsCountController, TasksController};
+use NuclearEngagement\Admin\Controllers\StreamController;
 use NuclearEngagement\Admin\Controller\OptinExportController;
 use NuclearEngagement\Front\Controller\Rest\ContentController;
 
@@ -43,8 +44,7 @@ final class ContainerRegistrar {
 			$container->register( 'logging_service', static fn( ServiceContainer $c ) => new LoggingService( $c->get( 'admin_notice_service' ) ) );
 			$container->register( 'circuit_breaker', static fn() => new CircuitBreaker( 'remote_api', 5, 300, 2 ) );
 			$container->register( 'circuit_breaker_service', static fn() => new CircuitBreakerService() );
-			$container->register( 'error_metrics_service', static fn() => new ErrorMetricsService() );
-			$container->register( 'health_check_service', static fn( ServiceContainer $c ) => new HealthCheckService( $c->get( 'settings' ), $c->get( 'circuit_breaker_service' ), $c->get( 'error_metrics_service' ) ) );
+			$container->register( 'health_check_service', static fn( ServiceContainer $c ) => new HealthCheckService( $c->get( 'settings' ), $c->get( 'circuit_breaker_service' ) ) );
 	}
 
 	private static function register_remote_services( ServiceContainer $container ): void {
@@ -137,5 +137,6 @@ final class ContainerRegistrar {
 			);
 			$container->register( 'optin_export_controller', static fn() => new OptinExportController() );
 		$container->register( 'tasks_controller', static fn( ServiceContainer $c ) => new TasksController( $c ) );
+		$container->register( 'stream_controller', static fn( ServiceContainer $c ) => new StreamController( $c ) );
 	}
 }

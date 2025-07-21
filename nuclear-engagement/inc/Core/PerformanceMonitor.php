@@ -176,14 +176,63 @@ final class PerformanceMonitor {
 	/**
 	 * Get current memory usage.
 	 *
-	 * @return array{current: int, peak: int, limit: int}
+	 * @return array{current: int, peak: int, limit: int, percentage: float}
 	 */
 	public static function getMemoryUsage(): array {
+		$current = memory_get_usage( true );
+		$peak    = memory_get_peak_usage( true );
+		$limit   = (int) ini_get( 'memory_limit' ) !== -1 ? self::parseMemoryLimit() : -1;
+		
+		$percentage = 0.0;
+		if ( $limit > 0 ) {
+			$percentage = ( $current / $limit ) * 100;
+		}
+		
 		return array(
-			'current' => memory_get_usage( true ),
-			'peak'    => memory_get_peak_usage( true ),
-			'limit'   => (int) ini_get( 'memory_limit' ) !== -1 ? self::parseMemoryLimit() : -1,
+			'current' => $current,
+			'peak'    => $peak,
+			'limit'   => $limit,
+			'percentage' => $percentage,
 		);
+	}
+
+	/**
+	 * Check if memory usage is approaching limits.
+	 *
+	 * @param float $threshold Percentage threshold (0-100).
+	 * @return bool True if memory usage exceeds threshold.
+	 */
+	public static function isMemoryUsageHigh( float $threshold = 80.0 ): bool {
+		$usage = self::getMemoryUsage();
+		return $usage['percentage'] > $threshold;
+	}
+
+	/**
+	 * Get available memory.
+	 *
+	 * @return int Available memory in bytes, or -1 if unlimited.
+	 */
+	public static function getAvailableMemory(): int {
+		$usage = self::getMemoryUsage();
+		if ( $usage['limit'] < 0 ) {
+			return -1;
+		}
+		return max( 0, $usage['limit'] - $usage['current'] );
+	}
+
+	/**
+	 * Check if enough memory is available for an operation.
+	 *
+	 * @param int $required_bytes Required memory in bytes.
+	 * @param float $safety_factor Safety factor (default 1.5).
+	 * @return bool True if enough memory is available.
+	 */
+	public static function hasEnoughMemory( int $required_bytes, float $safety_factor = 1.5 ): bool {
+		$available = self::getAvailableMemory();
+		if ( $available < 0 ) {
+			return true; // Unlimited memory
+		}
+		return $available > ( $required_bytes * $safety_factor );
 	}
 
 	/**

@@ -101,12 +101,12 @@ class TasksController extends BaseController {
 
 				// Check batch status first
 				$batch_data = TaskTransientManager::get_batch_transient( $task_id );
-				if ( $batch_data && isset( $batch_data['status'] ) && $batch_data['status'] === 'processing' ) {
+				if ( $batch_data && isset( $batch_data['status'] ) && ( $batch_data['status'] === 'running' || $batch_data['status'] === 'processing' ) ) {
 					\NuclearEngagement\Services\LoggingService::log(
-						sprintf( '[TasksController::run_task] Batch %s is already processing - rejecting request', $task_id ),
+						sprintf( '[TasksController::run_task] Batch %s is already running - rejecting request', $task_id ),
 						'warning'
 					);
-					$this->send_error( __( 'This batch is already processing. Please wait for it to complete.', 'nuclear-engagement' ), 400 );
+					$this->send_error( __( 'This task is already running. Please wait for it to complete.', 'nuclear-engagement' ), 400 );
 					return;
 				}
 
@@ -137,7 +137,12 @@ class TasksController extends BaseController {
 				sprintf( '[TasksController::run_task] ERROR: Exception for task %s - %s', $task_id, $e->getMessage() ),
 				'error'
 			);
-			$this->send_error( $e->getMessage(), 500 );
+			// Use generic error message to avoid exposing internal details
+			if ($e instanceof \NuclearEngagement\Exceptions\UserFriendlyException) {
+				$this->send_error( $e->getMessage(), $e->getStatusCode() );
+			} else {
+				$this->send_error( __('An error occurred while processing the task. Please try again.', 'nuclear-engagement'), 500 );
+			}
 		}
 	}
 
@@ -207,7 +212,12 @@ class TasksController extends BaseController {
 				sprintf( '[TasksController::cancel_task] ERROR: Exception for task %s - %s', $task_id, $e->getMessage() ),
 				'error'
 			);
-			$this->send_error( $e->getMessage(), 500 );
+			// Use generic error message to avoid exposing internal details
+			if ($e instanceof \NuclearEngagement\Exceptions\UserFriendlyException) {
+				$this->send_error( $e->getMessage(), $e->getStatusCode() );
+			} else {
+				$this->send_error( __('An error occurred while cancelling the task. Please try again.', 'nuclear-engagement'), 500 );
+			}
 		}
 	}
 
@@ -236,7 +246,12 @@ class TasksController extends BaseController {
 			$status = $this->get_task_current_status( $task_id );
 			wp_send_json_success( $status );
 		} catch ( \Exception $e ) {
-			$this->send_error( $e->getMessage(), 500 );
+			// Use generic error message to avoid exposing internal details
+			if ($e instanceof \NuclearEngagement\Exceptions\UserFriendlyException) {
+				$this->send_error( $e->getMessage(), $e->getStatusCode() );
+			} else {
+				$this->send_error( __('An error occurred while retrieving task status. Please try again.', 'nuclear-engagement'), 500 );
+			}
 		}
 	}
 
@@ -269,12 +284,12 @@ class TasksController extends BaseController {
 			);
 
 			// Check if task is already processing
-			if ( isset( $batch_data['status'] ) && $batch_data['status'] === 'processing' ) {
+			if ( isset( $batch_data['status'] ) && ( $batch_data['status'] === 'running' || $batch_data['status'] === 'processing' ) ) {
 				\NuclearEngagement\Services\LoggingService::log(
-					sprintf( '[TasksController::run_generation_task] Task %s is already processing - rejecting request', $task_id ),
+					sprintf( '[TasksController::run_generation_task] Task %s is already running - rejecting request', $task_id ),
 					'warning'
 				);
-				throw new \Exception( __( 'This task is already processing. Please wait for it to complete or cancel it first.', 'nuclear-engagement' ) );
+				throw new \Exception( __( 'This task is already running. Please wait for it to complete or cancel it first.', 'nuclear-engagement' ) );
 			}
 		} catch ( \Exception $e ) {
 			throw new \Exception( sprintf( __( 'Failed to retrieve task data: %s', 'nuclear-engagement' ), $e->getMessage() ) );
@@ -515,7 +530,12 @@ class TasksController extends BaseController {
 				wp_send_json_success( array() );
 			}
 		} catch ( \Exception $e ) {
-			$this->send_error( $e->getMessage(), 500 );
+			// Use generic error message to avoid exposing internal details
+			if ($e instanceof \NuclearEngagement\Exceptions\UserFriendlyException) {
+				$this->send_error( $e->getMessage(), $e->getStatusCode() );
+			} else {
+				$this->send_error( __('An error occurred while retrieving recent completions. Please try again.', 'nuclear-engagement'), 500 );
+			}
 		}
 	}
 
@@ -545,19 +565,76 @@ class TasksController extends BaseController {
 			$per_page     = 20;
 
 			// Get updated task data
-			$generation_tasks = $task_service->get_generation_tasks( $page, $per_page );
+			$generation_tasks = $task_service->get_paginated_tasks( $page, $per_page );
 
 			// Format the response data
 			$tasks_data = array();
 			foreach ( $generation_tasks['tasks'] as $task ) {
+				// Calculate progress and details similar to Tasks.php
+				$progress  = 0;
+				$processed = 0;
+				$failed    = 0;
+				$total_posts = $task['total_posts'] ?? 0;
+
+				if ( isset( $task['batch_jobs'] ) && is_array( $task['batch_jobs'] ) ) {
+					foreach ( $task['batch_jobs'] as $batch_job ) {
+						try {
+							if ( ! isset( $batch_job['batch_id'] ) ) {
+								continue;
+							}
+
+							$batch_data = TaskTransientManager::get_batch_transient( $batch_job['batch_id'] );
+							if ( $batch_data && is_array( $batch_data ) ) {
+								// Use actual success/fail counts if available
+								if ( isset( $batch_data['success_count'] ) ) {
+									$processed += $batch_data['success_count'];
+								} elseif ( isset( $batch_data['results']['success_count'] ) ) {
+									$processed += $batch_data['results']['success_count'];
+								} elseif ( isset( $batch_data['status'] ) && $batch_data['status'] === 'completed' ) {
+									// Fallback to post count if no specific counts available
+									$processed += $batch_job['post_count'] ?? 0;
+								}
+
+								if ( isset( $batch_data['fail_count'] ) ) {
+									$failed += $batch_data['fail_count'];
+								} elseif ( isset( $batch_data['results']['fail_count'] ) ) {
+									$failed += $batch_data['results']['fail_count'];
+								} elseif ( isset( $batch_data['status'] ) && $batch_data['status'] === 'failed' ) {
+									// Fallback to post count if no specific counts available
+									$failed += $batch_job['post_count'] ?? 0;
+								}
+							}
+						} catch ( \Throwable $e ) {
+							\NuclearEngagement\Services\LoggingService::log(
+								sprintf(
+									'Error processing batch job %s: %s',
+									$batch_job['batch_id'] ?? 'unknown',
+									$e->getMessage()
+								)
+							);
+						}
+					}
+				}
+
+				if ( $total_posts > 0 ) {
+					$progress = round( ( $processed / $total_posts ) * 100 );
+				}
+
+				$details = sprintf(
+					__( '%1$d of %2$d posts successfully processed', 'nuclear-engagement' ),
+					$processed,
+					$total_posts
+				);
+
 				$tasks_data[] = array(
 					'id'             => $task['id'],
-					'workflow_type'  => $task['workflow_type'],
-					'status'         => $task['status'],
-					'progress'       => $task['progress'],
-					'details'        => $task['details'],
-					'created_at'     => $task['created_at'],
-					'failed'         => $task['failed'] ?? 0,
+					'workflow_type'  => $task['workflow_type'] ?? 'unknown',
+					'status'         => $task['status'] ?? 'pending',
+					'progress'       => $progress,
+					'details'        => $details,
+					'created_at'     => $task['created_at'] ?? '',
+					'scheduled_at'   => $task['scheduled_at'] ?? '',
+					'failed'         => $failed,
 				);
 			}
 
@@ -569,7 +646,12 @@ class TasksController extends BaseController {
 				)
 			);
 		} catch ( \Exception $e ) {
-			$this->send_error( $e->getMessage(), 500 );
+			// Use generic error message to avoid exposing internal details
+			if ($e instanceof \NuclearEngagement\Exceptions\UserFriendlyException) {
+				$this->send_error( $e->getMessage(), $e->getStatusCode() );
+			} else {
+				$this->send_error( __('An error occurred while refreshing task data. Please try again.', 'nuclear-engagement'), 500 );
+			}
 		}
 	}
 }

@@ -68,12 +68,49 @@ class ContentStorageService extends BaseService {
 
 			$statuses = array();
 
+			// Enhanced logging to track the source
+			$post_ids = array_keys( $results );
 			\NuclearEngagement\Services\LoggingService::log(
-				'storeResults called with ' . count( $results ) . ' results'
+				sprintf(
+					'[ContentStorageService::storeResults] Called with %d results for %s. Post IDs: %s. Called from: %s',
+					count( $results ),
+					$workflowType,
+					implode( ', ', $post_ids ),
+					wp_debug_backtrace_summary( null, 0, false )
+				)
 			);
 
 		foreach ( $results as $post_idString => $data ) {
 			$post_id = (int) $post_idString;
+
+			// Skip if post doesn't exist
+			if ( ! get_post( $post_id ) ) {
+				\NuclearEngagement\Services\LoggingService::log(
+					sprintf( '[ContentStorageService] Skipping non-existent post %d', $post_id )
+				);
+				$statuses[ $post_id ] = 'Post does not exist';
+				continue;
+			}
+
+			// Skip if data is empty or invalid
+			if ( ! is_array( $data ) || empty( $data ) ) {
+				\NuclearEngagement\Services\LoggingService::log(
+					sprintf( '[ContentStorageService] Skipping post %d due to empty/invalid data', $post_id )
+				);
+				$statuses[ $post_id ] = 'Invalid or empty data';
+				continue;
+			}
+
+			// Debug logging for post 69022
+			if ( $post_id === 69022 ) {
+				\NuclearEngagement\Services\LoggingService::log(
+					sprintf(
+						'[ContentStorageService] Attempting to update %s for post 69022. Stack trace: %s',
+						$workflowType,
+						wp_debug_backtrace_summary()
+					)
+				);
+			}
 
 			// Ensure date is set.
 			if ( empty( $data['date'] ) ) {
@@ -100,6 +137,13 @@ class ContentStorageService extends BaseService {
 			} catch ( \Throwable $e ) {
 					\NuclearEngagement\Services\LoggingService::log_exception( $e );
 					$statuses[ $post_id ] = $e->getMessage();
+
+					// If we're getting errors for a post that shouldn't be processed, clean up its transients
+					if ( $post_id === 69022 || strpos( $e->getMessage(), 'Failed to update' ) !== false ) {
+						if ( class_exists( '\NuclearEngagement\Utils\TransientCleanup' ) ) {
+							\NuclearEngagement\Utils\TransientCleanup::cleanup_post_transients( $post_id );
+						}
+					}
 			}
 		}
 

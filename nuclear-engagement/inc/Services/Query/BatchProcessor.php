@@ -118,7 +118,7 @@ class BatchProcessor {
 
 		// Critical memory threshold - stop immediately
 		if ( $memory_usage_percent > 85 ) {
-			LoggingService::log( "BatchProcessor: Critical memory usage at {$memory_usage_percent}%, stopping batch processing" );
+			LoggingService::log( "BatchProcessor: Critical memory usage at {$memory_usage_percent}%, stopping batch processing", 'error' );
 			return true;
 		}
 
@@ -127,7 +127,7 @@ class BatchProcessor {
 		if ( $max_execution_time > 0 ) {
 			$elapsed_time = microtime( true ) - ( $_SERVER['REQUEST_TIME_FLOAT'] ?? microtime( true ) );
 			if ( $elapsed_time > ( $max_execution_time * 0.8 ) ) {
-				LoggingService::log( 'BatchProcessor: Approaching execution time limit, stopping batch processing' );
+				LoggingService::log( 'BatchProcessor: Approaching execution time limit, stopping batch processing', 'warning' );
 				return true;
 			}
 		}
@@ -135,7 +135,7 @@ class BatchProcessor {
 		// Allow customization of max posts limit
 		$max_posts = apply_filters( 'nuclen_batch_processor_max_posts', self::MAX_POSTS );
 		if ( $processed_total >= $max_posts ) {
-			LoggingService::log( "BatchProcessor: Reached maximum post limit ({$max_posts})" );
+			// Reached max post limit
 			return true;
 		}
 
@@ -162,16 +162,7 @@ class BatchProcessor {
 				gc_collect_cycles();
 			}
 
-			// Log memory status for debugging
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				LoggingService::log(
-					sprintf(
-						'BatchProcessor: Memory cleanup at offset %d, usage: %.1f%%',
-						$offset,
-						$memory_usage_percent
-					)
-				);
-			}
+			// Memory cleanup performed
 		}
 	}
 
@@ -190,14 +181,7 @@ class BatchProcessor {
 		$final_memory = memory_get_usage( true );
 		$memory_used  = $final_memory - $initial_memory;
 
-		LoggingService::log(
-			sprintf(
-				'BatchProcessor: Processed %d posts in %d batches, memory used: %s',
-				count( $post_ids ),
-				ceil( $offset / self::BATCH_SIZE ),
-				size_format( $memory_used )
-			)
-		);
+		// Batch processing complete
 	}
 
 	/**

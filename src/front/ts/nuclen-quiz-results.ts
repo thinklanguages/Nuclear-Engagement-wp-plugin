@@ -2,11 +2,7 @@
 // File: src/front/ts/nuclen-quiz-results.ts
 // -----------------------------------------------------------------------------
 import type { QuizQuestion, OptinContext } from './nuclen-quiz-types';
-import {
-	buildOptinInlineHTML,
-	mountOptinBeforeResults,
-	attachInlineOptinHandlers,
-} from './nuclen-quiz-optin';
+// Opt-in functions will be imported dynamically when needed
 import { escapeHtml } from './nuclen-quiz-utils';
 
 // Globals injected by wp_localize_script
@@ -44,13 +40,14 @@ export interface QuizState {
         userAnswers: number[];
 }
 
-function buildResultsHtml(
+async function buildResultsHtml(
 	optin: OptinContext,
 	questions: QuizQuestion[],
 	state: QuizState,
-): string {
+): Promise<string> {
 	let html = '';
 	if (optin.enabled && optin.position === 'with_results') {
+		const { buildOptinInlineHTML } = await import('./nuclen-quiz-optin');
 		html += buildOptinInlineHTML(optin);
 	}
 
@@ -91,6 +88,11 @@ function registerShowDetailsHandler(
 	questions: QuizQuestion[],
 	state: QuizState,
 ): void {
+	// Clean up any existing handler before assigning new one
+	if (window.nuclearEngagementShowQuizQuestionDetails) {
+		delete window.nuclearEngagementShowQuizQuestionDetails;
+	}
+	
 	window.nuclearEngagementShowQuizQuestionDetails = (idx: number): void => {
 		const q = questions[idx];
 		const ua = state.userAnswers[idx];
@@ -121,6 +123,11 @@ function registerRetakeHandler(
 	questionCount: number,
 	renderQuestion: () => void,
 ): void {
+	// Clean up any existing handler before assigning new one
+	if (window.nuclearEngagementRetakeQuiz) {
+		delete window.nuclearEngagementRetakeQuiz;
+	}
+	
 	window.nuclearEngagementRetakeQuiz = (): void => {
 		state.currIdx = 0;
 		state.score = 0;
@@ -132,37 +139,39 @@ function registerRetakeHandler(
 	};
 }
 
-export function renderOptinBeforeResultsFlow(
+export async function renderOptinBeforeResultsFlow(
 	ui: QuizUIRefs,
 	optin: OptinContext,
 	onFinal: () => void,
-): void {
+): Promise<void> {
 	const { qContainer, aContainer, explContainer, nextBtn, finalContainer } = ui;
 	qContainer.innerHTML = '';
 	aContainer.innerHTML = '';
 	explContainer.innerHTML = '';
 	nextBtn.classList.add('nuclen-quiz-hidden');
 
+	const { mountOptinBeforeResults } = await import('./nuclen-quiz-optin');
 	mountOptinBeforeResults(finalContainer, optin, onFinal, onFinal);
 }
 
-export function renderFinal(
+export async function renderFinal(
 	ui: QuizUIRefs,
 	optin: OptinContext,
 	questions: QuizQuestion[],
 	state: QuizState,
 	renderQuestion: () => void,
-): void {
+): Promise<void> {
 	const { qContainer, aContainer, explContainer, nextBtn, finalContainer, progBar } = ui;
 	qContainer.innerHTML = '';
 	aContainer.innerHTML = '';
 	explContainer.innerHTML = '';
 	nextBtn.classList.add('nuclen-quiz-hidden');
 	finalContainer.classList.remove('nuclen-quiz-hidden');
-	finalContainer.innerHTML = buildResultsHtml(optin, questions, state);
+	finalContainer.innerHTML = await buildResultsHtml(optin, questions, state);
 	finalContainer.setAttribute('aria-live', 'polite');
 
 	if (optin.enabled && optin.position === 'with_results') {
+		const { attachInlineOptinHandlers } = await import('./nuclen-quiz-optin');
 		attachInlineOptinHandlers(optin);
 	}
 

@@ -112,33 +112,11 @@ class GenerationService {
 	 * @throws ApiException On API errors
 	 */
 	public function generateContent( GenerateRequestData $request ): GenerationResponse {
-		\NuclearEngagement\Services\LoggingService::log(
-			sprintf(
-				'[INFO] Starting content generation | GenID: %s | Posts: %s | Type: %s | Status: %s | Workflow: %s | Priority: %s | Source: %s | Retry: %d/%d',
-				$request->generationId,
-				implode( ',', $request->postIds ),
-				$request->postType,
-				$request->postStatus,
-				$request->workflowType,
-				$request->priority ?? 'normal',
-				$request->source ?? 'manual',
-				$request->retryCount ?? 0,
-				$request->maxRetries ?? 0
-			)
-		);
+		// Starting content generation
 
 		// Check resource limits before processing
 		try {
 			$this->checkResourceLimits();
-			\NuclearEngagement\Services\LoggingService::log(
-				sprintf(
-					'[DEBUG] Resource check passed | GenID: %s | Memory: %.2f%% | Concurrent: %d/%d',
-					$request->generationId,
-					( memory_get_usage( true ) / $this->getMemoryLimit() ) * 100,
-					self::$currentRequests,
-					self::MAX_CONCURRENT_REQUESTS
-				)
-			);
 		} catch ( ResourceException $e ) {
 			\NuclearEngagement\Services\LoggingService::log(
 				sprintf(
@@ -164,14 +142,6 @@ class GenerationService {
 		// Get posts data.
 		$posts = $this->getPostsData( $request->postIds, $request->postType, $request->postStatus, $request->workflowType );
 
-		\NuclearEngagement\Services\LoggingService::log(
-			sprintf(
-				'[INFO] Retrieved posts | GenID: %s | Found: %d/%d',
-				$request->generationId,
-				count( $posts ),
-				count( $request->postIds )
-			)
-		);
 
 		if ( empty( $posts ) ) {
 			\NuclearEngagement\Services\LoggingService::log(
@@ -205,25 +175,8 @@ class GenerationService {
 		$response->generationId = $request->generationId;
 
 		// Always use batch processing for consistency and reliability
-		\NuclearEngagement\Services\LoggingService::log(
-			sprintf(
-				'[INFO] Creating batches | GenID: %s | Posts: %d | Priority: %s',
-				$request->generationId,
-				count( $posts ),
-				$request->priority ?? 'normal'
-			)
-		);
-
 		// Create batches based on priority
 		$batches = $this->batchProcessor->create_batches( $posts, $request->priority );
-
-		\NuclearEngagement\Services\LoggingService::log(
-			sprintf(
-				'[INFO] Batches created | GenID: %s | Count: %d',
-				$request->generationId,
-				count( $batches )
-			)
-		);
 
 		// Include priority and retry info in workflow
 		$workflow['priority']    = $request->priority;
@@ -231,14 +184,6 @@ class GenerationService {
 		$workflow['max_retries'] = $request->maxRetries > 0 ? $request->maxRetries : 0;
 
 		$batch_jobs = $this->batchProcessor->create_batch_jobs( $request->generationId, $batches, $workflow );
-
-		\NuclearEngagement\Services\LoggingService::log(
-			sprintf(
-				'[INFO] Batch jobs created | GenID: %s | Jobs: %d',
-				$request->generationId,
-				count( $batch_jobs )
-			)
-		);
 
 		// Schedule batch processing
 		$scheduled = $this->batchProcessor->schedule_batch_processing( $batch_jobs );
@@ -357,13 +302,7 @@ class GenerationService {
 			);
 		}
 
-			\NuclearEngagement\Services\LoggingService::log(
-				sprintf(
-					'[INFO] Posts data retrieved | Success: %d/%d',
-					count( $data ),
-					count( $post_ids )
-				)
-			);
+			// Posts data retrieved successfully
 
 			return $data;
 	}
@@ -390,13 +329,7 @@ class GenerationService {
 	 * @throws ApiException On queue errors
 	 */
 	public function queueAutoGeneration( array $post_ids, string $workflow_type ): string {
-		\NuclearEngagement\Services\LoggingService::log(
-			sprintf(
-				'[INFO] Queuing auto-generation | Posts: %d | Workflow: %s',
-				count( $post_ids ),
-				$workflow_type
-			)
-		);
+		// Queuing auto-generation
 
 		// Filter out protected posts
 		$filtered_ids = array_filter(
@@ -408,12 +341,7 @@ class GenerationService {
 
 		$protected_count = count( $post_ids ) - count( $filtered_ids );
 		if ( $protected_count > 0 ) {
-			\NuclearEngagement\Services\LoggingService::log(
-				sprintf(
-					'[INFO] Filtered protected posts | Protected: %d',
-					$protected_count
-				)
-			);
+			// Filtered protected posts
 		}
 
 		if ( empty( $filtered_ids ) ) {
@@ -436,7 +364,7 @@ class GenerationService {
 		}
 
 		// Use batch processor's queue method
-		$generation_id = $this->batchProcessor->queue_generation( $filtered_ids, $workflow_type, 'low' );
+		$generation_id = $this->batchProcessor->queue_generation( $filtered_ids, $workflow_type, 'low', 'auto' );
 
 		\NuclearEngagement\Services\LoggingService::log(
 			sprintf(

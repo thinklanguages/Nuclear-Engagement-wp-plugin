@@ -62,9 +62,9 @@ handled by a dedicated `SettingsSanitizer` class under `inc/Core/`.
 
 This refactor keeps the repository focused on persistence logic while making the
 sanitization rules easier to maintain and test in isolation.
-## Slim Bootloader
+## Slim Bootstrap Architecture
 
-To align with the maintainable plugin structure, the plugin entry file now only includes the header and requires `bootstrap.php`. Initialization logic—including constant definitions, autoloader registration and hook setup—resides in the bootstrap file. This keeps `nuclear-engagement.php` under 50 lines for better clarity.
+To align with the maintainable plugin structure, the plugin entry file now only includes the header and requires `bootstrap.php`. The bootstrap file uses the `PluginBootstrap` class for initialization, which includes constant definitions, autoloader registration, hook setup, and lazy loading of services. This keeps both `nuclear-engagement.php` and `bootstrap.php` clean and focused.
 
 ## TOC Module Decomposition
 
@@ -251,4 +251,26 @@ a no-op kept for backward compatibility.
 plugin header with `get_plugin_data()` and defines `NUCLEN_PLUGIN_VERSION` from
 the returned value. All other code references this constant so updating the
 header automatically propagates the new version.
+
+## Module Loading Performance Optimization
+
+The plugin now uses `LazyModuleLoader` instead of the eager `ModuleLoader` for improved performance:
+
+- **LazyModuleLoader** loads modules only when their functionality is needed (e.g., when a shortcode is detected in content)
+- Modules are loaded based on admin page context, reducing memory usage on irrelevant pages
+- Settings integration allows disabling modules entirely
+- The old `ModuleLoader` has been deprecated in favor of this lazy loading approach
+
+This change significantly reduces memory footprint and improves page load times, especially as more modules are added to the plugin.
+
+## Bootstrap System Consolidation
+
+The dual bootstrap system has been simplified:
+
+- Removed the redundant `Bootloader` class in favor of `PluginBootstrap`
+- Eliminated complex fallback logic in `bootstrap.php`
+- Centralized all initialization through `PluginBootstrap` with its lazy loading capabilities
+- Maintains clean separation between the plugin entry file, bootstrap file, and initialization class
+
+This consolidation reduces code duplication and potential initialization conflicts while maintaining the plugin's maintainability principles.
 

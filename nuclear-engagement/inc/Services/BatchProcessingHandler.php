@@ -72,6 +72,7 @@ class BatchProcessingHandler {
 		add_action( 'nuclen_poll_batch', array( __CLASS__, 'poll_batch_hook' ) );
 		add_action( 'nuclen_cleanup_old_batches', array( __CLASS__, 'cleanup_old_batches_hook' ) );
 		add_action( 'nuclen_check_batch_queue', array( __CLASS__, 'check_batch_queue_hook' ) );
+		add_action( 'nuclen_check_task_completion', array( __CLASS__, 'check_task_completion_hook' ) );
 
 		// Schedule cleanup if not already scheduled
 		if ( ! wp_next_scheduled( 'nuclen_cleanup_old_batches' ) ) {
@@ -187,13 +188,6 @@ class BatchProcessingHandler {
 			);
 
 			if ( $batch_data['status'] !== 'pending' ) {
-				\NuclearEngagement\Services\LoggingService::log(
-					sprintf(
-						'[BatchProcessingHandler::process_batch] Batch %s status is "%s", not "pending" - skipping',
-						$batch_id,
-						$batch_data['status']
-					)
-				);
 				return;
 			}
 
@@ -201,11 +195,34 @@ class BatchProcessingHandler {
 			$original_timeout = BulkGenerationTimeoutHandler::set_extended_timeout();
 
 			try {
-				// Update status to processing
-				$this->batchProcessor->update_batch_status( $batch_id, 'processing' );
-				\NuclearEngagement\Services\LoggingService::log(
-					sprintf( '[BatchProcessingHandler::process_batch] Updated batch %s status to "processing"', $batch_id )
-				);
+				// Update status to running
+				$this->batchProcessor->update_batch_status( $batch_id, 'running' );
+				
+				// Update parent task status from scheduled to running if this is the first batch
+				if ( isset( $batch_data['parent_id'] ) && ! empty( $batch_data['parent_id'] ) ) {
+					$parent_data = TaskTransientManager::get_task_transient( $batch_data['parent_id'] );
+					if ( $parent_data && isset( $parent_data['status'] ) && $parent_data['status'] === 'scheduled' ) {
+						$parent_data['status'] = 'running';
+						$parent_data['started_at'] = time();
+						TaskTransientManager::set_task_transient( $batch_data['parent_id'], $parent_data, DAY_IN_SECONDS );
+						
+						// Update task index
+						$container = \NuclearEngagement\Core\ServiceContainer::getInstance();
+						if ( $container->has( 'task_index_service' ) ) {
+							$index_service = $container->get( 'task_index_service' );
+							$index_service->update_task_status( $batch_data['parent_id'], 'running', array( 'started_at' => time() ) );
+						}
+						
+						// Clear tasks cache to reflect updates immediately
+						if ( class_exists( '\NuclearEngagement\Admin\Tasks' ) ) {
+							\NuclearEngagement\Admin\Tasks::clear_tasks_cache();
+						}
+						
+						\NuclearEngagement\Services\LoggingService::log(
+							sprintf( '[BatchProcessingHandler::process_batch] Updated parent task %s status from scheduled to running', $batch_data['parent_id'] )
+						);
+					}
+				}
 
 				// Record task start for timeout tracking
 				do_action( 'nuclen_task_started', $batch_id, 3600 ); // 1 hour timeout
@@ -222,15 +239,6 @@ class BatchProcessingHandler {
 						return 'unknown';
 					},
 					$batch_data['posts']
-				);
-				\NuclearEngagement\Services\LoggingService::log(
-					sprintf(
-						'[BatchProcessingHandler::process_batch] Sending batch %s to API - Posts: %s, Workflow: %s, Priority: %s',
-						$batch_id,
-						implode( ', ', $post_ids ),
-						$batch_data['workflow']['type'] ?? 'unknown',
-						$batch_data['workflow']['priority'] ?? 'normal'
-					)
 				);
 
 				// Send batch to API
@@ -285,10 +293,14 @@ class BatchProcessingHandler {
 							\NuclearEngagement\Services\LoggingService::log(
 								sprintf( '[BatchProcessingHandler::process_batch] Scheduled polling for batch %s in 30 seconds', $batch_id )
 							);
-					} else {
-						\NuclearEngagement\Services\LoggingService::log(
-							sprintf( '[BatchProcessingHandler::process_batch] Polling already scheduled for batch %s', $batch_id )
-						);
+							
+							// Force immediate cron spawn to process the scheduled event
+							if ( ! defined( 'DOING_CRON' ) ) {
+								spawn_cron();
+								\NuclearEngagement\Services\LoggingService::log(
+									sprintf( '[BatchProcessingHandler::process_batch] Spawned cron for immediate polling of batch %s', $batch_id )
+								);
+							}
 					}
 				} else {
 					\NuclearEngagement\Services\LoggingService::log(
@@ -471,7 +483,21 @@ class BatchProcessingHandler {
 				}
 			}
 
-			// Update batch status with total counts
+			// First update the batch data with counts BEFORE marking as completed
+			// This ensures the counts are available when the parent checks completion
+			$batch_data = TaskTransientManager::get_batch_transient( $batch_id );
+			if ( is_array( $batch_data ) ) {
+				$batch_data['success_count'] = $total_success;
+				$batch_data['fail_count'] = $total_fail;
+				$batch_data['processed_count'] = count( $results );
+				TaskTransientManager::set_batch_transient( $batch_id, $batch_data, DAY_IN_SECONDS );
+				
+				// Force a small delay to ensure transient is saved before status update
+				// This helps prevent race conditions where parent checks before data is saved
+				usleep( 50000 ); // 50ms delay
+			}
+			
+			// Now update batch status which will trigger parent completion check
 			$this->batchProcessor->update_batch_status(
 				$batch_id,
 				'completed',
@@ -661,6 +687,11 @@ class BatchProcessingHandler {
 
 					// Mark task as completed for timeout tracking
 					do_action( 'nuclen_task_completed', $batch_id );
+					
+					// Force parent task completion check to prevent stuck tasks
+					if ( isset( $batch_data['parent_id'] ) && ! empty( $batch_data['parent_id'] ) ) {
+						$batchProcessor->force_task_completion_check( $batch_data['parent_id'] );
+					}
 				} else {
 					\NuclearEngagement\Services\LoggingService::log(
 						sprintf( '[BatchProcessingHandler::poll_batch] ERROR: Batch %s marked as complete but no results found', $batch_id ),
@@ -680,6 +711,11 @@ class BatchProcessingHandler {
 				\NuclearEngagement\Services\LoggingService::log(
 					sprintf( '[BatchProcessingHandler::poll_batch] Batch %s still processing, scheduled next poll in 30 seconds', $batch_id )
 				);
+				
+				// Force immediate cron spawn to process the scheduled event
+				if ( ! defined( 'DOING_CRON' ) ) {
+					spawn_cron();
+				}
 			}
 		} catch ( \Throwable $e ) {
 			\NuclearEngagement\Services\LoggingService::log(
@@ -700,6 +736,11 @@ class BatchProcessingHandler {
 				\NuclearEngagement\Services\LoggingService::log(
 					sprintf( '[BatchProcessingHandler::poll_batch] Poll failed with retryable error for batch %s, rescheduling in 60 seconds', $batch_id )
 				);
+				
+				// Force immediate cron spawn to process the scheduled event
+				if ( ! defined( 'DOING_CRON' ) ) {
+					spawn_cron();
+				}
 			}
 		}
 	}
@@ -807,6 +848,33 @@ class BatchProcessingHandler {
 			'[BatchProcessingHandler::is_retryable_error] Error is NOT retryable'
 		);
 		return false;
+	}
+
+	/**
+	 * Hook handler for checking task completion
+	 *
+	 * @param string $task_id Task ID to check
+	 */
+	public static function check_task_completion_hook( string $task_id ): void {
+		\NuclearEngagement\Services\LoggingService::log(
+			sprintf( '[BatchProcessingHandler::check_task_completion_hook] Checking completion for task %s', $task_id )
+		);
+
+		$settings = SettingsRepository::get_instance();
+		$batchProcessor = new BulkGenerationBatchProcessor( $settings );
+		
+		// Force check the task completion
+		$completed = $batchProcessor->force_task_completion_check( $task_id );
+		
+		if ( $completed ) {
+			\NuclearEngagement\Services\LoggingService::log(
+				sprintf( '[BatchProcessingHandler::check_task_completion_hook] Task %s was successfully marked as completed', $task_id )
+			);
+		} else {
+			\NuclearEngagement\Services\LoggingService::log(
+				sprintf( '[BatchProcessingHandler::check_task_completion_hook] Task %s is not yet ready for completion', $task_id )
+			);
+		}
 	}
 }
 

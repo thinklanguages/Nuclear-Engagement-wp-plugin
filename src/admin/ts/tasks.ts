@@ -2,7 +2,7 @@
  * Nuclear Engagement Tasks Page JavaScript
  */
 
-import { error } from '../../shared/logger';
+import { error, log } from '../../shared/logger';
 
 declare const ajaxurl: string;
 declare const nuclen_tasks: {
@@ -15,13 +15,63 @@ declare const nuclen_tasks: {
     };
 };
 
+interface TaskData {
+    id: string;
+    workflow_type: string;
+    status: string;
+    progress: number;
+    details: string;
+    created_at: string;
+    scheduled_at?: string;
+    failed?: number;
+}
+
+interface PollingConfig {
+    initialInterval: number;
+    intervals: Array<{ after: number; interval: number }>;
+    maxInterval: number;
+}
+
 class TasksManager {
     private isProcessing = false;
     private isRefreshing = false;
     private currentPage = 1;
+    
+    // Polling configuration
+    private pollingTimer: number | null = null;
+    private pollingStartTime: number = 0;
+    private isPageVisible = true;
+    private lastTasksData: Map<string, TaskData> = new Map();
+    private pollingConfig: PollingConfig = {
+        initialInterval: 15000, // 15 seconds
+        intervals: [
+            { after: 60000, interval: 30000 },    // After 1 minute, poll every 30s
+            { after: 300000, interval: 60000 },   // After 5 minutes, poll every 60s
+            { after: 600000, interval: 120000 },  // After 10 minutes, poll every 2 minutes
+        ],
+        maxInterval: 300000, // Max 5 minutes
+    };
+    
+    // Track active tasks for smart polling
+    private activeTasks = new Set<string>();
+    
+    // Auto-refresh UI elements
+    private pollingIndicator: HTMLElement | null = null;
+    private nextPollTime: number = 0;
+    private countdownInterval: number | null = null;
+    
+    // Bound event handlers for cleanup
+    private handleVisibilityChange = this.onVisibilityChange.bind(this);
+    private handleWindowBlur = this.onWindowBlur.bind(this);
+    private handleWindowFocus = this.onWindowFocus.bind(this);
 
     constructor() {
         this.init();
+        
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            this.cleanup();
+        });
     }
 
     private init(): void {
@@ -33,6 +83,356 @@ class TasksManager {
         
         // Convert the refresh link to a button with AJAX functionality
         this.setupRefreshButton();
+        
+        // Setup page visibility handling
+        this.setupPageVisibilityHandling();
+        
+        // Initialize task tracking
+        this.initializeTaskTracking();
+        
+        // Create polling indicator
+        this.createPollingIndicator();
+        
+        // Start smart polling
+        this.startSmartPolling();
+    }
+
+    private setupPageVisibilityHandling(): void {
+        // Use Page Visibility API to pause polling when tab is hidden
+        document.addEventListener('visibilitychange', this.handleVisibilityChange);
+        
+        // Also handle window focus/blur as backup
+        window.addEventListener('blur', this.handleWindowBlur);
+        window.addEventListener('focus', this.handleWindowFocus);
+    }
+    
+    private onVisibilityChange(): void {
+        this.isPageVisible = !document.hidden;
+        log(`Page visibility changed: ${this.isPageVisible ? 'visible' : 'hidden'}`);
+        
+        if (this.isPageVisible) {
+            // Resume polling when page becomes visible
+            if (this.activeTasks.size > 0) {
+                this.startSmartPolling();
+            }
+        } else {
+            // Pause polling when page is hidden
+            this.stopPolling();
+        }
+    }
+    
+    private onWindowBlur(): void {
+        this.isPageVisible = false;
+        this.stopPolling();
+    }
+    
+    private onWindowFocus(): void {
+        this.isPageVisible = true;
+        if (this.activeTasks.size > 0) {
+            // Immediately refresh when window regains focus
+            this.refreshTasksData().catch(err => {
+                error('Failed to refresh on focus:', err);
+            });
+            this.startSmartPolling();
+        }
+    }
+    
+    private initializeTaskTracking(): void {
+        // Track all current tasks and their states
+        const rows = document.querySelectorAll('.nuclen-tasks-table tbody tr');
+        rows.forEach(row => {
+            const taskId = row.getAttribute('data-task-id');
+            const statusCell = row.querySelector('.column-status');
+            if (taskId && statusCell) {
+                const statusText = statusCell.textContent?.toLowerCase() || '';
+                
+                // Track as active if running, processing, pending, or scheduled
+                if (statusText.includes('running') || statusText.includes('processing') || statusText.includes('pending') || statusText.includes('scheduled')) {
+                    this.activeTasks.add(taskId);
+                }
+                
+                // Store initial task data
+                this.lastTasksData.set(taskId, this.extractTaskDataFromRow(row as HTMLElement));
+            }
+        });
+        
+        log(`Initialized task tracking: ${this.activeTasks.size} active tasks`);
+    }
+    
+    private extractTaskDataFromRow(row: HTMLElement): TaskData {
+        const taskId = row.getAttribute('data-task-id') || '';
+        const statusCell = row.querySelector('.column-status');
+        const progressCell = row.querySelector('.column-progress');
+        const detailsCell = row.querySelector('td:nth-child(7)'); // Details column is now 7th
+        
+        // Extract progress number from progress bar
+        let progress = 0;
+        const progressText = progressCell?.querySelector('.nuclen-progress-text')?.textContent;
+        if (progressText) {
+            const match = progressText.match(/(\d+)%/);
+            if (match) {
+                progress = parseInt(match[1], 10);
+            }
+        }
+        
+        return {
+            id: taskId,
+            workflow_type: row.querySelector('td:nth-child(4)')?.textContent || '', // Type column is now 4th
+            status: this.extractStatusFromBadge(statusCell?.innerHTML || ''),
+            progress: progress,
+            details: detailsCell?.innerHTML || '',
+            created_at: row.querySelector('td:nth-child(1)')?.textContent || '',
+            scheduled_at: row.querySelector('td:nth-child(2)')?.textContent || '',
+            failed: this.extractFailedCount(detailsCell?.innerHTML || ''),
+        };
+    }
+    
+    private extractStatusFromBadge(badgeHtml: string): string {
+        // Extract status from badge class
+        const match = badgeHtml.match(/nuclen-badge-(\w+)/);
+        if (match) {
+            const badgeClass = match[1];
+            switch (badgeClass) {
+                case 'warning':
+                    return badgeHtml.includes('Pending') ? 'pending' : 'completed_with_errors';
+                case 'info':
+                    return 'processing';
+                case 'success':
+                    return 'completed';
+                case 'error':
+                    return 'failed';
+                default:
+                    return 'cancelled';
+            }
+        }
+        return 'unknown';
+    }
+    
+    private extractFailedCount(detailsHtml: string): number {
+        const match = detailsHtml.match(/(\d+)\s+failed/);
+        return match ? parseInt(match[1], 10) : 0;
+    }
+    
+    private cleanup(): void {
+        // Stop polling
+        this.stopPolling();
+        
+        // Clear countdown
+        if (this.countdownInterval) {
+            clearInterval(this.countdownInterval);
+            this.countdownInterval = null;
+        }
+        
+        // Remove polling indicator
+        if (this.pollingIndicator) {
+            this.pollingIndicator.remove();
+        }
+        
+        // Clear stored data to free memory
+        this.lastTasksData.clear();
+        this.activeTasks.clear();
+        
+        // Remove event listeners
+        document.removeEventListener('visibilitychange', this.handleVisibilityChange);
+        window.removeEventListener('blur', this.handleWindowBlur);
+        window.removeEventListener('focus', this.handleWindowFocus);
+    }
+    
+    private startSmartPolling(): void {
+        // Don't start if page is not visible or no active tasks
+        if (!this.isPageVisible || this.activeTasks.size === 0) {
+            this.updatePollingIndicator(false);
+            return;
+        }
+        
+        // Clear any existing timer
+        this.stopPolling();
+        
+        // Record polling start time
+        if (this.pollingStartTime === 0) {
+            this.pollingStartTime = Date.now();
+        }
+        
+        // Calculate appropriate interval based on elapsed time
+        const elapsedTime = Date.now() - this.pollingStartTime;
+        let interval = this.pollingConfig.initialInterval;
+        
+        for (const config of this.pollingConfig.intervals) {
+            if (elapsedTime > config.after) {
+                interval = config.interval;
+            }
+        }
+        
+        // Cap at max interval
+        interval = Math.min(interval, this.pollingConfig.maxInterval);
+        
+        log(`Starting smart polling with interval: ${interval / 1000}s, active tasks: ${this.activeTasks.size}`);
+        
+        // Update UI
+        this.nextPollTime = Date.now() + interval;
+        this.updatePollingIndicator(true, interval);
+        this.startCountdown();
+        
+        // Schedule next poll
+        this.pollingTimer = window.setTimeout(() => {
+            this.pollForUpdates();
+        }, interval);
+    }
+    
+    private stopPolling(): void {
+        if (this.pollingTimer) {
+            clearTimeout(this.pollingTimer);
+            this.pollingTimer = null;
+            log('Polling stopped');
+        }
+        
+        // Stop countdown
+        if (this.countdownInterval) {
+            clearInterval(this.countdownInterval);
+            this.countdownInterval = null;
+        }
+        
+        // Update UI
+        this.updatePollingIndicator(false);
+    }
+    
+    private async pollForUpdates(): Promise<void> {
+        if (!this.isPageVisible || this.isRefreshing) {
+            return;
+        }
+        
+        try {
+            log('Polling for task updates...');
+            
+            const response = await fetch(ajaxurl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    action: 'nuclen_refresh_tasks_data',
+                    nonce: nuclen_tasks.nonce,
+                    page: this.currentPage.toString(),
+                })
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const result = await response.json();
+            
+            if (result && result.success && result.data && Array.isArray(result.data.tasks)) {
+                this.updateTasksFromPolling(result.data.tasks);
+                
+                // Only show update indicator if tasks were actually updated
+                if (result.data.tasks.length > 0) {
+                    this.showUpdateIndicator();
+                }
+            }
+        } catch (err) {
+            error('Failed to poll for updates:', err);
+            // Don't stop polling on error, just skip this iteration
+        } finally {
+            // Continue polling if there are still active tasks
+            if (this.activeTasks.size > 0 && this.isPageVisible) {
+                this.startSmartPolling();
+            } else if (this.activeTasks.size === 0) {
+                log('No active tasks remaining, stopping polling');
+                this.pollingStartTime = 0;
+            }
+        }
+    }
+    
+    private updateTasksFromPolling(newTasks: TaskData[]): void {
+        const updatedTasks = new Set<string>();
+        
+        // Limit stored tasks to prevent memory issues
+        const MAX_STORED_TASKS = 100;
+        if (this.lastTasksData.size > MAX_STORED_TASKS) {
+            // Remove old completed/cancelled tasks first
+            const tasksToRemove: string[] = [];
+            this.lastTasksData.forEach((task, id) => {
+                if (!this.activeTasks.has(id) && 
+                    (task.status === 'completed' || task.status === 'cancelled' || task.status === 'failed')) {
+                    tasksToRemove.push(id);
+                }
+            });
+            
+            // Remove enough tasks to get under the limit
+            const removeCount = Math.min(tasksToRemove.length, this.lastTasksData.size - MAX_STORED_TASKS + 10); // +10 for buffer
+            tasksToRemove.slice(0, removeCount).forEach(id => this.lastTasksData.delete(id));
+        }
+        
+        newTasks.forEach(newTask => {
+            const oldTask = this.lastTasksData.get(newTask.id);
+            
+            // Check if task has changed
+            if (!oldTask || this.hasTaskChanged(oldTask, newTask)) {
+                // Update the DOM for this specific task
+                this.updateSingleTaskRow(newTask);
+                updatedTasks.add(newTask.id);
+                
+                // Update our stored data
+                this.lastTasksData.set(newTask.id, newTask);
+            }
+            
+            // Update active tasks tracking
+            if (newTask.status === 'running' || newTask.status === 'processing' || newTask.status === 'pending' || newTask.status === 'scheduled') {
+                this.activeTasks.add(newTask.id);
+            } else {
+                this.activeTasks.delete(newTask.id);
+            }
+        });
+        
+        if (updatedTasks.size > 0) {
+            log(`Updated ${updatedTasks.size} tasks: ${Array.from(updatedTasks).join(', ')}`);
+        }
+    }
+    
+    private hasTaskChanged(oldTask: TaskData, newTask: TaskData): boolean {
+        return (
+            oldTask.status !== newTask.status ||
+            oldTask.progress !== newTask.progress ||
+            oldTask.failed !== newTask.failed ||
+            oldTask.details !== newTask.details
+        );
+    }
+    
+    private updateSingleTaskRow(task: TaskData): void {
+        const row = document.querySelector(`tr[data-task-id="${task.id}"]`);
+        if (!row) return;
+        
+        // Update only the changed cells
+        this.updateTasksTable([task]);
+    }
+    
+    private showUpdateIndicator(): void {
+        // Find or create update indicator
+        let indicator = document.querySelector('.nuclen-update-indicator') as HTMLElement;
+        if (!indicator) {
+            indicator = document.createElement('div');
+            indicator.className = 'nuclen-update-indicator';
+            indicator.innerHTML = '<span class="dashicons dashicons-update spin"></span> Updated';
+            
+            const pageTitle = document.querySelector('.wrap h1');
+            if (pageTitle) {
+                pageTitle.appendChild(indicator);
+            } else {
+                // Fallback: add to body if page title not found
+                document.body.appendChild(indicator);
+            }
+        }
+        
+        // Show indicator
+        indicator.classList.add('visible');
+        
+        // Hide after 2 seconds
+        setTimeout(() => {
+            if (indicator && indicator.parentNode) {
+                indicator.classList.remove('visible');
+            }
+        }, 2000);
     }
 
     private attachActionHandlers(): void {
@@ -72,12 +472,62 @@ class TasksManager {
         });
     }
 
-    private refreshTasksData(): void {
-        // Just reload the page to get fresh data
-        window.location.reload();
+    private async refreshTasksData(): Promise<void> {
+        if (this.isRefreshing) return;
+        
+        this.isRefreshing = true;
+        
+        try {
+            // Add visual feedback
+            const refreshButton = document.querySelector('.nuclen-refresh-button');
+            if (refreshButton) {
+                refreshButton.classList.add('is-busy');
+                refreshButton.setAttribute('disabled', 'disabled');
+            }
+            
+            const response = await fetch(ajaxurl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    action: 'nuclen_refresh_tasks_data',
+                    nonce: nuclen_tasks.nonce,
+                    page: this.currentPage.toString(),
+                })
+            });
+            
+            const result = await response.json();
+            
+            if (result.success && result.data && result.data.tasks) {
+                // Update all tasks
+                this.updateTasksFromPolling(result.data.tasks);
+                this.showNotice('Tasks refreshed successfully', 'success');
+                
+                // Reset polling timer since we just refreshed
+                this.pollingStartTime = Date.now();
+                if (this.activeTasks.size > 0) {
+                    this.startSmartPolling();
+                }
+            } else {
+                throw new Error(result.data?.message || 'Failed to refresh tasks');
+            }
+        } catch (err) {
+            error('Failed to refresh tasks:', err);
+            this.showNotice('Failed to refresh tasks. Please try again.', 'error');
+        } finally {
+            this.isRefreshing = false;
+            
+            // Remove visual feedback
+            const refreshButton = document.querySelector('.nuclen-refresh-button');
+            if (refreshButton) {
+                refreshButton.classList.remove('is-busy');
+                refreshButton.removeAttribute('disabled');
+            }
+        }
     }
 
-    private updateTasksTable(tasks: any[]): void {
+    private updateTasksTable(tasks: TaskData[]): void {
         const tbody = document.querySelector('.nuclen-tasks-table tbody');
         if (!tbody || tasks.length === 0) return;
 
@@ -106,7 +556,7 @@ class TasksManager {
             }
 
             // Update details
-            const detailsCell = row.querySelector('td:nth-child(5)'); // Details column
+            const detailsCell = row.querySelector('td:nth-child(7)'); // Details column is now 7th
             if (detailsCell) {
                 let detailsHTML = task.details;
                 if (task.failed > 0) {
@@ -189,14 +639,18 @@ class TasksManager {
                 
                 // Update the row status locally
                 if (row) {
-                    // For run_task, immediately show processing status
+                    // For run_task, immediately show running status
                     if (action === 'run_task') {
                         const statusCell = row.querySelector('.column-status');
                         if (statusCell) {
-                            statusCell.innerHTML = this.getStatusBadge('processing');
+                            statusCell.innerHTML = this.getStatusBadge('running');
                         }
                         // Update action buttons to show spinner
-                        this.updateActionButtons(row as HTMLElement, 'processing');
+                        this.updateActionButtons(row as HTMLElement, 'running');
+                        
+                        // Track as active task and start polling
+                        this.activeTasks.add(taskId);
+                        this.startSmartPolling();
                     } else if (action === 'cancel_task') {
                         // For cancel, show cancelled status
                         const statusCell = row.querySelector('.column-status');
@@ -208,15 +662,22 @@ class TasksManager {
                         if (actionsCell) {
                             actionsCell.innerHTML = '<span class="nuclen-no-actions">—</span>';
                         }
+                        
+                        // Remove from active tasks
+                        this.activeTasks.delete(taskId);
                     }
                 }
             } else {
-                throw new Error(result.data?.message || result.data || nuclen_tasks.i18n.error);
+                // Use generic error message for user display
+                const errorMessage = nuclen_tasks.i18n.error || 'An error occurred. Please try again.';
+                throw new Error(errorMessage);
             }
 
         } catch (err) {
             error('Task action failed:', err);
-            this.showNotice(err instanceof Error ? err.message : nuclen_tasks.i18n.error, 'error');
+            // Always show generic error message to users
+            const userMessage = nuclen_tasks.i18n.error || 'An error occurred. Please try again.';
+            this.showNotice(userMessage, 'error');
             
             // Restore button state
             button.textContent = originalText;
@@ -230,6 +691,8 @@ class TasksManager {
     private getStatusBadge(status: string): string {
         const badges: Record<string, string> = {
             'pending': '<span class="nuclen-badge nuclen-badge-warning">Pending</span>',
+            'scheduled': '<span class="nuclen-badge nuclen-badge-warning">Scheduled</span>',
+            'running': '<span class="nuclen-badge nuclen-badge-info">Running</span>',
             'processing': '<span class="nuclen-badge nuclen-badge-info">Processing</span>',
             'completed': '<span class="nuclen-badge nuclen-badge-success">Completed</span>',
             'completed_with_errors': '<span class="nuclen-badge nuclen-badge-warning">Completed with Errors</span>',
@@ -247,7 +710,7 @@ class TasksManager {
         // Clear existing actions
         actionsCell.innerHTML = '';
 
-        if (status === 'pending') {
+        if (status === 'pending' || status === 'scheduled') {
             const taskId = row.getAttribute('data-task-id');
             if (taskId) {
                 actionsCell.innerHTML = `
@@ -263,7 +726,7 @@ class TasksManager {
                 actionsCell.querySelector('.nuclen-run-now')?.addEventListener('click', (e) => this.handleRunTask(e));
                 actionsCell.querySelector('.nuclen-cancel')?.addEventListener('click', (e) => this.handleCancelTask(e));
             }
-        } else if (status === 'processing') {
+        } else if (status === 'running' || status === 'processing') {
             const taskId = row.getAttribute('data-task-id');
             if (taskId) {
                 actionsCell.innerHTML = `
@@ -360,6 +823,82 @@ class TasksManager {
         } catch (err) {
             error('Failed to check recent completions:', err);
         }
+    }
+    
+    private createPollingIndicator(): void {
+        // Create the polling status indicator
+        const indicator = document.createElement('div');
+        indicator.className = 'nuclen-polling-indicator';
+        indicator.innerHTML = `
+            <span class="nuclen-polling-icon">
+                <span class="dashicons dashicons-update"></span>
+            </span>
+            <span class="nuclen-polling-text">Auto-refresh: <span class="status">Inactive</span></span>
+            <span class="nuclen-polling-countdown"></span>
+        `;
+        
+        // Find the refresh button and insert indicator next to it
+        const refreshButton = document.querySelector('.nuclen-refresh-button');
+        if (refreshButton && refreshButton.parentNode) {
+            refreshButton.parentNode.insertBefore(indicator, refreshButton.nextSibling);
+            this.pollingIndicator = indicator;
+        } else {
+            // Fallback: insert after the page title
+            const pageTitle = document.querySelector('.wrap h1');
+            if (pageTitle) {
+                pageTitle.appendChild(indicator);
+                this.pollingIndicator = indicator;
+            }
+        }
+    }
+    
+    private updatePollingIndicator(active: boolean, interval?: number): void {
+        if (!this.pollingIndicator) return;
+        
+        const statusEl = this.pollingIndicator.querySelector('.status') as HTMLElement;
+        const iconEl = this.pollingIndicator.querySelector('.nuclen-polling-icon') as HTMLElement;
+        const countdownEl = this.pollingIndicator.querySelector('.nuclen-polling-countdown') as HTMLElement;
+        
+        if (active) {
+            this.pollingIndicator.classList.add('active');
+            statusEl.textContent = `Active (${this.activeTasks.size} task${this.activeTasks.size !== 1 ? 's' : ''})`;
+            iconEl.classList.add('spin');
+            
+            if (interval) {
+                const seconds = Math.floor(interval / 1000);
+                countdownEl.textContent = `Next refresh in ${seconds}s`;
+            }
+        } else {
+            this.pollingIndicator.classList.remove('active');
+            statusEl.textContent = 'Inactive';
+            iconEl.classList.remove('spin');
+            countdownEl.textContent = '';
+        }
+    }
+    
+    private startCountdown(): void {
+        // Clear any existing countdown
+        if (this.countdownInterval) {
+            clearInterval(this.countdownInterval);
+        }
+        
+        this.countdownInterval = window.setInterval(() => {
+            const remaining = Math.max(0, Math.floor((this.nextPollTime - Date.now()) / 1000));
+            const countdownEl = this.pollingIndicator?.querySelector('.nuclen-polling-countdown') as HTMLElement;
+            
+            if (countdownEl) {
+                if (remaining > 0) {
+                    countdownEl.textContent = `Next refresh in ${remaining}s`;
+                } else {
+                    countdownEl.textContent = 'Refreshing...';
+                }
+            }
+            
+            if (remaining <= 0 && this.countdownInterval) {
+                clearInterval(this.countdownInterval);
+                this.countdownInterval = null;
+            }
+        }, 1000);
     }
 }
 

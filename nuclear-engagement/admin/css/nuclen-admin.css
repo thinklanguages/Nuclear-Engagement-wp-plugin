@@ -413,6 +413,58 @@ Quick helper classes for display, text alignment, etc.
 				border-radius: 3px;
 				z-index: 100000;
 }
+.nuclen-success-toast {
+				position: fixed;
+				bottom: 20px;
+				right: 20px;
+				background: #00a32a;
+				color: #fff;
+				padding: 12px 16px;
+				border-radius: 3px;
+				z-index: 100000;
+				box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+/* Page-level messages */
+.nuclen-page-message {
+				display: flex;
+				align-items: center;
+				margin: 16px 0;
+				padding: 12px 16px;
+				border-radius: 4px;
+				transition: opacity 0.3s ease;
+}
+.nuclen-page-message--success {
+				background: #d4f4dd;
+				border: 1px solid #00a32a;
+				color: #00450c;
+}
+.nuclen-page-message--info {
+				background: #e7f2ff;
+				border: 1px solid #2271b1;
+				color: #0a4b78;
+}
+.nuclen-page-message--warning {
+				background: #fef8e6;
+				border: 1px solid #dba617;
+				color: #5a4b00;
+}
+.nuclen-page-message__icon {
+				font-size: 20px;
+				margin-right: 12px;
+				line-height: 1;
+}
+.nuclen-page-message__text {
+				flex: 1;
+				font-size: 14px;
+				line-height: 1.5;
+}
+/* Button loading state */
+.button .spinner.is-active {
+				display: inline-block;
+				float: none;
+				margin: 0 8px 0 0;
+				vertical-align: middle;
+}
 
 /* Status message for polling timeouts */
 .nuclen-status-message {
@@ -512,4 +564,114 @@ Quick helper classes for display, text alignment, etc.
 
 #nuclen-updates-content .spinner.is-active {
 	visibility: visible;
+}
+
+/* Tasks page auto-refresh styles */
+.nuclen-update-indicator {
+	display: inline-block;
+	margin-left: 10px;
+	padding: 5px 10px;
+	background: #f0f0f0;
+	border-radius: 3px;
+	font-size: 12px;
+	color: #666;
+	opacity: 0;
+	transition: opacity 0.3s ease;
+	vertical-align: middle;
+}
+
+.nuclen-update-indicator.visible {
+	opacity: 1;
+}
+
+.nuclen-update-indicator .dashicons {
+	font-size: 14px;
+	width: 14px;
+	height: 14px;
+	vertical-align: middle;
+	margin-right: 3px;
+}
+
+.nuclen-update-indicator .dashicons.spin {
+	animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+	from { transform: rotate(0deg); }
+	to { transform: rotate(360deg); }
+}
+
+
+/* Refresh button busy state */
+.nuclen-refresh-button.is-busy {
+	opacity: 0.6;
+	cursor: not-allowed;
+}
+
+.nuclen-refresh-button.is-busy .dashicons-update {
+	animation: spin 1s linear infinite;
+}
+
+/* Auto-refresh Polling Indicator */
+.nuclen-polling-indicator {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	margin-left: 15px;
+	padding: 5px 12px;
+	background: #f0f0f1;
+	border: 1px solid #dcdcde;
+	border-radius: 3px;
+	font-size: 13px;
+	color: #646970;
+	transition: all 0.3s ease;
+}
+
+.nuclen-polling-indicator.active {
+	background: #e8f5e9;
+	border-color: #4caf50;
+	color: #2e7d32;
+}
+
+.nuclen-polling-icon {
+	display: inline-flex;
+	align-items: center;
+}
+
+.nuclen-polling-icon .dashicons {
+	font-size: 16px;
+	width: 16px;
+	height: 16px;
+	transition: color 0.3s ease;
+}
+
+.nuclen-polling-indicator.active .nuclen-polling-icon .dashicons {
+	color: #4caf50;
+}
+
+.nuclen-polling-icon.spin .dashicons {
+	animation: spin 2s linear infinite;
+}
+
+.nuclen-polling-text {
+	font-weight: 500;
+}
+
+.nuclen-polling-countdown {
+	font-size: 12px;
+	color: #8c8f94;
+	margin-left: 8px;
+	padding-left: 8px;
+	border-left: 1px solid #dcdcde;
+}
+
+.nuclen-polling-indicator.active .nuclen-polling-countdown {
+	color: #388e3c;
+	border-left-color: #4caf50;
+}
+
+/* Update animation for spinning icon */
+@keyframes spin {
+	0% { transform: rotate(0deg); }
+	100% { transform: rotate(360deg); }
 }

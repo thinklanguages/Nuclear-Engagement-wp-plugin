@@ -125,15 +125,29 @@ class UpdatesController extends BaseController {
 				if ( ! empty( $batch_results ) && is_array( $batch_results ) ) {
 					$data['results']  = $batch_results;
 					$data['workflow'] = $this->detectWorkflowType( $batch_results, reset( $batch_results ), $request->generationId );
+					\NuclearEngagement\Services\LoggingService::log( 
+						sprintf( '[UpdatesController] New batch results found: %d items', count( $batch_results ) )
+					);
 				}
 
-				// If all batches are complete, gather all results
-				if ( isset( $batch_status['status'] ) && ( $batch_status['status'] === 'completed' || $batch_status['status'] === 'completed_with_errors' ) ) {
-					if ( empty( $data['results'] ) ) {
-						$data['results'] = $this->gatherBatchResults( $request->generationId );
-					}
-					if ( ! empty( $data['results'] ) && is_array( $data['results'] ) ) {
+				// Add any new results from polling
+				if ( ! empty( $batch_results ) && is_array( $batch_results ) ) {
+					$data['results']  = $batch_results;
+					$data['workflow'] = $this->detectWorkflowType( $batch_results, reset( $batch_results ), $request->generationId );
+					\NuclearEngagement\Services\LoggingService::log( 
+						sprintf( '[UpdatesController] New batch results found: %d items', count( $batch_results ) )
+					);
+				}
+				
+				// If all batches are complete or we don't have results yet, gather all results
+				if ( ( isset( $batch_status['status'] ) && ( $batch_status['status'] === 'completed' || $batch_status['status'] === 'completed_with_errors' ) ) || empty( $data['results'] ) ) {
+					$all_available_results = $this->gatherBatchResults( $request->generationId );
+					if ( ! empty( $all_available_results ) && is_array( $all_available_results ) ) {
+						$data['results'] = $all_available_results;
 						$data['workflow'] = $this->detectWorkflowType( $data['results'], reset( $data['results'] ), $request->generationId );
+						\NuclearEngagement\Services\LoggingService::log( 
+							sprintf( '[UpdatesController] Gathered all results for completed generation %s: %d items', $request->generationId, count( $all_available_results ) )
+						);
 					}
 				}
 			} else {
@@ -182,6 +196,11 @@ class UpdatesController extends BaseController {
 			}
 			if ( isset( $data['message'] ) ) {
 				$response->message = $data['message'];
+			}
+			
+			// Add workflow if present in data (for batch mode)
+			if ( isset( $data['workflow'] ) ) {
+				$response->workflow = $data['workflow'];
 			}
 
 				/* ── Persist & return results ───────────────────────────── */
@@ -327,7 +346,7 @@ class UpdatesController extends BaseController {
 
 		foreach ( $parent_data['batch_jobs'] as $job ) {
 			$batch_data = TaskTransientManager::get_batch_transient( $job['batch_id'] );
-			if ( ! is_array( $batch_data ) || $batch_data['status'] !== 'processing' ) {
+			if ( ! is_array( $batch_data ) || ( $batch_data['status'] !== 'running' && $batch_data['status'] !== 'processing' ) ) {
 				continue;
 			}
 
@@ -387,7 +406,14 @@ class UpdatesController extends BaseController {
 
 					// Add to results - preserve keys!
 					foreach ( $updates['results'] as $post_id => $result ) {
-						$all_results[ $post_id ] = $result;
+						// Only add numeric post IDs to avoid issues
+						if ( is_numeric( $post_id ) ) {
+							$all_results[ $post_id ] = $result;
+						} else {
+							\NuclearEngagement\Services\LoggingService::log(
+								sprintf( '[pollBatchResults] Skipping non-numeric key: %s', $post_id )
+							);
+						}
 					}
 				} elseif ( isset( $updates['processed'] ) && isset( $updates['total'] ) ) {
 					// Still processing, update progress in batch data
@@ -440,13 +466,19 @@ class UpdatesController extends BaseController {
 				if ( ! empty( $batch_data['results'] ) && is_array( $batch_data['results'] ) ) {
 					// Preserve post ID keys
 					foreach ( $batch_data['results'] as $post_id => $result ) {
-						$all_results[ $post_id ] = $result;
+						// Only add numeric post IDs
+						if ( is_numeric( $post_id ) ) {
+							$all_results[ $post_id ] = $result;
+						}
 					}
 				}
 				// Also check for accumulated results from in-progress batches
 				if ( ! empty( $batch_data['accumulated_results'] ) && is_array( $batch_data['accumulated_results'] ) ) {
 					foreach ( $batch_data['accumulated_results'] as $post_id => $result ) {
-						$all_results[ $post_id ] = $result;
+						// Only add numeric post IDs
+						if ( is_numeric( $post_id ) ) {
+							$all_results[ $post_id ] = $result;
+						}
 					}
 				}
 			}

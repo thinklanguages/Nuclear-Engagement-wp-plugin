@@ -29,8 +29,9 @@ final class JobQueue {
 
 	/**
 	 * Maximum concurrent jobs.
+	 * Increased from 3 to better utilize modern server capabilities.
 	 */
-	private const MAX_CONCURRENT_JOBS = 3;
+	private const MAX_CONCURRENT_JOBS = 10;
 
 	/**
 	 * Queue a background job.
@@ -42,6 +43,15 @@ final class JobQueue {
 	 * @return string Job ID.
 	 */
 	public static function queue_job( string $type, array $data = array(), int $priority = 10, int $delay = 0 ): string {
+		// Check for duplicate job
+		$duplicate_id = self::find_duplicate_job( $type, $data );
+		if ( $duplicate_id ) {
+			\NuclearEngagement\Services\LoggingService::log(
+				sprintf( 'Duplicate job detected. Returning existing job ID: %s', $duplicate_id )
+			);
+			return $duplicate_id;
+		}
+		
 		$job_id = wp_generate_uuid4();
 
 		$job = array(
@@ -96,6 +106,17 @@ final class JobQueue {
 	public static function get_ready_jobs(): array {
 		global $wpdb;
 
+		// First, check how many jobs are currently processing
+		$processing_count = $wpdb->get_var(
+			"SELECT COUNT(*) FROM {$wpdb->prefix}nuclen_background_jobs WHERE status = 'processing'"
+		);
+		
+		$available_slots = self::MAX_CONCURRENT_JOBS - intval( $processing_count );
+		
+		if ( $available_slots <= 0 ) {
+			return array();
+		}
+
 		return // phpcs:ignore WordPress.DB.DirectDatabaseQuery
 		$wpdb->get_results(
 			$wpdb->prepare(
@@ -108,7 +129,7 @@ final class JobQueue {
 			LIMIT %d
 		",
 				time(),
-				self::MAX_CONCURRENT_JOBS
+				$available_slots
 			),
 			ARRAY_A
 		);
@@ -141,6 +162,37 @@ final class JobQueue {
 		return $stats ?: array();
 	}
 
+	/**
+	 * Find duplicate job in the queue.
+	 *
+	 * @param string $type Job type.
+	 * @param array  $data Job data.
+	 * @return string|null Existing job ID if duplicate found, null otherwise.
+	 */
+	private static function find_duplicate_job( string $type, array $data ): ?string {
+		global $wpdb;
+		
+		// Create a hash of the job data for comparison
+		$data_hash = md5( wp_json_encode( $data ) );
+		
+		// Check for existing job with same type and data within last hour
+		$existing_job = $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT job_id FROM {$wpdb->prefix}nuclen_background_jobs 
+				WHERE type = %s 
+				AND MD5(data) = %s 
+				AND status IN ('queued', 'processing', 'retrying')
+				AND created > %d
+				LIMIT 1",
+				$type,
+				$data_hash,
+				time() - 3600 // Within last hour
+			)
+		);
+		
+		return $existing_job ?: null;
+	}
+	
 	/**
 	 * Store job in database.
 	 *

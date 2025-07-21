@@ -122,9 +122,7 @@ class OptinData {
 			LoggingService::notify_admin( 'Nuclear Engagement table creation failed. Check logs.' );
 			return false;
 		}
-		if ( empty( $result ) ) {
-			LoggingService::log( 'dbDelta executed with no changes.' );
-		}
+		// dbDelta returns empty array when no changes needed
 
 		self::$table_exists_cache = true;
 		// Update transient cache when table is created
@@ -181,16 +179,56 @@ class OptinData {
 
 		check_ajax_referer( 'nuclen_optin_nonce', 'nonce' );
 
+		// Validate and sanitize input
 		$name  = sanitize_text_field( wp_unslash( $_POST['name'] ?? '' ) );
 		$email = sanitize_email( wp_unslash( $_POST['email'] ?? '' ) );
 		$url   = esc_url_raw( wp_unslash( $_POST['url'] ?? '' ) );
 
+		// Validate email (required)
 		if ( empty( $email ) || ! is_email( $email ) ) {
-			wp_send_json_error( array( 'message' => 'Please enter a valid email address.' ), 400 );
+			LoggingService::log( '[OptinData] Invalid email submitted: ' . $email );
+			wp_send_json_error( array( 'message' => __( 'Please enter a valid email address.', 'nuclear-engagement' ) ), 400 );
+			return;
 		}
 
+		// Validate name (required, max length)
+		if ( empty( $name ) ) {
+			wp_send_json_error( array( 'message' => __( 'Please enter your name.', 'nuclear-engagement' ) ), 400 );
+			return;
+		}
+		
+		if ( mb_strlen( $name ) > 100 ) {
+			wp_send_json_error( array( 'message' => __( 'Name is too long. Please use less than 100 characters.', 'nuclear-engagement' ) ), 400 );
+			return;
+		}
+
+		// Validate URL (must be from current site)
+		if ( empty( $url ) ) {
+			wp_send_json_error( array( 'message' => __( 'Invalid submission URL.', 'nuclear-engagement' ) ), 400 );
+			return;
+		}
+		
+		$site_url = get_site_url();
+		if ( strpos( $url, $site_url ) !== 0 ) {
+			LoggingService::log( '[OptinData] Invalid URL domain submitted: ' . $url );
+			wp_send_json_error( array( 'message' => __( 'Invalid submission URL.', 'nuclear-engagement' ) ), 400 );
+			return;
+		}
+
+		// Rate limiting - prevent spam submissions
+		$rate_limit_key = 'nuclen_optin_' . md5( $email );
+		if ( get_transient( $rate_limit_key ) ) {
+			LoggingService::log( '[OptinData] Rate limit hit for email: ' . $email );
+			wp_send_json_error( array( 'message' => __( 'Please wait a few seconds before submitting again.', 'nuclear-engagement' ) ), 429 );
+			return;
+		}
+		set_transient( $rate_limit_key, true, 10 ); // 10 second cooldown
+
+		// Attempt to insert
 		if ( ! self::insert( $name, $email, $url ) ) {
-			wp_send_json_error( array( 'message' => 'Unable to save your submission. Please try again later.' ), 500 );
+			LoggingService::log( '[OptinData] Failed to insert optin for email: ' . $email );
+			wp_send_json_error( array( 'message' => __( 'Unable to save your submission. Please try again later.', 'nuclear-engagement' ) ), 500 );
+			return;
 		}
 
 		wp_send_json_success();

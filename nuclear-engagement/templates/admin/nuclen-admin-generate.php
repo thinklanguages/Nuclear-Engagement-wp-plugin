@@ -42,8 +42,6 @@ $utils->display_nuclen_page_header();
 		<div id="nuclen-progress-bar" class="ne-step-bar">
 				<div id="nuclen-step-bar-1" class="ne-step-bar__step ne-step-bar__step--todo"><?php esc_html_e( '1. Select', 'nuclear-engagement' ); ?></div>
 				<div id="nuclen-step-bar-2" class="ne-step-bar__step ne-step-bar__step--todo"><?php esc_html_e( '2. Confirm', 'nuclear-engagement' ); ?></div>
-				<div id="nuclen-step-bar-3" class="ne-step-bar__step ne-step-bar__step--todo"><?php esc_html_e( '3. Generate', 'nuclear-engagement' ); ?></div>
-				<div id="nuclen-step-bar-4" class="ne-step-bar__step ne-step-bar__step--todo"><?php esc_html_e( '4. Save', 'nuclear-engagement' ); ?></div>
 		</div>
 
 	<h1 class="nuclen-heading"><?php esc_html_e( 'Generate Content', 'nuclear-engagement' ); ?></h1>
@@ -52,7 +50,6 @@ $utils->display_nuclen_page_header();
 		$generate_dir = plugin_dir_path( __FILE__ ) . 'generate/';
 		require $generate_dir . 'filters.php';
 		require $generate_dir . 'confirm.php';
-		require $generate_dir . 'progress.php';
 ?>
 
 </div>

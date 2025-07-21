@@ -29,6 +29,9 @@ class LoggingService {
 
 		/** Buffered log messages. */
 	private array $buffer = array();
+	
+		/** Maximum buffer size to prevent memory issues. */
+	private const MAX_BUFFER_SIZE = 100;
 
 		/** Whether the shutdown hook has been registered. */
 	private bool $shutdown_registered = false;
@@ -221,7 +224,36 @@ class LoggingService {
 			$timestamped = $log_folder . '/log-' . gmdate( 'Y-m-d-His' ) . '.txt';
 			if ( ! rename( $log_file, $timestamped ) ) {
 				$this->fallback_all( $messages, 'Failed to rotate log file: ' . $timestamped );
+			} else {
+				// Clean up old log files (keep only last 5)
+				$this->cleanup_old_log_files( $log_folder );
 			}
+		}
+	}
+	
+	/**
+	 * Clean up old log files to prevent disk space issues.
+	 *
+	 * @param string $log_folder Log directory path.
+	 */
+	private function cleanup_old_log_files( string $log_folder ): void {
+		$max_logs = defined( 'NUCLEN_MAX_LOG_FILES' ) ? NUCLEN_MAX_LOG_FILES : 5;
+		
+		// Get all log files
+		$files = glob( $log_folder . '/log-*.txt' );
+		if ( ! $files || count( $files ) <= $max_logs ) {
+			return;
+		}
+		
+		// Sort by modification time (oldest first)
+		usort( $files, function( $a, $b ) {
+			return filemtime( $a ) - filemtime( $b );
+		} );
+		
+		// Remove oldest files
+		$files_to_remove = array_slice( $files, 0, count( $files ) - $max_logs );
+		foreach ( $files_to_remove as $file ) {
+			@unlink( $file );
 		}
 	}
 
@@ -288,6 +320,12 @@ class LoggingService {
 		}
 
 		if ( $instance->use_buffer() ) {
+				// Check buffer size to prevent memory issues
+				if ( count( $instance->buffer ) >= self::MAX_BUFFER_SIZE ) {
+					// Flush buffer when it reaches max size
+					$instance->flush();
+				}
+				
 				$instance->buffer[] = $message;
 			if ( ! $instance->shutdown_registered ) {
 					register_shutdown_function( array( self::class, 'flush' ) );
@@ -302,7 +340,7 @@ class LoggingService {
 		/**
 		 * Clean up old log files.
 		 *
-		 * Removes log files older than 30 days by default.
+		 * Removes log files older than 7 days by default.
 		 */
 	public static function cleanup_old_logs(): void {
 		$instance   = self::instance();
@@ -313,8 +351,8 @@ class LoggingService {
 			return;
 		}
 
-		// Get the retention period (default: 30 days).
-		$retention_days = defined( 'NUCLEN_LOG_RETENTION_DAYS' ) ? NUCLEN_LOG_RETENTION_DAYS : 30;
+		// Get the retention period (default: 7 days).
+		$retention_days = defined( 'NUCLEN_LOG_RETENTION_DAYS' ) ? NUCLEN_LOG_RETENTION_DAYS : 7;
 		$cutoff_time    = time() - ( $retention_days * DAY_IN_SECONDS );
 
 		// Find and delete old log files.

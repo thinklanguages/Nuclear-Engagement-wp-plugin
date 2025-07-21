@@ -5,11 +5,11 @@ This directory contains the core business logic, services, and infrastructure fo
 ## Directory Structure
 
 ### Core Infrastructure (`Core/`)
-- **Plugin bootstrapping** - `Plugin.php`, `Bootloader.php`, `PluginBootstrap.php`
+- **Plugin bootstrapping** - `Plugin.php`, `PluginBootstrap.php`
 - **Service management** - `ServiceContainer.php`, `ServiceRegistry.php`, `ServiceDiscovery.php`
-- **Error handling** - `ErrorHandler.php`, `UnifiedErrorHandler.php`, error management classes
+- **Logging** - Simple error logging via WordPress error_log
 - **Background processing** - `BackgroundProcessor.php`, `JobQueue.php`, `JobHandler.php`
-- **Module system** - `ModuleLoader.php`, module interfaces and registry
+- **Module system** - `LazyModuleLoader.php` (primary), `ModuleLoader.php` (legacy), module interfaces and registry
 - **Database** - `DatabaseMigrations.php`, query optimization
 - **Settings** - `SettingsRepository.php`, `SettingsCache.php`, `SettingsSanitizer.php`
 - **Performance** - `PerformanceMonitor.php`, `CacheManager.php`
@@ -58,6 +58,6 @@ This directory contains the core business logic, services, and infrastructure fo
 1. **Modular Architecture** - Clean separation of concerns with module system
 2. **Service Container** - Dependency injection and service management
 3. **Background Processing** - Asynchronous job queue system
-4. **Comprehensive Error Handling** - Unified error management with recovery
+4. **Robust Logging** - Centralized logging for debugging and monitoring
 5. **Performance Optimization** - Caching, lazy loading, query optimization
 6. **Security First** - Rate limiting, token management, input sanitization

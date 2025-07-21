@@ -52,6 +52,7 @@ export function initSingleGenerationButtons(): void {
 		} = await NuclenStartGeneration({
 			nuclen_selected_post_ids: JSON.stringify([postId]),
 			nuclen_selected_generate_workflow: workflow,
+			source: 'single',
 		});
 
 			if ('ok' in startResp && !startResp.ok) {
@@ -75,12 +76,17 @@ export function initSingleGenerationButtons(): void {
 				async onComplete({ results, workflow: wf }: PollingUpdateData) {
 					// Remove cleanup function since polling completed
 					activePollingCleanups.delete(buttonKey);
+					logger.log(`[DEBUG] onComplete called | PostID: ${postId} | Workflow: ${wf} | Has results: ${!!results} | Results type: ${typeof results}`);
+					if (results) {
+						logger.log(`[DEBUG] Results content: ${JSON.stringify(results)}`);
+					}
 					if (results && typeof results === 'object') {
 						try {
 							const { ok, data } = await storeGenerationResults(wf, results);
 							const respData = data as Record<string, unknown>;
 							if (ok && !('code' in respData)) {
 								const postResult = results[postId] as PostResult;
+								logger.log(`[DEBUG] Post result for ${postId}: ${JSON.stringify(postResult)}`);
 								const finalDate = respData.finalDate && typeof respData.finalDate === 'string' ? (respData.finalDate as string) : undefined;
 								if (postResult) {
 									if (wf === 'quiz') {
@@ -88,8 +94,11 @@ export function initSingleGenerationButtons(): void {
 									} else if (wf === 'summary') {
 										populateSummaryMetaBox(postResult, finalDate);
 									}
+									btn.textContent = 'Stored!';
+								} else {
+									logger.warn(`[WARNING] No result found for post ${postId} in results object`);
+									btn.textContent = 'Done (no data for this post)!';
 								}
-								btn.textContent = 'Stored!';
 							} else {
 								logger.error('Error storing single-generation results in WP:', respData);
 								btn.textContent = 'Generation failed!';
@@ -99,6 +108,7 @@ export function initSingleGenerationButtons(): void {
 							btn.textContent = 'Generation failed!';
 						}
 					} else {
+						logger.warn(`[WARNING] No results received | PostID: ${postId} | Results: ${results}`);
 						btn.textContent = 'Done (no data)!';
 					}
 					btn.disabled = false;
@@ -111,7 +121,7 @@ export function initSingleGenerationButtons(): void {
 					if (errMsg.startsWith('polling-timeout:') || errMsg.startsWith('polling-error:')) {
 						const generationId = errMsg.split(':')[1];
 						// Redirect to tasks page
-						window.location.href = `${window.nuclenAdminVars?.admin_url || '/wp-admin/'}admin.php?page=nuclear-engagement-tasks&highlight=${generationId}`;
+						window.location.href = `${window.nuclenAdminVars?.admin_url || '/wp-admin/'}admin.php?page=nuclear-engagement-tasks`;
 					} else {
 						alertApiError(errMsg);
 						btn.textContent = 'Generate';

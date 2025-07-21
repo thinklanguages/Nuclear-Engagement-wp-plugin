@@ -10,7 +10,6 @@ This directory contains all PHP template files for rendering HTML output in the 
 - `analytics.php` - Analytics and statistics display
 - `credits.php` - API credits information
 - `inventory.php` - Content inventory listing
-- `scheduled.php` - Scheduled generation tasks
 
 #### Generate (`generate/`)
 - `confirm.php` - Generation confirmation step

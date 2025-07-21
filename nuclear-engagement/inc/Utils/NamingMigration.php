@@ -23,7 +23,6 @@ class NamingMigration {
 	 */
 	private const OPTION_MIGRATIONS = array(
 		'nuclen_settings'                  => 'nuclear_engagement_settings',
-		'nuclen_error_tracking'            => 'nuclear_engagement_error_tracking',
 		'nuclen_rate_limits'               => 'nuclear_engagement_rate_limits',
 		'nuclen_custom_css_version'        => 'nuclear_engagement_custom_css_version',
 		'nuclen_theme_migration_completed' => 'nuclear_engagement_theme_migration_completed',
@@ -37,7 +36,6 @@ class NamingMigration {
 
 	private const TABLE_MIGRATIONS = array(
 		'nuclen_optins'          => 'nuclear_engagement_optins',
-		'nuclen_error_log'       => 'nuclear_engagement_error_log',
 		'nuclen_security_events' => 'nuclear_engagement_security_events',
 	);
 
@@ -55,12 +53,51 @@ class NamingMigration {
 	 * Migrate WordPress options
 	 */
 	private static function migrate_options(): void {
-		foreach ( self::OPTION_MIGRATIONS as $old_key => $new_key ) {
-			$value = get_option( $old_key );
-			if ( false !== $value ) {
-				update_option( $new_key, $value );
-				delete_option( $old_key );
-			}
+		global $wpdb;
+		
+		// Fetch all old options in a single query
+		$old_keys = array_keys( self::OPTION_MIGRATIONS );
+		$placeholders = implode( ',', array_fill( 0, count( $old_keys ), '%s' ) );
+		
+		$old_options = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT option_name, option_value FROM {$wpdb->options} WHERE option_name IN ($placeholders)",
+				...$old_keys
+			),
+			ARRAY_A
+		);
+		
+		if ( empty( $old_options ) ) {
+			return;
+		}
+		
+		// Prepare bulk insert values
+		$values_to_insert = array();
+		$keys_to_delete = array();
+		
+		foreach ( $old_options as $option ) {
+			$old_key = $option['option_name'];
+			$new_key = self::OPTION_MIGRATIONS[ $old_key ];
+			$values_to_insert[] = $wpdb->prepare( '(%s, %s, %s)', $new_key, $option['option_value'], 'yes' );
+			$keys_to_delete[] = $old_key;
+		}
+		
+		// Bulk insert new options
+		if ( ! empty( $values_to_insert ) ) {
+			$wpdb->query(
+				"INSERT INTO {$wpdb->options} (option_name, option_value, autoload) VALUES " . 
+				implode( ',', $values_to_insert ) . 
+				" ON DUPLICATE KEY UPDATE option_value = VALUES(option_value)"
+			);
+			
+			// Bulk delete old options
+			$delete_placeholders = implode( ',', array_fill( 0, count( $keys_to_delete ), '%s' ) );
+			$wpdb->query(
+				$wpdb->prepare(
+					"DELETE FROM {$wpdb->options} WHERE option_name IN ($delete_placeholders)",
+					...$keys_to_delete
+				)
+			);
 		}
 	}
 

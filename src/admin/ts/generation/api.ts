@@ -148,7 +148,7 @@ export async function nuclenFetchUpdates(
 		},
 		API_CONFIG.RETRY_COUNT,
 		API_CONFIG.INITIAL_DELAY_MS,
-		10000 // 10 second timeout for polling
+		30000 // 30 second timeout for polling
 	);
 
 	if (!result.ok) {
@@ -174,7 +174,9 @@ export async function nuclenFetchUpdates(
 		throw error;
 	}
 
-	return result.data as PollingUpdateResponse;
+	const response = result.data as PollingUpdateResponse;
+	logger.log(`[DEBUG] nuclenFetchUpdates response | GenID: ${generationId} | Success: ${response.success} | Has data: ${!!response.data} | Has results: ${response.data?.results ? Object.keys(response.data.results).length : 0}`);
+	return response;
 }
 
 export async function NuclenStartGeneration(

@@ -51,6 +51,13 @@ class CentralizedPollingQueue extends BaseService {
 	private GenerationPoller $poller;
 
 	/**
+	 * Lock value for queue operations
+	 *
+	 * @var string|null
+	 */
+	private ?string $lock_value = null;
+
+	/**
 	 * Constructor
 	 *
 	 * @param GenerationPoller $poller
@@ -81,9 +88,6 @@ class CentralizedPollingQueue extends BaseService {
 	 */
 	public function add_to_queue( string $generation_id, string $workflow_type, array $post_ids, int $priority = 5 ): bool {
 		if ( ! $this->acquire_lock() ) {
-			\NuclearEngagement\Services\LoggingService::log(
-				'Failed to acquire polling queue lock for generation ' . $generation_id
-			);
 			return false;
 		}
 
@@ -92,9 +96,6 @@ class CentralizedPollingQueue extends BaseService {
 
 			// Check if already in queue
 			if ( isset( $queue[ $generation_id ] ) ) {
-				\NuclearEngagement\Services\LoggingService::log(
-					'Generation ' . $generation_id . ' already in polling queue'
-				);
 				return true;
 			}
 
@@ -113,14 +114,6 @@ class CentralizedPollingQueue extends BaseService {
 			$this->save_queue( $queue );
 			$this->ensure_cron_scheduled();
 
-			\NuclearEngagement\Services\LoggingService::log(
-				sprintf(
-					'Added generation %s to polling queue with priority %d',
-					$generation_id,
-					$priority
-				)
-			);
-
 			return true;
 
 		} finally {
@@ -133,9 +126,6 @@ class CentralizedPollingQueue extends BaseService {
 	 */
 	public function process_queue(): void {
 		if ( ! $this->acquire_lock() ) {
-			\NuclearEngagement\Services\LoggingService::log(
-				'Polling queue processor could not acquire lock - skipping'
-			);
 			return;
 		}
 
@@ -178,9 +168,6 @@ class CentralizedPollingQueue extends BaseService {
 
 				// Re-acquire lock
 				if ( ! $this->acquire_lock() ) {
-					\NuclearEngagement\Services\LoggingService::log(
-						'Could not re-acquire lock after polling - exiting'
-					);
 					return;
 				}
 
@@ -249,10 +236,6 @@ class CentralizedPollingQueue extends BaseService {
 			if ( isset( $queue[ $generation_id ] ) ) {
 				unset( $queue[ $generation_id ] );
 				$this->save_queue( $queue );
-
-				\NuclearEngagement\Services\LoggingService::log(
-					'Removed completed generation ' . $generation_id . ' from polling queue'
-				);
 			}
 		} finally {
 			$this->release_lock();
@@ -327,9 +310,7 @@ class CentralizedPollingQueue extends BaseService {
 
 		if ( $cleaned > 0 ) {
 			$this->save_queue( $queue );
-			\NuclearEngagement\Services\LoggingService::log(
-				sprintf( 'Cleaned %d items from polling queue', $cleaned )
-			);
+			// Queue cleanup completed
 		}
 	}
 
@@ -440,9 +421,7 @@ class CentralizedPollingQueue extends BaseService {
 				update_option( self::QUEUE_OPTION, array(), 'no' );
 				wp_clear_scheduled_hook( self::CRON_HOOK );
 
-				\NuclearEngagement\Services\LoggingService::log(
-					'Polling queue cleared'
-				);
+				// Queue cleared
 			} finally {
 				$this->release_lock();
 			}

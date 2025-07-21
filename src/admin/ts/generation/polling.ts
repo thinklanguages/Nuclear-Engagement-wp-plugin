@@ -2,6 +2,7 @@ import { nuclenFetchUpdates } from './api';
 import type { PollingUpdateData, PollingUpdateResponse } from './api';
 import { API_CONFIG } from '../../../shared/constants';
 import * as logger from '../utils/logger';
+import { createStreamingClient, type StreamProgressData } from './streaming';
 
 export function NuclenPollAndPullUpdates({
 	intervalMs = API_CONFIG.POLLING_INTERVAL_MS,
@@ -38,6 +39,46 @@ export function NuclenPollAndPullUpdates({
 	let currentInterval = intervalMs;
 	let consecutiveErrors = 0;
 	let timeoutId: ReturnType<typeof setTimeout> | null = null;
+	let streamingClient: ReturnType<typeof createStreamingClient> = null;
+	
+	// Disable SSE streaming for now as it's not compatible with batch processing
+	// TODO: Fix SSE to properly handle batch-based generation
+	streamingClient = null;
+	
+	// // Try to use streaming first
+	// streamingClient = createStreamingClient(generationId, {
+	// 	onProgress: (data: StreamProgressData) => {
+	// 		// Convert streaming data to polling format
+	// 		onProgress(data.processed, data.total, {
+	// 			results: data.results,
+	// 			progress: data.progress,
+	// 			status: data.status
+	// 		});
+	// 	},
+	// 	onComplete: (status: string) => {
+	// 		// Streaming completed, fetch final results
+	// 		nuclenFetchUpdates(generationId).then(response => {
+	// 			if (response.success && response.data) {
+	// 				logger.log(`[DEBUG] Streaming complete, fetched final results | GenID: ${generationId} | Has results: ${!!response.data.results}`);
+	// 				onComplete(response.data);
+	// 			}
+	// 		}).catch(error => {
+	// 			logger.error(`[ERROR] Failed to fetch final results after streaming | GenID: ${generationId}`, error);
+	// 		});
+	// 	},
+	// 	onError: (error: string) => {
+	// 		logger.warn('Streaming failed, falling back to polling', error);
+	// 		streamingClient = null;
+	// 		// Start polling as fallback
+	// 		schedulePoll();
+	// 	}
+	// });
+	// 
+	// // If streaming is available, start it
+	// if (streamingClient) {
+	// 	logger.log('Using SSE streaming for progress updates');
+	// 	streamingClient.start();
+	// }
 	
 	// Calculate current interval based on elapsed time for progressive intervals
 	const getProgressiveInterval = (elapsed: number): number => {
@@ -139,11 +180,13 @@ export function NuclenPollAndPullUpdates({
 			} = pollResults.data;
 
 			logger.log(`[DEBUG] Poll progress | GenID: ${generationId} | Progress: ${processed}/${total} | Success: ${successCount} | Failed: ${failCount || 0}`);
+			logger.log(`[DEBUG] Poll data | GenID: ${generationId} | Has results: ${!!results} | Results count: ${results ? Object.keys(results).length : 0} | Workflow: ${workflow || 'undefined'}`);
 			onProgress(processed, total, pollResults.data);
 
 			if (processed >= total) {
 				if (timeoutId) clearTimeout(timeoutId);
 				logger.log(`[SUCCESS] Polling complete | GenID: ${generationId} | Total: ${total} | Success: ${successCount} | Failed: ${failCount || 0}`);
+				logger.log(`[DEBUG] Passing to onComplete | GenID: ${generationId} | Results: ${JSON.stringify(results)} | Workflow: ${workflow}`);
 				onComplete({
 					processed,
 					total,
@@ -175,14 +218,19 @@ export function NuclenPollAndPullUpdates({
 		}
 	};
 	
-	// Start polling
-	logger.log(`[INFO] Starting polling | GenID: ${generationId} | Initial interval: ${currentInterval}ms | Max attempts: ${maxAttempts} | Progressive: ${useProgressiveIntervals}`);
-	poll();
+	// Start polling only if not streaming
+	if (!streamingClient) {
+		logger.log(`[INFO] Starting polling | GenID: ${generationId} | Initial interval: ${currentInterval}ms | Max attempts: ${maxAttempts} | Progressive: ${useProgressiveIntervals}`);
+		poll();
+	}
 
 	// Return a cleanup function to allow manual cancellation
 	return () => {
 		if (timeoutId) {
 			clearTimeout(timeoutId);
+		}
+		if (streamingClient) {
+			streamingClient.stop();
 		}
 	};
 }

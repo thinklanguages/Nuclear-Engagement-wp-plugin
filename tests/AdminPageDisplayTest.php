@@ -21,6 +21,7 @@ if (!function_exists('wp_cache_set')) { function wp_cache_set($k,$v,$g='',$t=0){
 if (!function_exists('wp_cache_get')) { function wp_cache_get($k,$g='',$f=false,&$found=null){ $found=isset($GLOBALS['wp_cache'][$g][$k]); return $GLOBALS['wp_cache'][$g][$k] ?? false; } }
 if (!function_exists('set_transient')) { function set_transient($k,$v,$t=0){ $GLOBALS['transients'][$k]=$v; } }
 if (!function_exists('get_transient')) { function get_transient($k){ return $GLOBALS['transients'][$k] ?? false; } }
+if (!function_exists('wp_upload_dir')) { function wp_upload_dir(){ return ['basedir'=>'/tmp','baseurl'=>'http://test','error'=>'']; } }
 }
 
 namespace {

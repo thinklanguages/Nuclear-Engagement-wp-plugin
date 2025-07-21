@@ -45,6 +45,11 @@ final class CacheUtils {
 	private const MAX_KEY_LENGTH = 250;
 
 	/**
+	 * Cache key salt for security.
+	 */
+	private static ?string $cache_salt = null;
+
+	/**
 	 * Get cached data with fallback to transients.
 	 *
 	 * @param string $key           Cache key.
@@ -60,7 +65,13 @@ final class CacheUtils {
 		$data  = wp_cache_get( $safe_key, $group, false, $found );
 
 		if ( $found ) {
-			return $data;
+			// Validate cached data before returning
+			if ( self::validate_cached_data( $data ) ) {
+				return $data;
+			} else {
+				// Invalid data, delete it
+				wp_cache_delete( $safe_key, $group );
+			}
 		}
 
 		// Fallback to transients if enabled.
@@ -69,9 +80,15 @@ final class CacheUtils {
 			$data          = get_transient( $transient_key );
 
 			if ( $data !== false ) {
-				// Store back in object cache for faster subsequent access.
-				wp_cache_set( $safe_key, $data, $group, self::DEFAULT_TTL );
-				return $data;
+				// Validate transient data
+				if ( self::validate_cached_data( $data ) ) {
+					// Store back in object cache for faster subsequent access.
+					wp_cache_set( $safe_key, $data, $group, self::DEFAULT_TTL );
+					return $data;
+				} else {
+					// Invalid data, delete it
+					delete_transient( $transient_key );
+				}
 			}
 		}
 
@@ -159,6 +176,9 @@ final class CacheUtils {
 	 * @return string Generated cache key.
 	 */
 	public static function generate_key( array $components, string $separator = '_' ): string {
+		// Get cache salt
+		$salt = self::get_cache_salt();
+		
 		// Filter and sanitize components.
 		$clean_components = array_filter(
 			array_map(
@@ -166,7 +186,8 @@ final class CacheUtils {
 					if ( is_scalar( $component ) ) {
 							return sanitize_key( (string) $component );
 					} elseif ( is_array( $component ) || is_object( $component ) ) {
-						return md5( serialize( $component ) );
+						// Use SHA256 instead of MD5 for better security
+						return hash( 'sha256', serialize( $component ) );
 					}
 					return '';
 				},
@@ -174,11 +195,14 @@ final class CacheUtils {
 			)
 		);
 
+		// Add salt to components for security
+		$clean_components[] = $salt;
+
 		$key = implode( $separator, $clean_components );
 
-		// Hash if too long.
+		// Hash if too long using SHA256.
 		if ( strlen( $key ) > self::MAX_KEY_LENGTH ) {
-			$key = md5( $key );
+			$key = substr( hash( 'sha256', $key ), 0, 64 );
 		}
 
 		return $key;
@@ -271,8 +295,11 @@ final class CacheUtils {
 	 * @return string Sanitized key.
 	 */
 	private static function sanitize_key( string $key ): string {
-		// Add plugin prefix.
-		$prefixed_key = self::KEY_PREFIX . $key;
+		// Get cache salt for security
+		$salt = self::get_cache_salt();
+		
+		// Add plugin prefix and salt.
+		$prefixed_key = self::KEY_PREFIX . $key . '_' . $salt;
 
 		// WordPress sanitize_key function.
 		$sanitized = sanitize_key( $prefixed_key );
@@ -280,9 +307,9 @@ final class CacheUtils {
 		// Additional sanitization for special characters.
 		$sanitized = preg_replace( '/[^a-zA-Z0-9_\-]/', '_', $sanitized );
 
-		// Limit length.
+		// Limit length using SHA256 for security.
 		if ( strlen( $sanitized ) > self::MAX_KEY_LENGTH ) {
-			$sanitized = substr( $sanitized, 0, self::MAX_KEY_LENGTH - 32 ) . '_' . md5( $sanitized );
+			$sanitized = substr( $sanitized, 0, self::MAX_KEY_LENGTH - 64 ) . '_' . hash( 'sha256', $sanitized );
 		}
 
 		return $sanitized;
@@ -351,11 +378,21 @@ final class CacheUtils {
 			$blog_id = get_current_blog_id();
 		}
 
+		// Add user context for cache isolation
+		$user_id = get_current_user_id();
+		$user_role = '';
+		if ( $user_id > 0 ) {
+			$user = wp_get_current_user();
+			$user_role = ! empty( $user->roles ) ? $user->roles[0] : 'none';
+		}
+
 		$components = array(
 			'query',
 			$query_type,
 			$blog_id,
-			md5( serialize( $parameters ) ),
+			$user_id,
+			$user_role,
+			hash( 'sha256', serialize( $parameters ) ),
 		);
 
 		return self::generate_key( $components );
@@ -414,5 +451,68 @@ final class CacheUtils {
 		}
 
 		return $invalidated;
+	}
+
+	/**
+	 * Get cache salt for security.
+	 *
+	 * @return string Cache salt.
+	 */
+	private static function get_cache_salt(): string {
+		if ( self::$cache_salt === null ) {
+			// Use WordPress salt for cache key generation
+			self::$cache_salt = substr( hash( 'sha256', wp_salt( 'auth' ) . ABSPATH ), 0, 16 );
+		}
+		return self::$cache_salt;
+	}
+
+	/**
+	 * Validate cached data to prevent cache poisoning.
+	 *
+	 * @param mixed $data Cached data to validate.
+	 * @return bool True if data is valid, false otherwise.
+	 */
+	private static function validate_cached_data( $data ): bool {
+		// Reject if data contains unexpected object types
+		if ( is_object( $data ) ) {
+			$allowed_classes = array(
+				'stdClass',
+				'WP_Post',
+				'WP_User',
+				'WP_Term',
+				'WP_Comment',
+			);
+			$class_name = get_class( $data );
+			if ( ! in_array( $class_name, $allowed_classes, true ) ) {
+				\NuclearEngagement\Services\LoggingService::log(
+					sprintf( 'Cache validation failed: unexpected object type %s', $class_name ),
+					'warning'
+				);
+				return false;
+			}
+		}
+
+		// Validate array data recursively
+		if ( is_array( $data ) ) {
+			foreach ( $data as $item ) {
+				if ( ! self::validate_cached_data( $item ) ) {
+					return false;
+				}
+			}
+		}
+
+		// Check for suspicious patterns in string data
+		if ( is_string( $data ) ) {
+			// Check for potential serialized objects
+			if ( preg_match( '/^[Oa]:\d+:/', $data ) ) {
+				\NuclearEngagement\Services\LoggingService::log(
+					'Cache validation failed: suspicious serialized data detected',
+					'warning'
+				);
+				return false;
+			}
+		}
+
+		return true;
 	}
 }

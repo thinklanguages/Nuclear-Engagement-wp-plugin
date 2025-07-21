@@ -97,7 +97,7 @@ class PostDataFetcher {
 			array_merge( $ids, $ids )
 		);
 
-			LoggingService::log( 'PostDataFetcher SQL: ' . $sql );
+			// SQL query prepared
 
 			$rows = $wpdb->get_results( $sql );
 
@@ -110,7 +110,7 @@ class PostDataFetcher {
 					);
 		}
 
-				LoggingService::log( 'PostDataFetcher found ' . count( $rows ) . ' posts out of ' . count( $ids ) . ' requested' );
+				// Posts fetched
 
 				// Log which posts were not found
 		if ( count( $rows ) < count( $ids ) ) {
@@ -121,7 +121,9 @@ class PostDataFetcher {
 				$rows
 			);
 			$missing_ids = array_diff( $ids, $found_ids );
-			LoggingService::log( 'PostDataFetcher missing post IDs: ' . implode( ', ', $missing_ids ) );
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				LoggingService::log( 'PostDataFetcher missing post IDs: ' . implode( ', ', $missing_ids ) );
+			}
 		}
 
 				wp_cache_set( $cache_key, $rows, self::CACHE_GROUP, self::CACHE_TTL );

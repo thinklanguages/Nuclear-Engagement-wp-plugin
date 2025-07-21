@@ -224,12 +224,7 @@ class CircuitBreakerService {
 		delete_option( $option_name );
 
 		// Log circuit reset
-		LoggingService::log(
-			sprintf(
-				'Circuit breaker reset for service "%s"',
-				$service_name
-			)
-		);
+		// Circuit breaker reset
 
 		// Trigger action for monitoring
 		do_action( 'nuclen_circuit_breaker_closed', $service_name );
@@ -254,6 +249,12 @@ class CircuitBreakerService {
 		);
 
 		$statuses = array();
+		
+		// Cache date/time formats to avoid repeated get_option calls
+		$date_format = get_option( 'date_format' );
+		$time_format = get_option( 'time_format' );
+		$datetime_format = $date_format . ' ' . $time_format;
+		
 		foreach ( $options as $option ) {
 			$service_name = str_replace( $prefix, '', $option->option_name );
 			$state        = maybe_unserialize( $option->option_value );
@@ -264,7 +265,7 @@ class CircuitBreakerService {
 					'failure_count' => $state['failure_count'] ?? 0,
 					'last_error'    => $state['last_error'] ?? '',
 					'opened_at'     => isset( $state['opened_at'] ) && $state['opened_at'] > 0
-						? date_i18n( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), $state['opened_at'] )
+						? date_i18n( $datetime_format, $state['opened_at'] )
 						: '',
 				);
 			}
@@ -313,9 +314,7 @@ class CircuitBreakerService {
 			}
 		}
 
-		if ( $cleaned > 0 ) {
-			LoggingService::log( sprintf( 'Circuit breaker cleanup: removed %d old states', $cleaned ) );
-		}
+		// Cleanup completed
 	}
 
 	/**

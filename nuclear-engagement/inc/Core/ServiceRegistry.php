@@ -95,13 +95,6 @@ class ServiceRegistry {
 	public static function initCoreServices(): void {
 		$registry = self::getInstance();
 
-		// Error Manager.
-		$registry->register(
-			'error_manager',
-			function () {
-				return UnifiedErrorManager::getInstance();
-			}
-		);
 
 		// Settings Repository.
 		$registry->register(

@@ -72,8 +72,14 @@ final class HeadingExtractor {
 	 * Get cached headings and cache keys.
 	 */
 	private static function get_cached_headings( string $html, array $heading_levels ): array {
-		$key       = md5( $html ) . '_' . implode( '', $heading_levels );
-		$transient = 'nuclen_toc_' . $key;
+		// Use CacheUtils for secure key generation
+		$key_components = array(
+			'toc',
+			hash( 'sha256', $html ),
+			implode( '', $heading_levels ),
+		);
+		$key = \NuclearEngagement\Utils\CacheUtils::generate_key( $key_components );
+		$transient = 'nuclen_toc_' . substr( $key, 0, 40 ); // Limit transient key length
 		$hit       = wp_cache_get( $key, self::CACHE_GROUP );
 		if ( $hit === false ) {
 			$hit = get_transient( $transient );

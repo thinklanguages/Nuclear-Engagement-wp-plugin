@@ -127,6 +127,43 @@ class TaskIndexService extends BaseService {
 	}
 
 	/**
+	 * Update task data in index
+	 *
+	 * @param string $task_id Task ID
+	 * @param array  $task_data Full task data to update
+	 */
+	public function update_task( string $task_id, array $task_data ): void {
+		$index = $this->get_index();
+
+		if ( isset( $index[ $task_id ] ) ) {
+			// Update all relevant fields from task data
+			if ( isset( $task_data['status'] ) ) {
+				$index[ $task_id ]['status'] = $task_data['status'];
+			}
+			if ( isset( $task_data['scheduled_at'] ) ) {
+				$index[ $task_id ]['scheduled_at'] = $task_data['scheduled_at'];
+			}
+			if ( isset( $task_data['total_posts'] ) ) {
+				$index[ $task_id ]['total_posts'] = $task_data['total_posts'];
+			}
+			if ( isset( $task_data['workflow_type'] ) ) {
+				$index[ $task_id ]['workflow_type'] = $task_data['workflow_type'];
+			}
+			if ( isset( $task_data['priority'] ) ) {
+				$index[ $task_id ]['priority'] = $task_data['priority'];
+			}
+			
+			$index[ $task_id ]['updated_at'] = time();
+
+			$this->save_index( $index );
+			$this->delete_cache( 'task_index' );
+			
+			// Clear all paginated task caches to ensure immediate visibility
+			$this->clear_all_task_caches();
+		}
+	}
+
+	/**
 	 * Get paginated tasks from index
 	 *
 	 * @param int   $page Page number
@@ -385,11 +422,24 @@ class TaskIndexService extends BaseService {
 			$index = array_slice( $index, 0, 500, true );
 		}
 
-		$result = update_option( self::INDEX_OPTION, $index, false );
-
-		if ( ! $result && ! empty( $index ) ) {
-			LoggingService::log( 'Failed to save task index', 'error' );
+		// Get current value to check if update is needed
+		$current = get_option( self::INDEX_OPTION, array() );
+		
+		// Only update if the values are different
+		if ( $current !== $index ) {
+			$result = update_option( self::INDEX_OPTION, $index, false );
+			
+			// update_option returns false on failure OR when the value hasn't changed
+			// We already checked that values are different, so false means actual failure
+			if ( ! $result ) {
+				// Double-check that the update actually failed by re-reading the value
+				$new_value = get_option( self::INDEX_OPTION, array() );
+				if ( $new_value !== $index ) {
+					LoggingService::log( 'Failed to save task index', 'error' );
+				}
+			}
 		}
+		// If values are the same, no update needed - this is not an error
 	}
 
 	/**
@@ -443,6 +493,8 @@ class TaskIndexService extends BaseService {
 				// Clear common filter combinations
 				$common_filters = array(
 					array( 'status' => 'pending' ),
+					array( 'status' => 'scheduled' ),
+					array( 'status' => 'running' ),
 					array( 'status' => 'processing' ),
 					array( 'status' => 'completed' ),
 					array( 'status' => 'failed' ),
@@ -455,6 +507,6 @@ class TaskIndexService extends BaseService {
 			}
 		}
 		
-		\NuclearEngagement\Services\LoggingService::log( '[TaskIndexService::clear_all_task_caches] Cleared all task-related caches' );
+		// Task caches cleared
 	}
 }

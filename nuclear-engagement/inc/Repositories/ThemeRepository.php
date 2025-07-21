@@ -133,23 +133,36 @@ class ThemeRepository {
 	public function set_active( $id ) {
 		global $wpdb;
 
-		// Use prepared statement for security.
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery
-
-		$wpdb->query(
-			$wpdb->prepare(
-				"UPDATE {$this->table_name} SET is_active = 0"
-			)
-		);
-
-		return $wpdb->update(
-			$this->table_name,
-			array( 'is_active' => 1 ),
-			array( 'id' => $id ),
-			array( '%d' ),
-			array( '%d' )
-		);
+		// Start transaction to prevent race condition
+		$wpdb->query( 'START TRANSACTION' );
+		
+		try {
+			// First deactivate all themes
+			$deactivate_result = $wpdb->query(
+				"UPDATE {$this->table_name} SET is_active = 0 WHERE is_active = 1"
+			);
+			
+			// Then activate the selected theme
+			$activate_result = $wpdb->update(
+				$this->table_name,
+				array( 'is_active' => 1 ),
+				array( 'id' => $id ),
+				array( '%d' ),
+				array( '%d' )
+			);
+			
+			if ( $activate_result !== false ) {
+				$wpdb->query( 'COMMIT' );
+				return $activate_result;
+			} else {
+				$wpdb->query( 'ROLLBACK' );
+				return false;
+			}
+		} catch ( \Exception $e ) {
+			$wpdb->query( 'ROLLBACK' );
+			\NuclearEngagement\Services\LoggingService::log_exception( $e );
+			return false;
+		}
 	}
 
 	public function deactivate_all() {

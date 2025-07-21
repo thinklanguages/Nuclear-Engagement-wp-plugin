@@ -128,7 +128,7 @@ final class TocModule extends AbstractModule {
 		wp_enqueue_script(
 			'nuclen-toc-front',
 			$asset_path . 'js/nuclen-toc-front.js',
-			array( 'jquery' ),
+			array(),
 			$this->version,
 			true
 		);

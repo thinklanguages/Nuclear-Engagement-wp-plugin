@@ -141,18 +141,19 @@ class CacheManager {
 	 */
 	private function get_cache_key( PostsCountRequest $request ): string {
 		$data = array(
-			$request->postType,
-			$request->postStatus,
-			$request->categoryId,
-			$request->authorId,
-			$request->allowRegenerate ? 1 : 0,
-			$request->regenerateProtected ? 1 : 0,
-			$request->workflow,
-			$this->get_cache_version(),
-			get_current_blog_id(),
+			'post_type' => $request->postType,
+			'post_status' => $request->postStatus,
+			'category_id' => $request->categoryId,
+			'author_id' => $request->authorId,
+			'allow_regenerate' => $request->allowRegenerate ? 1 : 0,
+			'regenerate_protected' => $request->regenerateProtected ? 1 : 0,
+			'workflow' => $request->workflow,
+			'version' => $this->get_cache_version(),
+			'blog_id' => get_current_blog_id(),
 		);
 
-		return md5( wp_json_encode( $data ) );
+		// Use CacheUtils for secure key generation
+		return \NuclearEngagement\Utils\CacheUtils::query_cache_key( 'posts_count', $data );
 	}
 
 	/**
