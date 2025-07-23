@@ -99,6 +99,163 @@ class ContentController {
 					return new \WP_Error( 'ne_store_failed', __( 'Failed to store content', 'nuclear-engagement' ), array( 'status' => 500 ) );
 			}
 
+			// Check if this is from a single post generation and update task status
+			if ( ! empty( $data['generation_id'] ) && count( $contentRequest->results ) === 1 ) {
+				$generation_id = sanitize_text_field( $data['generation_id'] );
+				
+				// Check if this is likely a single post generation task
+				$post_ids = array_keys( $contentRequest->results );
+				if ( count( $post_ids ) === 1 ) {
+					\NuclearEngagement\Services\LoggingService::log(
+						sprintf(
+							'[ContentController] Single post generation completed - GenID: %s | PostID: %s | Workflow: %s',
+							$generation_id,
+							$post_ids[0],
+							$contentRequest->workflow
+						)
+					);
+
+					// Get container for services
+					$container = \NuclearEngagement\Core\ServiceContainer::getInstance();
+					
+					// Get current task data first
+					$task_data = \NuclearEngagement\Services\TaskTransientManager::get_task_transient( $generation_id );
+					if ( $task_data ) {
+						// Validate current state
+						if ( in_array( $task_data['status'], array( 'completed', 'failed', 'cancelled' ), true ) ) {
+							\NuclearEngagement\Services\LoggingService::log(
+								sprintf(
+									'[ContentController] Task %s already in terminal state: %s, skipping update',
+									$generation_id,
+									$task_data['status']
+								),
+								'warning'
+							);
+							// Continue with normal response flow
+						} else {
+							// For single post, we need to update the batch data first
+							if ( isset( $task_data['batch_jobs'] ) && ! empty( $task_data['batch_jobs'][0]['batch_id'] ) ) {
+								$batch_id = $task_data['batch_jobs'][0]['batch_id'];
+								$batch_data = \NuclearEngagement\Services\TaskTransientManager::get_batch_transient( $batch_id );
+								
+								if ( $batch_data ) {
+									// Validate batch state
+									if ( in_array( $batch_data['status'], array( 'completed', 'failed', 'cancelled' ), true ) ) {
+										\NuclearEngagement\Services\LoggingService::log(
+											sprintf(
+												'[ContentController] Batch %s already in terminal state: %s',
+												$batch_id,
+												$batch_data['status']
+											),
+											'warning'
+										);
+									} else {
+										// Update batch with comprehensive data
+										$batch_data['status'] = 'completed';
+										$batch_data['success_count'] = 1;
+										$batch_data['fail_count'] = 0;
+										$batch_data['completed_at'] = time();
+										$batch_data['updated_at'] = time();
+										
+										// Store results summary
+										$batch_data['results'] = array(
+											'success_count' => 1,
+											'fail_count' => 0,
+											'post_ids' => $post_ids,
+											'workflow' => $contentRequest->workflow,
+										);
+										
+										// Save updated batch data
+										\NuclearEngagement\Services\TaskTransientManager::set_batch_transient( $batch_id, $batch_data, DAY_IN_SECONDS );
+										
+										\NuclearEngagement\Services\LoggingService::log(
+											sprintf(
+												'[ContentController] Updated batch data - BatchID: %s | Success: 1 | UpdatedAt: %s',
+												$batch_id,
+												date( 'Y-m-d H:i:s', $batch_data['updated_at'] )
+											)
+										);
+									}
+								} else {
+									\NuclearEngagement\Services\LoggingService::log(
+										sprintf(
+											'[ContentController] Warning: Batch data not found for batch_id: %s',
+											$batch_id
+										),
+										'warning'
+									);
+								}
+							}
+							
+							// Update task data with completion info
+							$task_data['status'] = 'completed';
+							$task_data['completed_at'] = time();
+							$task_data['updated_at'] = time();
+							$task_data['success_count'] = 1;
+							$task_data['fail_count'] = 0;
+							$task_data['processed_count'] = 1;
+							$task_data['completed_batches'] = 1;
+							
+							// Calculate duration if started_at exists
+							if ( isset( $task_data['started_at'] ) ) {
+								$task_data['duration'] = time() - $task_data['started_at'];
+							}
+							
+							// For single post generation, ensure we have the right structure
+							if ( isset( $task_data['post_ids'] ) && is_array( $task_data['post_ids'] ) ) {
+								$task_data['total_posts'] = count( $task_data['post_ids'] );
+							} else {
+								$task_data['total_posts'] = 1;
+								$task_data['post_ids'] = $post_ids;
+							}
+							
+							// Save updated task data
+							\NuclearEngagement\Services\TaskTransientManager::set_task_transient( $generation_id, $task_data, DAY_IN_SECONDS );
+							
+							// Update task index with proper data
+							if ( $container->has( 'task_index_service' ) ) {
+								$task_index_service = $container->get( 'task_index_service' );
+								$task_index_service->update_task( $generation_id, $task_data );
+							}
+							
+							// Remove from polling queue
+							if ( $container->has( 'centralized_polling_queue' ) ) {
+								$queue = $container->get( 'centralized_polling_queue' );
+								$queue->mark_generation_complete( $generation_id );
+							}
+							
+							// Trigger completion action for other systems
+							do_action( 'nuclen_task_completed', $generation_id );
+						}
+					} else {
+						// If no task data exists, create minimal data with proper structure
+						$task_data = array(
+							'status' => 'completed',
+							'created_at' => time(),
+							'started_at' => time(),
+							'completed_at' => time(),
+							'updated_at' => time(),
+							'success_count' => 1,
+							'fail_count' => 0,
+							'processed_count' => 1,
+							'total_posts' => 1,
+							'post_ids' => $post_ids,
+							'workflow_type' => $contentRequest->workflow,
+							'completed_batches' => 1,
+							'total_batches' => 1,
+						);
+						
+						\NuclearEngagement\Services\TaskTransientManager::set_task_transient( $generation_id, $task_data, DAY_IN_SECONDS );
+						
+						// Update task index
+						if ( $container->has( 'task_index_service' ) ) {
+							$task_index_service = $container->get( 'task_index_service' );
+							$task_index_service->update_task( $generation_id, $task_data );
+						}
+					}
+				}
+			}
+
 			// Get date from first stored item.
 			reset( $contentRequest->results );
 			$firstPostId          = key( $contentRequest->results );

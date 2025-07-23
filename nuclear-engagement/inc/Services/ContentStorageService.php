@@ -101,16 +101,6 @@ class ContentStorageService extends BaseService {
 				continue;
 			}
 
-			// Debug logging for post 69022
-			if ( $post_id === 69022 ) {
-				\NuclearEngagement\Services\LoggingService::log(
-					sprintf(
-						'[ContentStorageService] Attempting to update %s for post 69022. Stack trace: %s',
-						$workflowType,
-						wp_debug_backtrace_summary()
-					)
-				);
-			}
 
 			// Ensure date is set.
 			if ( empty( $data['date'] ) ) {
@@ -139,7 +129,7 @@ class ContentStorageService extends BaseService {
 					$statuses[ $post_id ] = $e->getMessage();
 
 					// If we're getting errors for a post that shouldn't be processed, clean up its transients
-					if ( $post_id === 69022 || strpos( $e->getMessage(), 'Failed to update' ) !== false ) {
+					if ( strpos( $e->getMessage(), 'Failed to update' ) !== false ) {
 						if ( class_exists( '\NuclearEngagement\Utils\TransientCleanup' ) ) {
 							\NuclearEngagement\Utils\TransientCleanup::cleanup_post_transients( $post_id );
 						}

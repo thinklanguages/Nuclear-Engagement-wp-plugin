@@ -16,6 +16,11 @@ export function initGoBack(elements: GeneratePageElements): void {
 		if (elements.creditsInfoEl) {
 			elements.creditsInfoEl.textContent = '';
 		}
+		// Reset the Step 1 button to its original state
+		if (elements.getPostsBtn) {
+			elements.getPostsBtn.textContent = 'Get Posts to Process';
+			elements.getPostsBtn.disabled = false;
+		}
 		nuclenUpdateProgressBarStep(elements.stepBar1, 'current');
 		nuclenUpdateProgressBarStep(elements.stepBar2, 'todo');
 	});
@@ -31,6 +36,11 @@ export function initRestart(elements: GeneratePageElements): void {
 		}
 		if (elements.creditsInfoEl) {
 			elements.creditsInfoEl.textContent = '';
+		}
+		// Reset the Step 1 button to its original state
+		if (elements.getPostsBtn) {
+			elements.getPostsBtn.textContent = 'Get Posts to Process';
+			elements.getPostsBtn.disabled = false;
 		}
 		nuclenShowElement(elements.step1);
 		nuclenUpdateProgressBarStep(elements.stepBar1, 'current');

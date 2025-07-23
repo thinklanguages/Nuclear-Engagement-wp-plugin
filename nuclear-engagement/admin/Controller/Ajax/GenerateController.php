@@ -84,8 +84,7 @@ class GenerateController extends BaseController {
 
 			if ( ! $this->verify_request( 'nuclen_admin_ajax_nonce' ) ) {
 				\NuclearEngagement\Services\LoggingService::log(
-					'[ERROR] Security check failed | Nonce verification failed',
-					'error'
+					'[ERROR] Security check failed | Nonce verification failed'
 				);
 				return;
 			}
@@ -94,8 +93,7 @@ class GenerateController extends BaseController {
 			// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified right before this check
 			if ( empty( $_POST['payload'] ) && empty( $_POST['nuclen_selected_post_ids'] ) ) {
 				\NuclearEngagement\Services\LoggingService::log(
-					'[ERROR] Invalid request | Missing required data (payload or post_ids)',
-					'error'
+					'[ERROR] Invalid request | Missing required data (payload or post_ids)'
 				);
 				$this->send_error(
 					__( 'Missing required data in request', 'nuclear-engagement' ),
@@ -137,16 +135,14 @@ class GenerateController extends BaseController {
 
 		} catch ( ValidationException $e ) {
 			\NuclearEngagement\Services\LoggingService::log(
-				sprintf( '[ERROR] Validation failed | %s', $e->getMessage() ),
-				'error'
+				sprintf( '[ERROR] Validation failed | %s', $e->getMessage() )
 			);
-			if ( $e->getContext() ) {
+			if ( $e->get_context() ) {
 				\NuclearEngagement\Services\LoggingService::log(
-					sprintf( '[DEBUG] Validation context | %s', wp_json_encode( $e->getContext() ) ),
-					'debug'
+					sprintf( '[DEBUG] Validation context | %s', wp_json_encode( $e->get_context() ) )
 				);
 			}
-			$this->send_error( $e->getUserMessage(), 400 );
+			$this->send_error( $e->get_user_message(), 400 );
 		} catch ( NuclenException $e ) {
 			// Handle our custom exceptions
 			\NuclearEngagement\Services\LoggingService::log(
@@ -154,8 +150,7 @@ class GenerateController extends BaseController {
 					'[ERROR] %s | Code: %d',
 					$e->getMessage(),
 					$e->getCode()
-				),
-				'error'
+				)
 			);
 			\NuclearEngagement\Services\LoggingService::log_exception( $e );
 
@@ -169,14 +164,12 @@ class GenerateController extends BaseController {
 		} catch ( \InvalidArgumentException $e ) {
 			// Backwards compatibility for any remaining InvalidArgumentException
 			\NuclearEngagement\Services\LoggingService::log(
-				sprintf( '[ERROR] Invalid argument | %s', $e->getMessage() ),
-				'error'
+				sprintf( '[ERROR] Invalid argument | %s', $e->getMessage() )
 			);
 			$this->send_error( $e->getMessage(), 400 );
 		} catch ( \Throwable $e ) {
 			\NuclearEngagement\Services\LoggingService::log(
-				sprintf( '[CRITICAL] Unexpected error | %s', $e->getMessage() ),
-				'error'
+				sprintf( '[CRITICAL] Unexpected error | %s', $e->getMessage() )
 			);
 			\NuclearEngagement\Services\LoggingService::log_exception( $e );
 			$this->send_error(

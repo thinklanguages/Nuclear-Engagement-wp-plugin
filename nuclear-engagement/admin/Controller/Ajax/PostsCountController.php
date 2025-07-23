@@ -67,8 +67,11 @@ class PostsCountController extends BaseController {
 				return;
 			}
 
-			// Get posts.
-			$result = $this->service->get_posts_count( $request );
+			// Get posts without caching for real-time accuracy in bulk generation.
+			// Caching is disabled here because users need to see immediate, accurate post counts
+			// when changing filter criteria during post selection. Cached results could show
+			// outdated counts that don't reflect the current filter selections.
+			$result = $this->service->get_posts_count( $request, false );
 
 			wp_send_json_success( $result );
 

@@ -27,3 +27,4 @@ dist-ssr
 build
 
 nuclear-engagement.zip
+nuclear-engagement/logger-*.js*

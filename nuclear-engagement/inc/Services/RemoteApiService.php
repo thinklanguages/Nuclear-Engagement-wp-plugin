@@ -293,7 +293,6 @@ class RemoteApiService extends BaseService {
 		$cache_key = 'nuclen_credits_only';
 		$cached    = wp_cache_get( $cache_key, self::CACHE_GROUP );
 		if ( is_array( $cached ) && isset( $cached['remaining_credits'] ) ) {
-			\NuclearEngagement\Services\LoggingService::debug( 'Returning cached credits data' );
 			return $cached;
 		}
 

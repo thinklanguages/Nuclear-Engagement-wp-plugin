@@ -82,7 +82,7 @@ export function initSingleGenerationButtons(): void {
 					}
 					if (results && typeof results === 'object') {
 						try {
-							const { ok, data } = await storeGenerationResults(wf, results);
+							const { ok, data } = await storeGenerationResults(wf, results, generationId);
 							const respData = data as Record<string, unknown>;
 							if (ok && !('code' in respData)) {
 								const postResult = results[postId] as PostResult;
@@ -119,7 +119,7 @@ export function initSingleGenerationButtons(): void {
 					
 					// Check if this is a polling timeout or error
 					if (errMsg.startsWith('polling-timeout:') || errMsg.startsWith('polling-error:')) {
-						const generationId = errMsg.split(':')[1];
+						// const generationId = errMsg.split(':')[1];
 						// Redirect to tasks page
 						window.location.href = `${window.nuclenAdminVars?.admin_url || '/wp-admin/'}admin.php?page=nuclear-engagement-tasks`;
 					} else {

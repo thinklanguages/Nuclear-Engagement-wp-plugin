@@ -72,10 +72,27 @@ class ValidationException extends BaseException {
 	 * @return string User-friendly message.
 	 */
 	public function get_user_message(): string {
+		// If we have a message, use it
+		if ( ! empty( $this->getMessage() ) ) {
+			return $this->getMessage();
+		}
+		
+		// Otherwise, try to build a message from validation errors
 		if ( ! empty( $this->validation_errors ) ) {
-			return implode( ', ', $this->validation_errors );
+			$messages = array();
+			foreach ( $this->validation_errors as $key => $value ) {
+				if ( is_string( $value ) ) {
+					$messages[] = $value;
+				} elseif ( $key === 'empty_content' && $value === true ) {
+					$messages[] = 'This post appears to be empty. No content can be generated.';
+				}
+			}
+			
+			if ( ! empty( $messages ) ) {
+				return implode( ', ', $messages );
+			}
 		}
 
-		return $this->getMessage();
+		return 'Validation failed';
 	}
 }

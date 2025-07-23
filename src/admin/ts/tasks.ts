@@ -8,7 +8,7 @@ declare const ajaxurl: string;
 declare const nuclen_tasks: {
     nonce: string;
     i18n: {
-        running: string;
+        processing: string;
         cancelling: string;
         error: string;
         success: string;
@@ -57,6 +57,7 @@ class TasksManager {
     
     // Auto-refresh UI elements
     private pollingIndicator: HTMLElement | null = null;
+    private autoRefreshBanner: HTMLElement | null = null;
     private nextPollTime: number = 0;
     private countdownInterval: number | null = null;
     
@@ -66,6 +67,7 @@ class TasksManager {
     private handleWindowFocus = this.onWindowFocus.bind(this);
 
     constructor() {
+        console.log('[Nuclear Engagement] TasksManager initializing...');
         this.init();
         
         // Cleanup on page unload
@@ -75,6 +77,8 @@ class TasksManager {
     }
 
     private init(): void {
+        console.log('[Nuclear Engagement] Starting initialization...');
+        
         // Check for recent completions on page load
         this.checkRecentCompletions();
         
@@ -90,9 +94,11 @@ class TasksManager {
         // Initialize task tracking
         this.initializeTaskTracking();
         
+        console.log('[Nuclear Engagement] Creating polling indicator...');
         // Create polling indicator
         this.createPollingIndicator();
         
+        console.log('[Nuclear Engagement] Starting smart polling...');
         // Start smart polling
         this.startSmartPolling();
     }
@@ -146,8 +152,8 @@ class TasksManager {
             if (taskId && statusCell) {
                 const statusText = statusCell.textContent?.toLowerCase() || '';
                 
-                // Track as active if running, processing, pending, or scheduled
-                if (statusText.includes('running') || statusText.includes('processing') || statusText.includes('pending') || statusText.includes('scheduled')) {
+                // Track as active if processing, pending, or scheduled
+                if (statusText.includes('processing') || statusText.includes('pending') || statusText.includes('scheduled')) {
                     this.activeTasks.add(taskId);
                 }
                 
@@ -226,6 +232,11 @@ class TasksManager {
         // Remove polling indicator
         if (this.pollingIndicator) {
             this.pollingIndicator.remove();
+        }
+        
+        // Remove auto-refresh banner
+        if (this.autoRefreshBanner) {
+            this.autoRefreshBanner.remove();
         }
         
         // Clear stored data to free memory
@@ -378,7 +389,7 @@ class TasksManager {
             }
             
             // Update active tasks tracking
-            if (newTask.status === 'running' || newTask.status === 'processing' || newTask.status === 'pending' || newTask.status === 'scheduled') {
+            if (newTask.status === 'processing' || newTask.status === 'pending' || newTask.status === 'scheduled') {
                 this.activeTasks.add(newTask.id);
             } else {
                 this.activeTasks.delete(newTask.id);
@@ -559,7 +570,7 @@ class TasksManager {
             const detailsCell = row.querySelector('td:nth-child(7)'); // Details column is now 7th
             if (detailsCell) {
                 let detailsHTML = task.details;
-                if (task.failed > 0) {
+                if (task.failed && task.failed > 0) {
                     detailsHTML += `<br><span class="nuclen-error-text">${task.failed} failed</span>`;
                 }
                 detailsCell.innerHTML = detailsHTML;
@@ -606,7 +617,7 @@ class TasksManager {
             button.setAttribute('disabled', 'disabled');
             
             if (action === 'run_task') {
-                button.textContent = nuclen_tasks.i18n.running || 'Running...';
+                button.textContent = nuclen_tasks.i18n.processing || 'Processing...';
             } else {
                 button.textContent = nuclen_tasks.i18n.cancelling || 'Cancelling...';
             }
@@ -639,14 +650,14 @@ class TasksManager {
                 
                 // Update the row status locally
                 if (row) {
-                    // For run_task, immediately show running status
+                    // For run_task, immediately show processing status
                     if (action === 'run_task') {
                         const statusCell = row.querySelector('.column-status');
                         if (statusCell) {
-                            statusCell.innerHTML = this.getStatusBadge('running');
+                            statusCell.innerHTML = this.getStatusBadge('processing');
                         }
                         // Update action buttons to show spinner
-                        this.updateActionButtons(row as HTMLElement, 'running');
+                        this.updateActionButtons(row as HTMLElement, 'processing');
                         
                         // Track as active task and start polling
                         this.activeTasks.add(taskId);
@@ -692,7 +703,6 @@ class TasksManager {
         const badges: Record<string, string> = {
             'pending': '<span class="nuclen-badge nuclen-badge-warning">Pending</span>',
             'scheduled': '<span class="nuclen-badge nuclen-badge-warning">Scheduled</span>',
-            'running': '<span class="nuclen-badge nuclen-badge-info">Running</span>',
             'processing': '<span class="nuclen-badge nuclen-badge-info">Processing</span>',
             'completed': '<span class="nuclen-badge nuclen-badge-success">Completed</span>',
             'completed_with_errors': '<span class="nuclen-badge nuclen-badge-warning">Completed with Errors</span>',
@@ -726,7 +736,7 @@ class TasksManager {
                 actionsCell.querySelector('.nuclen-run-now')?.addEventListener('click', (e) => this.handleRunTask(e));
                 actionsCell.querySelector('.nuclen-cancel')?.addEventListener('click', (e) => this.handleCancelTask(e));
             }
-        } else if (status === 'running' || status === 'processing') {
+        } else if (status === 'processing') {
             const taskId = row.getAttribute('data-task-id');
             if (taskId) {
                 actionsCell.innerHTML = `
@@ -799,19 +809,19 @@ class TasksManager {
             if (result.success && result.data && result.data.length > 0) {
                 // Show notifications for recent completions
                 result.data.forEach((completion: any) => {
-                    let message: string;
-                    let type: 'success' | 'error' | 'info';
+                    // let message: string;
+                    // let type: 'success' | 'error' | 'info';
                     
                     if (completion.status === 'completed') {
-                        message = `Generation ${completion.task_id} completed successfully!`;
-                        type = 'success';
+                        // message = `Generation ${completion.task_id} completed successfully!`;
+                        // type = 'success';
                     } else if (completion.status === 'completed_with_errors') {
-                        const failCount = completion.fail_count || 'some';
-                        message = `Generation ${completion.task_id} completed with ${failCount} errors. Check individual posts for details.`;
-                        type = 'info';
+                        // const failCount = completion.fail_count || 'some';
+                        // message = `Generation ${completion.task_id} completed with ${failCount} errors. Check individual posts for details.`;
+                        // type = 'info';
                     } else if (completion.status === 'failed') {
-                        message = `Generation ${completion.task_id} failed.`;
-                        type = 'error';
+                        // message = `Generation ${completion.task_id} failed.`;
+                        // type = 'error';
                     } else {
                         return; // Skip unknown statuses
                     }
@@ -839,17 +849,38 @@ class TasksManager {
         
         // Find the refresh button and insert indicator next to it
         const refreshButton = document.querySelector('.nuclen-refresh-button');
+        console.log('[Nuclear Engagement] Refresh button found:', refreshButton);
+        
         if (refreshButton && refreshButton.parentNode) {
             refreshButton.parentNode.insertBefore(indicator, refreshButton.nextSibling);
             this.pollingIndicator = indicator;
+            console.log('[Nuclear Engagement] Polling indicator added next to refresh button');
         } else {
             // Fallback: insert after the page title
             const pageTitle = document.querySelector('.wrap h1');
+            console.log('[Nuclear Engagement] Page title found:', pageTitle);
             if (pageTitle) {
                 pageTitle.appendChild(indicator);
                 this.pollingIndicator = indicator;
+                console.log('[Nuclear Engagement] Polling indicator added to page title');
+            } else {
+                console.error('[Nuclear Engagement] Could not find location to insert polling indicator');
             }
         }
+        
+        // Create notification banner for auto-refresh
+        this.createAutoRefreshBanner();
+    }
+    
+    private createAutoRefreshBanner(): void {
+        const banner = document.createElement('div');
+        banner.className = 'nuclen-auto-refresh-banner';
+        banner.innerHTML = `
+            <span class="dashicons dashicons-update"></span>
+            <span>Auto-refresh active</span>
+        `;
+        document.body.appendChild(banner);
+        this.autoRefreshBanner = banner;
     }
     
     private updatePollingIndicator(active: boolean, interval?: number): void {
@@ -868,11 +899,27 @@ class TasksManager {
                 const seconds = Math.floor(interval / 1000);
                 countdownEl.textContent = `Next refresh in ${seconds}s`;
             }
+            
+            // Show the auto-refresh banner briefly when first activated
+            if (this.autoRefreshBanner && !this.pollingIndicator.classList.contains('active')) {
+                this.autoRefreshBanner.classList.add('show');
+                // Auto-hide after 3 seconds
+                setTimeout(() => {
+                    if (this.autoRefreshBanner) {
+                        this.autoRefreshBanner.classList.remove('show');
+                    }
+                }, 3000);
+            }
         } else {
             this.pollingIndicator.classList.remove('active');
             statusEl.textContent = 'Inactive';
             iconEl.classList.remove('spin');
             countdownEl.textContent = '';
+            
+            // Hide the auto-refresh banner
+            if (this.autoRefreshBanner) {
+                this.autoRefreshBanner.classList.remove('show');
+            }
         }
     }
     
@@ -904,7 +951,12 @@ class TasksManager {
 
 // Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
-    new TasksManager();
+    console.log('[Nuclear Engagement] DOM ready, initializing TasksManager...');
+    try {
+        new TasksManager();
+    } catch (error) {
+        console.error('[Nuclear Engagement] Failed to initialize TasksManager:', error);
+    }
 });
 
 // Export for testing

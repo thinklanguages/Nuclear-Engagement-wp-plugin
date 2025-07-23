@@ -26,8 +26,7 @@ class TaskTimeoutHandler extends BaseService {
 	private const DEFAULT_TIMEOUTS = array(
 		'pending'    => 1800,      // 30 minutes for pending tasks
 		'scheduled'  => 1800,      // 30 minutes for scheduled tasks
-		'running'    => 3600,      // 1 hour for running tasks
-		'processing' => 3600,      // 1 hour for processing tasks (legacy)
+		'processing' => 3600,      // 1 hour for processing tasks
 		'polling'    => 1800,      // 30 minutes for polling operations
 	);
 

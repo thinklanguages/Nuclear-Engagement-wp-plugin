@@ -35,7 +35,7 @@ $pagination       = $data['pagination'] ?? array();
 		<div class="nuclen-card">
 			<h2><?php esc_html_e( 'Generation Tasks', 'nuclear-engagement' ); ?></h2>
 			<p style="margin-top: 5px; margin-bottom: 15px; color: #666;">
-				<?php esc_html_e( 'Here you can manage the content generation tasks. Allow for a few minutes per task to complete depending on the number of posts. Click the Refresh button to see the latest status.', 'nuclear-engagement' ); ?>
+				<?php esc_html_e( 'Here you can manage the content generation tasks. Allow for 5-30 minutes per task to complete depending on the number of posts, site memory and cron schedule. Click the Refresh button to see the latest status.', 'nuclear-engagement' ); ?>
 			</p>
 			<div style="margin-bottom: 15px;">
 				<a href="<?php echo esc_url( add_query_arg( 'refresh', '1' ) ); ?>" class="button button-small">
@@ -103,7 +103,6 @@ $pagination       = $data['pagination'] ?? array();
 										$status_labels = array(
 											'pending'    => __( 'Pending', 'nuclear-engagement' ),
 											'scheduled'  => __( 'Scheduled', 'nuclear-engagement' ),
-											'running'    => __( 'Running', 'nuclear-engagement' ),
 											'processing' => __( 'Processing', 'nuclear-engagement' ),
 											'completed'  => __( 'Completed', 'nuclear-engagement' ),
 											'completed_with_errors' => __( 'Completed with Errors', 'nuclear-engagement' ),
@@ -117,9 +116,6 @@ $pagination       = $data['pagination'] ?? array();
 												break;
 											case 'scheduled':
 												$status_class = 'nuclen-badge-warning';
-												break;
-											case 'running':
-												$status_class = 'nuclen-badge-info';
 												break;
 											case 'processing':
 												$status_class = 'nuclen-badge-info';
@@ -169,7 +165,7 @@ $pagination       = $data['pagination'] ?? array();
 													title="<?php esc_attr_e( 'Cancel this task', 'nuclear-engagement' ); ?>">
 												<?php esc_html_e( 'Cancel', 'nuclear-engagement' ); ?>
 											</button>
-										<?php elseif ( $task['status'] === 'running' || $task['status'] === 'processing' ) : ?>
+										<?php elseif ( $task['status'] === 'processing' ) : ?>
 											<span class="spinner is-active"></span>
 											<button type="button" 
 													class="button button-small nuclen-cancel" 

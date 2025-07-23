@@ -18,3 +18,6 @@ vendor/phpcsstandards
 vendor/wp-coding-standards
 vendor/squizlabs
 vendor/dealerdirect
+
+# source maps
+*.map

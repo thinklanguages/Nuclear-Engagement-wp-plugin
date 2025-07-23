@@ -61,7 +61,7 @@ final class JobStatus {
 	 * @param string $message Progress message.
 	 */
 	public static function update_progress( string $job_id, int $progress, string $message = '' ): void {
-		self::update_job_status( $job_id, 'running', $progress, $message );
+		self::update_job_status( $job_id, 'processing', $progress, $message );
 	}
 
 	/**

@@ -122,7 +122,7 @@ class HealthCheckService {
 					AND (option_value LIKE %s OR option_value LIKE %s)
 					AND option_value LIKE %s",
 						'_transient_nuclen_batch_%',
-						'%"status":"running"%',
+						'%"status":"processing"%',
 						'%"status":"processing"%',
 						'%"updated_at":%'
 					)
@@ -138,7 +138,7 @@ class HealthCheckService {
 						AND (option_value LIKE %s OR option_value LIKE %s)
 						LIMIT 10",
 							'_transient_nuclen_batch_%',
-							'%"status":"running"%',
+							'%"status":"processing"%',
 							'%"status":"processing"%'
 						)
 					);

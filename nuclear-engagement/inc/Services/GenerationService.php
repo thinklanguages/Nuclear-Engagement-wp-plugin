@@ -20,6 +20,7 @@ use NuclearEngagement\Requests\GenerateRequest as GenerateRequestData;
 use NuclearEngagement\Responses\GenerationResponse;
 use NuclearEngagement\Core\SettingsRepository;
 use NuclearEngagement\Utils\Utils;
+use NuclearEngagement\Utils\ContentExtractor;
 use NuclearEngagement\Services\ApiException;
 use NuclearEngagement\Services\PostDataFetcher;
 use NuclearEngagement\Services\BulkGenerationBatchProcessor;
@@ -144,6 +145,33 @@ class GenerationService {
 
 
 		if ( empty( $posts ) ) {
+			// Check if posts exist but have empty content
+			$empty_content_posts = array();
+			foreach ( $request->postIds as $post_id ) {
+				$post = get_post( $post_id );
+				if ( $post && ( empty( trim( $post->post_title ) ) || empty( ContentExtractor::extract_content( $post ) ) ) ) {
+					$empty_content_posts[] = $post_id;
+				}
+			}
+			
+			if ( ! empty( $empty_content_posts ) ) {
+				\NuclearEngagement\Services\LoggingService::log(
+					sprintf(
+						'[ERROR] Posts have empty content | GenID: %s | Empty posts: %s',
+						$request->generationId,
+						implode( ',', $empty_content_posts )
+					),
+					'error'
+				);
+				throw new ValidationException(
+					array(
+						'empty_content' => true,
+						'post_ids'      => $empty_content_posts,
+					),
+					'This post appears to be empty. No content can be generated.'
+				);
+			}
+			
 			\NuclearEngagement\Services\LoggingService::log(
 				sprintf(
 					'[ERROR] No matching posts found | GenID: %s | Requested: %s',
@@ -153,12 +181,12 @@ class GenerationService {
 				'error'
 			);
 			throw new ValidationException(
-				'No matching posts found',
 				array(
 					'post_ids'    => $request->postIds,
 					'post_type'   => $request->postType,
 					'post_status' => $request->postStatus,
-				)
+				),
+				'No matching posts found'
 			);
 		}
 
@@ -211,16 +239,6 @@ class GenerationService {
 		$response->totalPosts   = count( $posts );
 		$response->totalBatches = count( $batches );
 
-		\NuclearEngagement\Services\LoggingService::log(
-			sprintf(
-				'[SUCCESS] Generation started | GenID: %s | Posts: %d | Batches: %d | Priority: %s | Source: %s',
-				$request->generationId,
-				count( $posts ),
-				count( $batches ),
-				$request->priority ?? 'normal',
-				$request->source ?? 'manual'
-			)
-		);
 
 		return $response;
 	}
@@ -239,45 +257,31 @@ class GenerationService {
 			$data      = array();
 			$postsById = array();
 
-			\NuclearEngagement\Services\LoggingService::log(
-				sprintf(
-					'[DEBUG] Fetching posts data | Count: %d | Type: %s | Status: %s | Workflow: %s',
-					count( $post_ids ),
-					$post_type,
-					$postStatus,
-					$workflowType
-				)
-			);
 
 			$chunkSize = defined( 'NUCLEN_POST_FETCH_CHUNK' ) ? (int) constant( 'NUCLEN_POST_FETCH_CHUNK' ) : 200;
 			$chunks    = count( $post_ids ) <= $chunkSize ? array( $post_ids ) : array_chunk( $post_ids, $chunkSize );
 
-			\NuclearEngagement\Services\LoggingService::log(
-				sprintf(
-					'[DEBUG] Chunking posts | Chunks: %d | Size: %d',
-					count( $chunks ),
-					$chunkSize
-				)
-			);
 
 		foreach ( $chunks as $chunkIndex => $chunk ) {
 				$posts = $this->fetcher->fetch( $chunk, $workflowType );
 
-				\NuclearEngagement\Services\LoggingService::log(
-					sprintf(
-						'[DEBUG] Processing chunk | Chunk: %d/%d | Fetched: %d/%d',
-						$chunkIndex + 1,
-						count( $chunks ),
-						count( $posts ),
-						count( $chunk )
-					)
-				);
 
 			foreach ( $posts as $post ) {
+				$title = trim( $post->post_title );
+				$content = ContentExtractor::extract_content( $post );
+				
+				// Skip posts with empty title or content
+				if ( empty( $title ) || empty( $content ) ) {
+					\NuclearEngagement\Services\LoggingService::log(
+						sprintf( '[GenerationService::getPostsData] Skipping post %d: %s', $post->ID, empty( $title ) ? 'empty title' : 'empty content' )
+					);
+					continue;
+				}
+				
 				$postsById[ (int) $post->ID ] = array(
 					'id'      => (int) $post->ID,
-					'title'   => $post->post_title,
-					'content' => wp_strip_all_tags( $post->post_content ),
+					'title'   => $title,
+					'content' => $content,
 				);
 			}
 		}
@@ -366,13 +370,6 @@ class GenerationService {
 		// Use batch processor's queue method
 		$generation_id = $this->batchProcessor->queue_generation( $filtered_ids, $workflow_type, 'low', 'auto' );
 
-		\NuclearEngagement\Services\LoggingService::log(
-			sprintf(
-				'[SUCCESS] Auto-generation queued | Posts: %d | GenID: %s',
-				count( $filtered_ids ),
-				$generation_id
-			)
-		);
 
 		return $generation_id;
 	}
@@ -519,15 +516,6 @@ class GenerationService {
 
 		set_transient( $recovery_key, $recovery_data, DAY_IN_SECONDS );
 
-		\NuclearEngagement\Services\LoggingService::log(
-			sprintf(
-				'[INFO] Stored partial generation | GenID: %s | Posts: %d | Retry: %d/%d',
-				$request->generationId,
-				count( $request->postIds ),
-				$request->retryCount ?? 0,
-				$request->maxRetries ?? 0
-			)
-		);
 
 		// Schedule recovery attempt
 		$scheduled_time = time() + 300; // 5 minutes
@@ -537,13 +525,6 @@ class GenerationService {
 			array( $request->generationId )
 		);
 
-		\NuclearEngagement\Services\LoggingService::log(
-			sprintf(
-				'[INFO] Recovery scheduled | GenID: %s | Time: %s',
-				$request->generationId,
-				date( 'Y-m-d H:i:s', $scheduled_time )
-			)
-		);
 	}
 
 	/**
@@ -553,9 +534,6 @@ class GenerationService {
 	 * @return bool Success status
 	 */
 	public function recoverGeneration( string $generation_id ): bool {
-		\NuclearEngagement\Services\LoggingService::log(
-			sprintf( '[INFO] Attempting recovery | GenID: %s', $generation_id )
-		);
 
 		$recovery_key  = 'nuclen_partial_generation_' . $generation_id;
 		$recovery_data = get_transient( $recovery_key );
@@ -583,14 +561,6 @@ class GenerationService {
 			return false;
 		}
 
-		\NuclearEngagement\Services\LoggingService::log(
-			sprintf(
-				'[INFO] Recovery data found | GenID: %s | Age: %.1f hours | Posts: %d',
-				$generation_id,
-				$age_hours,
-				count( $recovery_data['request']['post_ids'] ?? array() )
-			)
-		);
 
 		try {
 			// Recreate request
@@ -608,14 +578,6 @@ class GenerationService {
 			$request->retryCount    = ( $recovery_data['request']['retry_count'] ?? 0 ) + 1;
 			$request->maxRetries    = $recovery_data['request']['max_retries'] ?? 3;
 
-			\NuclearEngagement\Services\LoggingService::log(
-				sprintf(
-					'[INFO] Request recreated | GenID: %s | Retry: %d/%d',
-					$generation_id,
-					$request->retryCount,
-					$request->maxRetries
-				)
-			);
 
 			// Try to generate again
 			$response = $this->generateContent( $request );
@@ -623,9 +585,6 @@ class GenerationService {
 			if ( $response->success ) {
 				// Clean up recovery data
 				delete_transient( $recovery_key );
-				\NuclearEngagement\Services\LoggingService::log(
-					sprintf( '[SUCCESS] Generation recovered | GenID: %s', $generation_id )
-				);
 				return true;
 			} else {
 				\NuclearEngagement\Services\LoggingService::log(
@@ -644,13 +603,6 @@ class GenerationService {
 						$next_attempt,
 						'nuclen_recover_generation',
 						array( $generation_id )
-					);
-					\NuclearEngagement\Services\LoggingService::log(
-						sprintf(
-							'[INFO] Next recovery scheduled | GenID: %s | Time: %s',
-							$generation_id,
-							date( 'Y-m-d H:i:s', $next_attempt )
-						)
 					);
 				} else {
 					// Max retries reached, clean up

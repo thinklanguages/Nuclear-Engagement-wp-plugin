@@ -87,13 +87,16 @@ class PostsQueryService {
 	 * Get posts count and IDs.
 	 *
 	 * @param PostsCountRequest $request The posts count request.
+	 * @param bool              $use_cache Whether to use cache (default: true).
 	 * @return array Array containing count and post IDs.
 	 */
-	public function get_posts_count( PostsCountRequest $request ): array {
-		// Check cache first
-		$cached = $this->cache_manager->get_cached_result( $request );
-		if ( $cached !== false ) {
-			return $cached;
+	public function get_posts_count( PostsCountRequest $request, bool $use_cache = true ): array {
+		// Check cache first if enabled
+		if ( $use_cache ) {
+			$cached = $this->cache_manager->get_cached_result( $request );
+			if ( $cached !== false ) {
+				return $cached;
+			}
 		}
 
 		global $wpdb;
@@ -113,7 +116,9 @@ class PostsQueryService {
 			'post_ids' => array_values( $post_ids ),
 		);
 
-		$this->cache_manager->cache_result( $request, $result );
+		if ( $use_cache ) {
+			$this->cache_manager->cache_result( $request, $result );
+		}
 
 		return $result;
 	}
@@ -122,16 +127,19 @@ class PostsQueryService {
 	 * Optimized posts query using QueryOptimizer.
 	 *
 	 * @param PostsCountRequest $request The posts count request.
+	 * @param bool              $use_cache Whether to use cache (default: true).
 	 * @return array Array containing count and post IDs.
 	 */
-	public function countPostsOptimized( PostsCountRequest $request ): array {
-		$cached = $this->cache_manager->get_cached_result( $request );
-		if ( $cached !== false ) {
-			return $cached;
+	public function countPostsOptimized( PostsCountRequest $request, bool $use_cache = true ): array {
+		if ( $use_cache ) {
+			$cached = $this->cache_manager->get_cached_result( $request );
+			if ( $cached !== false ) {
+				return $cached;
+			}
 		}
 
 		// Get total count first
-		$total_count = $this->get_posts_count_only( $request );
+		$total_count = $this->get_posts_count_only( $request, $use_cache );
 
 		// Fetch all post IDs in batches
 		$all_post_ids = array();
@@ -163,7 +171,9 @@ class PostsQueryService {
 			'post_ids' => array_unique( $all_post_ids ),
 		);
 
-		$this->cache_manager->cache_result( $request, $result );
+		if ( $use_cache ) {
+			$this->cache_manager->cache_result( $request, $result );
+		}
 
 		return $result;
 	}
@@ -218,14 +228,17 @@ class PostsQueryService {
 	 * Optimized count-only query for better performance.
 	 *
 	 * @param PostsCountRequest $request Request parameters.
+	 * @param bool              $use_cache Whether to use cache (default: true).
 	 * @return int Post count.
 	 */
-	public function get_posts_count_only( PostsCountRequest $request ): int {
-		$cache_key = $this->cache_manager->get_count_cache_key( $request );
-		$cached    = wp_cache_get( $cache_key, 'nuclen_posts_query' );
+	public function get_posts_count_only( PostsCountRequest $request, bool $use_cache = true ): int {
+		if ( $use_cache ) {
+			$cache_key = $this->cache_manager->get_count_cache_key( $request );
+			$cached    = wp_cache_get( $cache_key, 'nuclen_posts_query' );
 
-		if ( $cached !== false ) {
-			return (int) $cached;
+			if ( $cached !== false ) {
+				return (int) $cached;
+			}
 		}
 
 		global $wpdb;
@@ -234,8 +247,11 @@ class PostsQueryService {
 		$count_query = "SELECT COUNT(DISTINCT p.ID) {$sql}";
 		$count       = (int) DatabaseUtils::execute_query( $count_query, 'posts_count_query' );
 
-		// Cache for longer period (1 hour instead of 10 minutes)
-		wp_cache_set( $cache_key, $count, 'nuclen_posts_query', 3600 );
+		if ( $use_cache ) {
+			// Cache for longer period (1 hour instead of 10 minutes)
+			$cache_key = $this->cache_manager->get_count_cache_key( $request );
+			wp_cache_set( $cache_key, $count, 'nuclen_posts_query', 3600 );
+		}
 
 		return $count;
 	}

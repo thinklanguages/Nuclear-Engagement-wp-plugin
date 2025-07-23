@@ -12,5 +12,6 @@ declare global {
 	nuclearEngagementInitQuiz?: () => void;
 	nuclearEngagementShowQuizQuestionDetails?: (index: number) => void;
 	nuclearEngagementRetakeQuiz?: () => void;
+	nuclenDebug?: boolean;
 	}
 }

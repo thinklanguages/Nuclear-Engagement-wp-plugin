@@ -69,7 +69,6 @@ class UpdatesController extends BaseController {
 				// Credits-check ping uses a dummy generation_id.
 			$is_credits_check = false;
 			if ( empty( $request->generationId ) ) {
-				\NuclearEngagement\Services\LoggingService::debug( 'Fetching credit balance only (no generation ID provided)' );
 				// For credit checks without generation ID, return early with just credits
 				try {
 					// Fetch credits only
@@ -217,11 +216,9 @@ class UpdatesController extends BaseController {
 
 					if ( ! empty( $post_results ) ) {
 						$first = reset( $post_results );
-						\NuclearEngagement\Services\LoggingService::log( 'First result data structure: ' . wp_json_encode( $first ) );
 
 						// Improve workflow detection logic
 						$workflow_type = $this->detectWorkflowType( $post_results, $first, $request->generationId );
-						\NuclearEngagement\Services\LoggingService::log( "Detected workflow type: {$workflow_type}" );
 
 						$statuses = $this->storage->storeResults( $post_results, $workflow_type );
 
@@ -346,7 +343,7 @@ class UpdatesController extends BaseController {
 
 		foreach ( $parent_data['batch_jobs'] as $job ) {
 			$batch_data = TaskTransientManager::get_batch_transient( $job['batch_id'] );
-			if ( ! is_array( $batch_data ) || ( $batch_data['status'] !== 'running' && $batch_data['status'] !== 'processing' ) ) {
+			if ( ! is_array( $batch_data ) || $batch_data['status'] !== 'processing' ) {
 				continue;
 			}
 
@@ -399,8 +396,42 @@ class UpdatesController extends BaseController {
 						$batch_data['status'] = 'completed';
 						// Move accumulated results to final results
 						$batch_data['results'] = $batch_data['accumulated_results'];
-						// Update parent job status
-						$this->updateParentJobStatus( $generationId, $job['batch_id'], 'completed' );
+						
+						// Calculate success/fail counts from accumulated results
+						$success_count = 0;
+						$fail_count = 0;
+						if ( isset( $batch_data['accumulated_results'] ) && is_array( $batch_data['accumulated_results'] ) ) {
+							foreach ( $batch_data['accumulated_results'] as $post_id => $result ) {
+								if ( is_array( $result ) ) {
+									// Check if the result indicates success or failure
+									if ( isset( $result['error'] ) || isset( $result['failed'] ) || 
+										 ( isset( $result['status'] ) && $result['status'] === 'failed' ) ) {
+										$fail_count++;
+									} else {
+										$success_count++;
+									}
+								}
+							}
+						}
+						
+						// Store counts in batch data
+						$batch_data['success_count'] = $success_count;
+						$batch_data['fail_count'] = $fail_count;
+						
+						\NuclearEngagement\Services\LoggingService::log(
+							sprintf(
+								'Batch %s completed with counts - Success: %d, Failed: %d',
+								$job['batch_id'],
+								$success_count,
+								$fail_count
+							)
+						);
+						
+						// Update parent job status with counts
+						$this->updateParentJobStatus( $generationId, $job['batch_id'], 'completed', array(
+							'success_count' => $success_count,
+							'fail_count' => $fail_count
+						) );
 					}
 					TaskTransientManager::set_batch_transient( $job['batch_id'], $batch_data, DAY_IN_SECONDS );
 
@@ -437,12 +468,13 @@ class UpdatesController extends BaseController {
 	 * @param string $parentId Parent generation ID
 	 * @param string $batchId Batch ID
 	 * @param string $status New status
+	 * @param array $results Optional results array with success/fail counts
 	 */
-	private function updateParentJobStatus( string $parentId, string $batchId, string $status ): void {
+	private function updateParentJobStatus( string $parentId, string $batchId, string $status, array $results = array() ): void {
 		$processor = new \NuclearEngagement\Services\BulkGenerationBatchProcessor(
 			\NuclearEngagement\Core\SettingsRepository::get_instance()
 		);
-		$processor->update_batch_status( $batchId, $status );
+		$processor->update_batch_status( $batchId, $status, $results );
 	}
 
 	/**

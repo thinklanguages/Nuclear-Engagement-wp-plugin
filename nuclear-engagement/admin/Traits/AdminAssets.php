@@ -30,7 +30,7 @@ trait AdminAssets {
 		// First register the logger module.
 		wp_register_script(
 			'nuclen-logger',
-			NUCLEN_PLUGIN_URL . 'logger-CjYDh3vN.js',
+			NUCLEN_PLUGIN_URL . 'logger-DwRZMuf8.js',
 			array(),
 			NUCLEN_ASSET_VERSION,
 			true
@@ -244,7 +244,7 @@ trait AdminAssets {
 	private function register_and_enqueue_logger(): void {
 		wp_enqueue_script(
 			'nuclen-logger',
-			NUCLEN_PLUGIN_URL . 'logger-CjYDh3vN.js',
+			NUCLEN_PLUGIN_URL . 'logger-DwRZMuf8.js',
 			array(),
 			AssetVersions::get( 'admin_js' ),
 			array(
@@ -380,7 +380,7 @@ trait AdminAssets {
 		if ( 'nuclear-engagement_page_nuclear-engagement-tasks' !== $hook ) {
 			return;
 		}
-
+		
 		wp_enqueue_script(
 			'nuclen-tasks',
 			NUCLEN_PLUGIN_URL . 'admin/js/nuclen-tasks.js',
@@ -406,7 +406,7 @@ trait AdminAssets {
 			array(
 				'nonce' => wp_create_nonce( 'nuclen_task_action' ),
 				'i18n'  => array(
-					'running'    => __( 'Running...', 'nuclear-engagement' ),
+					'processing' => __( 'Processing...', 'nuclear-engagement' ),
 					'cancelling' => __( 'Cancelling...', 'nuclear-engagement' ),
 					'error'      => __( 'An error occurred', 'nuclear-engagement' ),
 					'success'    => __( 'Operation completed successfully', 'nuclear-engagement' ),

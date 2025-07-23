@@ -20,7 +20,8 @@ import { displayError } from '../utils/displayError';
 import { displaySuccess, displayPageMessage } from '../utils/displaySuccess';
 
 // Store active polling cleanup function
-let activePollingCleanup: (() => void) | null = null;
+// Not currently used as polling is disabled, but kept for future use
+// let activePollingCleanup: (() => void) | null = null;
 
 // Function removed - results are stored by backend during polling
 // This function is no longer needed since we're redirecting to tasks page

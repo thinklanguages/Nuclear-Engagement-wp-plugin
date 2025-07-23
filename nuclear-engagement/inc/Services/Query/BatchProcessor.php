@@ -118,7 +118,7 @@ class BatchProcessor {
 
 		// Critical memory threshold - stop immediately
 		if ( $memory_usage_percent > 85 ) {
-			LoggingService::log( "BatchProcessor: Critical memory usage at {$memory_usage_percent}%, stopping batch processing", 'error' );
+			LoggingService::log( "[ERROR] BatchProcessor: Critical memory usage at {$memory_usage_percent}%, stopping batch processing" );
 			return true;
 		}
 
@@ -127,7 +127,7 @@ class BatchProcessor {
 		if ( $max_execution_time > 0 ) {
 			$elapsed_time = microtime( true ) - ( $_SERVER['REQUEST_TIME_FLOAT'] ?? microtime( true ) );
 			if ( $elapsed_time > ( $max_execution_time * 0.8 ) ) {
-				LoggingService::log( 'BatchProcessor: Approaching execution time limit, stopping batch processing', 'warning' );
+				LoggingService::log( '[WARNING] BatchProcessor: Approaching execution time limit, stopping batch processing' );
 				return true;
 			}
 		}

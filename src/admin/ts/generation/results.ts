@@ -12,13 +12,13 @@ export function nuclenAlertApiError(errMsg: string): void {
 	// Handle task cancelled gracefully
 	if (cleanMsg.includes('task-cancelled:') || cleanMsg.includes('Task has been cancelled')) {
 		// Extract generation ID if present in the error message
-		let generationId = '';
-		if (errMsg.includes('task-cancelled:')) {
-			const parts = errMsg.split(':');
-			if (parts.length > 1) {
-				generationId = parts[1];
-			}
-		}
+		// let generationId = '';
+		// if (errMsg.includes('task-cancelled:')) {
+		// 	const parts = errMsg.split(':');
+		// 	if (parts.length > 1) {
+		// 		generationId = parts[1];
+		// 	}
+		// }
 		
 		// Show a notice and redirect to tasks page
 		logger.log('Task cancelled - redirecting to tasks page');
@@ -38,13 +38,13 @@ export function nuclenAlertApiError(errMsg: string): void {
 	    cleanMsg.includes('polling-error:')) {
 		
 		// Extract generation ID if present in the error message
-		let generationId = '';
-		if (errMsg.includes('polling-timeout:') || errMsg.includes('polling-error:')) {
-			const parts = errMsg.split(':');
-			if (parts.length > 1) {
-				generationId = parts[1];
-			}
-		}
+		// let generationId = '';
+		// if (errMsg.includes('polling-timeout:') || errMsg.includes('polling-error:')) {
+		// 	const parts = errMsg.split(':');
+		// 	if (parts.length > 1) {
+		// 		generationId = parts[1];
+		// 	}
+		// }
 		
 		// Instead of showing a notice, redirect directly to tasks page
 		logger.log('Polling timeout/error detected - redirecting to tasks page');
@@ -65,8 +65,11 @@ export function nuclenAlertApiError(errMsg: string): void {
 	}
 }
 
-export async function nuclenStoreGenerationResults(workflow: string, results: unknown) {
-	const payload = { workflow, results };
+export async function nuclenStoreGenerationResults(workflow: string, results: unknown, generationId?: string) {
+	const payload: { workflow: string; results: unknown; generation_id?: string } = { workflow, results };
+	if (generationId) {
+		payload.generation_id = generationId;
+	}
 	let resp: Response;
 	try {
 		resp = await fetch(REST_ENDPOINT, {

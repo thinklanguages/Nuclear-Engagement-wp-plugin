@@ -38,6 +38,9 @@ class AdminNoticeService {
 	public function __construct() {
 		\add_action( 'admin_notices', array( $this, 'display_notices' ) );
 		\add_action( 'wp_ajax_nuclen_dismiss_notice', array( $this, 'ajax_dismiss_notice' ) );
+		
+		// Clean up any empty notices on admin init
+		\add_action( 'admin_init', array( $this, 'cleanup_empty_notices' ) );
 	}
 
 	/**
@@ -46,6 +49,11 @@ class AdminNoticeService {
 	 * @param string $message
 	 */
 	public function add( string $message ): void {
+		// Skip empty messages
+		if ( empty( trim( $message ) ) ) {
+			return;
+		}
+		
 		$this->messages[] = $message;
 		if ( count( $this->messages ) === 1 ) {
 			add_action( 'admin_notices', array( $this, 'render' ) );
@@ -61,6 +69,11 @@ class AdminNoticeService {
 	 * @param int    $user_id User ID to show the notice to (0 for all users)
 	 */
 	public function add_persistent_notice( string $message, string $type = 'info', string $id = '', int $user_id = 0 ): void {
+		// Skip empty messages
+		if ( empty( trim( $message ) ) ) {
+			return;
+		}
+
 		if ( empty( $id ) ) {
 			$id = 'nuclen_' . md5( $message . $type . time() );
 		}
@@ -116,9 +129,14 @@ class AdminNoticeService {
 	/**
 	 * Display a single notice
 	 *
-	 * @param array $notice
+	 * @param array{message: string, type: string, id?: string} $notice
 	 */
 	private function display_notice( array $notice ): void {
+		// Skip if message is empty
+		if ( empty( $notice['message'] ) || empty( trim( $notice['message'] ) ) ) {
+			return;
+		}
+
 		$class  = 'notice notice-' . esc_attr( $notice['type'] );
 		$class .= ' is-dismissible';
 
@@ -147,13 +165,16 @@ class AdminNoticeService {
 	 */
 	public function render(): void {
 		foreach ( $this->messages as $msg ) {
+			// Skip empty messages to prevent blank notices
+			if ( ! empty( trim( $msg ) ) ) {
 				\load_template(
-					NUCLEN_PLUGIN_DIR . 'templates/admin/notice.php',
+					dirname( __DIR__, 2 ) . '/templates/admin/notice.php',
 					false,  // Use require instead of require_once
 					array( 'msg' => $msg )
 				);
+			}
 		}
-			$this->messages = array();
+		$this->messages = array();
 	}
 
 	/**
@@ -310,5 +331,24 @@ class AdminNoticeService {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Clean up any empty notices from the database
+	 */
+	public function cleanup_empty_notices(): void {
+		$notices = get_option( self::NOTICES_OPTION, array() );
+		$cleaned = false;
+
+		foreach ( $notices as $id => $notice ) {
+			if ( empty( $notice['message'] ) || empty( trim( $notice['message'] ) ) ) {
+				unset( $notices[ $id ] );
+				$cleaned = true;
+			}
+		}
+
+		if ( $cleaned ) {
+			update_option( self::NOTICES_OPTION, $notices, false );
+		}
 	}
 }

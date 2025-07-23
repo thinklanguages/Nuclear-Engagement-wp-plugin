@@ -101,7 +101,7 @@ class TasksController extends BaseController {
 
 				// Check batch status first
 				$batch_data = TaskTransientManager::get_batch_transient( $task_id );
-				if ( $batch_data && isset( $batch_data['status'] ) && ( $batch_data['status'] === 'running' || $batch_data['status'] === 'processing' ) ) {
+				if ( $batch_data && isset( $batch_data['status'] ) && $batch_data['status'] === 'processing' ) {
 					\NuclearEngagement\Services\LoggingService::log(
 						sprintf( '[TasksController::run_task] Batch %s is already running - rejecting request', $task_id ),
 						'warning'
@@ -284,7 +284,7 @@ class TasksController extends BaseController {
 			);
 
 			// Check if task is already processing
-			if ( isset( $batch_data['status'] ) && ( $batch_data['status'] === 'running' || $batch_data['status'] === 'processing' ) ) {
+			if ( isset( $batch_data['status'] ) && $batch_data['status'] === 'processing' ) {
 				\NuclearEngagement\Services\LoggingService::log(
 					sprintf( '[TasksController::run_generation_task] Task %s is already running - rejecting request', $task_id ),
 					'warning'

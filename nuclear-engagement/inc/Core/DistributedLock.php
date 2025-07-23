@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace NuclearEngagement\Core;
 
+use NuclearEngagement\Utils\ProcessIdentifier;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -75,7 +77,7 @@ final class DistributedLock {
 			'value' => $lock_value,
 			'expires' => time() + $timeout,
 			'server' => gethostname() ?: 'unknown',
-			'pid' => getmypid(),
+			'process_id' => ProcessIdentifier::get(),
 		);
 
 		// Try to acquire lock with retries

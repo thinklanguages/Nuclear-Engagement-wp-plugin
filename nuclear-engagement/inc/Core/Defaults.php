@@ -106,8 +106,8 @@ class Defaults {
 
 			/* ───── Generation ───── */
 			'update_last_modified'                  => false,
-			'auto_generate_quiz_on_publish'         => 0,
-			'auto_generate_summary_on_publish'      => 0,
+			'auto_generate_quiz_on_publish'         => false,
+			'auto_generate_summary_on_publish'      => false,
 			'generation_post_types'                 => array( 'post' ),
 
 			/* ───── Attribution ───── */

@@ -59,7 +59,7 @@ final class JobHandler {
 		$job_type = $job['type'];
 
 		// Update job status.
-		JobStatus::update_job_status( $job_id, 'running', 0, 'Starting job processing' );
+		JobStatus::update_job_status( $job_id, 'processing', 0, 'Starting job processing' );
 
 		PerformanceMonitor::start( "background_job_{$job_type}" );
 

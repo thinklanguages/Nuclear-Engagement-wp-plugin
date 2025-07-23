@@ -14,10 +14,25 @@ export default defineConfig({
     // Generate source maps for debugging
     sourcemap: true,
     
+    // Set a higher threshold to inline small modules like logger
+    modulePreload: {
+      polyfill: false
+    },
+    
+    // Inline modules smaller than 1KB
+    assetsInlineLimit: 1024,
+    
+    // Configure chunk size warnings
+    chunkSizeWarningLimit: 500,
+    
     // Inline small chunks to avoid module loading issues
     rollupOptions: {
+      treeshake: {
+        moduleSideEffects: true
+      },
       // Entry points for admin, front and the TOC module
       input: {
+        logger: path.resolve(__dirname, 'src/shared/logger.ts'),
         admin: path.resolve(__dirname, 'src/admin/ts/nuclen-admin.ts'),
         front: path.resolve(__dirname, 'src/front/ts/nuclen-front.ts'),
         tasks: path.resolve(__dirname, 'src/admin/ts/tasks.ts'),
@@ -33,6 +48,9 @@ export default defineConfig({
       output: {
         // Place each entry in its own subfolder
         entryFileNames: (chunkInfo) => {
+          if (chunkInfo.name === 'logger') {
+            return 'logger-[hash].js';
+          }
           if (chunkInfo.name === 'admin') {
             return 'admin/js/nuclen-admin.js';
           }
@@ -62,11 +80,11 @@ export default defineConfig({
           return '[name]-[hash].js';
         },
         
-        // Inline small modules like logger to avoid extra files
+        // Control chunk creation
         manualChunks(id) {
-          // Don't create separate chunks for logger modules
-          if (id.includes('logger.ts')) {
-            return undefined; // This will inline the module
+          // Keep logger as a separate module
+          if (id.includes('shared/logger')) {
+            return 'logger';
           }
         }
       }

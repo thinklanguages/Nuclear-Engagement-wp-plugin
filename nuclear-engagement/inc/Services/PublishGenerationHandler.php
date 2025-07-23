@@ -68,14 +68,6 @@ class PublishGenerationHandler {
 			return;
 		}
 
-		\NuclearEngagement\Services\LoggingService::log(
-			sprintf(
-				'save_post hook fired: post_id=%d, status=%s, update=%s',
-				$post_id,
-				$post->post_status,
-				$update ? 'true' : 'false'
-			)
-		);
 
 		// Only process if post is being published
 		if ( $post->post_status === 'publish' ) {
@@ -129,12 +121,9 @@ class PublishGenerationHandler {
 				return;
 			}
 
-					$quiz_setting    = $this->settings_repository->get( 'auto_generate_quiz_on_publish', false );
-					$summary_setting = $this->settings_repository->get( 'auto_generate_summary_on_publish', false );
+					$gen_quiz    = $this->settings_repository->get( 'auto_generate_quiz_on_publish', false );
+					$gen_summary = $this->settings_repository->get( 'auto_generate_summary_on_publish', false );
 
-					// Settings are stored as "1" string when enabled, need proper conversion
-					$gen_quiz    = ( $quiz_setting === '1' || $quiz_setting === 1 || $quiz_setting === true );
-					$gen_summary = ( $summary_setting === '1' || $summary_setting === 1 || $summary_setting === true );
 
 			if ( ! $gen_quiz && ! $gen_summary ) {
 				return;
@@ -163,14 +152,6 @@ class PublishGenerationHandler {
 					}
 				}
 
-				\NuclearEngagement\Services\LoggingService::log(
-					sprintf(
-						'Quiz generation check: post_id=%d, protected=%s, has_existing=%s',
-						$post->ID,
-						$protected ? 'yes' : 'no',
-						$has_quiz_content ? 'yes' : 'no'
-					)
-				);
 
 				// Skip if protected or if quiz content already exists
 				if ( ! $protected && ! $has_quiz_content ) {
@@ -180,10 +161,6 @@ class PublishGenerationHandler {
 						if ( $scheduled === false ) {
 							\NuclearEngagement\Services\LoggingService::log(
 								'Failed to schedule quiz generation for post ' . $post->ID
-							);
-						} else {
-							\NuclearEngagement\Services\LoggingService::log(
-								sprintf( 'Scheduled quiz generation for post %d', $post->ID )
 							);
 						}
 					}
@@ -200,14 +177,6 @@ class PublishGenerationHandler {
 					$has_summary_content = ! empty( trim( $existing_summary['summary'] ) );
 				}
 
-				\NuclearEngagement\Services\LoggingService::log(
-					sprintf(
-						'Summary generation check: post_id=%d, protected=%s, has_existing=%s',
-						$post->ID,
-						$protected ? 'yes' : 'no',
-						$has_summary_content ? 'yes' : 'no'
-					)
-				);
 
 				// Skip if protected or if summary content already exists
 				if ( ! $protected && ! $has_summary_content ) {
@@ -218,14 +187,11 @@ class PublishGenerationHandler {
 							\NuclearEngagement\Services\LoggingService::log(
 								'Failed to schedule summary generation for post ' . $post->ID
 							);
-						} else {
-							\NuclearEngagement\Services\LoggingService::log(
-								sprintf( 'Scheduled summary generation for post %d', $post->ID )
-							);
 						}
 					}
 				}
 			}
+			
 		} catch ( \Throwable $e ) {
 			\NuclearEngagement\Services\LoggingService::log(
 				sprintf( 'Error in handle_post_publish (part 2): %s', $e->getMessage() )

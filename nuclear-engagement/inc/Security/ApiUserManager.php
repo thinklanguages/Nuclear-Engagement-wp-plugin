@@ -205,7 +205,6 @@ class ApiUserManager {
 			$context
 		);
 
-		LoggingService::log( 'API Operation: ' . wp_json_encode( $log_data ) );
 	}
 
 	/**

@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace NuclearEngagement\Services;
 
 use NuclearEngagement\Core\BaseService;
+use NuclearEngagement\Utils\ProcessIdentifier;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -337,7 +338,7 @@ class CentralizedPollingQueue extends BaseService {
 			array(
 				'value' => $lock_value,
 				'time'  => time(),
-				'pid'   => getmypid(),
+				'process_id' => ProcessIdentifier::get(),
 			),
 			'',
 			'no'
@@ -356,7 +357,7 @@ class CentralizedPollingQueue extends BaseService {
 					array(
 						'value' => $lock_value,
 						'time'  => time(),
-						'pid'   => getmypid(),
+						'process_id' => ProcessIdentifier::get(),
 					)
 				) ) {
 					$this->lock_value = $lock_value;

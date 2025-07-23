@@ -89,7 +89,10 @@
       "Bash(echo:*)",
       "Bash(timeout 120 composer test)",
       "Bash(git checkout:*)",
-      "Bash(wp cache:*)"
+      "Bash(wp cache:*)",
+      "Bash(wp eval:*)",
+      "Bash(git rm:*)",
+      "Bash(awk:*)"
     ],
     "deny": []
   }

@@ -8,7 +8,7 @@ Tags: AI writer, quiz, summary, table of contents, email optin
 Requires at least: 6.1
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 2.1.1
+Stable tag: 2.1.5
 License: GPL-2.0+
 License URI: http://www.gnu.org/licenses/gpl-2.0.txt
 Donate link: https://buy.stripe.com/3csg1Tdn0a9h3ss288
@@ -282,10 +282,20 @@ The tiny codebase and lazy loading assure fast loading, both in admin and on fro
 
 == Changelog ==
 
+= 2.1.5 – 2025-07-23 =
+* Fixed: Skip content generation for posts with empty content.
+* Fixed: Other minor bugs.
+
+= 2.1.3 – 2025-07-22 =
+* Fixed: post drafts incorrectly filtered out from bulk processing.
+
+= 2.1.2 – 2025-07-22 =
+* Fixed: Made content generation process compatible with Kinsta hosting.
+* Fixed: Status, progress display on tasks page.
+
 = 2.1.1 – 2025-07-21 =
 * Fixed: UI success message during content generation.
 * Fixed: Bugs upon content generation start.
-* Fixed: Progress display on tasks page.
 * Fixed: Batch processing.
 * Changed: moved progress display from generation page to tasks page.
 

@@ -206,7 +206,7 @@ abstract class BaseService {
 		$context['service'] = $this->service_name;
 
 		if ( class_exists( 'NuclearEngagement\Services\LoggingService' ) ) {
-			\NuclearEngagement\Services\LoggingService::log( $message, $context );
+			\NuclearEngagement\Services\LoggingService::log( sprintf( '[%s] %s', $this->service_name, $message ) );
 		} else {
 			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 			error_log( "Nuclear Engagement [{$this->service_name}]: {$message}" );

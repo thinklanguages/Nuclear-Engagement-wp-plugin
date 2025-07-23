@@ -2,7 +2,7 @@ import { nuclenFetchUpdates } from './api';
 import type { PollingUpdateData, PollingUpdateResponse } from './api';
 import { API_CONFIG } from '../../../shared/constants';
 import * as logger from '../utils/logger';
-import { createStreamingClient, type StreamProgressData } from './streaming';
+import { createStreamingClient } from './streaming';
 
 export function NuclenPollAndPullUpdates({
 	intervalMs = API_CONFIG.POLLING_INTERVAL_MS,
@@ -39,7 +39,7 @@ export function NuclenPollAndPullUpdates({
 	let currentInterval = intervalMs;
 	let consecutiveErrors = 0;
 	let timeoutId: ReturnType<typeof setTimeout> | null = null;
-	let streamingClient: ReturnType<typeof createStreamingClient> = null;
+	let streamingClient: ReturnType<typeof createStreamingClient> | null = null;
 	
 	// Disable SSE streaming for now as it's not compatible with batch processing
 	// TODO: Fix SSE to properly handle batch-based generation
@@ -229,8 +229,10 @@ export function NuclenPollAndPullUpdates({
 		if (timeoutId) {
 			clearTimeout(timeoutId);
 		}
-		if (streamingClient) {
-			streamingClient.stop();
-		}
+		// Streaming is currently disabled, so no need to stop it
+		// When re-enabling streaming, uncomment the following:
+		// if (streamingClient && streamingClient !== null) {
+		// 	streamingClient.stop();
+		// }
 	};
 }

@@ -370,39 +370,53 @@ class Tasks {
 				continue;
 			}
 
-			// Calculate progress
+			// Calculate progress based on batches with actual result counts
 			$progress  = 0;
 			$processed = 0;
 			$failed    = 0;
+			$batches_with_counts = 0;
+			$total_batches = $job_data['total_batches'] ?? 0;
 
 			if ( isset( $job_data['batch_jobs'] ) ) {
 				foreach ( $job_data['batch_jobs'] as $batch_job ) {
 					$batch_data = get_transient( 'nuclen_batch_' . $batch_job['batch_id'] );
 					if ( $batch_data ) {
+						// Check if batch has actual result counts
+						$has_counts = false;
+						
 						// Use actual success/fail counts if available
 						if ( isset( $batch_data['success_count'] ) ) {
 							$processed += $batch_data['success_count'];
+							$has_counts = true;
 						} elseif ( isset( $batch_data['results']['success_count'] ) ) {
 							$processed += $batch_data['results']['success_count'];
-						} elseif ( $batch_data['status'] === 'completed' ) {
-							// Fallback to post count if no specific counts available
-							$processed += $batch_job['post_count'];
+							$has_counts = true;
 						}
 						
 						if ( isset( $batch_data['fail_count'] ) ) {
 							$failed += $batch_data['fail_count'];
+							$has_counts = true;
 						} elseif ( isset( $batch_data['results']['fail_count'] ) ) {
 							$failed += $batch_data['results']['fail_count'];
-						} elseif ( $batch_data['status'] === 'failed' ) {
-							// Fallback to post count if no specific counts available
-							$failed += $batch_job['post_count'];
+							$has_counts = true;
+						}
+						
+						// Only count this batch as complete if it has actual counts
+						if ( $has_counts && in_array( $batch_data['status'] ?? '', array( 'completed', 'failed' ), true ) ) {
+							$batches_with_counts++;
 						}
 					}
 				}
 			}
 
 			$total_posts = $job_data['total_posts'] ?? 0;
-			if ( $total_posts > 0 ) {
+			
+			// Calculate progress based on batches with counts if status is not yet completed
+			if ( in_array( $job_data['status'] ?? '', array( 'processing', 'scheduled', 'pending' ), true ) && $total_batches > 0 ) {
+				// For active tasks, use batch completion ratio to show more accurate progress
+				$progress = round( ( $batches_with_counts / $total_batches ) * 100 );
+			} elseif ( $total_posts > 0 ) {
+				// For completed tasks or as fallback, use post-based progress
 				$progress = round( ( $processed / $total_posts ) * 100 );
 			}
 
@@ -467,10 +481,12 @@ class Tasks {
 	 * Format a task for display
 	 */
 	private function format_task_for_display( array $task_data ): array {
-		// Calculate progress
+		// Calculate progress based on batches with actual result counts
 		$progress  = 0;
 		$processed = 0;
 		$failed    = 0;
+		$batches_with_counts = 0;
+		$total_batches = $task_data['total_batches'] ?? 0;
 
 		if ( isset( $task_data['batch_jobs'] ) && is_array( $task_data['batch_jobs'] ) ) {
 			foreach ( $task_data['batch_jobs'] as $batch_job ) {
@@ -481,23 +497,29 @@ class Tasks {
 
 					$batch_data = \NuclearEngagement\Services\TaskTransientManager::get_batch_transient( $batch_job['batch_id'] );
 					if ( $batch_data && is_array( $batch_data ) ) {
+						// Check if batch has actual result counts
+						$has_counts = false;
+						
 						// Use actual success/fail counts if available
 						if ( isset( $batch_data['success_count'] ) ) {
 							$processed += $batch_data['success_count'];
+							$has_counts = true;
 						} elseif ( isset( $batch_data['results']['success_count'] ) ) {
 							$processed += $batch_data['results']['success_count'];
-						} elseif ( isset( $batch_data['status'] ) && $batch_data['status'] === 'completed' ) {
-							// Fallback to post count if no specific counts available
-							$processed += $batch_job['post_count'] ?? 0;
+							$has_counts = true;
 						}
 
 						if ( isset( $batch_data['fail_count'] ) ) {
 							$failed += $batch_data['fail_count'];
+							$has_counts = true;
 						} elseif ( isset( $batch_data['results']['fail_count'] ) ) {
 							$failed += $batch_data['results']['fail_count'];
-						} elseif ( isset( $batch_data['status'] ) && $batch_data['status'] === 'failed' ) {
-							// Fallback to post count if no specific counts available
-							$failed += $batch_job['post_count'] ?? 0;
+							$has_counts = true;
+						}
+						
+						// Only count this batch as complete if it has actual counts
+						if ( $has_counts && in_array( $batch_data['status'] ?? '', array( 'completed', 'failed' ), true ) ) {
+							$batches_with_counts++;
 						}
 					}
 				} catch ( \Throwable $e ) {
@@ -513,7 +535,13 @@ class Tasks {
 		}
 
 		$total_posts = $task_data['total_posts'] ?? 0;
-		if ( $total_posts > 0 ) {
+		
+		// Calculate progress based on batches with counts if status is not yet completed
+		if ( in_array( $task_data['status'] ?? '', array( 'processing', 'scheduled', 'pending' ), true ) && $total_batches > 0 ) {
+			// For active tasks, use batch completion ratio to show more accurate progress
+			$progress = round( ( $batches_with_counts / $total_batches ) * 100 );
+		} elseif ( $total_posts > 0 ) {
+			// For completed tasks or as fallback, use post-based progress
 			$progress = round( ( $processed / $total_posts ) * 100 );
 		}
 

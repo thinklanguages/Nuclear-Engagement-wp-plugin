@@ -502,16 +502,6 @@ Quick helper classes for display, text alignment, etc.
 .u-mb-md { margin-bottom: var(--nuclen-spacing-md); }
 .u-mb-lg { margin-bottom: var(--nuclen-spacing-lg); }
 
-/* WordPress admin notices minimum height fix */
-.notice.notice-success,
-.notice.notice-error,
-.notice.notice-warning,
-.notice.notice-info {
-	min-height: 40px;
-	display: flex;
-	align-items: center;
-}
-
 .notice.is-dismissible {
 	padding-right: 38px;
 }
@@ -618,19 +608,34 @@ Quick helper classes for display, text alignment, etc.
 	align-items: center;
 	gap: 8px;
 	margin-left: 15px;
-	padding: 5px 12px;
+	padding: 8px 16px;
 	background: #f0f0f1;
-	border: 1px solid #dcdcde;
-	border-radius: 3px;
-	font-size: 13px;
+	border: 2px solid #dcdcde;
+	border-radius: 5px;
+	font-size: 14px;
 	color: #646970;
 	transition: all 0.3s ease;
+	box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+	font-weight: 500;
 }
 
 .nuclen-polling-indicator.active {
 	background: #e8f5e9;
 	border-color: #4caf50;
 	color: #2e7d32;
+	box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+	animation: pulse-border 2s ease-in-out infinite;
+}
+
+@keyframes pulse-border {
+	0%, 100% {
+		border-color: #4caf50;
+		box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+	}
+	50% {
+		border-color: #66bb6a;
+		box-shadow: 0 2px 12px rgba(76, 175, 80, 0.5);
+	}
 }
 
 .nuclen-polling-icon {
@@ -653,21 +658,76 @@ Quick helper classes for display, text alignment, etc.
 	animation: spin 2s linear infinite;
 }
 
+/* Make the active indicator's icon more visible */
+.nuclen-polling-indicator.active .nuclen-polling-icon.spin .dashicons {
+	color: #2e7d32;
+	font-weight: bold;
+}
+
 .nuclen-polling-text {
 	font-weight: 500;
 }
 
 .nuclen-polling-countdown {
-	font-size: 12px;
+	font-size: 13px;
 	color: #8c8f94;
 	margin-left: 8px;
 	padding-left: 8px;
-	border-left: 1px solid #dcdcde;
+	border-left: 2px solid #dcdcde;
+	font-weight: 600;
 }
 
 .nuclen-polling-indicator.active .nuclen-polling-countdown {
-	color: #388e3c;
+	color: #2e7d32;
 	border-left-color: #4caf50;
+	font-weight: 700;
+}
+
+/* Auto-refresh notification banner */
+.nuclen-auto-refresh-banner {
+	position: fixed;
+	top: 50px;
+	right: 20px;
+	z-index: 1000;
+	background: #4caf50;
+	color: white;
+	padding: 10px 16px;
+	border-radius: 4px;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-size: 13px;
+	font-weight: 500;
+	opacity: 0;
+	transform: translateX(20px);
+	transition: all 0.3s ease;
+	pointer-events: none;
+	max-width: 320px;
+}
+
+.nuclen-auto-refresh-banner.show {
+	opacity: 1;
+	transform: translateX(0);
+	pointer-events: auto;
+}
+
+.nuclen-auto-refresh-banner .dashicons {
+	font-size: 18px;
+	width: 18px;
+	height: 18px;
+	animation: spin 2s linear infinite;
+}
+
+/* Adjust banner position on smaller screens */
+@media screen and (max-width: 782px) {
+	.nuclen-auto-refresh-banner {
+		top: 46px;
+		right: 10px;
+		font-size: 12px;
+		padding: 8px 12px;
+		max-width: 280px;
+	}
 }
 
 /* Update animation for spinning icon */

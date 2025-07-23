@@ -4,6 +4,12 @@
 
 import * as logger from '../utils/logger';
 
+declare global {
+    interface Window {
+        EventSource: typeof EventSource;
+    }
+}
+
 export interface StreamProgressData {
     progress: number;
     processed: number;
@@ -52,7 +58,7 @@ export class StreamingClient {
         
         logger.log('Starting SSE stream', { url, taskId: this.taskId });
         
-        this.eventSource = new EventSource(url);
+        this.eventSource = new window.EventSource(url);
         
         // Handle progress events
         this.eventSource.addEventListener('progress', (event) => {

@@ -78,6 +78,14 @@ export function initStep1(elements: GeneratePageElements): void {
 			displayError('Error: Ajax is not configured properly. Please check the plugin settings.');
 			return;
 		}
+		
+		// Store original button text and disable button
+		const originalButtonText = elements.getPostsBtn?.textContent || 'Get Posts to Process';
+		if (elements.getPostsBtn) {
+			elements.getPostsBtn.textContent = 'Selecting posts...';
+			elements.getPostsBtn.disabled = true;
+		}
+		
 		if (elements.postsCountEl) {
 			elements.postsCountEl.innerText = 'Loading posts...';
 		}
@@ -87,6 +95,11 @@ export function initStep1(elements: GeneratePageElements): void {
 			logger.error('Error retrieving post count');
 			if (elements.postsCountEl) {
 				elements.postsCountEl.innerText = 'Error retrieving post count.';
+			}
+			// Restore button state on error
+			if (elements.getPostsBtn) {
+				elements.getPostsBtn.textContent = originalButtonText;
+				elements.getPostsBtn.disabled = false;
 			}
 			return;
 		}
@@ -103,6 +116,11 @@ export function initStep1(elements: GeneratePageElements): void {
 				} else {
 					displayError(errMsg);
 				}
+			}
+			// Restore button state on error
+			if (elements.getPostsBtn) {
+				elements.getPostsBtn.textContent = originalButtonText;
+				elements.getPostsBtn.disabled = false;
 			}
 			return;
 		}

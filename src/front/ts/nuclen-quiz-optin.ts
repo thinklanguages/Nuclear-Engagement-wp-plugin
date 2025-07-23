@@ -132,10 +132,10 @@ export function attachInlineOptinHandlers(ctx: OptinContext): void {
 			await submitToWebhook(name, email, ctx);
 			
 			// Show success message if configured
-			if (ctx.successMessage) {
+			if (window.NuclenOptinSuccessMessage) {
 				const successMsg = document.createElement('div');
 				successMsg.className = 'nuclen-success-message';
-				successMsg.textContent = ctx.successMessage;
+				successMsg.textContent = window.NuclenOptinSuccessMessage;
 				submitBtn.parentElement?.appendChild(successMsg);
 			}
 		} catch (error) {

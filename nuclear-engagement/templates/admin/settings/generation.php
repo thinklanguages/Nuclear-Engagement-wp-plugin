@@ -27,7 +27,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 			</label>
 		</div>
 		<div class="nuclen-column nuclen-input-col">
-			<input type="checkbox" class="nuclen-checkbox" name="update_last_modified" id="update_last_modified" value="1" <?php checked( $settings['update_last_modified'], 1 ); ?>>
+			<input type="checkbox" class="nuclen-checkbox" name="update_last_modified" id="update_last_modified" value="1" <?php checked( ! empty( $settings['update_last_modified'] ) ); ?>>
 		</div>
 	</div>
 
@@ -38,7 +38,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 			</label>
 		</div>
 		<div class="nuclen-column nuclen-input-col">
-			<input type="checkbox" class="nuclen-checkbox" name="auto_generate_quiz_on_publish" id="auto_generate_quiz_on_publish" value="1" <?php checked( $settings['auto_generate_quiz_on_publish'], 1 ); ?>>
+			<input type="checkbox" class="nuclen-checkbox" name="auto_generate_quiz_on_publish" id="auto_generate_quiz_on_publish" value="1" <?php checked( ! empty( $settings['auto_generate_quiz_on_publish'] ) ); ?>>
 		</div>
 	</div>
 
@@ -49,7 +49,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 			</label>
 		</div>
 		<div class="nuclen-column nuclen-input-col">
-			<input type="checkbox" class="nuclen-checkbox" name="auto_generate_summary_on_publish" id="auto_generate_summary_on_publish" value="1" <?php checked( $settings['auto_generate_summary_on_publish'], 1 ); ?>>
+			<input type="checkbox" class="nuclen-checkbox" name="auto_generate_summary_on_publish" id="auto_generate_summary_on_publish" value="1" <?php checked( ! empty( $settings['auto_generate_summary_on_publish'] ) ); ?>>
 		</div>
 	</div>
 

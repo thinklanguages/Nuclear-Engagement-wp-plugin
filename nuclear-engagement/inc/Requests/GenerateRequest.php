@@ -90,7 +90,7 @@ class GenerateRequest {
 	public string $priority = 'high';
 
 	/**
-	 * Source of generation request (manual, auto, bulk).
+	 * Source of generation request (manual, auto, bulk, single).
 	 *
 	 * @var string
 	 */
@@ -252,8 +252,8 @@ class GenerateRequest {
 			$post_ids = self::sanitize_post_ids( $post_ids );
 		} catch ( \InvalidArgumentException $e ) {
 			throw new ValidationException(
-				__( 'Invalid post IDs provided. Please refresh and try again.', 'nuclear-engagement' ),
-				array( 'invalid_ids' => array_diff( $post_ids, $sanitized ) )
+				array( __( 'Invalid post IDs provided. Please refresh and try again.', 'nuclear-engagement' ) ),
+				__( 'Invalid post IDs provided. Please refresh and try again.', 'nuclear-engagement' )
 			);
 		}
 
@@ -261,11 +261,7 @@ class GenerateRequest {
 
 		if ( empty( $post_ids ) ) {
 			throw new ValidationException(
-				__( 'You do not have permission to generate content for the selected posts.', 'nuclear-engagement' ),
-				array(
-					'user_id'             => get_current_user_id(),
-					'required_capability' => 'edit_post',
-				)
+				array( __( 'No posts found for processing.', 'nuclear-engagement' ) )
 			);
 		}
 
@@ -325,12 +321,10 @@ class GenerateRequest {
 					return false;
 				}
 
-				if ( 'publish' !== $post->post_status ) {
-					\NuclearEngagement\Services\LoggingService::log(
-						"Post ID {$id} filtered out - status is '{$post->post_status}', not 'publish'"
-					);
-					return false;
-				}
+				// IMPORTANT: Do NOT filter posts by status here!
+				// Draft posts are allowed for generation as users can select
+				// draft status in step 1 of the generation process.
+				// Removing status check allows all post statuses to be processed.
 
 				return true;
 			}
@@ -459,7 +453,7 @@ class GenerateRequest {
 
 		if ( isset( $payload['source'] ) ) {
 			$source          = sanitize_text_field( $payload['source'] );
-			$request->source = in_array( $source, array( 'manual', 'auto', 'bulk' ), true ) ? $source : 'manual';
+			$request->source = in_array( $source, array( 'manual', 'auto', 'bulk', 'single' ), true ) ? $source : 'manual';
 		}
 
 		if ( isset( $payload['retry_count'] ) ) {

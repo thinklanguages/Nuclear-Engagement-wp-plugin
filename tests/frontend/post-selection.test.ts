@@ -90,8 +90,6 @@ describe('Post Selection UI Tests', () => {
 			submitBtn: document.getElementById('nuclen-submit-btn') as HTMLButtonElement,
 			stepBar1: document.createElement('div'),
 			stepBar2: document.createElement('div'),
-			stepBar3: document.createElement('div'),
-			stepBar4: document.createElement('div'),
 			updatesSection: document.createElement('div'),
 			updatesContent: document.createElement('div'),
 			restartBtn: document.createElement('button'),

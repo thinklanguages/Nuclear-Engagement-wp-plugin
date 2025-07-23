@@ -33,8 +33,6 @@ describe('navigation', () => {
       creditsInfoEl: { textContent: 'test' } as any,
       stepBar1: document.createElement('div'),
       stepBar2: document.createElement('div'),
-      stepBar3: document.createElement('div'),
-      stepBar4: document.createElement('div'),
       updatesSection: document.createElement('div'),
       updatesContent: document.createElement('div'),
       getPostsBtn: document.createElement('button'),
@@ -125,8 +123,6 @@ describe('navigation', () => {
       expect(mockElements.creditsInfoEl!.textContent).toBe('');
       expect(updateProgressBarSpy).toHaveBeenCalledWith(mockElements.stepBar1, 'current');
       expect(updateProgressBarSpy).toHaveBeenCalledWith(mockElements.stepBar2, 'todo');
-      expect(updateProgressBarSpy).toHaveBeenCalledWith(mockElements.stepBar3, 'todo');
-      expect(updateProgressBarSpy).toHaveBeenCalledWith(mockElements.stepBar4, 'todo');
     });
 
     it('should handle missing elements gracefully', () => {
@@ -140,9 +136,7 @@ describe('navigation', () => {
         step2: document.createElement('div'),
         step1: document.createElement('div'),
         stepBar1: document.createElement('div'),
-        stepBar2: document.createElement('div'),
-        stepBar3: document.createElement('div'),
-        stepBar4: document.createElement('div')
+        stepBar2: document.createElement('div')
       };
 
       initRestart(partialElements);

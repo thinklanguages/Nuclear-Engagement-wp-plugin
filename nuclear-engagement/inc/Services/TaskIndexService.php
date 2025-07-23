@@ -408,8 +408,7 @@ class TaskIndexService extends BaseService {
 
 		if ( $size_kb > 1000 ) { // 1MB limit
 			LoggingService::log(
-				sprintf( 'Task index too large (%d KB), trimming to 500 most recent tasks', $size_kb ),
-				'warning'
+				sprintf( '[WARNING] Task index too large (%d KB), trimming to 500 most recent tasks', $size_kb )
 			);
 
 			// Sort by created_at and keep most recent
@@ -435,7 +434,7 @@ class TaskIndexService extends BaseService {
 				// Double-check that the update actually failed by re-reading the value
 				$new_value = get_option( self::INDEX_OPTION, array() );
 				if ( $new_value !== $index ) {
-					LoggingService::log( 'Failed to save task index', 'error' );
+					LoggingService::log( '[ERROR] Failed to save task index' );
 				}
 			}
 		}
@@ -494,7 +493,6 @@ class TaskIndexService extends BaseService {
 				$common_filters = array(
 					array( 'status' => 'pending' ),
 					array( 'status' => 'scheduled' ),
-					array( 'status' => 'running' ),
 					array( 'status' => 'processing' ),
 					array( 'status' => 'completed' ),
 					array( 'status' => 'failed' ),

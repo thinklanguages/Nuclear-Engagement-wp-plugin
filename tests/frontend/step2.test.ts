@@ -50,8 +50,6 @@ describe('step2', () => {
       step2: document.createElement('div'),
       stepBar1: document.createElement('div'),
       stepBar2: document.createElement('div'),
-      stepBar3: document.createElement('div'),
-      stepBar4: document.createElement('div')
     };
   });
 
@@ -128,7 +126,6 @@ describe('step2', () => {
 
       // Initial UI updates
       expect(updateProgressBarSpy).toHaveBeenCalledWith(mockElements.stepBar2, 'done');
-      expect(updateProgressBarSpy).toHaveBeenCalledWith(mockElements.stepBar3, 'current');
       expect(showElementSpy).toHaveBeenCalledWith(mockElements.updatesSection);
       expect(hideElementSpy).toHaveBeenCalledWith(mockElements.step2);
       expect(mockElements.updatesContent!.innerText).toBe(`Processing posts... this can take a few minutes. Stay on this page to see progress updates in real time. Or else, you can safely leave this page - generation will continue in the background. You can track progress on the tasks page. The generated content will be available in the post editor and on the frontend when the process is complete.`);
@@ -138,16 +135,13 @@ describe('step2', () => {
       await new Promise(resolve => setTimeout(resolve, 10));
 
       // Check completion updates
-      expect(updateProgressBarSpy).toHaveBeenCalledWith(mockElements.stepBar3, 'done');
-      expect(updateProgressBarSpy).toHaveBeenCalledWith(mockElements.stepBar4, 'current');
-      expect(updateProgressBarSpy).toHaveBeenCalledWith(mockElements.stepBar4, 'done');
       expect(mockElements.updatesContent!.innerText).toBe('All posts processed successfully! Your content has been saved.');
       expect(mockElements.submitBtn!.disabled).toBe(false);
       expect(showElementSpy).toHaveBeenCalledWith(mockElements.restartBtn);
     });
 
     it('should handle generation with failures', async () => {
-      const updateProgressBarSpy = vi.spyOn(generatePageUtils, 'nuclenUpdateProgressBarStep');
+      vi.spyOn(generatePageUtils, 'nuclenUpdateProgressBarStep');
       
       // Mock FormData
       global.FormData = vi.fn(() => ({
@@ -183,7 +177,6 @@ describe('step2', () => {
       await new Promise(resolve => setTimeout(resolve, 10));
 
       expect(mockElements.updatesContent!.innerText).toBe('Some posts failed. 2 posts failed to process');
-      expect(updateProgressBarSpy).toHaveBeenCalledWith(mockElements.stepBar4, 'failed');
     });
 
     it('should handle API error in start generation', async () => {
