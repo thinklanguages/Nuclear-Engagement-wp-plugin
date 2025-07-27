@@ -165,8 +165,7 @@ trait ConsolidatedSettingsAccessTrait {
 			$this->invalidate_cache();
 			return true;
 		} catch ( \Exception $e ) {
-			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-			error_log( 'Nuclear Engagement: Settings save failed - ' . $e->getMessage() );
+			\NuclearEngagement\Services\LoggingService::log( '[ERROR] Settings save failed - ' . $e->getMessage() );
 			return false;
 		}
 	}
@@ -212,8 +211,7 @@ trait ConsolidatedSettingsAccessTrait {
 			$this->invalidate_cache();
 			return true;
 		} catch ( \Exception $e ) {
-			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-			error_log( 'Nuclear Engagement: Settings clear failed - ' . $e->getMessage() );
+			\NuclearEngagement\Services\LoggingService::log( '[ERROR] Settings clear failed - ' . $e->getMessage() );
 			return false;
 		}
 	}

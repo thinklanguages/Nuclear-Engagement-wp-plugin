@@ -476,10 +476,9 @@ final class QueryOptimizer {
 
 		// Log slow queries immediately.
 		if ( $query_time > self::SLOW_QUERY_THRESHOLD && defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-			error_log(
+			\NuclearEngagement\Services\LoggingService::debug(
 				sprintf(
-					'Nuclear Engagement Slow Query: %s took %.4fs',
+					'Slow Query: %s took %.4fs',
 					$query_type,
 					$query_time
 				)
@@ -508,8 +507,7 @@ final class QueryOptimizer {
 		);
 
 		if ( ! empty( $slow_queries ) ) {
-			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-			error_log( 'Nuclear Engagement Query Performance Summary: ' . wp_json_encode( $slow_queries ) );
+			\NuclearEngagement\Services\LoggingService::debug( 'Query Performance Summary: ' . wp_json_encode( $slow_queries ) );
 		}
 	}
 

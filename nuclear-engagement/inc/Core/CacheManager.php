@@ -262,8 +262,7 @@ final class CacheManager {
 		wp_cache_set( $version_key, $new_version, 'nuclen_versions', DAY_IN_SECONDS );
 
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-			error_log( "Nuclear Engagement: Cache pattern '{$pattern}' in group '{$group}' invalidated. Reason: {$reason}" );
+			\NuclearEngagement\Services\LoggingService::debug( "Cache pattern '{$pattern}' in group '{$group}' invalidated. Reason: {$reason}" );
 		}
 	}
 
@@ -289,8 +288,7 @@ final class CacheManager {
 
 		// Log invalidation.
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-			error_log( "Nuclear Engagement: Cache group '{$group}' fully invalidated. Reason: {$reason}" );
+			\NuclearEngagement\Services\LoggingService::debug( "Cache group '{$group}' fully invalidated. Reason: {$reason}" );
 		}
 
 		PerformanceMonitor::stop( "cache_invalidate_{$group}" );

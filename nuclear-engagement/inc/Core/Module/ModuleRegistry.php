@@ -78,8 +78,7 @@ final class ModuleRegistry {
 			$module->init();
 			$this->initialized_modules[] = $name;
 		} catch ( \Throwable $e ) {
-			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-			error_log( "[Nuclear Engagement] Failed to initialize module {$name}: " . $e->getMessage() );
+			\NuclearEngagement\Services\LoggingService::log( "[ERROR] Failed to initialize module {$name}: " . $e->getMessage() );
 		}
 	}
 

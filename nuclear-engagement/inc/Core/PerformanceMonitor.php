@@ -353,10 +353,9 @@ final class PerformanceMonitor {
 		}
 
 		if ( ! empty( $warnings ) ) {
-			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-			error_log(
+			\NuclearEngagement\Services\LoggingService::log(
 				sprintf(
-					'Nuclear Engagement Performance Warning [%s]: %s',
+					'[WARNING] Performance Warning [%s]: %s',
 					$operation,
 					implode( ', ', $warnings )
 				)

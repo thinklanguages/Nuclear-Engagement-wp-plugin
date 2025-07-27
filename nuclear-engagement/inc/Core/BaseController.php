@@ -78,9 +78,9 @@ abstract class BaseController {
 	 */
 	protected function send_error( string $message, int $code = 500, array $data = array() ): void {
 		// Log error.
-		error_log(
+		\NuclearEngagement\Services\LoggingService::log(
 			sprintf(
-				'[Nuclear Engagement] Controller error in %s: %s',
+				'[ERROR] Controller error in %s: %s',
 				$this->controller_name,
 				$message
 			)
@@ -192,9 +192,9 @@ abstract class BaseController {
 		$validated = ValidationUtils::validate_batch( $_POST, $rules );
 
 		if ( $validated === null ) {
-			error_log(
+			\NuclearEngagement\Services\LoggingService::log(
 				sprintf(
-					'[Nuclear Engagement] POST data validation failed in %s',
+					'[WARNING] POST data validation failed in %s',
 					$this->controller_name
 				)
 			);
@@ -354,12 +354,12 @@ abstract class BaseController {
 			return call_user_func( $action );
 
 		} catch ( \Throwable $e ) {
-			error_log(
+			\NuclearEngagement\Services\LoggingService::log_exception( $e );
+			\NuclearEngagement\Services\LoggingService::log(
 				sprintf(
-					'[Nuclear Engagement] Controller action failed in %s: %s - %s',
+					'[ERROR] Controller action failed in %s: %s',
 					$this->controller_name,
-					$action_name,
-					$e->getMessage()
+					$action_name
 				)
 			);
 

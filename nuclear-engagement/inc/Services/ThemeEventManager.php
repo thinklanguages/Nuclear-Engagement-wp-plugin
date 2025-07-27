@@ -69,8 +69,7 @@ class ThemeEventManager {
 
 	public function on_theme_activated( $theme_id, $theme ): void {
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-			error_log( "Nuclear Engagement: Theme '{$theme->name}' (ID: {$theme_id}) activated" );
+			\NuclearEngagement\Services\LoggingService::debug( "Theme '{$theme->name}' (ID: {$theme_id}) activated" );
 		}
 
 		// Clear any relevant caches.
@@ -79,8 +78,7 @@ class ThemeEventManager {
 
 	public function on_theme_deactivated( $theme_id, $theme ): void {
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-			error_log( "Nuclear Engagement: Theme '{$theme->name}' (ID: {$theme_id}) deactivated" );
+			\NuclearEngagement\Services\LoggingService::debug( "Theme '{$theme->name}' (ID: {$theme_id}) deactivated" );
 		}
 
 		// Clear any relevant caches.
@@ -91,8 +89,7 @@ class ThemeEventManager {
 		$action = $is_new ? 'created' : 'updated';
 
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-			error_log( "Nuclear Engagement: Theme '{$theme->name}' {$action}" );
+			\NuclearEngagement\Services\LoggingService::debug( "Theme '{$theme->name}' {$action}" );
 		}
 
 		// Clear theme caches.
@@ -101,8 +98,7 @@ class ThemeEventManager {
 
 	public function on_theme_deleted( $theme_id ): void {
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-			error_log( "Nuclear Engagement: Theme (ID: {$theme_id}) deleted" );
+			\NuclearEngagement\Services\LoggingService::debug( "Theme (ID: {$theme_id}) deleted" );
 		}
 
 		// Clear theme caches.
@@ -112,8 +108,7 @@ class ThemeEventManager {
 	public function on_css_generated( $theme, $css_content ): void {
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 			$css_size = strlen( $css_content );
-			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-			error_log( "Nuclear Engagement: CSS generated for theme '{$theme->name}' ({$css_size} bytes)" );
+			\NuclearEngagement\Services\LoggingService::debug( "CSS generated for theme '{$theme->name}' ({$css_size} bytes)" );
 		}
 	}
 

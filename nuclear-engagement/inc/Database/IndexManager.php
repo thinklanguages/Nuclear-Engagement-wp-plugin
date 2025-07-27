@@ -119,20 +119,18 @@ class IndexManager {
 			$wpdb->query( $sql );
 
 			if ( $result === false ) {
-				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-				error_log(
+				\NuclearEngagement\Services\LoggingService::log(
 					sprintf(
-						'[Nuclear Engagement] Failed to create index %s on table %s: %s',
+						'[ERROR] Failed to create index %s on table %s: %s',
 						$index_name,
 						$table,
 						$wpdb->last_error
 					)
 				);
 			} else {
-				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-				error_log(
+				\NuclearEngagement\Services\LoggingService::debug(
 					sprintf(
-						'[Nuclear Engagement] Successfully created index %s on table %s: %s',
+						'Successfully created index %s on table %s: %s',
 						$index_name,
 						$table,
 						$description
@@ -198,20 +196,18 @@ class IndexManager {
 			$wpdb->query( $sql );
 
 			if ( $result === false ) {
-				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-				error_log(
+				\NuclearEngagement\Services\LoggingService::log(
 					sprintf(
-						'[Nuclear Engagement] Failed to drop index %s from table %s: %s',
+						'[ERROR] Failed to drop index %s from table %s: %s',
 						$index_name,
 						$table,
 						$wpdb->last_error
 					)
 				);
 			} else {
-				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-				error_log(
+				\NuclearEngagement\Services\LoggingService::debug(
 					sprintf(
-						'[Nuclear Engagement] Successfully dropped index %s from table %s',
+						'Successfully dropped index %s from table %s',
 						$index_name,
 						$table
 					)

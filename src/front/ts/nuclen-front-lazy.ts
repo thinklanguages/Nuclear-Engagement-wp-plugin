@@ -102,7 +102,7 @@ window.nuclearEngagementInitQuiz = async () => {
 		const { initQuiz } = await import('./nuclen-quiz-main');
 		initQuiz();
 	} catch (error) {
-		console.error('Failed to load quiz module:', error);
+		// Failed to load quiz module
 	}
 };
 

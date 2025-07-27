@@ -295,8 +295,7 @@ class TransactionManager {
 					$this->rollback();
 				}
 			} catch ( \Throwable $e ) {
-				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-				error_log( 'Nuclear Engagement: Failed to rollback transaction in destructor: ' . $e->getMessage() );
+				\NuclearEngagement\Services\LoggingService::log( '[ERROR] Failed to rollback transaction in destructor: ' . $e->getMessage() );
 			}
 		}
 	}

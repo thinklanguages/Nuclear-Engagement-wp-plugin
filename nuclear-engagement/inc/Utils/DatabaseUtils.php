@@ -224,10 +224,9 @@ final class DatabaseUtils {
 
 		// Log slow queries.
 		if ( $execution_time > 1.0 ) {
-			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-			error_log(
+			\NuclearEngagement\Services\LoggingService::log(
 				sprintf(
-					'Nuclear Engagement Slow Query [%s]: %.4fs | %s',
+					'[WARNING] Slow Query [%s]: %.4fs | %s',
 					$operation,
 					$execution_time,
 					$query

@@ -67,7 +67,6 @@ class TasksManager {
     private handleWindowFocus = this.onWindowFocus.bind(this);
 
     constructor() {
-        console.log('[Nuclear Engagement] TasksManager initializing...');
         this.init();
         
         // Cleanup on page unload
@@ -77,7 +76,6 @@ class TasksManager {
     }
 
     private init(): void {
-        console.log('[Nuclear Engagement] Starting initialization...');
         
         // Check for recent completions on page load
         this.checkRecentCompletions();
@@ -94,11 +92,9 @@ class TasksManager {
         // Initialize task tracking
         this.initializeTaskTracking();
         
-        console.log('[Nuclear Engagement] Creating polling indicator...');
         // Create polling indicator
         this.createPollingIndicator();
         
-        console.log('[Nuclear Engagement] Starting smart polling...');
         // Start smart polling
         this.startSmartPolling();
     }
@@ -849,22 +845,16 @@ class TasksManager {
         
         // Find the refresh button and insert indicator next to it
         const refreshButton = document.querySelector('.nuclen-refresh-button');
-        console.log('[Nuclear Engagement] Refresh button found:', refreshButton);
         
         if (refreshButton && refreshButton.parentNode) {
             refreshButton.parentNode.insertBefore(indicator, refreshButton.nextSibling);
             this.pollingIndicator = indicator;
-            console.log('[Nuclear Engagement] Polling indicator added next to refresh button');
         } else {
             // Fallback: insert after the page title
             const pageTitle = document.querySelector('.wrap h1');
-            console.log('[Nuclear Engagement] Page title found:', pageTitle);
             if (pageTitle) {
                 pageTitle.appendChild(indicator);
                 this.pollingIndicator = indicator;
-                console.log('[Nuclear Engagement] Polling indicator added to page title');
-            } else {
-                console.error('[Nuclear Engagement] Could not find location to insert polling indicator');
             }
         }
         
@@ -951,11 +941,10 @@ class TasksManager {
 
 // Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('[Nuclear Engagement] DOM ready, initializing TasksManager...');
     try {
         new TasksManager();
     } catch (error) {
-        console.error('[Nuclear Engagement] Failed to initialize TasksManager:', error);
+        // Silently fail
     }
 });
 

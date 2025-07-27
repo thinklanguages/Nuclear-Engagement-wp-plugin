@@ -73,7 +73,6 @@ export function mountOptinBeforeResults(
 			await submitToWebhook(name, email, ctx);
 			onComplete();
 		} catch (error) {
-			console.error('[Optin] Submission error:', error);
 			
 			// Show user-friendly error message
 			const errorMsg = document.createElement('div');
@@ -139,7 +138,6 @@ export function attachInlineOptinHandlers(ctx: OptinContext): void {
 				submitBtn.parentElement?.appendChild(successMsg);
 			}
 		} catch (error) {
-			console.error('[Optin] Submission error:', error);
 			
 			// Show user-friendly error message
 			const errorMsg = document.createElement('div');

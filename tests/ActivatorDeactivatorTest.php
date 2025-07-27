@@ -61,8 +61,6 @@ class ActivatorDeactivatorTest extends TestCase {
 		global $wpdb, $wp_options, $transients, $update_option_calls;
 		\NuclearEngagement\Core\Activator::nuclen_activate();
 		// Check the global transients array
-		// Debug: print what's in transients
-		// var_dump($GLOBALS['transients']);
 		$this->assertArrayHasKey('nuclen_plugin_activation_redirect', $GLOBALS['wp_transients']);
 		// Check if it's an array with 'value' key or just a boolean
 		$transient_value = $GLOBALS['wp_transients']['nuclen_plugin_activation_redirect'];
