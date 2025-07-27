@@ -735,3 +735,35 @@ Quick helper classes for display, text alignment, etc.
 	0% { transform: rotate(0deg); }
 	100% { transform: rotate(360deg); }
 }
+
+/*--------------------------------------------------------------
+# Summary Format Fields - Metabox Styling
+--------------------------------------------------------------*/
+.nuclen-summary-format-fields {
+	margin: 15px 0;
+}
+
+.nuclen-summary-format-fields p {
+	margin: 10px 0 5px 0;
+}
+
+.nuclen-summary-format-fields select {
+	min-width: 150px;
+}
+
+.nuclen-summary-format-fields .nuclen-summary-paragraph-options,
+.nuclen-summary-format-fields .nuclen-summary-bullet-options {
+	margin-top: 10px;
+}
+
+/* Ensure proper spacing in metabox context */
+#nuclen-summary-data-meta-box .nuclen-summary-format-fields {
+	border-top: 1px solid #ddd;
+	padding-top: 15px;
+	margin-top: 10px;
+}
+
+/* Style for the generate button row */
+#nuclen-summary-data-meta-box > div:nth-child(2) {
+	margin-bottom: 15px;
+}

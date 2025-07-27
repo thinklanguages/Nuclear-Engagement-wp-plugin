@@ -182,8 +182,8 @@ export async function nuclenFetchUpdates(
 export async function NuclenStartGeneration(
 	dataToSend: Record<string, unknown>
 ): Promise<StartGenerationResponse> {
-	if (!window.nuclenAdminVars || !window.nuclenAdminVars.ajax_url) {
-		const error = new Error('[ERROR] Missing configuration | Required: nuclenAdminVars.ajax_url');
+	if (!window.nuclenAjax || !window.nuclenAjax.ajax_url) {
+		const error = new Error('[ERROR] Missing configuration | Required: nuclenAjax.ajax_url');
 		logger.error(error.message);
 		throw error;
 	}
@@ -199,7 +199,7 @@ export async function NuclenStartGeneration(
 	formData.append('security', window.nuclenAjax.nonce);
 
 	const result = await nuclenFetchWithRetry<StartGenerationResponse>(
-		window.nuclenAdminVars.ajax_url,
+		window.nuclenAjax.ajax_url,
 		{
 			method: 'POST',
 			body: formData,

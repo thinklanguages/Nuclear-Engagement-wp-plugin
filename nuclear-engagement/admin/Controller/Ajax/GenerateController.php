@@ -31,14 +31,16 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class GenerateController extends BaseController {
 	/**
+	 * The generation service instance.
+	 * 
 	 * @var GenerationService
 	 */
 	private GenerationService $service;
 
 	/**
-	 * Constructor
+	 * Constructor.
 	 *
-	 * @param GenerationService $service
+	 * @param GenerationService $service The generation service instance.
 	 */
 	public function __construct( GenerationService $service ) {
 		$this->service = $service;
@@ -52,11 +54,18 @@ class GenerateController extends BaseController {
 		$original_timeout = BulkGenerationTimeoutHandler::set_extended_timeout();
 
 		try {
+			// Verify nonce first before accessing any POST data.
+			if ( ! $this->verify_request( 'nuclen_admin_ajax_nonce' ) ) {
+				\NuclearEngagement\Services\LoggingService::log(
+					'[ERROR] Security check failed | Nonce verification failed'
+				);
+				return;
+			}
+
 			// Sanitized debug logging - only log non-sensitive keys.
 			$safe_post_data = array();
 			$safe_keys      = array( 'action', 'workflow', 'step', 'batch_size', 'total_items', 'priority', 'source' );
 			foreach ( $safe_keys as $key ) {
-				// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce check happens after logging
 				if ( isset( $_POST[ $key ] ) ) {
 					// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Sanitization happens in next line
 					$safe_post_data[ $key ] = sanitize_text_field( wp_unslash( $_POST[ $key ] ) );
@@ -65,12 +74,10 @@ class GenerateController extends BaseController {
 
 			// Count selected posts.
 			$post_count = 0;
-			// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce check happens after logging
 			if ( ! empty( $_POST['nuclen_selected_post_ids'] ) && is_array( $_POST['nuclen_selected_post_ids'] ) ) {
 				$post_count = count( $_POST['nuclen_selected_post_ids'] );
-			// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce check happens after logging
 			} elseif ( ! empty( $_POST['payload'] ) ) {
-				// phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Sanitization handled by stripslashes
+				// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Sanitization handled by stripslashes
 				$payload_data = json_decode( stripslashes( wp_unslash( $_POST['payload'] ) ), true );
 				if ( isset( $payload_data['postIds'] ) && is_array( $payload_data['postIds'] ) ) {
 					$post_count = count( $payload_data['postIds'] );
@@ -82,15 +89,7 @@ class GenerateController extends BaseController {
 				sprintf( '[INFO] Generation request | Data: %s', wp_json_encode( $safe_post_data ) )
 			);
 
-			if ( ! $this->verify_request( 'nuclen_admin_ajax_nonce' ) ) {
-				\NuclearEngagement\Services\LoggingService::log(
-					'[ERROR] Security check failed | Nonce verification failed'
-				);
-				return;
-			}
-
 			// Check if we have the required data (either in payload or directly in POST).
-			// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified right before this check
 			if ( empty( $_POST['payload'] ) && empty( $_POST['nuclen_selected_post_ids'] ) ) {
 				\NuclearEngagement\Services\LoggingService::log(
 					'[ERROR] Invalid request | Missing required data (payload or post_ids)'
@@ -118,7 +117,7 @@ class GenerateController extends BaseController {
 			// Process generation.
 			$response = $this->service->generateContent( $request );
 
-			// Log the response
+			// Log the response.
 			\NuclearEngagement\Services\LoggingService::log(
 				sprintf(
 					'[%s] Generation response | GenID: %s | Message: %s | Posts: %d | Batches: %d',
@@ -144,7 +143,7 @@ class GenerateController extends BaseController {
 			}
 			$this->send_error( $e->get_user_message(), 400 );
 		} catch ( NuclenException $e ) {
-			// Handle our custom exceptions
+			// Handle our custom exceptions.
 			\NuclearEngagement\Services\LoggingService::log(
 				sprintf(
 					'[ERROR] %s | Code: %d',
@@ -154,15 +153,15 @@ class GenerateController extends BaseController {
 			);
 			\NuclearEngagement\Services\LoggingService::log_exception( $e );
 
-			// Determine HTTP status code based on exception type
-			$status_code = $e->getCode() ?: 500;
+			// Determine HTTP status code based on exception type.
+			$status_code = $e->getCode() ? $e->getCode() : 500;
 			if ( $status_code < 400 || $status_code > 599 ) {
 				$status_code = 500;
 			}
 
 			$this->send_error( $e->getUserMessage(), $status_code );
 		} catch ( \InvalidArgumentException $e ) {
-			// Backwards compatibility for any remaining InvalidArgumentException
+			// Backwards compatibility for any remaining InvalidArgumentException.
 			\NuclearEngagement\Services\LoggingService::log(
 				sprintf( '[ERROR] Invalid argument | %s', $e->getMessage() )
 			);
@@ -177,7 +176,7 @@ class GenerateController extends BaseController {
 				500
 			);
 		} finally {
-			// Always restore original timeout settings
+			// Always restore original timeout settings.
 			BulkGenerationTimeoutHandler::restore_timeout( $original_timeout );
 		}
 	}

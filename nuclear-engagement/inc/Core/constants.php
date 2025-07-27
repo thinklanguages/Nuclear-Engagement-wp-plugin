@@ -114,5 +114,5 @@ if ( ! defined( 'NUCLEN_ADMIN_MENU_POSITION' ) ) {
 
 /** Asset version for cache busting. */
 if ( ! defined( 'NUCLEN_ASSET_VERSION' ) ) {
-	define( 'NUCLEN_ASSET_VERSION', '20250722-339' );
+	define( 'NUCLEN_ASSET_VERSION', '20250726-1' );
 }

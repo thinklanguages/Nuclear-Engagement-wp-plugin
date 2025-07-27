@@ -27,14 +27,16 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class PointerController extends BaseController {
 	/**
+	 * The pointer service instance.
+	 * 
 	 * @var PointerService
 	 */
 	private PointerService $service;
 
 	/**
-	 * Constructor
+	 * Constructor.
 	 *
-	 * @param PointerService $service
+	 * @param PointerService $service The pointer service instance.
 	 */
 	public function __construct( PointerService $service ) {
 		$this->service = $service;
@@ -49,10 +51,10 @@ class PointerController extends BaseController {
 				return;
 			}
 
-			$pointerId = isset( $_POST['pointer'] ) ? sanitize_text_field( wp_unslash( $_POST['pointer'] ) ) : '';
-			$user_id   = get_current_user_id();
+			$pointer_id = isset( $_POST['pointer'] ) ? sanitize_text_field( wp_unslash( $_POST['pointer'] ) ) : '';
+			$user_id    = get_current_user_id();
 
-			$this->service->dismissPointer( $pointerId, $user_id );
+			$this->service->dismissPointer( $pointer_id, $user_id );
 
 			wp_send_json_success( array( 'message' => __( 'Pointer dismissed.', 'nuclear-engagement' ) ) );
 

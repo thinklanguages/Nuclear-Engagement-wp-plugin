@@ -73,11 +73,15 @@ final class Nuclen_Summary_Metabox {
 				'date'            => '',
 				'format'          => 'paragraph',
 				'length'          => NUCLEN_SUMMARY_LENGTH_DEFAULT,
-				'number_of_items' => NUCLEN_SUMMARY_ITEMS_DEFAULT,
+				'number_of_items' => 5,
 			);
 		}
 
 		$summary = $summary_data['summary'] ?? '';
+		// Clean any TinyMCE bookmarks that might have been saved
+		$summary = preg_replace('/<span[^>]*data-mce-type="bookmark"[^>]*>.*?<\/span>/i', '', $summary);
+		$summary = str_replace('﻿', '', $summary);
+		
 		$date    = $summary_data['date'] ?? '';
 
 				$summary_protected = get_post_meta( $post->ID, Summary_Service::PROTECTED_KEY, true );
@@ -110,8 +114,11 @@ final class Nuclen_Summary_Metabox {
 
 		/* ---- Sanitise & format ------------------------------------------- */
 		$formatted = array(
-			'date'    => sanitize_text_field( $raw['date'] ?? gmdate( 'Y-m-d H:i:s' ) ),
-			'summary' => wp_kses_post( $raw['summary'] ?? '' ),
+			'date'            => sanitize_text_field( $raw['date'] ?? gmdate( 'Y-m-d H:i:s' ) ),
+			'summary'         => wp_kses_post( $raw['summary'] ?? '' ),
+			'format'          => sanitize_text_field( $raw['format'] ?? 'paragraph' ),
+			'length'          => absint( $raw['length'] ?? 30 ),
+			'number_of_items' => absint( $raw['number_of_items'] ?? 5 ),
 		);
 
 		/* ---- Save to DB --------------------------------------------------- */

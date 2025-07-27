@@ -81,35 +81,35 @@
 					</td>
 				</tr>
 
-				<tr id="nuclen-summary-settings" class="nuclen-form-group nuclen-hidden">
-					<th><label for="nuclen_summary_format" class="nuclen-label"><?php esc_html_e( 'Summary Format', 'nuclear-engagement' ); ?></label></th>
+				<tr id="nuclen-summary-format-row" class="nuclen-form-group nuclen-hidden">
+					<th><label for="nuclen_format" class="nuclen-label"><?php esc_html_e( 'Summary Format', 'nuclear-engagement' ); ?></label></th>
 					<td>
-						<select name="nuclen_summary_format" id="nuclen_summary_format" class="nuclen-input">
-							<option value="paragraph"><?php esc_html_e( 'Paragraph', 'nuclear-engagement' ); ?></option>
+						<select name="nuclen_format" id="nuclen_format" class="nuclen-input nuclen-summary-format-select">
+							<option value="paragraph" selected><?php esc_html_e( 'Paragraph', 'nuclear-engagement' ); ?></option>
 							<option value="bullet_list"><?php esc_html_e( 'Bullet List', 'nuclear-engagement' ); ?></option>
 						</select>
 					</td>
 				</tr>
 
-				<tr id="nuclen-summary-paragraph-options" class="nuclen-form-group nuclen-hidden">
-					<th><label for="nuclen_summary_length" class="nuclen-label"><?php esc_html_e( 'Paragraph length (words)', 'nuclear-engagement' ); ?></label></th>
+				<tr id="nuclen-summary-paragraph-row" class="nuclen-form-group nuclen-summary-paragraph-options">
+					<th><label for="nuclen_length" class="nuclen-label"><?php esc_html_e( 'Paragraph length', 'nuclear-engagement' ); ?></label></th>
 					<td>
-						<select name="nuclen_summary_length" id="nuclen_summary_length" class="nuclen-input">
+						<select name="nuclen_length" id="nuclen_length" class="nuclen-input">
 							<option value="20">20 <?php esc_html_e( 'words', 'nuclear-engagement' ); ?></option>
-							<option value="30">30 <?php esc_html_e( 'words', 'nuclear-engagement' ); ?></option>
+							<option value="30" selected>30 <?php esc_html_e( 'words', 'nuclear-engagement' ); ?></option>
 							<option value="40">40 <?php esc_html_e( 'words', 'nuclear-engagement' ); ?></option>
 							<option value="50">50 <?php esc_html_e( 'words', 'nuclear-engagement' ); ?></option>
 						</select>
 					</td>
 				</tr>
 
-				<tr id="nuclen-summary-bullet-options" class="nuclen-form-group nuclen-hidden">
-					<th><label for="nuclen_summary_number_of_items" class="nuclen-label"><?php esc_html_e( 'Number of bullet items', 'nuclear-engagement' ); ?></label></th>
+				<tr id="nuclen-summary-bullet-row" class="nuclen-form-group nuclen-summary-bullet-options nuclen-hidden">
+					<th><label for="nuclen_number_of_items" class="nuclen-label"><?php esc_html_e( 'Number of bullet items', 'nuclear-engagement' ); ?></label></th>
 					<td>
-						<select name="nuclen_summary_number_of_items" id="nuclen_summary_number_of_items" class="nuclen-input">
+						<select name="nuclen_number_of_items" id="nuclen_number_of_items" class="nuclen-input">
 							<option value="3">3 <?php esc_html_e( 'items', 'nuclear-engagement' ); ?></option>
 							<option value="4">4 <?php esc_html_e( 'items', 'nuclear-engagement' ); ?></option>
-							<option value="5">5 <?php esc_html_e( 'items', 'nuclear-engagement' ); ?></option>
+							<option value="5" selected>5 <?php esc_html_e( 'items', 'nuclear-engagement' ); ?></option>
 							<option value="6">6 <?php esc_html_e( 'items', 'nuclear-engagement' ); ?></option>
 							<option value="7">7 <?php esc_html_e( 'items', 'nuclear-engagement' ); ?></option>
 						</select>

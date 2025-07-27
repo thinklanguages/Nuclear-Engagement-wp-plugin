@@ -29,14 +29,16 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class PostsCountController extends BaseController {
 	/**
+	 * The posts query service instance.
+	 * 
 	 * @var PostsQueryService
 	 */
 	private PostsQueryService $service;
 
 	/**
-	 * Constructor
+	 * Constructor.
 	 *
-	 * @param PostsQueryService $service
+	 * @param PostsQueryService $service The posts query service instance.
 	 */
 	public function __construct( PostsQueryService $service ) {
 		$this->service = $service;
@@ -59,8 +61,8 @@ class PostsCountController extends BaseController {
 			$allowed_post_types = $settings['generation_post_types'] ?? array( 'post' );
 
 			// Debug logging (commented out temporarily to isolate 500 error).
-			// LoggingService::log( 'PostsCountController: Allowed post types: ' . implode( ', ', $allowed_post_types ) );
-			// LoggingService::log( 'PostsCountController: Requested post type: ' . $request->postType );
+			// LoggingService::log( 'PostsCountController: Allowed post types: ' . implode( ', ', $allowed_post_types ) ).
+			// LoggingService::log( 'PostsCountController: Requested post type: ' . $request->postType ).
 
 			if ( ! empty( $request->postType ) && ! in_array( $request->postType, $allowed_post_types, true ) ) {
 				$this->send_error( 'Selected post type is not allowed for generation.' );

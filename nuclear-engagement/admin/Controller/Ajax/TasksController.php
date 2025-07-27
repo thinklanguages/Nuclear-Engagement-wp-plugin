@@ -56,7 +56,8 @@ class TasksController extends BaseController {
 			return;
 		}
 
-		if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( $_POST['nonce'], 'nuclen_task_action' ) ) {
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Nonce doesn't need sanitization
+		if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( wp_unslash( $_POST['nonce'] ), 'nuclen_task_action' ) ) {
 			\NuclearEngagement\Services\LoggingService::log(
 				'[TasksController::run_task] Security check failed - invalid nonce',
 				'warning'
@@ -78,7 +79,7 @@ class TasksController extends BaseController {
 		}
 		set_transient( $rate_key, true, 3 ); // 3-second cooldown
 
-		$task_id = sanitize_text_field( $_POST['task_id'] ?? '' );
+		$task_id = isset( $_POST['task_id'] ) ? sanitize_text_field( wp_unslash( $_POST['task_id'] ) ) : '';
 		if ( empty( $task_id ) ) {
 			\NuclearEngagement\Services\LoggingService::log(
 				'[TasksController::run_task] Invalid task ID - empty value',
@@ -160,7 +161,8 @@ class TasksController extends BaseController {
 			return;
 		}
 
-		if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( $_POST['nonce'], 'nuclen_task_action' ) ) {
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Nonce doesn't need sanitization
+		if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( wp_unslash( $_POST['nonce'] ), 'nuclen_task_action' ) ) {
 			\NuclearEngagement\Services\LoggingService::log(
 				'[TasksController::cancel_task] Security check failed - invalid nonce',
 				'warning'
@@ -169,7 +171,7 @@ class TasksController extends BaseController {
 			return;
 		}
 
-		$task_id = sanitize_text_field( $_POST['task_id'] ?? '' );
+		$task_id = isset( $_POST['task_id'] ) ? sanitize_text_field( wp_unslash( $_POST['task_id'] ) ) : '';
 		if ( empty( $task_id ) ) {
 			\NuclearEngagement\Services\LoggingService::log(
 				'[TasksController::cancel_task] Invalid task ID - empty value',
@@ -231,12 +233,13 @@ class TasksController extends BaseController {
 			return;
 		}
 
-		if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( $_POST['nonce'], 'nuclen_task_action' ) ) {
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Nonce doesn't need sanitization
+		if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( wp_unslash( $_POST['nonce'] ), 'nuclen_task_action' ) ) {
 			$this->send_error( __( 'Security check failed', 'nuclear-engagement' ), 403 );
 			return;
 		}
 
-		$task_id = sanitize_text_field( $_POST['task_id'] ?? '' );
+		$task_id = isset( $_POST['task_id'] ) ? sanitize_text_field( wp_unslash( $_POST['task_id'] ) ) : '';
 		if ( empty( $task_id ) ) {
 			$this->send_error( __( 'Invalid task ID', 'nuclear-engagement' ), 400 );
 			return;
@@ -512,7 +515,8 @@ class TasksController extends BaseController {
 			return;
 		}
 
-		if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( $_POST['nonce'], 'nuclen_task_action' ) ) {
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Nonce doesn't need sanitization
+		if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( wp_unslash( $_POST['nonce'] ), 'nuclen_task_action' ) ) {
 			$this->send_error( __( 'Security check failed', 'nuclear-engagement' ), 403 );
 			return;
 		}
@@ -549,7 +553,8 @@ class TasksController extends BaseController {
 			return;
 		}
 
-		if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( $_POST['nonce'], 'nuclen_task_action' ) ) {
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Nonce doesn't need sanitization
+		if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( wp_unslash( $_POST['nonce'] ), 'nuclen_task_action' ) ) {
 			$this->send_error( __( 'Security check failed', 'nuclear-engagement' ), 403 );
 			return;
 		}

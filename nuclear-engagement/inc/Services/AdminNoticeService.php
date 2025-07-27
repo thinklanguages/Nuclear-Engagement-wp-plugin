@@ -341,7 +341,16 @@ class AdminNoticeService {
 		$cleaned = false;
 
 		foreach ( $notices as $id => $notice ) {
+			// Remove empty notices
 			if ( empty( $notice['message'] ) || empty( trim( $notice['message'] ) ) ) {
+				unset( $notices[ $id ] );
+				$cleaned = true;
+				continue;
+			}
+			
+			// Remove 0-post generation notices
+			if ( strpos( $notice['message'], 'Generated quizzes for 0 posts' ) !== false ||
+			     strpos( $notice['message'], 'Generated summaries for 0 posts' ) !== false ) {
 				unset( $notices[ $id ] );
 				$cleaned = true;
 			}

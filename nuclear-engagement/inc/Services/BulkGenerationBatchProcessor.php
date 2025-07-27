@@ -1095,13 +1095,12 @@ class BulkGenerationBatchProcessor extends BaseService {
 									)
 								);
 
-								// Add admin notice for completion only if not cancelled
-								if ( $parent_data['status'] !== 'cancelled' ) {
+								// Add admin notice for completion only if not cancelled and posts were actually processed
+								$actual_processed = $success_count + $fail_count;
+								if ( $parent_data['status'] !== 'cancelled' && $actual_processed > 0 ) {
 									$container = \NuclearEngagement\Core\ServiceContainer::getInstance();
 									if ( $container->has( 'admin_notice_service' ) ) {
 										$notice_service = $container->get( 'admin_notice_service' );
-										// Use actual processed count (success + fail) instead of scheduled total
-										$actual_processed = $success_count + $fail_count;
 										$notice_service->add_generation_complete_notice(
 											$parent_id,
 											$actual_processed,
@@ -1794,17 +1793,19 @@ class BulkGenerationBatchProcessor extends BaseService {
 				\NuclearEngagement\Admin\Tasks::clear_tasks_cache();
 			}
 			
-			// Add completion notice
-			$container = \NuclearEngagement\Core\ServiceContainer::getInstance();
-			if ( $container->has( 'admin_notice_service' ) ) {
-				$notice_service = $container->get( 'admin_notice_service' );
-				$notice_service->add_generation_complete_notice(
-					$task_id,
-					$total_success + $total_fail,
-					$total_success,
-					$total_fail,
-					$task_data['workflow_type'] ?? 'unknown'
-				);
+			// Add completion notice only if posts were actually processed
+			if ( ($total_success + $total_fail) > 0 ) {
+				$container = \NuclearEngagement\Core\ServiceContainer::getInstance();
+				if ( $container->has( 'admin_notice_service' ) ) {
+					$notice_service = $container->get( 'admin_notice_service' );
+					$notice_service->add_generation_complete_notice(
+						$task_id,
+						$total_success + $total_fail,
+						$total_success,
+						$total_fail,
+						$task_data['workflow_type'] ?? 'unknown'
+					);
+				}
 			}
 			
 			return true;
@@ -1951,8 +1952,8 @@ class BulkGenerationBatchProcessor extends BaseService {
 					\NuclearEngagement\Admin\Tasks::clear_tasks_cache();
 				}
 				
-				// Add completion notice
-				if ( $container->has( 'admin_notice_service' ) ) {
+				// Add completion notice only if posts were actually processed
+				if ( ($total_success + $total_fail) > 0 && $container->has( 'admin_notice_service' ) ) {
 					$notice_service = $container->get( 'admin_notice_service' );
 					$notice_service->add_generation_complete_notice(
 						$task_id,

@@ -52,7 +52,7 @@ export function initRestart(elements: GeneratePageElements): void {
 export function initSummaryToggle(): void {
 	nuclenToggleSummaryFields();
 	const generateTypeEl = document.getElementById('nuclen_generate_workflow') as HTMLSelectElement | null;
-	const summaryFormatEl = document.getElementById('nuclen_summary_format') as HTMLSelectElement | null;
+	const summaryFormatEl = document.getElementById('nuclen_format') as HTMLSelectElement | null;
 	generateTypeEl?.addEventListener('change', nuclenToggleSummaryFields);
 	summaryFormatEl?.addEventListener('change', nuclenToggleSummaryFields);
 }

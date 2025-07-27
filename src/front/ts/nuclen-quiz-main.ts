@@ -108,7 +108,7 @@ export function initQuiz(): void {
 	if ('onpagehide' in window) {
 		window.addEventListener('pagehide', cleanup);
 	} else {
-		window.addEventListener('beforeunload', cleanup);
+		(window as Window).addEventListener('beforeunload', cleanup);
 	}
 
 

@@ -42,6 +42,30 @@ export function initSingleGenerationButtons(): void {
 		btn.disabled = true;
 		btn.textContent = 'Generating...';
 
+		// Prepare the payload
+		const payload: Record<string, string> = {
+			nuclen_selected_post_ids: JSON.stringify([postId]),
+			nuclen_selected_generate_workflow: workflow,
+			source: 'single',
+		};
+
+		// If generating summary, include format options
+		if (workflow === 'summary') {
+			const formatSelect = document.getElementById('nuclen_summary_dataformat') as HTMLSelectElement;
+			const lengthSelect = document.getElementById('nuclen_summary_datalength') as HTMLSelectElement;
+			const itemsSelect = document.getElementById('nuclen_summary_datanumber_of_items') as HTMLSelectElement;
+
+			if (formatSelect) {
+				payload.nuclen_selected_summary_format = formatSelect.value;
+			}
+			if (lengthSelect && formatSelect?.value === 'paragraph') {
+				payload.nuclen_selected_summary_length = lengthSelect.value;
+			}
+			if (itemsSelect && formatSelect?.value === 'bullet_list') {
+				payload.nuclen_selected_summary_number_of_items = itemsSelect.value;
+			}
+		}
+
 		try {
 			const startResp: StartGenerationResponse | {
 		ok: boolean;
@@ -49,11 +73,7 @@ export function initSingleGenerationButtons(): void {
 		error?: string;
 		data?: { generation_id?: string; [key: string]: unknown };
 		generation_id?: string;
-		} = await NuclenStartGeneration({
-			nuclen_selected_post_ids: JSON.stringify([postId]),
-			nuclen_selected_generate_workflow: workflow,
-			source: 'single',
-		});
+		} = await NuclenStartGeneration(payload);
 
 			if ('ok' in startResp && !startResp.ok) {
 				alertApiError((startResp as { error?: string }).error || 'Generation failed');

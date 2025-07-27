@@ -67,31 +67,14 @@ export function populateSummaryMetaBox(
 		dateField.readOnly = true;
 	}
 
-	if (typeof window.tinymce !== 'undefined') {
-		const tiny = window.tinymce as {
-		get?: (id: string) => {
-		setContent?: (html: string) => void;
-		save?: () => void;
-		};
-	};
-		let editor: { setContent?: (html: string) => void; save?: () => void } | undefined;
-		if (typeof tiny.get === 'function') {
-			editor = tiny.get('nuclen_summary_data_summary');
-		}
-		if (editor && typeof editor.setContent === 'function') {
-			editor.setContent(summary || '');
-			editor.save?.();
-		} else {
-			const summaryField = document.querySelector<HTMLTextAreaElement>('textarea[name="nuclen_summary_data[summary]"]');
-			if (summaryField) {
-				summaryField.value = summary || '';
-			}
-		}
-	} else {
-		const summaryField = document.querySelector<HTMLTextAreaElement>('textarea[name="nuclen_summary_data[summary]"]');
-		if (summaryField) {
-			summaryField.value = summary || '';
-		}
+	// Update the textarea value
+	const summaryField = document.querySelector<HTMLTextAreaElement>('textarea[name="nuclen_summary_data[summary]"]');
+	if (summaryField) {
+		summaryField.value = summary || '';
+		
+		// WordPress TinyMCE will automatically sync from the textarea value
+		// when switching between Visual/Text tabs, so we don't need to
+		// trigger any events or directly update TinyMCE
 	}
 }
 

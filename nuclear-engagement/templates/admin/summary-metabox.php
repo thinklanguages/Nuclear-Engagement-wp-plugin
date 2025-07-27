@@ -18,6 +18,19 @@ wp_nonce_field( 'nuclen_summary_data_nonce', 'nuclen_summary_data_nonce' );
 	<?php esc_html_e( 'Protected?', 'nuclear-engagement' ); ?>
 	<span nuclen-tooltip="<?php esc_attr_e( 'Tick this box and save post to prevent overwriting during bulk generation.', 'nuclear-engagement' ); ?>">🛈</span>
 </label></div>
+
+<?php 
+// Include summary format fields
+$summary_format = $summary_data['format'] ?? 'paragraph';
+$summary_length = $summary_data['length'] ?? 30;
+$summary_number_of_items = $summary_data['number_of_items'] ?? 5;
+$field_prefix = 'nuclen_summary_data';
+$show_labels = true;
+$use_array_notation = true;
+
+include NUCLEN_PLUGIN_DIR . 'templates/admin/partials/summary-format-fields.php';
+?>
+
 <div>
 	<button type="button"
 			id="nuclen-generate-summary-single"

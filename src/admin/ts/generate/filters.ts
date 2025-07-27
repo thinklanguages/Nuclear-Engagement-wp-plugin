@@ -19,9 +19,9 @@ export function nuclenCollectFilters(): NuclenFilterValues {
 	const workflowEl = document.getElementById('nuclen_generate_workflow') as HTMLSelectElement | null;
 	const allowRegenEl = document.getElementById('nuclen_allow_regenerate_data') as HTMLInputElement | null;
 	const protectRegenEl = document.getElementById('nuclen_regenerate_protected_data') as HTMLInputElement | null;
-	const summaryFormatEl = document.getElementById('nuclen_summary_format') as HTMLSelectElement | null;
-	const summaryLengthEl = document.getElementById('nuclen_summary_length') as HTMLSelectElement | null;
-	const summaryNumberEl = document.getElementById('nuclen_summary_number_of_items') as HTMLSelectElement | null;
+	const summaryFormatEl = document.getElementById('nuclen_format') as HTMLSelectElement | null;
+	const summaryLengthEl = document.getElementById('nuclen_length') as HTMLSelectElement | null;
+	const summaryNumberEl = document.getElementById('nuclen_number_of_items') as HTMLSelectElement | null;
 	return {
 		postStatus: postStatusEl ? postStatusEl.value : '',
 		category: categoryEl ? categoryEl.value : '',

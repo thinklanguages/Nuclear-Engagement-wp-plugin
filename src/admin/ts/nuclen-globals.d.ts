@@ -2,7 +2,16 @@
 export {};
 
 declare global {
-	const wp: Record<string, unknown>;
+	const wp: {
+		editor?: {
+			initialize?: (id: string, settings: any) => void;
+			remove?: (id: string) => void;
+		};
+		data?: {
+			select?: (store: string) => any;
+		};
+		[key: string]: any;
+	};
 	interface Window {
 	nuclenAjax?: {
 		ajax_url?: string;
@@ -16,8 +25,20 @@ declare global {
 		rest_nonce?: string;
 		admin_url?: string;
 	};
-	tinymce?: Record<string, unknown>;
-	wp?: Record<string, unknown>;
+	tinymce?: {
+		get?: (id: string) => any;
+		[key: string]: any;
+	};
+	wp?: {
+		editor?: {
+			initialize?: (id: string, settings: any) => void;
+			remove?: (id: string) => void;
+		};
+		data?: {
+			select?: (store: string) => any;
+		};
+		[key: string]: any;
+	};
 	nePointerData?: {
 		pointers: Array<{
 			id: string;

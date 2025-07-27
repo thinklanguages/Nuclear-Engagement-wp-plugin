@@ -91,7 +91,7 @@ const cleanupObserver = () => {
 if ('onpagehide' in window) {
 	window.addEventListener('pagehide', cleanupObserver);
 } else {
-	window.addEventListener('beforeunload', cleanupObserver);
+	(window as Window).addEventListener('beforeunload', cleanupObserver);
 }
 
 /**

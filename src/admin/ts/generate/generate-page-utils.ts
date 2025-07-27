@@ -1,6 +1,25 @@
 export function nuclenShowElement(el: HTMLElement | null): void {
 	if (!el) return;
 	el.classList.remove('nuclen-hidden');
+	
+	// Scroll to progress bar when showing step 2
+	if (el.id === 'nuclen-step-2') {
+		const progressBar = document.getElementById('nuclen-progress-bar');
+		if (progressBar) {
+			// Get the position of the progress bar and scroll to it with some offset
+			const rect = progressBar.getBoundingClientRect();
+			const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+			const targetPosition = rect.top + scrollTop - 32; // 32px offset for WordPress admin bar
+			
+			window.scrollTo({ 
+				top: targetPosition, 
+				behavior: 'smooth' 
+			});
+		} else {
+			// Fallback to scrolling to top if progress bar not found
+			window.scrollTo({ top: 0, behavior: 'smooth' });
+		}
+	}
 }
 
 export function nuclenHideElement(el: HTMLElement | null): void {
@@ -70,27 +89,30 @@ export async function nuclenCheckCreditsAjax(): Promise<number> {
  */
 export function nuclenToggleSummaryFields(): void {
 	const generateTypeEl = document.getElementById('nuclen_generate_workflow') as HTMLSelectElement | null;
-	const summarySettingsEl = document.getElementById('nuclen-summary-settings') as HTMLDivElement | null;
-	const summaryParagraphOptions = document.getElementById('nuclen-summary-paragraph-options') as HTMLDivElement | null;
-	const summaryBulletOptions = document.getElementById('nuclen-summary-bullet-options') as HTMLDivElement | null;
-	const summaryFormatEl = document.getElementById('nuclen_summary_format') as HTMLSelectElement | null;
+	const summaryFormatRow = document.getElementById('nuclen-summary-format-row') as HTMLElement | null;
+	const summaryParagraphRow = document.getElementById('nuclen-summary-paragraph-row') as HTMLElement | null;
+	const summaryBulletRow = document.getElementById('nuclen-summary-bullet-row') as HTMLElement | null;
+	const summaryFormatEl = document.getElementById('nuclen_format') as HTMLSelectElement | null;
 
-	if (!generateTypeEl || !summarySettingsEl || !summaryParagraphOptions || !summaryBulletOptions || !summaryFormatEl) {
+	if (!generateTypeEl || !summaryFormatRow) {
 		return;
 	}
+	
 	if (generateTypeEl.value === 'summary') {
-		summarySettingsEl.classList.remove('nuclen-hidden');
-		if (summaryFormatEl.value === 'paragraph') {
-			summaryParagraphOptions.classList.remove('nuclen-hidden');
-			summaryBulletOptions.classList.add('nuclen-hidden');
-		} else {
-			summaryParagraphOptions.classList.add('nuclen-hidden');
-			summaryBulletOptions.classList.remove('nuclen-hidden');
+		summaryFormatRow.classList.remove('nuclen-hidden');
+		if (summaryFormatEl && summaryParagraphRow && summaryBulletRow) {
+			if (summaryFormatEl.value === 'paragraph') {
+				summaryParagraphRow.classList.remove('nuclen-hidden');
+				summaryBulletRow.classList.add('nuclen-hidden');
+			} else {
+				summaryParagraphRow.classList.add('nuclen-hidden');
+				summaryBulletRow.classList.remove('nuclen-hidden');
+			}
 		}
 	} else {
-		summarySettingsEl.classList.add('nuclen-hidden');
-		summaryParagraphOptions.classList.add('nuclen-hidden');
-		summaryBulletOptions.classList.add('nuclen-hidden');
+		summaryFormatRow.classList.add('nuclen-hidden');
+		if (summaryParagraphRow) summaryParagraphRow.classList.add('nuclen-hidden');
+		if (summaryBulletRow) summaryBulletRow.classList.add('nuclen-hidden');
 	}
 }
 
