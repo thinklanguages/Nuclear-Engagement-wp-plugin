@@ -127,6 +127,9 @@ class Tasks {
 					$this->retry_task( $task_id );
 					break;
 			}
+		} elseif ( $action === 'reset_circuit_breaker' ) {
+			// Handle circuit breaker reset
+			$this->reset_circuit_breaker();
 		}
 
 		// Clear cache after any action
@@ -139,6 +142,64 @@ class Tasks {
 		}
 		wp_safe_redirect( $redirect_url );
 		exit;
+	}
+
+	/**
+	 * Get circuit breaker status
+	 */
+	private function get_circuit_breaker_status(): array {
+		$remote_api_breaker = new \NuclearEngagement\Services\CircuitBreaker( 'remote_api' );
+		$remote_status = $remote_api_breaker->get_status();
+		
+		$api_breaker = new \NuclearEngagement\Services\CircuitBreaker( 'api' );
+		$api_status = $api_breaker->get_status();
+		
+		// Return the most relevant status
+		if ( $remote_status['is_open'] || $api_status['is_open'] ) {
+			return array(
+				'is_open' => true,
+				'status' => $remote_status['is_open'] ? $remote_status['status'] : $api_status['status'],
+				'time_until_retry' => max( $remote_status['time_until_retry'], $api_status['time_until_retry'] ),
+				'failures' => max( $remote_status['failures'], $api_status['failures'] ),
+			);
+		}
+		
+		return array(
+			'is_open' => false,
+			'status' => 'closed',
+			'time_until_retry' => 0,
+			'failures' => 0,
+		);
+	}
+
+	/**
+	 * Reset the circuit breaker
+	 */
+	private function reset_circuit_breaker(): void {
+		// Reset the circuit breaker
+		$circuit_breaker = new \NuclearEngagement\Services\CircuitBreaker( 'remote_api' );
+		$circuit_breaker->force_reset();
+		
+		// Also reset the legacy 'api' circuit breaker if it exists
+		$api_circuit_breaker = new \NuclearEngagement\Services\CircuitBreaker( 'api' );
+		$api_circuit_breaker->force_reset();
+		
+		// Clear any circuit breaker service cache
+		if ( class_exists( '\NuclearEngagement\Services\CircuitBreakerService' ) ) {
+			\NuclearEngagement\Services\CircuitBreakerService::reset_all();
+		}
+		
+		// Log the reset
+		\NuclearEngagement\Services\LoggingService::log(
+			'[Tasks::reset_circuit_breaker] Circuit breaker reset manually by admin',
+			'info'
+		);
+		
+		// Add admin notice
+		$this->add_admin_notice(
+			__( 'Circuit breaker has been reset. API calls can now proceed.', 'nuclear-engagement' ),
+			'success'
+		);
 	}
 
 	/**
@@ -320,6 +381,7 @@ class Tasks {
 			'generation_tasks'       => array(),
 			'credits'                => $this->get_credits_data(), // Get credits separately (not cached per page)
 			'cron_status'            => $this->check_cron_status(),
+			'circuit_breaker_status' => $this->get_circuit_breaker_status(),
 			'pagination'             => array(),
 			'has_task_index_service' => $this->container->has( 'task_index_service' ),
 		);

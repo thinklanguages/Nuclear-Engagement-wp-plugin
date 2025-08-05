@@ -61,9 +61,9 @@ class TaskTimeoutHandler extends BaseService {
 			return;
 		}
 
-		// Schedule regular timeout checks
+		// Schedule regular timeout checks every 5 minutes
 		if ( ! wp_next_scheduled( self::TIMEOUT_CHECK_HOOK ) ) {
-			wp_schedule_event( time(), 'hourly', self::TIMEOUT_CHECK_HOOK );
+			wp_schedule_event( time(), 'nuclen_five_minutes', self::TIMEOUT_CHECK_HOOK );
 		}
 
 		add_action( self::TIMEOUT_CHECK_HOOK, array( $this, 'check_timeouts' ) );
@@ -86,6 +86,9 @@ class TaskTimeoutHandler extends BaseService {
 
 		// Check batch tasks
 		$timed_out_count += $this->check_batch_timeouts();
+		
+		// Check for orphaned tasks
+		$timed_out_count += $this->check_orphaned_tasks();
 
 		// Clean up old timeout records
 		$this->cleanup_old_records();
@@ -95,8 +98,9 @@ class TaskTimeoutHandler extends BaseService {
 			LoggingService::log( sprintf( '[TaskTimeoutHandler] Found %d timed out tasks', $timed_out_count ) );
 		}
 
-		// Log statistics every hour (when minute is 0)
-		if ( intval( date( 'i' ) ) === 0 ) {
+		// Log statistics every hour (when minute is 0, 5, 10, 15, etc divisible by 60)
+		$current_minute = intval( date( 'i' ) );
+		if ( $current_minute % 60 === 0 ) {
 			$this->log_timeout_statistics();
 		}
 	}
@@ -435,6 +439,273 @@ class TaskTimeoutHandler extends BaseService {
 	 */
 	private function get_timeout_for_status( string $status ): int {
 		return self::DEFAULT_TIMEOUTS[ $status ] ?? self::DEFAULT_TIMEOUTS['processing'];
+	}
+
+	/**
+	 * Check for orphaned tasks (tasks with no active batches)
+	 *
+	 * @return int Number of orphaned tasks found
+	 */
+	private function check_orphaned_tasks(): int {
+		global $wpdb;
+		
+		$count = 0;
+		
+		// Find all generation tasks
+		$tasks = $wpdb->get_results(
+			"SELECT option_name, option_value FROM $wpdb->options 
+			WHERE option_name LIKE '_transient_nuclen_bulk_job_%' 
+			AND option_name NOT LIKE '_transient_timeout_%'
+			LIMIT 100"
+		);
+		
+		foreach ( $tasks as $task ) {
+			$task_id   = str_replace( '_transient_nuclen_bulk_job_', '', $task->option_name );
+			$task_data = maybe_unserialize( $task->option_value );
+			
+			if ( ! is_array( $task_data ) ) {
+				continue;
+			}
+			
+			// Only check active tasks
+			$status = $task_data['status'] ?? 'unknown';
+			if ( ! in_array( $status, array( 'processing', 'scheduled' ), true ) ) {
+				continue;
+			}
+			
+			// Check if task has been stuck for too long
+			$created_at = $task_data['created_at'] ?? 0;
+			$age = time() - $created_at;
+			
+			// If task is older than 30 minutes, check its batches
+			if ( $age > 1800 ) {
+				if ( $this->is_task_orphaned( $task_id, $task_data ) ) {
+					$this->handle_orphaned_task( $task_id, $task_data );
+					++$count;
+				}
+			}
+		}
+		
+		return $count;
+	}
+	
+	/**
+	 * Check if a task is orphaned (has no active batches)
+	 *
+	 * @param string $task_id Task ID
+	 * @param array  $task_data Task data
+	 * @return bool
+	 */
+	private function is_task_orphaned( string $task_id, array $task_data ): bool {
+		$batch_jobs = $task_data['batch_jobs'] ?? array();
+		
+		if ( empty( $batch_jobs ) ) {
+			return true; // No batches at all
+		}
+		
+		$active_batch_count = 0;
+		$completed_batch_count = 0;
+		$failed_batch_count = 0;
+		
+		foreach ( $batch_jobs as $batch_job ) {
+			$batch_id = $batch_job['batch_id'] ?? '';
+			if ( empty( $batch_id ) ) {
+				continue;
+			}
+			
+			// Check if batch transient exists
+			$batch_data = TaskTransientManager::get_batch_transient( $batch_id );
+			
+			if ( ! is_array( $batch_data ) ) {
+				// Batch data missing - this is orphaned
+				continue;
+			}
+			
+			$batch_status = $batch_data['status'] ?? 'unknown';
+			
+			if ( in_array( $batch_status, array( 'pending', 'processing' ), true ) ) {
+				// Check if batch is actually stuck
+				$batch_updated_at = $batch_data['updated_at'] ?? $batch_data['created_at'] ?? 0;
+				$batch_age = time() - $batch_updated_at;
+				
+				// If batch hasn't updated in 30 minutes, it's stuck
+				if ( $batch_age < 1800 ) {
+					++$active_batch_count;
+				}
+			} elseif ( $batch_status === 'completed' ) {
+				++$completed_batch_count;
+			} elseif ( $batch_status === 'failed' ) {
+				++$failed_batch_count;
+			}
+		}
+		
+		// Task is orphaned if it has no active batches and hasn't completed
+		$total_processed = $completed_batch_count + $failed_batch_count;
+		$total_batches = count( $batch_jobs );
+		
+		return $active_batch_count === 0 && $total_processed < $total_batches;
+	}
+	
+	/**
+	 * Handle an orphaned task
+	 *
+	 * @param string $task_id Task ID
+	 * @param array  $task_data Task data
+	 */
+	private function handle_orphaned_task( string $task_id, array $task_data ): void {
+		$task_age = time() - ( $task_data['created_at'] ?? 0 );
+		
+		LoggingService::log(
+			sprintf(
+				'[TaskTimeoutHandler] Found orphaned task %s. Status: %s, Age: %d seconds, Total batches: %d',
+				$task_id,
+				$task_data['status'] ?? 'unknown',
+				$task_age,
+				count( $task_data['batch_jobs'] ?? array() )
+			),
+			'error'
+		);
+		
+		// Record timeout event
+		$this->record_timeout_event(
+			$task_id,
+			'orphaned',
+			array(
+				'status'      => $task_data['status'] ?? 'unknown',
+				'age_seconds' => $task_age,
+				'post_count'  => $task_data['total_posts'] ?? 0,
+				'reason'      => 'No active batches found',
+			)
+		);
+		
+		// Check if we should attempt recovery
+		$recovery_attempts = $task_data['recovery_attempts'] ?? 0;
+		
+		if ( $recovery_attempts < 2 && $task_age < 7200 ) { // Less than 2 hours old
+			// Attempt to recover by rescheduling stuck batches
+			$this->attempt_task_recovery( $task_id, $task_data );
+		} else {
+			// Mark task as failed
+			$task_data['status']       = 'failed';
+			$task_data['error']        = 'Task orphaned - no active batches';
+			$task_data['orphaned_at']  = time();
+			
+			TaskTransientManager::set_task_transient( $task_id, $task_data, DAY_IN_SECONDS );
+			
+			// Update task index
+			$container = \NuclearEngagement\Core\ServiceContainer::getInstance();
+			if ( $container->has( 'task_index_service' ) ) {
+				$index_service = $container->get( 'task_index_service' );
+				$index_service->update_task_status(
+					$task_id,
+					'failed',
+					array(
+						'error'       => 'Task orphaned - no active batches',
+						'orphaned_at' => time(),
+					)
+				);
+			}
+			
+			// Add admin notice
+			if ( $container->has( 'admin_notice_service' ) ) {
+				$notice_service = $container->get( 'admin_notice_service' );
+				$notice_service->add(
+					sprintf( __( 'Generation task %s was orphaned and marked as failed.', 'nuclear-engagement' ), $task_id ),
+					'error'
+				);
+			}
+		}
+	}
+	
+	/**
+	 * Attempt to recover an orphaned task
+	 *
+	 * @param string $task_id Task ID
+	 * @param array  $task_data Task data
+	 */
+	private function attempt_task_recovery( string $task_id, array &$task_data ): void {
+		LoggingService::log(
+			sprintf( '[TaskTimeoutHandler] Attempting recovery for orphaned task %s', $task_id )
+		);
+		
+		$batch_jobs = $task_data['batch_jobs'] ?? array();
+		$recovered_count = 0;
+		
+		foreach ( $batch_jobs as $batch_job ) {
+			$batch_id = $batch_job['batch_id'] ?? '';
+			if ( empty( $batch_id ) ) {
+				continue;
+			}
+			
+			$batch_data = TaskTransientManager::get_batch_transient( $batch_id );
+			
+			if ( ! is_array( $batch_data ) ) {
+				// Recreate batch data from parent
+				$batch_data = array(
+					'parent_id'     => $task_id,
+					'batch_index'   => $batch_job['batch_index'] ?? 0,
+					'posts'         => array(), // We've lost the posts data
+					'workflow'      => $task_data['workflow'] ?? array(),
+					'status'        => 'failed',
+					'created_at'    => time(),
+					'error'         => 'Batch data lost',
+				);
+				
+				TaskTransientManager::set_batch_transient( $batch_id, $batch_data, DAY_IN_SECONDS );
+				
+				// Update batch processor
+				$container = \NuclearEngagement\Core\ServiceContainer::getInstance();
+				if ( $container->has( 'bulk_generation_batch_processor' ) ) {
+					$processor = $container->get( 'bulk_generation_batch_processor' );
+					$processor->update_batch_status(
+						$batch_id,
+						'failed',
+						array(
+							'error' => 'Batch data lost during processing',
+							'fail_count' => $batch_job['post_count'] ?? 0,
+							'success_count' => 0,
+						)
+					);
+				}
+			} else {
+				$batch_status = $batch_data['status'] ?? 'unknown';
+				
+				// If batch is stuck in pending or processing, reschedule it
+				if ( in_array( $batch_status, array( 'pending', 'processing' ), true ) ) {
+					$batch_age = time() - ( $batch_data['updated_at'] ?? $batch_data['created_at'] ?? 0 );
+					
+					if ( $batch_age > 1800 ) { // Stuck for more than 30 minutes
+						// Reset batch status to pending and reschedule
+						$batch_data['status'] = 'pending';
+						$batch_data['recovery_attempt'] = ( $batch_data['recovery_attempt'] ?? 0 ) + 1;
+						TaskTransientManager::set_batch_transient( $batch_id, $batch_data, DAY_IN_SECONDS );
+						
+						// Schedule batch processing
+						if ( ! wp_next_scheduled( 'nuclen_process_batch', array( $batch_id ) ) ) {
+							wp_schedule_single_event( time() + 30, 'nuclen_process_batch', array( $batch_id ) );
+							++$recovered_count;
+							
+							LoggingService::log(
+								sprintf( '[TaskTimeoutHandler] Rescheduled stuck batch %s', $batch_id )
+							);
+						}
+					}
+				}
+			}
+		}
+		
+		// Update recovery attempts
+		$task_data['recovery_attempts'] = ( $task_data['recovery_attempts'] ?? 0 ) + 1;
+		$task_data['last_recovery_at'] = time();
+		
+		if ( $recovered_count > 0 ) {
+			$task_data['status'] = 'processing';
+			LoggingService::log(
+				sprintf( '[TaskTimeoutHandler] Recovered %d batches for task %s', $recovered_count, $task_id )
+			);
+		}
+		
+		TaskTransientManager::set_task_transient( $task_id, $task_data, DAY_IN_SECONDS );
 	}
 
 	/**

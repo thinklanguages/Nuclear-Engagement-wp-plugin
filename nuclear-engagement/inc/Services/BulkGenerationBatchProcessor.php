@@ -417,6 +417,20 @@ class BulkGenerationBatchProcessor extends BaseService {
 						'[BulkGenerationBatchProcessor::schedule_batch_processing] ERROR: Failed to initialize BatchProcessingHandler',
 						'error'
 					);
+					
+					// Mark all batches as failed immediately
+					foreach ( $batch_jobs as $job ) {
+						$this->update_batch_status( 
+							$job['batch_id'], 
+							'failed', 
+							array( 
+								'error' => 'BatchProcessingHandler initialization failed',
+								'fail_count' => $job['post_count'],
+								'success_count' => 0
+							) 
+						);
+					}
+					
 					return false;
 				}
 			} else {
@@ -424,6 +438,20 @@ class BulkGenerationBatchProcessor extends BaseService {
 					'[BulkGenerationBatchProcessor::schedule_batch_processing] ERROR: BatchProcessingHandler class not found',
 					'error'
 				);
+				
+				// Mark all batches as failed immediately
+				foreach ( $batch_jobs as $job ) {
+					$this->update_batch_status( 
+						$job['batch_id'], 
+						'failed', 
+						array( 
+							'error' => 'BatchProcessingHandler class not found',
+							'fail_count' => $job['post_count'],
+							'success_count' => 0
+						) 
+					);
+				}
+				
 				return false;
 			}
 		}
@@ -630,6 +658,17 @@ class BulkGenerationBatchProcessor extends BaseService {
 		try {
 			// Create generation ID
 			$generation_id = 'gen_' . uniqid( $priority . '_', true );
+			
+			\NuclearEngagement\Services\LoggingService::log(
+				sprintf(
+					'[BulkGenerationBatchProcessor::queue_generation] Starting bulk generation %s - Posts: %d, Type: %s, Priority: %s, Source: %s',
+					$generation_id,
+					count( $post_ids ),
+					$workflow_type,
+					$priority,
+					$source
+				)
+			);
 
 			// Get posts data
 			$posts         = array();
@@ -696,9 +735,10 @@ class BulkGenerationBatchProcessor extends BaseService {
 
 			// Build workflow first
 			$workflow = array(
-				'type'     => $workflow_type,
-				'priority' => $priority,
-				'source'   => ! empty( $source ) ? $source : ( $priority === 'low' ? 'auto' : 'manual' ),
+				'type'       => $workflow_type,
+				'priority'   => $priority,
+				'source'     => ! empty( $source ) ? $source : ( $priority === 'low' ? 'auto' : 'manual' ),
+				'max_retries' => self::MAX_RETRIES, // Ensure max_retries is always set
 			);
 
 			// Add workflow settings if provided (summary format, length, etc.)
@@ -1063,6 +1103,8 @@ class BulkGenerationBatchProcessor extends BaseService {
 								$all_counts_available = true;
 								$success_count        = 0;
 								$fail_count           = 0;
+								$unprocessed_batches  = array();
+								$batches_with_no_counts = array();
 
 								foreach ( $parent_data['batch_jobs'] ?? array() as $batch_job ) {
 									$batch_data = TaskTransientManager::get_batch_transient( $batch_job['batch_id'] );
@@ -1078,6 +1120,7 @@ class BulkGenerationBatchProcessor extends BaseService {
 											if ( ! $has_counts ) {
 												// Batch marked complete/failed but no counts yet - data may still be processing
 												$all_counts_available = false;
+												$batches_with_no_counts[] = $batch_job['batch_id'];
 												\NuclearEngagement\Services\LoggingService::log(
 													sprintf(
 														'Batch %s is %s but has no result counts yet - deferring parent completion',
@@ -1085,36 +1128,91 @@ class BulkGenerationBatchProcessor extends BaseService {
 														$batch_data['status']
 													)
 												);
-												break;
-											}
+												// Don't break - check all batches to get full picture
+											} else {
+												// Accumulate counts
+												if ( isset( $batch_data['success_count'] ) ) {
+													$success_count += $batch_data['success_count'];
+												} elseif ( isset( $batch_data['results']['success_count'] ) ) {
+													$success_count += $batch_data['results']['success_count'];
+												}
 
-											// Accumulate counts
-											if ( isset( $batch_data['success_count'] ) ) {
-												$success_count += $batch_data['success_count'];
-											} elseif ( isset( $batch_data['results']['success_count'] ) ) {
-												$success_count += $batch_data['results']['success_count'];
+												if ( isset( $batch_data['fail_count'] ) ) {
+													$fail_count += $batch_data['fail_count'];
+												} elseif ( isset( $batch_data['results']['fail_count'] ) ) {
+													$fail_count += $batch_data['results']['fail_count'];
+												}
 											}
-
-											if ( isset( $batch_data['fail_count'] ) ) {
-												$fail_count += $batch_data['fail_count'];
-											} elseif ( isset( $batch_data['results']['fail_count'] ) ) {
-												$fail_count += $batch_data['results']['fail_count'];
-											}
+										} else if ( ! in_array( $batch_data['status'] ?? '', array( 'cancelled' ), true ) ) {
+											// Batch is still pending/processing
+											$unprocessed_batches[] = $batch_job['batch_id'];
 										}
+									} else {
+										// Batch data missing - this is an error
+										\NuclearEngagement\Services\LoggingService::log(
+											sprintf(
+												'ERROR: Batch data missing for batch %s when checking parent %s completion',
+												$batch_job['batch_id'],
+												$parent_id
+											),
+											'error'
+										);
+										$fail_count += $batch_job['post_count'] ?? 0;
 									}
 								}
-
-								// If all batches are processed but we're waiting for counts, mark as completed anyway
-								if ( ! $all_counts_available && $has_pending_counts ) {
-									// All batches complete but waiting for counts - mark as completed with warning
+								
+								// Log summary of batch states
+								if ( ! empty( $unprocessed_batches ) ) {
 									\NuclearEngagement\Services\LoggingService::log(
 										sprintf(
-											'Parent %s has all batches complete but %d batches pending counts - marking as completed anyway',
+											'Parent %s still has %d unprocessed batches: %s',
 											$parent_id,
-											$parent_data['pending_count_batches']
+											count( $unprocessed_batches ),
+											implode( ', ', $unprocessed_batches )
 										)
 									);
-									$all_counts_available = true; // Force completion
+								}
+
+								// If all batches are processed but we're waiting for counts, handle appropriately
+								if ( ! $all_counts_available && ! empty( $batches_with_no_counts ) ) {
+									// Check if we've been waiting too long
+									$started_at = $parent_data['started_at'] ?? $parent_data['created_at'] ?? time();
+									$waiting_time = time() - $started_at;
+									
+									// If we've been waiting more than 10 minutes, force completion
+									if ( $waiting_time > 600 ) {
+										\NuclearEngagement\Services\LoggingService::log(
+											sprintf(
+												'Parent %s has been waiting %d seconds for batch counts - forcing completion',
+												$parent_id,
+												$waiting_time
+											),
+											'warning'
+										);
+										$all_counts_available = true; // Force completion
+										
+										// Add the missing posts to fail count
+										$expected_posts_in_missing_batches = 0;
+										foreach ( $batches_with_no_counts as $missing_batch_id ) {
+											foreach ( $parent_data['batch_jobs'] ?? array() as $batch_job ) {
+												if ( $batch_job['batch_id'] === $missing_batch_id ) {
+													$expected_posts_in_missing_batches += $batch_job['post_count'] ?? 0;
+													break;
+												}
+											}
+										}
+										$fail_count += $expected_posts_in_missing_batches;
+									} else {
+										// Still waiting for counts
+										\NuclearEngagement\Services\LoggingService::log(
+											sprintf(
+												'Parent %s has %d batches without counts - waiting (elapsed: %d seconds)',
+												$parent_id,
+												count( $batches_with_no_counts ),
+												$waiting_time
+											)
+										);
+									}
 								}
 
 								if ( $all_counts_available ) {
@@ -1174,12 +1272,18 @@ class BulkGenerationBatchProcessor extends BaseService {
 
 										set_transient( 'nuclen_recent_completions', $recent_completions, HOUR_IN_SECONDS );
 
+										// Log comprehensive completion stats
+										$duration = $parent_data['completed_at'] - ( $parent_data['started_at'] ?? $parent_data['created_at'] ?? time() );
 										\NuclearEngagement\Services\LoggingService::log(
 											sprintf(
-												'Bulk generation %s completed with status: %s (completed_at: %d)',
+												'[BulkGenerationBatchProcessor] TASK COMPLETED - ID: %s | Status: %s | Duration: %ds | Total: %d | Success: %d | Failed: %d | Batches: %d',
 												$parent_id,
 												$parent_data['status'],
-												$parent_data['completed_at']
+												$duration,
+												$parent_data['total_posts'] ?? 0,
+												$success_count,
+												$fail_count,
+												$parent_data['total_batches'] ?? 0
 											)
 										);
 									} else {

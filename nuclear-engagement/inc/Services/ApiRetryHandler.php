@@ -92,8 +92,8 @@ class ApiRetryHandler {
 					$context
 				);
 
-				// Execute the API call
-				$result = $api_call();
+				// Execute the API call - pass the attempt number
+				$result = $api_call( $attempts - 1 ); // Zero-based attempt index
 
 				// Success - record it
 				$this->record_success( $service_name );

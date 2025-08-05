@@ -31,6 +31,40 @@ $pagination       = $data['pagination'] ?? array();
 			?>
 		</div>
 
+		<!-- Circuit Breaker Status -->
+		<?php 
+		$cb_status = $data['circuit_breaker_status'] ?? array();
+		if ( ! empty( $cb_status['is_open'] ) ) : 
+		?>
+		<div class="nuclen-card" style="border-left: 4px solid #d63638;">
+			<h3 style="color: #d63638;"><?php esc_html_e( 'API Circuit Breaker Open', 'nuclear-engagement' ); ?></h3>
+			<p>
+				<?php 
+				printf(
+					esc_html__( 'The API circuit breaker is currently open due to %d consecutive failures. API calls are temporarily blocked to prevent system overload.', 'nuclear-engagement' ),
+					$cb_status['failures']
+				);
+				?>
+			</p>
+			<p>
+				<?php 
+				if ( $cb_status['time_until_retry'] > 0 ) {
+					printf(
+						esc_html__( 'Automatic retry in %d seconds.', 'nuclear-engagement' ),
+						$cb_status['time_until_retry']
+					);
+				}
+				?>
+			</p>
+			<p>
+				<a href="<?php echo esc_url( wp_nonce_url( add_query_arg( 'action', 'reset_circuit_breaker' ), 'nuclen_task_action' ) ); ?>" 
+				   class="button button-primary"
+				   onclick="return confirm('<?php esc_attr_e( 'Are you sure you want to reset the circuit breaker? This will allow API calls to proceed immediately.', 'nuclear-engagement' ); ?>');">
+					<?php esc_html_e( 'Reset Circuit Breaker', 'nuclear-engagement' ); ?>
+				</a>
+			</p>
+		</div>
+		<?php endif; ?>
 
 		<!-- Generation Tasks Section -->
 		<div class="nuclen-card">

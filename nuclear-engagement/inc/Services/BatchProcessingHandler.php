@@ -228,6 +228,17 @@ class BatchProcessingHandler {
 			try {
 				// Update status to processing
 				$this->batchProcessor->update_batch_status( $batch_id, 'processing' );
+				
+				\NuclearEngagement\Services\LoggingService::log(
+					sprintf(
+						'[BatchProcessingHandler::process_batch] BATCH STARTED - ID: %s | Parent: %s | Posts: %d | Index: %d/%d',
+						$batch_id,
+						$batch_data['parent_id'] ?? 'unknown',
+						count( $batch_data['posts'] ?? array() ),
+						$batch_data['batch_index'] ?? 0,
+						$batch_data['total_batches'] ?? 0
+					)
+				);
 
 				// Update parent task status from scheduled to processing if it hasn't been updated yet
 				// (This is a fallback in case the status wasn't updated during scheduling)
@@ -338,8 +349,12 @@ class BatchProcessingHandler {
 					}
 				}
 
+				// Validate API response
+				$has_generation_id = isset( $result['generation_id'] );
+				$has_results = ! empty( $result['results'] ) && is_array( $result['results'] );
+				
 				// Store generation ID for polling if needed
-				if ( isset( $result['generation_id'] ) ) {
+				if ( $has_generation_id ) {
 					// Re-fetch the batch data to ensure we have the latest
 					$batch_data = TaskTransientManager::get_batch_transient( $batch_id );
 					if ( ! is_array( $batch_data ) ) {
@@ -347,33 +362,88 @@ class BatchProcessingHandler {
 							sprintf( '[BatchProcessingHandler::process_batch] ERROR: Batch data lost for %s during processing', $batch_id ),
 							'error'
 						);
+						
+						// Mark batch as failed since we can't track it
+						$this->batchProcessor->update_batch_status(
+							$batch_id,
+							'failed',
+							array(
+								'error' => 'Batch data lost during processing',
+								'fail_count' => count( $batch_data['posts'] ?? array() ),
+								'success_count' => 0
+							)
+						);
 						return;
 					}
 
 					$batch_data['api_generation_id'] = $result['generation_id'];
 					TaskTransientManager::set_batch_transient( $batch_id, $batch_data, DAY_IN_SECONDS );
 
-					// Schedule polling for this batch
-					if ( ! wp_next_scheduled( 'nuclen_poll_batch', array( $batch_id ) ) ) {
-							wp_schedule_single_event(
+					// Try to schedule polling for this batch
+					$polling_scheduled = false;
+					try {
+						if ( ! wp_next_scheduled( 'nuclen_poll_batch', array( $batch_id ) ) ) {
+							$polling_scheduled = wp_schedule_single_event(
 								time() + 30,
 								'nuclen_poll_batch',
 								array( $batch_id )
 							);
 
-							// Force immediate cron spawn to process the scheduled event
-						if ( ! defined( 'DOING_CRON' ) ) {
-							spawn_cron();
+							if ( $polling_scheduled ) {
+								\NuclearEngagement\Services\LoggingService::log(
+									sprintf( '[BatchProcessingHandler::process_batch] Polling scheduled for batch %s in 30 seconds', $batch_id )
+								);
+								
+								// Force immediate cron spawn to process the scheduled event
+								if ( ! defined( 'DOING_CRON' ) ) {
+									spawn_cron();
+								}
+							} else {
+								\NuclearEngagement\Services\LoggingService::log(
+									sprintf( '[BatchProcessingHandler::process_batch] WARNING: Failed to schedule polling for batch %s', $batch_id ),
+									'warning'
+								);
+							}
 						}
+					} catch ( \Throwable $poll_error ) {
+						\NuclearEngagement\Services\LoggingService::log(
+							sprintf( '[BatchProcessingHandler::process_batch] ERROR: Exception scheduling polling for batch %s: %s', $batch_id, $poll_error->getMessage() ),
+							'error'
+						);
 					}
-				} else {
+					
+					// If polling failed to schedule, mark batch for immediate retry
+					if ( ! $polling_scheduled && ! $has_results ) {
+						\NuclearEngagement\Services\LoggingService::log(
+							sprintf( '[BatchProcessingHandler::process_batch] ERROR: No polling scheduled and no immediate results for batch %s', $batch_id ),
+							'error'
+						);
+						
+						// Schedule immediate retry through the failed batch handler
+						$this->batchProcessor->handle_failed_batch( $batch_id, 'Failed to schedule polling for async generation', $batch_data );
+						return;
+					}
+				} else if ( ! $has_results ) {
+					// No generation ID and no results - this is an error
 					\NuclearEngagement\Services\LoggingService::log(
-						sprintf( '[BatchProcessingHandler::process_batch] WARNING: No generation_id in API response for batch %s - immediate results expected', $batch_id ),
-						'warning'
+						sprintf( '[BatchProcessingHandler::process_batch] ERROR: No generation_id and no results in API response for batch %s', $batch_id ),
+						'error'
 					);
+					
+					// Mark batch as failed
+					$this->batchProcessor->update_batch_status(
+						$batch_id,
+						'failed',
+						array(
+							'error' => 'Invalid API response: no generation_id or results',
+							'fail_count' => count( $batch_data['posts'] ?? array() ),
+							'success_count' => 0
+						)
+					);
+					return;
 				}
 
-				// Store immediate results if any (don't process yet, just accumulate)
+				// Store immediate results if any
 				if ( ! empty( $result['results'] ) && is_array( $result['results'] ) ) {
 					// Store results in separate transients to avoid memory issues
 					$results_key      = 'nuclen_batch_results_' . $batch_id;
@@ -397,7 +467,25 @@ class BatchProcessingHandler {
 					// Just track the count in batch data to avoid memory issues
 					$batch_data['result_count'] = count( $existing_results );
 					TaskTransientManager::set_batch_transient( $batch_id, $batch_data, DAY_IN_SECONDS );
-
+					
+					// If we have all results and no generation_id (synchronous response), process immediately
+					if ( ! $has_generation_id && count( $existing_results ) >= count( $batch_data['posts'] ) ) {
+						\NuclearEngagement\Services\LoggingService::log(
+							sprintf( '[BatchProcessingHandler::process_batch] Processing immediate results for batch %s (%d results)', $batch_id, count( $existing_results ) )
+						);
+						
+						// Ensure workflow type exists
+						$workflow_type = isset( $batch_data['workflow']['type'] ) ? $batch_data['workflow']['type'] : 'default';
+						$this->process_batch_results( $batch_id, $existing_results, $workflow_type );
+						
+						// Clean up the results transient after processing
+						delete_transient( $results_key );
+						
+						// Mark task as completed for timeout tracking
+						do_action( 'nuclen_task_completed', $batch_id );
+						
+						return; // Exit early since we're done
+					}
 				}
 			} catch ( \Throwable $e ) {
 				\NuclearEngagement\Services\LoggingService::log(
@@ -531,6 +619,16 @@ class BatchProcessingHandler {
 					'processed_count' => count( $results ),
 				)
 			);
+			
+			\NuclearEngagement\Services\LoggingService::log(
+				sprintf(
+					'[BatchProcessingHandler::process_batch_results] BATCH COMPLETED - ID: %s | Total: %d | Success: %d | Failed: %d',
+					$batch_id,
+					count( $results ),
+					$total_success,
+					$total_fail
+				)
+			);
 
 			// Next batch scheduling is handled by BulkGenerationBatchProcessor::update_batch_status
 		} catch ( \Throwable $e ) {
@@ -637,7 +735,24 @@ class BatchProcessingHandler {
 				$storage        = new ContentStorageService( $settings );
 				$batchProcessor = new BulkGenerationBatchProcessor( $settings );
 
-				if ( ! empty( $final_results ) ) {
+				// Validate we have sufficient results
+				$expected_posts = count( $batch_data['posts'] ?? array() );
+				$actual_results = count( $final_results ?? array() );
+				
+				if ( ! empty( $final_results ) && $actual_results > 0 ) {
+					// Log if we have fewer results than expected
+					if ( $actual_results < $expected_posts ) {
+						\NuclearEngagement\Services\LoggingService::log(
+							sprintf( 
+								'[BatchProcessingHandler::poll_batch] WARNING: Batch %s has fewer results than expected (%d/%d posts)',
+								$batch_id,
+								$actual_results,
+								$expected_posts
+							),
+							'warning'
+						);
+					}
+					
 					// Process all accumulated results
 					$handler = new self( $api, $storage, $batchProcessor );
 
@@ -652,15 +767,23 @@ class BatchProcessingHandler {
 					do_action( 'nuclen_task_completed', $batch_id );
 				} else {
 					\NuclearEngagement\Services\LoggingService::log(
-						sprintf( '[BatchProcessingHandler::poll_batch] ERROR: Batch %s marked as complete but no results found', $batch_id ),
+						sprintf( 
+							'[BatchProcessingHandler::poll_batch] ERROR: Batch %s marked as complete but no results found (expected %d posts)',
+							$batch_id,
+							$expected_posts
+						),
 						'error'
 					);
 
-					// Mark batch as failed if no results
+					// Mark batch as failed if no results, with proper counts
 					$batchProcessor->update_batch_status(
 						$batch_id,
 						'failed',
-						array( 'error' => 'Generation completed but no results received' )
+						array( 
+							'error' => 'Generation completed but no results received',
+							'fail_count' => $expected_posts,
+							'success_count' => 0
+						)
 					);
 				}
 			} else {

@@ -27,6 +27,9 @@ class ApiException extends BaseException {
 	/** @var bool */
 	private bool $is_retryable = false;
 
+	/** @var string */
+	private string $user_message = '';
+
 	public function __construct(
 		string $message,
 		int $http_status_code = 0,
@@ -112,6 +115,11 @@ class ApiException extends BaseException {
 	 * Get user-friendly message
 	 */
 	public function get_user_message(): string {
+		// Return custom user message if set
+		if ( ! empty( $this->user_message ) ) {
+			return $this->user_message;
+		}
+
 		if ( $this->is_retryable ) {
 			return __( 'Temporary connection issue. Please try again in a few moments.', 'nuclear-engagement' );
 		}
@@ -127,6 +135,17 @@ class ApiException extends BaseException {
 			default:
 				return __( 'An error occurred while communicating with the API.', 'nuclear-engagement' );
 		}
+	}
+
+	/**
+	 * Set user-friendly message
+	 *
+	 * @param string $message User-friendly message
+	 * @return self
+	 */
+	public function setUserMessage( string $message ): self {
+		$this->user_message = $message;
+		return $this;
 	}
 
 	/**
