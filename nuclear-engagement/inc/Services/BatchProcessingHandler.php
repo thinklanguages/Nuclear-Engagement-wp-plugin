@@ -112,6 +112,14 @@ class BatchProcessingHandler {
 	 * @param string $batch_id Batch ID to process
 	 */
 	public static function process_batch_hook( string $batch_id ): void {
+		// Ensure hooks are initialized if this is called directly
+		self::init();
+		\NuclearEngagement\Services\LoggingService::log(
+			sprintf(
+				'[BatchProcessingHandler::process_batch_hook] Called with batch ID: %s',
+				$batch_id
+			)
+		);
 
 		$settings = SettingsRepository::get_instance();
 
@@ -220,25 +228,40 @@ class BatchProcessingHandler {
 				// Update status to processing
 				$this->batchProcessor->update_batch_status( $batch_id, 'processing' );
 				
-				// Update parent task status from scheduled to running if this is the first batch
+				// Update parent task status from scheduled to processing if it hasn't been updated yet
+				// (This is a fallback in case the status wasn't updated during scheduling)
 				if ( $parent_data && isset( $parent_data['status'] ) && $parent_data['status'] === 'scheduled' ) {
-						$parent_data['status'] = 'processing';
-						$parent_data['started_at'] = time();
-						TaskTransientManager::set_task_transient( $batch_data['parent_id'], $parent_data, DAY_IN_SECONDS );
-						
-						// Update task index
-						$container = \NuclearEngagement\Core\ServiceContainer::getInstance();
-						if ( $container->has( 'task_index_service' ) ) {
-							$index_service = $container->get( 'task_index_service' );
-							$index_service->update_task_status( $batch_data['parent_id'], 'processing', array( 'started_at' => time() ) );
-						}
-						
-						// Clear tasks cache to reflect updates immediately
-						if ( class_exists( '\NuclearEngagement\Admin\Tasks' ) ) {
-							\NuclearEngagement\Admin\Tasks::clear_tasks_cache();
-						}
-						
+					\NuclearEngagement\Services\LoggingService::log(
+						sprintf(
+							'[BatchProcessingHandler::process_batch] Parent task %s still in scheduled state - updating to processing (fallback)',
+							$batch_data['parent_id']
+						)
+					);
+					
+					$parent_data['status'] = 'processing';
+					$parent_data['started_at'] = time();
+					TaskTransientManager::set_task_transient( $batch_data['parent_id'], $parent_data, DAY_IN_SECONDS );
+					
+					// Update task index
+					$container = \NuclearEngagement\Core\ServiceContainer::getInstance();
+					if ( $container->has( 'task_index_service' ) ) {
+						$index_service = $container->get( 'task_index_service' );
+						$index_service->update_task_status( $batch_data['parent_id'], 'processing', array( 'started_at' => time() ) );
 					}
+					
+					// Clear tasks cache to reflect updates immediately
+					if ( class_exists( '\NuclearEngagement\Admin\Tasks' ) ) {
+						\NuclearEngagement\Admin\Tasks::clear_tasks_cache();
+					}
+				} else {
+					\NuclearEngagement\Services\LoggingService::log(
+						sprintf(
+							'[BatchProcessingHandler::process_batch] Parent task %s already in %s state - no status update needed',
+							$batch_data['parent_id'],
+							$parent_data['status'] ?? 'unknown'
+						)
+					);
+				}
 
 				// Record task start for timeout tracking
 				do_action( 'nuclen_task_started', $batch_id, 3600 ); // 1 hour timeout
@@ -767,7 +790,3 @@ class BatchProcessingHandler {
 		$batchProcessor->check_and_recover_stuck_tasks();
 	}
 }
-
-// Register initialization to happen after plugins are loaded
-add_action( 'plugins_loaded', array( BatchProcessingHandler::class, 'init' ), 5 );
-add_action( 'nuclen_poll_batch', array( BatchProcessingHandler::class, 'poll_batch' ) );

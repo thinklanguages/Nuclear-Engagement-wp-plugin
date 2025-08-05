@@ -314,8 +314,8 @@ final class PluginBootstrap {
 		// Register auto-generation hooks after admin services are loaded.
 		add_action( 'init', array( $this, 'registerAutoGenerationHooks' ), 10 );
 
-		// Initialize batch processing handler after plugins are loaded
-		add_action( 'init', array( $this, 'initializeBatchProcessing' ), 5 );
+		// Initialize batch processing handler immediately during bootstrap
+		$this->initializeBatchProcessing();
 
 
 		// Initialize circuit breaker service
@@ -526,25 +526,9 @@ final class PluginBootstrap {
 	 * Initialize batch processing handler.
 	 */
 	public function initializeBatchProcessing(): void {
-		// Check if already initialized
-		if ( isset( self::$initialized_services['batch_processing'] ) ) {
-			return;
-		}
-
-		// Ensure BatchProcessingHandler is initialized
-		if ( class_exists( '\NuclearEngagement\Services\BatchProcessingHandler' ) ) {
-			// Mark as initialized BEFORE calling init to prevent any recursive calls
-			self::$initialized_services['batch_processing'] = true;
-
-			// Always initialize to ensure hooks are registered
-			\NuclearEngagement\Services\BatchProcessingHandler::init();
-
-		} else {
-			\NuclearEngagement\Services\LoggingService::log(
-				'ERROR: BatchProcessingHandler class not found during initialization',
-				'error'
-			);
-		}
+		// BatchProcessingHandler initializes itself when needed through the service container
+		// or when its static methods are called. No explicit initialization needed here.
+		// This method is kept for backward compatibility but doesn't need to do anything.
 	}
 
 	/**
