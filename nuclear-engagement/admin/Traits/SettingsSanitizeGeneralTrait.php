@@ -94,6 +94,11 @@ trait SettingsSanitizeGeneralTrait {
 		$auto_quiz            = (bool) ( $in['auto_generate_quiz_on_publish'] ?? false );
 				$auto_summary = (bool) ( $in['auto_generate_summary_on_publish'] ?? false );
 
+		/* Auto-generation settings */
+		$auto_summary_format = in_array( $in['auto_summary_format'] ?? 'paragraph', array( 'paragraph', 'bullet_list' ), true ) ? $in['auto_summary_format'] : 'paragraph';
+		$auto_summary_length = max( 20, min( 50, (int) ( $in['auto_summary_length'] ?? 30 ) ) );
+		$auto_summary_number_of_items = max( 3, min( 7, (int) ( $in['auto_summary_number_of_items'] ?? 5 ) ) );
+
 				/* Attribution */
 				$show_attr = (bool) ( $in['show_attribution'] ?? false );
 
@@ -145,6 +150,9 @@ trait SettingsSanitizeGeneralTrait {
 			'update_last_modified'                  => $update_last,
 			'auto_generate_quiz_on_publish'         => $auto_quiz,
 			'auto_generate_summary_on_publish'      => $auto_summary,
+			'auto_summary_format'                   => $auto_summary_format,
+			'auto_summary_length'                   => $auto_summary_length,
+			'auto_summary_number_of_items'          => $auto_summary_number_of_items,
 
 			/* attribution */
 			'show_attribution'                      => $show_attr,

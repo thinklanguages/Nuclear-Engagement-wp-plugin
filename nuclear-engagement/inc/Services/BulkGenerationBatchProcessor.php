@@ -345,6 +345,16 @@ class BulkGenerationBatchProcessor extends BaseService {
 
 			// Don't add individual batch tasks to the index - they're internal implementation details
 			// The parent task tracks all batch progress
+			
+			// For autogen tasks, ensure immediate visibility by forcing cache refresh
+			if ( $source === 'auto' ) {
+				\NuclearEngagement\Services\LoggingService::debug(
+					sprintf(
+						'[BulkGenerationBatchProcessor] Forcing immediate cache refresh for autogen task: %s',
+						$parent_generation_id
+					)
+				);
+			}
 		}
 
 		// Clear tasks cache so new task shows immediately
@@ -560,9 +570,10 @@ class BulkGenerationBatchProcessor extends BaseService {
 	 * @param string $workflow_type Workflow type
 	 * @param string $priority Priority level
 	 * @param string $source Source of generation (auto, manual, bulk, single)
+	 * @param array  $workflow_settings Optional workflow settings (summary_format, summary_length, etc.)
 	 * @return string Generation ID
 	 */
-	public function queue_generation( array $post_ids, string $workflow_type, string $priority = 'low', string $source = '' ): string {
+	public function queue_generation( array $post_ids, string $workflow_type, string $priority = 'low', string $source = '', array $workflow_settings = array() ): string {
 
 		// Acquire lock for low priority to prevent race conditions
 		if ( $priority === 'low' && ! $this->acquire_lock() ) {
@@ -656,6 +667,11 @@ class BulkGenerationBatchProcessor extends BaseService {
 				'priority' => $priority,
 				'source'   => ! empty( $source ) ? $source : ( $priority === 'low' ? 'auto' : 'manual' ),
 			);
+
+			// Add workflow settings if provided (summary format, length, etc.)
+			if ( ! empty( $workflow_settings ) ) {
+				$workflow = array_merge( $workflow, $workflow_settings );
+			}
 
 			if ( empty( $posts ) ) {
 				// Check if all posts were skipped due to empty content

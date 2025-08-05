@@ -367,8 +367,18 @@ class GenerationService {
 			);
 		}
 
+		// Get autogeneration settings if this is for summary workflow
+		$workflow_settings = array();
+		if ( $workflow_type === 'summary' ) {
+			$workflow_settings = array(
+				'summary_format'          => $this->settings->get( 'auto_summary_format', 'paragraph' ),
+				'summary_length'          => (int) $this->settings->get( 'auto_summary_length', 30 ),
+				'summary_number_of_items' => (int) $this->settings->get( 'auto_summary_number_of_items', 5 ),
+			);
+		}
+
 		// Use batch processor's queue method
-		$generation_id = $this->batchProcessor->queue_generation( $filtered_ids, $workflow_type, 'low', 'auto' );
+		$generation_id = $this->batchProcessor->queue_generation( $filtered_ids, $workflow_type, 'low', 'auto', $workflow_settings );
 
 
 		return $generation_id;

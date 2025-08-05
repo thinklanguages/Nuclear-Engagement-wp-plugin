@@ -154,8 +154,6 @@ final class Nuclen_Summary_Metabox {
 				\NuclearEngagement\Services\LoggingService::log( 'Failed to update modified time for post ' . $post_id . ': ' . $result->get_error_message() );
 				\NuclearEngagement\Services\LoggingService::notify_admin( 'Failed to update modified time for post ' . $post_id . ': ' . $result->get_error_message() );
 			}
-
-				add_action( 'save_post', array( $this, 'nuclen_save_summary_data_meta' ), 10, 1 );
 		}
 
 		/*

@@ -68,10 +68,14 @@ class PublishGenerationHandler {
 			return;
 		}
 
+		// Skip if this is an update to an already published post
+		if ( $update && $post->post_status === 'publish' ) {
+			return;
+		}
 
-		// Only process if post is being published
+		// Only process if post is being published for the first time
 		if ( $post->post_status === 'publish' ) {
-			$this->handle_post_publish( 'publish', $update ? 'unknown' : 'new', $post );
+			$this->handle_post_publish( 'publish', 'new', $post );
 		}
 	}
 

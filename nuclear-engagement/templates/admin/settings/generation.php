@@ -53,6 +53,28 @@ if ( ! defined( 'ABSPATH' ) ) {
 		</div>
 	</div>
 
+	<div class="nuclen-form-group nuclen-row">
+		<div class="nuclen-column nuclen-label-col">
+			<label class="nuclen-label"><?php esc_html_e( 'Auto-generation Summary Settings', 'nuclear-engagement' ); ?>
+				<span nuclen-tooltip="<?php esc_attr_e( 'Configure the format and length settings for summaries that are automatically generated when posts are published.', 'nuclear-engagement' ); ?>">🛈</span>
+			</label>
+		</div>
+		<div class="nuclen-column nuclen-input-col">
+			<?php
+			// Set up variables for the partial template
+			$summary_format = $settings['auto_summary_format'] ?? 'paragraph';
+			$summary_length = $settings['auto_summary_length'] ?? 30;
+			$summary_number_of_items = $settings['auto_summary_number_of_items'] ?? 5;
+			$field_prefix = 'auto_summary_';
+			$show_labels = true;
+			$use_array_notation = false;
+			
+			// Include the reusable summary format fields template
+			include NUCLEN_PLUGIN_DIR . 'templates/admin/partials/summary-format-fields.php';
+			?>
+		</div>
+	</div>
+
 	<h2 class="nuclen-subheading"><?php esc_html_e( 'Allowed Post Types', 'nuclear-engagement' ); ?></h2>
 	<div class="nuclen-form-group nuclen-row">
 		<div class="nuclen-column nuclen-label-col">

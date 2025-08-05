@@ -31,11 +31,23 @@ class TaskIndexService extends BaseService {
 	private const MAX_INDEX_SIZE = 1000;
 
 	/**
+	 * Cache clear rate limiting (seconds between clears)
+	 */
+	private const CACHE_CLEAR_RATE_LIMIT = 5;
+	
+	/**
+	 * Last cache clear timestamp
+	 */
+	private static int $last_cache_clear = 0;
+
+	/**
 	 * Constructor
 	 */
 	public function __construct() {
 		parent::__construct();
-		$this->cache_ttl = 300; // 5 minutes
+		// Use shorter TTL for task index (2 minutes) but rely on selective invalidation
+		// for immediate updates when tasks are added/updated
+		$this->cache_ttl = 120; // 2 minutes - balanced approach
 	}
 
 	/**
@@ -82,9 +94,13 @@ class TaskIndexService extends BaseService {
 
 		$this->save_index( $index );
 		$this->delete_cache( 'task_index' );
+		$this->delete_cache( 'task_statistics' );
 		
 		// Clear all paginated task caches to ensure immediate visibility
 		$this->clear_all_task_caches();
+		
+		// Force immediate cache flush for better real-time updates
+		$this->force_immediate_cache_flush();
 	}
 
 	/**
@@ -157,9 +173,13 @@ class TaskIndexService extends BaseService {
 
 			$this->save_index( $index );
 			$this->delete_cache( 'task_index' );
+			$this->delete_cache( 'task_statistics' );
 			
 			// Clear all paginated task caches to ensure immediate visibility
 			$this->clear_all_task_caches();
+			
+			// Force immediate cache flush for better real-time updates
+			$this->force_immediate_cache_flush();
 		}
 	}
 
@@ -462,9 +482,16 @@ class TaskIndexService extends BaseService {
 	}
 
 	/**
-	 * Clear all task-related caches
+	 * Clear all task-related caches with rate limiting
 	 */
 	private function clear_all_task_caches(): void {
+		// Rate limit cache clearing to prevent excessive DB queries
+		$current_time = time();
+		if ( $current_time - self::$last_cache_clear < self::CACHE_CLEAR_RATE_LIMIT ) {
+			return; // Skip if we cleared caches recently
+		}
+		self::$last_cache_clear = $current_time;
+
 		global $wpdb;
 		
 		// Clear all task-related caches from the database
@@ -478,24 +505,18 @@ class TaskIndexService extends BaseService {
 			)
 		);
 		
-		// Clear from object cache as well
-		// Use the service name as the cache group, which is how BaseService works
-		$cache_group = $this->get_service_name();
-		
-		// Clear paginated task caches for common page/filter combinations
-		for ( $page = 1; $page <= 10; $page++ ) {
-			for ( $per_page = 10; $per_page <= 50; $per_page += 10 ) {
+		// Clear from object cache as well - but only most common combinations
+		// to avoid excessive operations
+		for ( $page = 1; $page <= 3; $page++ ) { // Reduced from 10 to 3
+			for ( $per_page = 20; $per_page <= 40; $per_page += 20 ) { // Reduced iterations
 				// Clear with no filters
 				$cache_key = sprintf( 'tasks_page_%d_%d_%s', $page, $per_page, md5( serialize( array() ) ) );
 				$this->delete_cache( $cache_key );
 				
-				// Clear common filter combinations
+				// Clear only most common filter combinations
 				$common_filters = array(
 					array( 'status' => 'pending' ),
-					array( 'status' => 'scheduled' ),
 					array( 'status' => 'processing' ),
-					array( 'status' => 'completed' ),
-					array( 'status' => 'failed' ),
 				);
 				
 				foreach ( $common_filters as $filter ) {
@@ -505,6 +526,28 @@ class TaskIndexService extends BaseService {
 			}
 		}
 		
-		// Task caches cleared
+		// Task caches cleared with rate limiting
+	}
+	
+	/**
+	 * Force immediate cache flush for real-time updates
+	 */
+	private function force_immediate_cache_flush(): void {
+		// Clear task-related cache group instead of global flush
+		if ( function_exists( 'wp_cache_flush_group' ) ) {
+			wp_cache_flush_group( $this->get_service_name() );
+		}
+		
+		// Clear specific task-related transients only
+		global $wpdb;
+		$wpdb->query(
+			$wpdb->prepare(
+				"DELETE FROM $wpdb->options 
+				WHERE option_name LIKE %s 
+				OR option_name LIKE %s",
+				'_transient_task_index_%',
+				'_transient_timeout_task_index_%'
+			)
+		);
 	}
 }
