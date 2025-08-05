@@ -85,35 +85,35 @@ class GenerationPoller {
 
 			if ( ! empty( $data['results'] ) && is_array( $data['results'] ) ) {
 					// Filter out summary statistics from results
-					$post_results = array_filter( 
-						$data['results'], 
-						function( $key ) {
+					$post_results = array_filter(
+						$data['results'],
+						function ( $key ) {
 							// Only keep numeric post IDs, filter out summary keys
-							return is_numeric( $key ) && ! in_array( $key, ['success_count', 'fail_count', 'processed_count'], true );
+							return is_numeric( $key ) && ! in_array( $key, array( 'success_count', 'fail_count', 'processed_count' ), true );
 						},
 						ARRAY_FILTER_USE_KEY
 					);
 
-					if ( ! empty( $post_results ) ) {
-						$statuses = $this->content_storage->storeResults( $post_results, $workflow_type );
-				if ( array_filter( $statuses, static fn( $s ) => $s !== true ) ) {
+				if ( ! empty( $post_results ) ) {
+					$statuses = $this->content_storage->storeResults( $post_results, $workflow_type );
+					if ( array_filter( $statuses, static fn( $s ) => $s !== true ) ) {
 								\NuclearEngagement\Services\LoggingService::notify_admin(
 									sprintf( 'Failed to store results for generation %s', $generation_id )
 								);
-				} else {
+					} else {
 									\NuclearEngagement\Services\LoggingService::log(
 										"Poll success for generation {$generation_id}"
 									);
 
-					// Mark generation as complete in centralized queue
-					$container = \NuclearEngagement\Core\ServiceContainer::getInstance();
-					if ( $container->has( 'centralized_polling_queue' ) ) {
-						$queue = $container->get( 'centralized_polling_queue' );
-						$queue->mark_generation_complete( $generation_id );
+						// Mark generation as complete in centralized queue
+						$container = \NuclearEngagement\Core\ServiceContainer::getInstance();
+						if ( $container->has( 'centralized_polling_queue' ) ) {
+							$queue = $container->get( 'centralized_polling_queue' );
+							$queue->mark_generation_complete( $generation_id );
+						}
 					}
+					return;
 				}
-						return;
-					}
 			}
 
 			if ( isset( $data['success'] ) && $data['success'] === true ) {

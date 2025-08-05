@@ -78,7 +78,7 @@ class BatchProcessingHandler {
 		$this->api            = $api;
 		$this->storage        = $storage;
 		$this->batchProcessor = $batchProcessor;
-		
+
 		// Initialize handlers
 		$this->lockHandler  = new BatchLockHandler();
 		$this->dataHandler  = new BatchDataHandler( $batchProcessor );
@@ -101,7 +101,7 @@ class BatchProcessingHandler {
 		add_action( 'nuclen_check_task_completion', array( __CLASS__, 'check_task_completion_hook' ) );
 		add_action( 'nuclen_recheck_batch_counts', array( __CLASS__, 'recheck_batch_counts_hook' ), 10, 2 );
 		add_action( 'nuclen_check_stuck_tasks', array( __CLASS__, 'check_stuck_tasks_hook' ) );
-		
+
 		// Add custom cron schedules
 		add_filter( 'cron_schedules', array( __CLASS__, 'add_cron_schedules' ) );
 
@@ -109,7 +109,7 @@ class BatchProcessingHandler {
 		if ( ! wp_next_scheduled( 'nuclen_cleanup_old_batches' ) ) {
 			wp_schedule_event( time(), 'daily', 'nuclen_cleanup_old_batches' );
 		}
-		
+
 		// Schedule stuck task check every 5 minutes
 		if ( ! wp_next_scheduled( 'nuclen_check_stuck_tasks' ) ) {
 			wp_schedule_event( time() + 300, 'nuclen_five_minutes', 'nuclen_check_stuck_tasks' );
@@ -117,7 +117,7 @@ class BatchProcessingHandler {
 
 		self::$hooks_registered = true;
 	}
-	
+
 	/**
 	 * Add custom cron schedules
 	 *
@@ -196,7 +196,7 @@ class BatchProcessingHandler {
 	 * Process batch with timeout handling
 	 *
 	 * @param string $batch_id
-	 * @param array $batch_data
+	 * @param array  $batch_data
 	 */
 	private function processBatchWithTimeout( string $batch_id, array $batch_data ): void {
 		// Set extended timeout
@@ -227,7 +227,7 @@ class BatchProcessingHandler {
 	 * Process API response
 	 *
 	 * @param string $batch_id
-	 * @param array $result
+	 * @param array  $result
 	 */
 	private function processApiResponse( string $batch_id, array $result ): void {
 		// Store generation ID for polling
@@ -262,7 +262,7 @@ class BatchLockHandler {
 	 */
 	public function acquireLock( string $batch_id ): bool {
 		$lock_option = 'nuclen_option_lock_batch_' . $batch_id;
-		$lock_value = wp_generate_password( 12, false );
+		$lock_value  = wp_generate_password( 12, false );
 
 		// Try to acquire lock atomically
 		if ( add_option(
@@ -281,7 +281,7 @@ class BatchLockHandler {
 		$existing = get_option( $lock_option );
 		if ( is_array( $existing ) && isset( $existing['time'] ) &&
 			( time() - $existing['time'] ) > 300 ) { // 5 minute timeout
-			
+
 			// Force update expired lock
 			update_option(
 				$lock_option,
@@ -333,7 +333,7 @@ class BatchDataHandler {
 	 */
 	public function validateBatch( string $batch_id ): ?array {
 		$batch_data = TaskTransientManager::get_batch_transient( $batch_id );
-		
+
 		if ( ! is_array( $batch_data ) ) {
 			\NuclearEngagement\Services\LoggingService::log(
 				sprintf( '[BatchProcessingHandler::validateBatch] ERROR: Batch %s not found', $batch_id ),
@@ -361,16 +361,16 @@ class BatchDataHandler {
 		}
 
 		$parent_data = TaskTransientManager::get_task_transient( $batch_data['parent_id'] );
-		
+
 		if ( $parent_data && isset( $parent_data['status'] ) && $parent_data['status'] === 'cancelled' ) {
 			\NuclearEngagement\Services\LoggingService::log(
 				sprintf( '[BatchProcessingHandler] Skipping batch - parent task %s is cancelled', $batch_data['parent_id'] ),
 				'info'
 			);
-			
+
 			// Update batch status to cancelled
 			$this->batchProcessor->update_batch_status( $batch_data['batch_id'], 'cancelled' );
-			
+
 			return true;
 		}
 
@@ -398,19 +398,19 @@ class BatchDataHandler {
 		}
 
 		$parent_data = TaskTransientManager::get_task_transient( $batch_data['parent_id'] );
-		
+
 		if ( $parent_data && isset( $parent_data['status'] ) && $parent_data['status'] === 'scheduled' ) {
-			$parent_data['status'] = 'processing';
+			$parent_data['status']     = 'processing';
 			$parent_data['started_at'] = time();
 			TaskTransientManager::set_task_transient( $batch_data['parent_id'], $parent_data, DAY_IN_SECONDS );
-			
+
 			// Update task index
 			$container = \NuclearEngagement\Core\ServiceContainer::getInstance();
 			if ( $container->has( 'task_index_service' ) ) {
 				$index_service = $container->get( 'task_index_service' );
 				$index_service->update_task_status( $batch_data['parent_id'], 'processing', array( 'started_at' => time() ) );
 			}
-			
+
 			// Clear tasks cache
 			if ( class_exists( '\NuclearEngagement\Admin\Tasks' ) ) {
 				\NuclearEngagement\Admin\Tasks::clear_tasks_cache();
@@ -441,7 +441,7 @@ class BatchApiHandler {
 	 * Send batch to API
 	 *
 	 * @param string $batch_id
-	 * @param array $batch_data
+	 * @param array  $batch_data
 	 * @return array
 	 */
 	public function sendBatchToApi( string $batch_id, array $batch_data ): array {
@@ -512,7 +512,7 @@ class BatchApiHandler {
 				'nuclen_poll_batch',
 				array( $batch_id )
 			);
-			
+
 			// Force immediate cron spawn
 			if ( ! defined( 'DOING_CRON' ) ) {
 				spawn_cron();
@@ -524,11 +524,11 @@ class BatchApiHandler {
 	 * Store immediate results
 	 *
 	 * @param string $batch_id
-	 * @param array $results
+	 * @param array  $results
 	 */
 	public function storeImmediateResults( string $batch_id, array $results ): void {
 		// Store results in separate transients to avoid memory issues
-		$results_key = 'nuclen_batch_results_' . $batch_id;
+		$results_key      = 'nuclen_batch_results_' . $batch_id;
 		$existing_results = get_transient( $results_key ) ?: array();
 
 		// Merge new results with existing ones
@@ -576,8 +576,8 @@ class BatchErrorHandler {
 	/**
 	 * Handle batch processing error
 	 *
-	 * @param string $batch_id
-	 * @param array $batch_data
+	 * @param string     $batch_id
+	 * @param array      $batch_data
 	 * @param \Throwable $e
 	 */
 	public function handleError( string $batch_id, array $batch_data, \Throwable $e ): void {
@@ -623,12 +623,12 @@ class BatchErrorHandler {
 		if ( $e instanceof ApiException ) {
 			$code = $e->getCode();
 			// 5xx errors and specific 4xx errors are retryable
-			return $code >= 500 || in_array( $code, [408, 429], true );
+			return $code >= 500 || in_array( $code, array( 408, 429 ), true );
 		}
 
 		// Check error message for known retryable patterns
-		$message = strtolower( $e->getMessage() );
-		$retryable_patterns = [
+		$message            = strtolower( $e->getMessage() );
+		$retryable_patterns = array(
 			'timeout',
 			'timed out',
 			'connection',
@@ -636,8 +636,8 @@ class BatchErrorHandler {
 			'temporary',
 			'try again',
 			'rate limit',
-			'too many requests'
-		];
+			'too many requests',
+		);
 
 		foreach ( $retryable_patterns as $pattern ) {
 			if ( strpos( $message, $pattern ) !== false ) {
@@ -651,8 +651,8 @@ class BatchErrorHandler {
 	/**
 	 * Handle retryable error
 	 *
-	 * @param string $batch_id
-	 * @param array $batch_data
+	 * @param string     $batch_id
+	 * @param array      $batch_data
 	 * @param \Throwable $e
 	 */
 	private function handleRetryableError( string $batch_id, array $batch_data, \Throwable $e ): void {
@@ -661,7 +661,7 @@ class BatchErrorHandler {
 
 		// Calculate next retry delay with exponential backoff
 		$base_delay = 300; // 5 minutes base
-		$max_delay = 3600; // 1 hour max
+		$max_delay  = 3600; // 1 hour max
 		$next_delay = min( $base_delay * pow( 2, $retry_count ), $max_delay );
 
 		\NuclearEngagement\Services\LoggingService::log(
@@ -677,7 +677,7 @@ class BatchErrorHandler {
 	/**
 	 * Handle permanent error
 	 *
-	 * @param string $batch_id
+	 * @param string     $batch_id
 	 * @param \Throwable $e
 	 */
 	private function handlePermanentError( string $batch_id, \Throwable $e ): void {
@@ -689,7 +689,7 @@ class BatchErrorHandler {
 				'non_retryable' => true,
 			)
 		);
-		
+
 		\NuclearEngagement\Services\LoggingService::log(
 			sprintf( '[BatchProcessingHandler] Batch %s marked as permanently failed', $batch_id ),
 			'error'
@@ -699,7 +699,7 @@ class BatchErrorHandler {
 	/**
 	 * Add admin notice if needed
 	 *
-	 * @param array $batch_data
+	 * @param array      $batch_data
 	 * @param \Throwable $e
 	 */
 	private function addAdminNoticeIfNeeded( array $batch_data, \Throwable $e ): void {

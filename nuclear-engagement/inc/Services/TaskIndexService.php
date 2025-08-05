@@ -34,7 +34,7 @@ class TaskIndexService extends BaseService {
 	 * Cache clear rate limiting (seconds between clears)
 	 */
 	private const CACHE_CLEAR_RATE_LIMIT = 5;
-	
+
 	/**
 	 * Last cache clear timestamp
 	 */
@@ -95,10 +95,10 @@ class TaskIndexService extends BaseService {
 		$this->save_index( $index );
 		$this->delete_cache( 'task_index' );
 		$this->delete_cache( 'task_statistics' );
-		
+
 		// Clear all paginated task caches to ensure immediate visibility
 		$this->clear_all_task_caches();
-		
+
 		// Force immediate cache flush for better real-time updates
 		$this->force_immediate_cache_flush();
 	}
@@ -168,16 +168,16 @@ class TaskIndexService extends BaseService {
 			if ( isset( $task_data['priority'] ) ) {
 				$index[ $task_id ]['priority'] = $task_data['priority'];
 			}
-			
+
 			$index[ $task_id ]['updated_at'] = time();
 
 			$this->save_index( $index );
 			$this->delete_cache( 'task_index' );
 			$this->delete_cache( 'task_statistics' );
-			
+
 			// Clear all paginated task caches to ensure immediate visibility
 			$this->clear_all_task_caches();
-			
+
 			// Force immediate cache flush for better real-time updates
 			$this->force_immediate_cache_flush();
 		}
@@ -443,11 +443,11 @@ class TaskIndexService extends BaseService {
 
 		// Get current value to check if update is needed
 		$current = get_option( self::INDEX_OPTION, array() );
-		
+
 		// Only update if the values are different
 		if ( $current !== $index ) {
 			$result = update_option( self::INDEX_OPTION, $index, false );
-			
+
 			// update_option returns false on failure OR when the value hasn't changed
 			// We already checked that values are different, so false means actual failure
 			if ( ! $result ) {
@@ -493,7 +493,7 @@ class TaskIndexService extends BaseService {
 		self::$last_cache_clear = $current_time;
 
 		global $wpdb;
-		
+
 		// Clear all task-related caches from the database
 		$wpdb->query(
 			$wpdb->prepare(
@@ -504,7 +504,7 @@ class TaskIndexService extends BaseService {
 				'_transient_timeout_' . $this->get_service_name() . '_tasks_page_%'
 			)
 		);
-		
+
 		// Clear from object cache as well - but only most common combinations
 		// to avoid excessive operations
 		for ( $page = 1; $page <= 3; $page++ ) { // Reduced from 10 to 3
@@ -512,23 +512,23 @@ class TaskIndexService extends BaseService {
 				// Clear with no filters
 				$cache_key = sprintf( 'tasks_page_%d_%d_%s', $page, $per_page, md5( serialize( array() ) ) );
 				$this->delete_cache( $cache_key );
-				
+
 				// Clear only most common filter combinations
 				$common_filters = array(
 					array( 'status' => 'pending' ),
 					array( 'status' => 'processing' ),
 				);
-				
+
 				foreach ( $common_filters as $filter ) {
 					$cache_key = sprintf( 'tasks_page_%d_%d_%s', $page, $per_page, md5( serialize( $filter ) ) );
 					$this->delete_cache( $cache_key );
 				}
 			}
 		}
-		
+
 		// Task caches cleared with rate limiting
 	}
-	
+
 	/**
 	 * Force immediate cache flush for real-time updates
 	 */
@@ -537,7 +537,7 @@ class TaskIndexService extends BaseService {
 		if ( function_exists( 'wp_cache_flush_group' ) ) {
 			wp_cache_flush_group( $this->get_service_name() );
 		}
-		
+
 		// Clear specific task-related transients only
 		global $wpdb;
 		$wpdb->query(

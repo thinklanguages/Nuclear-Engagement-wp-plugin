@@ -31,6 +31,7 @@ $pagination       = $data['pagination'] ?? array();
 			?>
 		</div>
 
+
 		<!-- Generation Tasks Section -->
 		<div class="nuclen-card">
 			<h2><?php esc_html_e( 'Generation Tasks', 'nuclear-engagement' ); ?></h2>
@@ -87,7 +88,7 @@ $pagination       = $data['pagination'] ?? array();
 									</td>
 									<td>
 										<?php
-										$action = $task['action'] ?? '';
+										$action        = $task['action'] ?? '';
 										$action_labels = array(
 											'single' => __( 'Single post', 'nuclear-engagement' ),
 											'bulk'   => __( 'Bulk', 'nuclear-engagement' ),
@@ -172,6 +173,13 @@ $pagination       = $data['pagination'] ?? array();
 													data-task-id="<?php echo esc_attr( $task['id'] ); ?>"
 													title="<?php esc_attr_e( 'Cancel this task', 'nuclear-engagement' ); ?>">
 												<?php esc_html_e( 'Cancel', 'nuclear-engagement' ); ?>
+											</button>
+										<?php elseif ( $task['status'] === 'failed' || $task['status'] === 'cancelled' ) : ?>
+											<button type="button" 
+													class="button button-small nuclen-retry" 
+													data-task-id="<?php echo esc_attr( $task['id'] ); ?>"
+													title="<?php esc_attr_e( 'Retry this task', 'nuclear-engagement' ); ?>">
+												<?php esc_html_e( 'Retry', 'nuclear-engagement' ); ?>
 											</button>
 										<?php else : ?>
 											<span class="nuclen-no-actions">—</span>

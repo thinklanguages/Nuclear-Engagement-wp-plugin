@@ -120,7 +120,7 @@ final class BackgroundProcessor {
 		}
 
 		// Prevent overlapping job processing with distributed lock.
-		$lock_name = 'job_processing';
+		$lock_name  = 'job_processing';
 		$lock_value = wp_generate_uuid4();
 
 		// Use distributed lock for multi-server support
@@ -141,7 +141,7 @@ final class BackgroundProcessor {
 		try {
 			$jobs      = JobQueue::get_ready_jobs();
 			$processed = 0;
-			
+
 			// Dynamically adjust concurrent jobs based on memory
 			$max_jobs = self::calculate_max_concurrent_jobs();
 
@@ -166,12 +166,12 @@ final class BackgroundProcessor {
 
 				// Monitor job memory usage
 				PerformanceMonitor::start( 'job_' . $job['id'] );
-				
+
 				try {
 					JobHandler::process_job( $job );
 				} finally {
 					PerformanceMonitor::stop( 'job_' . $job['id'] );
-					
+
 					// Log memory usage for this job
 					$metrics = PerformanceMonitor::getMetrics( 'job_' . $job['id'] );
 					if ( $metrics && $metrics['memory_usage'] > 10 * 1024 * 1024 ) { // More than 10MB
@@ -184,9 +184,9 @@ final class BackgroundProcessor {
 						);
 					}
 				}
-				
+
 				++$processed;
-				
+
 				// Force garbage collection after memory-intensive jobs
 				if ( $metrics && $metrics['memory_usage'] > 50 * 1024 * 1024 ) { // More than 50MB
 					if ( function_exists( 'gc_collect_cycles' ) ) {
@@ -206,19 +206,19 @@ final class BackgroundProcessor {
 	 */
 	private static function calculate_max_concurrent_jobs(): int {
 		$memory_usage = PerformanceMonitor::getMemoryUsage();
-		
+
 		// If unlimited memory, use default
 		if ( $memory_usage['limit'] < 0 ) {
 			return self::MAX_CONCURRENT_JOBS;
 		}
-		
+
 		// Reduce concurrent jobs if memory usage is high
 		if ( $memory_usage['percentage'] > 60 ) {
 			return 1;
 		} elseif ( $memory_usage['percentage'] > 40 ) {
 			return 2;
 		}
-		
+
 		return self::MAX_CONCURRENT_JOBS;
 	}
 
@@ -241,7 +241,6 @@ final class BackgroundProcessor {
 	public static function get_statistics(): array {
 		return JobQueue::get_statistics();
 	}
-
 }
 
 /**

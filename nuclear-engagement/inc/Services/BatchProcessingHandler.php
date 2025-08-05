@@ -74,8 +74,7 @@ class BatchProcessingHandler {
 		add_action( 'nuclen_check_batch_queue', array( __CLASS__, 'check_batch_queue_hook' ) );
 		add_action( 'nuclen_check_task_completion', array( __CLASS__, 'check_task_completion_hook' ) );
 		add_action( 'nuclen_recheck_batch_counts', array( __CLASS__, 'recheck_batch_counts_hook' ), 10, 2 );
-		add_action( 'nuclen_check_stuck_tasks', array( __CLASS__, 'check_stuck_tasks_hook' ) );
-		
+
 		// Add custom cron schedules
 		add_filter( 'cron_schedules', array( __CLASS__, 'add_cron_schedules' ) );
 
@@ -83,15 +82,10 @@ class BatchProcessingHandler {
 		if ( ! wp_next_scheduled( 'nuclen_cleanup_old_batches' ) ) {
 			wp_schedule_event( time(), 'daily', 'nuclen_cleanup_old_batches' );
 		}
-		
-		// Schedule stuck task check every 5 minutes
-		if ( ! wp_next_scheduled( 'nuclen_check_stuck_tasks' ) ) {
-			wp_schedule_event( time() + 300, 'nuclen_five_minutes', 'nuclen_check_stuck_tasks' );
-		}
 
 		self::$hooks_registered = true;
 	}
-	
+
 	/**
 	 * Add custom cron schedules
 	 *
@@ -169,6 +163,14 @@ class BatchProcessingHandler {
 			if ( is_array( $existing ) && isset( $existing['time'] ) &&
 				( time() - $existing['time'] ) > 300 ) { // 5 minute timeout
 				// Force update expired lock
+				\NuclearEngagement\Services\LoggingService::log(
+					sprintf(
+						'[BatchProcessingHandler::process_batch] Acquiring expired lock for batch %s (locked %d seconds ago)',
+						$batch_id,
+						time() - $existing['time']
+					),
+					'warning'
+				);
 				update_option(
 					$lock_option,
 					array(
@@ -197,7 +199,6 @@ class BatchProcessingHandler {
 				return;
 			}
 
-
 			if ( $batch_data['status'] !== 'pending' ) {
 				return;
 			}
@@ -206,17 +207,17 @@ class BatchProcessingHandler {
 			$parent_data = null;
 			if ( isset( $batch_data['parent_id'] ) && ! empty( $batch_data['parent_id'] ) ) {
 				$parent_data = TaskTransientManager::get_task_transient( $batch_data['parent_id'] );
-				
+
 				// Skip if parent task has been cancelled
 				if ( $parent_data && isset( $parent_data['status'] ) && $parent_data['status'] === 'cancelled' ) {
 					\NuclearEngagement\Services\LoggingService::log(
 						sprintf( '[BatchProcessingHandler::process_batch] Skipping batch %s - parent task %s is cancelled', $batch_id, $batch_data['parent_id'] ),
 						'info'
 					);
-					
+
 					// Update batch status to cancelled to prevent rescheduling
 					$this->batchProcessor->update_batch_status( $batch_id, 'cancelled' );
-					
+
 					return;
 				}
 			}
@@ -227,7 +228,7 @@ class BatchProcessingHandler {
 			try {
 				// Update status to processing
 				$this->batchProcessor->update_batch_status( $batch_id, 'processing' );
-				
+
 				// Update parent task status from scheduled to processing if it hasn't been updated yet
 				// (This is a fallback in case the status wasn't updated during scheduling)
 				if ( $parent_data && isset( $parent_data['status'] ) && $parent_data['status'] === 'scheduled' ) {
@@ -237,18 +238,18 @@ class BatchProcessingHandler {
 							$batch_data['parent_id']
 						)
 					);
-					
-					$parent_data['status'] = 'processing';
+
+					$parent_data['status']     = 'processing';
 					$parent_data['started_at'] = time();
 					TaskTransientManager::set_task_transient( $batch_data['parent_id'], $parent_data, DAY_IN_SECONDS );
-					
+
 					// Update task index
 					$container = \NuclearEngagement\Core\ServiceContainer::getInstance();
 					if ( $container->has( 'task_index_service' ) ) {
 						$index_service = $container->get( 'task_index_service' );
 						$index_service->update_task_status( $batch_data['parent_id'], 'processing', array( 'started_at' => time() ) );
 					}
-					
+
 					// Clear tasks cache to reflect updates immediately
 					if ( class_exists( '\NuclearEngagement\Admin\Tasks' ) ) {
 						\NuclearEngagement\Admin\Tasks::clear_tasks_cache();
@@ -280,15 +281,62 @@ class BatchProcessingHandler {
 					$batch_data['posts']
 				);
 
-				// Send batch to API
-				$result = $this->api->send_posts_to_generate(
-					array(
-						'posts'         => $batch_data['posts'],
-						'workflow'      => $batch_data['workflow'],
-						'generation_id' => $batch_id,
+				// Set maximum execution time for this request
+				$original_max_time = ini_get( 'max_execution_time' );
+				if ( $original_max_time !== false && intval( $original_max_time ) < 120 ) {
+					@set_time_limit( 120 ); // 2 minutes should be enough for API call + processing
+				}
+
+				// Log start of API call
+				$api_start_time = microtime( true );
+				\NuclearEngagement\Services\LoggingService::log(
+					sprintf(
+						'[BatchProcessingHandler::process_batch] Starting API call for batch %s with %d posts',
+						$batch_id,
+						count( $batch_data['posts'] )
 					)
 				);
 
+				// Send batch to API with timeout monitoring
+				try {
+					$result = $this->api->send_posts_to_generate(
+						array(
+							'posts'         => $batch_data['posts'],
+							'workflow'      => $batch_data['workflow'],
+							'generation_id' => $batch_id,
+						)
+					);
+
+					// Log successful API call
+					$api_duration = microtime( true ) - $api_start_time;
+					\NuclearEngagement\Services\LoggingService::log(
+						sprintf(
+							'[BatchProcessingHandler::process_batch] API call completed for batch %s in %.2f seconds',
+							$batch_id,
+							$api_duration
+						)
+					);
+				} catch ( \Throwable $api_error ) {
+					// Log API error with duration
+					$api_duration = microtime( true ) - $api_start_time;
+					\NuclearEngagement\Services\LoggingService::log(
+						sprintf(
+							'[BatchProcessingHandler::process_batch] API call failed for batch %s after %.2f seconds: %s',
+							$batch_id,
+							$api_duration,
+							$api_error->getMessage()
+						),
+						'error'
+					);
+
+					// Re-throw to be handled by outer catch block
+					throw $api_error;
+				} finally {
+					// Restore original max execution time
+					if ( $original_max_time !== false ) {
+						@set_time_limit( intval( $original_max_time ) );
+					}
+				}
 
 				// Store generation ID for polling if needed
 				if ( isset( $result['generation_id'] ) ) {
@@ -305,7 +353,6 @@ class BatchProcessingHandler {
 					$batch_data['api_generation_id'] = $result['generation_id'];
 					TaskTransientManager::set_batch_transient( $batch_id, $batch_data, DAY_IN_SECONDS );
 
-
 					// Schedule polling for this batch
 					if ( ! wp_next_scheduled( 'nuclen_poll_batch', array( $batch_id ) ) ) {
 							wp_schedule_single_event(
@@ -313,11 +360,11 @@ class BatchProcessingHandler {
 								'nuclen_poll_batch',
 								array( $batch_id )
 							);
-							
+
 							// Force immediate cron spawn to process the scheduled event
-							if ( ! defined( 'DOING_CRON' ) ) {
-								spawn_cron();
-							}
+						if ( ! defined( 'DOING_CRON' ) ) {
+							spawn_cron();
+						}
 					}
 				} else {
 					\NuclearEngagement\Services\LoggingService::log(
@@ -459,7 +506,6 @@ class BatchProcessingHandler {
 					$total_success += $success_count;
 					$total_fail    += $fail_count;
 
-
 					// Free memory after each chunk
 					unset( $chunk );
 
@@ -485,7 +531,6 @@ class BatchProcessingHandler {
 					'processed_count' => count( $results ),
 				)
 			);
-
 
 			// Next batch scheduling is handled by BulkGenerationBatchProcessor::update_batch_status
 		} catch ( \Throwable $e ) {
@@ -526,7 +571,6 @@ class BatchProcessingHandler {
 			return;
 		}
 
-
 		if ( ! isset( $batch_data['api_generation_id'] ) ) {
 			\NuclearEngagement\Services\LoggingService::log(
 				sprintf( '[BatchProcessingHandler::poll_batch] ERROR: No api_generation_id in batch data for %s', $batch_id ),
@@ -550,7 +594,6 @@ class BatchProcessingHandler {
 		try {
 
 			$updates = $api->fetch_updates( $batch_data['api_generation_id'] );
-
 
 			// Store partial results without marking batch as complete
 			if ( ! empty( $updates['results'] ) && is_array( $updates['results'] ) ) {
@@ -607,11 +650,6 @@ class BatchProcessingHandler {
 
 					// Mark task as completed for timeout tracking
 					do_action( 'nuclen_task_completed', $batch_id );
-					
-					// Force parent task completion check to prevent stuck tasks
-					if ( isset( $batch_data['parent_id'] ) && ! empty( $batch_data['parent_id'] ) ) {
-						$batchProcessor->force_task_completion_check( $batch_data['parent_id'] );
-					}
 				} else {
 					\NuclearEngagement\Services\LoggingService::log(
 						sprintf( '[BatchProcessingHandler::poll_batch] ERROR: Batch %s marked as complete but no results found', $batch_id ),
@@ -631,7 +669,7 @@ class BatchProcessingHandler {
 				\NuclearEngagement\Services\LoggingService::log(
 					sprintf( '[BatchProcessingHandler::poll_batch] Batch %s still processing, scheduled next poll in 30 seconds', $batch_id )
 				);
-				
+
 				// Force immediate cron spawn to process the scheduled event
 				if ( ! defined( 'DOING_CRON' ) ) {
 					spawn_cron();
@@ -656,7 +694,7 @@ class BatchProcessingHandler {
 				\NuclearEngagement\Services\LoggingService::log(
 					sprintf( '[BatchProcessingHandler::poll_batch] Poll failed with retryable error for batch %s, rescheduling in 60 seconds', $batch_id )
 				);
-				
+
 				// Force immediate cron spawn to process the scheduled event
 				if ( ! defined( 'DOING_CRON' ) ) {
 					spawn_cron();
@@ -725,7 +763,6 @@ class BatchProcessingHandler {
 		$message     = strtolower( $e->getMessage() );
 		$error_class = get_class( $e );
 
-
 		// Network/timeout errors are retryable
 		if ( strpos( $message, 'timeout' ) !== false ||
 			strpos( $message, 'timed out' ) !== false ||
@@ -763,30 +800,8 @@ class BatchProcessingHandler {
 	 * @param string $task_id Task ID to check
 	 */
 	public static function check_task_completion_hook( string $task_id ): void {
+		// Task completion is handled automatically when batches complete
+		return;
+	}
 
-		$settings = SettingsRepository::get_instance();
-		$batchProcessor = new BulkGenerationBatchProcessor( $settings );
-		
-		// Force check the task completion
-		$completed = $batchProcessor->force_task_completion_check( $task_id );
-		
-		if ( $completed ) {
-			\NuclearEngagement\Services\LoggingService::log(
-				sprintf( '[BatchProcessingHandler::check_task_completion_hook] Task %s was successfully marked as completed', $task_id )
-			);
-		} else {
-			\NuclearEngagement\Services\LoggingService::log(
-				sprintf( '[BatchProcessingHandler::check_task_completion_hook] Task %s is not yet ready for completion', $task_id )
-			);
-		}
-	}
-	
-	/**
-	 * Hook handler for checking stuck tasks
-	 */
-	public static function check_stuck_tasks_hook(): void {
-		$settings = SettingsRepository::get_instance();
-		$batchProcessor = new BulkGenerationBatchProcessor( $settings );
-		$batchProcessor->check_and_recover_stuck_tasks();
-	}
 }

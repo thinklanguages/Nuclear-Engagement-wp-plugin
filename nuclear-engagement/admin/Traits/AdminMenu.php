@@ -85,7 +85,6 @@ trait AdminMenu {
 			'nuclear-engagement-setup',
 			array( $this, 'nuclen_display_setup_page' )
 		);
-
 	}
 
 	/** Dashboard page callback */
@@ -195,5 +194,4 @@ trait AdminMenu {
 		$tasks = new \NuclearEngagement\Admin\Tasks( $settings_repo, $container );
 		$tasks->render();
 	}
-
 }

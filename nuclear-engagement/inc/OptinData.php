@@ -196,7 +196,7 @@ class OptinData {
 			wp_send_json_error( array( 'message' => __( 'Please enter your name.', 'nuclear-engagement' ) ), 400 );
 			return;
 		}
-		
+
 		if ( mb_strlen( $name ) > 100 ) {
 			wp_send_json_error( array( 'message' => __( 'Name is too long. Please use less than 100 characters.', 'nuclear-engagement' ) ), 400 );
 			return;
@@ -207,7 +207,7 @@ class OptinData {
 			wp_send_json_error( array( 'message' => __( 'Invalid submission URL.', 'nuclear-engagement' ) ), 400 );
 			return;
 		}
-		
+
 		$site_url = get_site_url();
 		if ( strpos( $url, $site_url ) !== 0 ) {
 			LoggingService::log( '[OptinData] Invalid URL domain submitted: ' . $url );

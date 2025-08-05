@@ -91,7 +91,7 @@ trait ConsolidatedSettingsPageTrait {
 				'error'
 			);
 			\NuclearEngagement\Services\LoggingService::log_exception( $e );
-			
+
 			// Use generic error message to avoid exposing internal details
 			if ( $e instanceof \NuclearEngagement\Exceptions\UserFriendlyException ) {
 				$this->add_admin_notice( 'Error saving settings: ' . $e->getMessage(), 'error' );
@@ -409,9 +409,9 @@ trait ConsolidatedSettingsPageTrait {
 			}
 
 			// Write CSS file with atomic operation.
-			$temp_file = $css_file_path . '.tmp';
+			$temp_file     = $css_file_path . '.tmp';
 			$bytes_written = file_put_contents( $temp_file, $css_content, LOCK_EX );
-			
+
 			if ( $bytes_written === false ) {
 				\NuclearEngagement\Services\LoggingService::log(
 					sprintf( '[ERROR] Failed to write CSS temp file: %s', $temp_file ),
@@ -419,7 +419,7 @@ trait ConsolidatedSettingsPageTrait {
 				);
 				return false;
 			}
-			
+
 			if ( ! rename( $temp_file, $css_file_path ) ) {
 				\NuclearEngagement\Services\LoggingService::log(
 					sprintf( '[ERROR] Failed to rename CSS file from %s to %s', $temp_file, $css_file_path ),
@@ -429,7 +429,7 @@ trait ConsolidatedSettingsPageTrait {
 				@unlink( $temp_file );
 				return false;
 			}
-			
+
 			\NuclearEngagement\Services\LoggingService::log(
 				sprintf( '[INFO] Successfully wrote CSS file: %s (%d bytes)', $css_file_path, $bytes_written )
 			);
@@ -441,7 +441,7 @@ trait ConsolidatedSettingsPageTrait {
 				'error'
 			);
 			\NuclearEngagement\Services\LoggingService::log_exception( $e );
-			
+
 			// Fire action hook to allow error recovery
 			do_action( 'nuclen_css_generation_failed', $settings, $e );
 			return false;

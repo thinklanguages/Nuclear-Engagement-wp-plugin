@@ -32,7 +32,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 class GenerateController extends BaseController {
 	/**
 	 * The generation service instance.
-	 * 
+	 *
 	 * @var GenerationService
 	 */
 	private GenerationService $service;

@@ -141,15 +141,15 @@ class CacheManager {
 	 */
 	private function get_cache_key( PostsCountRequest $request ): string {
 		$data = array(
-			'post_type' => $request->postType,
-			'post_status' => $request->postStatus,
-			'category_id' => $request->categoryId,
-			'author_id' => $request->authorId,
-			'allow_regenerate' => $request->allowRegenerate ? 1 : 0,
+			'post_type'            => $request->postType,
+			'post_status'          => $request->postStatus,
+			'category_id'          => $request->categoryId,
+			'author_id'            => $request->authorId,
+			'allow_regenerate'     => $request->allowRegenerate ? 1 : 0,
 			'regenerate_protected' => $request->regenerateProtected ? 1 : 0,
-			'workflow' => $request->workflow,
-			'version' => $this->get_cache_version(),
-			'blog_id' => get_current_blog_id(),
+			'workflow'             => $request->workflow,
+			'version'              => $this->get_cache_version(),
+			'blog_id'              => get_current_blog_id(),
 		);
 
 		// Use CacheUtils for secure key generation

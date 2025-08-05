@@ -38,7 +38,7 @@ class AdminNoticeService {
 	public function __construct() {
 		\add_action( 'admin_notices', array( $this, 'display_notices' ) );
 		\add_action( 'wp_ajax_nuclen_dismiss_notice', array( $this, 'ajax_dismiss_notice' ) );
-		
+
 		// Clean up any empty notices on admin init
 		\add_action( 'admin_init', array( $this, 'cleanup_empty_notices' ) );
 	}
@@ -53,7 +53,7 @@ class AdminNoticeService {
 		if ( empty( trim( $message ) ) ) {
 			return;
 		}
-		
+
 		$this->messages[] = $message;
 		if ( count( $this->messages ) === 1 ) {
 			add_action( 'admin_notices', array( $this, 'render' ) );
@@ -347,10 +347,10 @@ class AdminNoticeService {
 				$cleaned = true;
 				continue;
 			}
-			
+
 			// Remove 0-post generation notices
 			if ( strpos( $notice['message'], 'Generated quizzes for 0 posts' ) !== false ||
-			     strpos( $notice['message'], 'Generated summaries for 0 posts' ) !== false ) {
+				strpos( $notice['message'], 'Generated summaries for 0 posts' ) !== false ) {
 				unset( $notices[ $id ] );
 				$cleaned = true;
 			}

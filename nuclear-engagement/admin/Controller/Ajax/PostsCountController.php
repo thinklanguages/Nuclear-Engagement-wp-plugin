@@ -30,7 +30,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 class PostsCountController extends BaseController {
 	/**
 	 * The posts query service instance.
-	 * 
+	 *
 	 * @var PostsQueryService
 	 */
 	private PostsQueryService $service;

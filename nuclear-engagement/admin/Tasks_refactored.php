@@ -47,9 +47,9 @@ class Tasks {
 	public function __construct( SettingsRepository $settings_repo, ServiceContainer $container ) {
 		$this->settings_repo = $settings_repo;
 		$this->container     = $container;
-		
+
 		// Initialize handlers
-		$this->dataGatherer = new TaskDataGatherer( $container );
+		$this->dataGatherer  = new TaskDataGatherer( $container );
 		$this->actionHandler = new TaskActionHandler( $container );
 	}
 
@@ -248,7 +248,7 @@ class TaskActionHandler {
 	 */
 	private function extractPostIdsFromBatches( array $batch_jobs ): array {
 		$all_post_ids = array();
-		
+
 		foreach ( $batch_jobs as $batch ) {
 			$batch_info = get_transient( 'nuclen_batch_' . $batch['batch_id'] );
 			if ( $batch_info && isset( $batch_info['posts'] ) ) {
@@ -261,7 +261,7 @@ class TaskActionHandler {
 				}
 			}
 		}
-		
+
 		return $all_post_ids;
 	}
 
@@ -350,8 +350,8 @@ class TaskDataGatherer {
 	private TaskCacheHandler $cacheHandler;
 
 	public function __construct( ServiceContainer $container ) {
-		$this->container = $container;
-		$this->formatter = new TaskFormatter();
+		$this->container    = $container;
+		$this->formatter    = new TaskFormatter();
 		$this->cacheHandler = new TaskCacheHandler();
 	}
 
@@ -361,7 +361,7 @@ class TaskDataGatherer {
 	public function gatherData(): array {
 		// Check and recover stuck tasks first
 		$this->recoverStuckTasks();
-		
+
 		// Get current page
 		$current_page = isset( $_GET['paged'] ) ? max( 1, intval( $_GET['paged'] ) ) : 1;
 
@@ -415,7 +415,7 @@ class TaskDataGatherer {
 		}
 
 		$data['generation_tasks'] = $tasks;
-		$data['pagination'] = array(
+		$data['pagination']       = array(
 			'total'        => $result['total'],
 			'current_page' => $result['page'],
 			'total_pages'  => $result['total_pages'],
@@ -433,20 +433,23 @@ class TaskDataGatherer {
 		$cached_data = $this->cacheHandler->getCachedData( $current_page );
 		if ( $cached_data ) {
 			$data['generation_tasks'] = $cached_data['tasks'];
-			$data['pagination'] = $cached_data['pagination'];
+			$data['pagination']       = $cached_data['pagination'];
 			return $data;
 		}
 
 		// Get tasks from database
 		$db_results = $this->queryTasksFromDatabase( $current_page );
-		
+
 		// Process tasks
 		$tasks = $this->processTaskResults( $db_results['jobs'] );
 
 		// Sort by created_at descending
-		usort( $tasks, function ( $a, $b ) {
-			return $b['created_at'] - $a['created_at'];
-		} );
+		usort(
+			$tasks,
+			function ( $a, $b ) {
+				return $b['created_at'] - $a['created_at'];
+			}
+		);
 
 		$data['generation_tasks'] = $tasks;
 
@@ -501,7 +504,7 @@ class TaskDataGatherer {
 
 		return array(
 			'total' => $total_count,
-			'jobs' => $bulk_jobs
+			'jobs'  => $bulk_jobs,
 		);
 	}
 
@@ -544,17 +547,17 @@ class TaskDataGatherer {
 		$progress_data = $this->calculateTaskProgress( $job_data );
 
 		return array(
-			'id'             => $generation_id,
-			'created_at'     => $job_data['created_at'] ?? 0,
-			'scheduled_at'   => $job_data['scheduled_at'] ?? null,
-			'workflow_type'  => $job_data['workflow_type'] ?? 'unknown',
-			'status'         => $job_data['status'] ?? 'unknown',
-			'total_posts'    => $job_data['total_posts'] ?? 0,
-			'processed'      => $progress_data['processed'],
-			'failed'         => $progress_data['failed'],
-			'progress'       => $progress_data['progress'],
-			'action'         => $job_data['action'] ?? 'bulk',
-			'details'        => sprintf(
+			'id'            => $generation_id,
+			'created_at'    => $job_data['created_at'] ?? 0,
+			'scheduled_at'  => $job_data['scheduled_at'] ?? null,
+			'workflow_type' => $job_data['workflow_type'] ?? 'unknown',
+			'status'        => $job_data['status'] ?? 'unknown',
+			'total_posts'   => $job_data['total_posts'] ?? 0,
+			'processed'     => $progress_data['processed'],
+			'failed'        => $progress_data['failed'],
+			'progress'      => $progress_data['progress'],
+			'action'        => $job_data['action'] ?? 'bulk',
+			'details'       => sprintf(
 				__( '%1$d of %2$d posts successfully processed', 'nuclear-engagement' ),
 				$progress_data['processed'],
 				$job_data['total_posts'] ?? 0
@@ -566,19 +569,19 @@ class TaskDataGatherer {
 	 * Calculate task progress
 	 */
 	private function calculateTaskProgress( array $job_data ): array {
-		$processed = 0;
-		$failed = 0;
+		$processed           = 0;
+		$failed              = 0;
 		$batches_with_counts = 0;
-		$total_batches = $job_data['total_batches'] ?? 0;
-		$total_posts = $job_data['total_posts'] ?? 0;
+		$total_batches       = $job_data['total_batches'] ?? 0;
+		$total_posts         = $job_data['total_posts'] ?? 0;
 
 		if ( isset( $job_data['batch_jobs'] ) ) {
 			foreach ( $job_data['batch_jobs'] as $batch_job ) {
 				$batch_progress = $this->calculateBatchProgress( $batch_job );
-				$processed += $batch_progress['processed'];
-				$failed += $batch_progress['failed'];
+				$processed     += $batch_progress['processed'];
+				$failed        += $batch_progress['failed'];
 				if ( $batch_progress['has_counts'] ) {
-					$batches_with_counts++;
+					++$batches_with_counts;
 				}
 			}
 		}
@@ -604,28 +607,32 @@ class TaskDataGatherer {
 	private function calculateBatchProgress( array $batch_job ): array {
 		$batch_data = get_transient( 'nuclen_batch_' . $batch_job['batch_id'] );
 		if ( ! $batch_data ) {
-			return array( 'processed' => 0, 'failed' => 0, 'has_counts' => false );
+			return array(
+				'processed'  => 0,
+				'failed'     => 0,
+				'has_counts' => false,
+			);
 		}
 
-		$processed = 0;
-		$failed = 0;
+		$processed  = 0;
+		$failed     = 0;
 		$has_counts = false;
 
 		// Check for success counts
 		if ( isset( $batch_data['success_count'] ) ) {
-			$processed = $batch_data['success_count'];
+			$processed  = $batch_data['success_count'];
 			$has_counts = true;
 		} elseif ( isset( $batch_data['results']['success_count'] ) ) {
-			$processed = $batch_data['results']['success_count'];
+			$processed  = $batch_data['results']['success_count'];
 			$has_counts = true;
 		}
 
 		// Check for failure counts
 		if ( isset( $batch_data['fail_count'] ) ) {
-			$failed = $batch_data['fail_count'];
+			$failed     = $batch_data['fail_count'];
 			$has_counts = true;
 		} elseif ( isset( $batch_data['results']['fail_count'] ) ) {
-			$failed = $batch_data['results']['fail_count'];
+			$failed     = $batch_data['results']['fail_count'];
 			$has_counts = true;
 		}
 
@@ -666,7 +673,7 @@ class TaskDataGatherer {
 		// Check next scheduled cron run
 		$crons = _get_cron_array();
 		if ( ! empty( $crons ) ) {
-			$next_run = min( array_keys( $crons ) );
+			$next_run           = min( array_keys( $crons ) );
 			$status['next_run'] = $next_run;
 		}
 
@@ -713,19 +720,19 @@ class TaskFormatter {
 	 * Calculate progress for a task
 	 */
 	private function calculateProgress( array $task_data ): array {
-		$processed = 0;
-		$failed = 0;
+		$processed           = 0;
+		$failed              = 0;
 		$batches_with_counts = 0;
-		$total_batches = $task_data['total_batches'] ?? 0;
-		$total_posts = $task_data['total_posts'] ?? 0;
+		$total_batches       = $task_data['total_batches'] ?? 0;
+		$total_posts         = $task_data['total_posts'] ?? 0;
 
 		if ( isset( $task_data['batch_jobs'] ) && is_array( $task_data['batch_jobs'] ) ) {
 			foreach ( $task_data['batch_jobs'] as $batch_job ) {
 				$batch_progress = $this->getBatchProgress( $batch_job );
-				$processed += $batch_progress['processed'];
-				$failed += $batch_progress['failed'];
+				$processed     += $batch_progress['processed'];
+				$failed        += $batch_progress['failed'];
 				if ( $batch_progress['has_counts'] ) {
-					$batches_with_counts++;
+					++$batches_with_counts;
 				}
 			}
 		}
@@ -751,12 +758,20 @@ class TaskFormatter {
 	private function getBatchProgress( array $batch_job ): array {
 		try {
 			if ( ! isset( $batch_job['batch_id'] ) ) {
-				return array( 'processed' => 0, 'failed' => 0, 'has_counts' => false );
+				return array(
+					'processed'  => 0,
+					'failed'     => 0,
+					'has_counts' => false,
+				);
 			}
 
 			$batch_data = \NuclearEngagement\Services\TaskTransientManager::get_batch_transient( $batch_job['batch_id'] );
 			if ( ! $batch_data || ! is_array( $batch_data ) ) {
-				return array( 'processed' => 0, 'failed' => 0, 'has_counts' => false );
+				return array(
+					'processed'  => 0,
+					'failed'     => 0,
+					'has_counts' => false,
+				);
 			}
 
 			return $this->extractBatchCounts( $batch_data );
@@ -764,7 +779,11 @@ class TaskFormatter {
 			\NuclearEngagement\Services\LoggingService::log(
 				sprintf( 'Error getting batch progress for %s: %s', $batch_job['batch_id'] ?? 'unknown', $e->getMessage() )
 			);
-			return array( 'processed' => 0, 'failed' => 0, 'has_counts' => false );
+			return array(
+				'processed'  => 0,
+				'failed'     => 0,
+				'has_counts' => false,
+			);
 		}
 	}
 
@@ -772,25 +791,25 @@ class TaskFormatter {
 	 * Extract batch counts
 	 */
 	private function extractBatchCounts( array $batch_data ): array {
-		$processed = 0;
-		$failed = 0;
+		$processed  = 0;
+		$failed     = 0;
 		$has_counts = false;
 
 		// Check for success counts
 		if ( isset( $batch_data['success_count'] ) ) {
-			$processed = $batch_data['success_count'];
+			$processed  = $batch_data['success_count'];
 			$has_counts = true;
 		} elseif ( isset( $batch_data['results']['success_count'] ) ) {
-			$processed = $batch_data['results']['success_count'];
+			$processed  = $batch_data['results']['success_count'];
 			$has_counts = true;
 		}
 
 		// Check for failure counts
 		if ( isset( $batch_data['fail_count'] ) ) {
-			$failed = $batch_data['fail_count'];
+			$failed     = $batch_data['fail_count'];
 			$has_counts = true;
 		} elseif ( isset( $batch_data['results']['fail_count'] ) ) {
-			$failed = $batch_data['results']['fail_count'];
+			$failed     = $batch_data['results']['fail_count'];
 			$has_counts = true;
 		}
 
@@ -803,7 +822,11 @@ class TaskFormatter {
 			);
 		}
 
-		return array( 'processed' => 0, 'failed' => 0, 'has_counts' => false );
+		return array(
+			'processed'  => 0,
+			'failed'     => 0,
+			'has_counts' => false,
+		);
 	}
 }
 
@@ -815,13 +838,13 @@ class TaskCacheHandler {
 	 * Get cached data
 	 */
 	public function getCachedData( int $current_page ): ?array {
-		$cache_key = 'nuclen_tasks_' . get_current_user_id() . '_page_' . $current_page;
+		$cache_key    = 'nuclen_tasks_' . get_current_user_id() . '_page_' . $current_page;
 		$cached_tasks = wp_cache_get( $cache_key );
-		
+
 		if ( false !== $cached_tasks && isset( $cached_tasks['tasks'] ) && isset( $cached_tasks['pagination'] ) ) {
 			return $cached_tasks;
 		}
-		
+
 		return null;
 	}
 
@@ -829,7 +852,7 @@ class TaskCacheHandler {
 	 * Cache data
 	 */
 	public function cacheData( int $current_page, array $tasks, array $pagination ): void {
-		$cache_key = 'nuclen_tasks_' . get_current_user_id() . '_page_' . $current_page;
+		$cache_key  = 'nuclen_tasks_' . get_current_user_id() . '_page_' . $current_page;
 		$cache_data = array(
 			'tasks'      => $tasks,
 			'pagination' => $pagination,

@@ -166,7 +166,6 @@ class HealthCheckService {
 			}
 		);
 
-
 		// Memory usage check
 		$this->register_check(
 			'memory_usage',
@@ -362,7 +361,7 @@ class HealthCheckService {
 	 * @return \WP_REST_Response
 	 */
 	public static function rest_health_check( \WP_REST_Request $request ): \WP_REST_Response {
-		$container = \NuclearEngagement\Core\ServiceContainer::getInstance();
+		$container      = \NuclearEngagement\Core\ServiceContainer::getInstance();
 		$health_service = $container->get( 'health_check_service' );
 
 		$use_cache = $request->get_param( 'refresh' ) !== '1';
@@ -379,7 +378,7 @@ class HealthCheckService {
 			return;
 		}
 
-		$container = \NuclearEngagement\Core\ServiceContainer::getInstance();
+		$container      = \NuclearEngagement\Core\ServiceContainer::getInstance();
 		$health_service = $container->get( 'health_check_service' );
 		$status         = $health_service->get_status();
 

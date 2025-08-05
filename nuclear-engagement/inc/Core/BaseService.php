@@ -43,7 +43,7 @@ abstract class BaseService {
 	 * Constructor.
 	 */
 	public function __construct() {
-		$this->service_name  = $this->get_service_name();
+		$this->service_name = $this->get_service_name();
 	}
 
 	/**

@@ -42,7 +42,7 @@ final class DataSanitizer {
 				$data->$key = self::sanitize_for_js( $value );
 			}
 		}
-		
+
 		return $data;
 	}
 
@@ -54,11 +54,11 @@ final class DataSanitizer {
 	 */
 	public static function prepare_for_localize( array $data ): array {
 		$sanitized = array();
-		
+
 		foreach ( $data as $key => $value ) {
 			// Sanitize the key
 			$safe_key = sanitize_key( $key );
-			
+
 			// Sanitize the value based on type
 			if ( is_bool( $value ) ) {
 				$sanitized[ $safe_key ] = $value;
@@ -79,7 +79,7 @@ final class DataSanitizer {
 				continue;
 			}
 		}
-		
+
 		return $sanitized;
 	}
 
@@ -95,7 +95,7 @@ final class DataSanitizer {
 		if ( ! preg_match( '/^[a-zA-Z_][a-zA-Z0-9_]*$/', $var_name ) ) {
 			return ''; // Invalid variable name
 		}
-		
+
 		// Handle different value types
 		if ( is_bool( $value ) ) {
 			$js_value = $value ? 'true' : 'false';
@@ -107,7 +107,7 @@ final class DataSanitizer {
 			// Use wp_json_encode for complex types
 			$js_value = wp_json_encode( $value );
 		}
-		
+
 		return sprintf( 'window.%s = %s;', esc_js( $var_name ), $js_value );
 	}
 
@@ -123,7 +123,7 @@ final class DataSanitizer {
 			// Use wp_kses_post by default
 			return wp_kses_post( $html );
 		}
-		
+
 		return wp_kses( $html, $allowed_tags );
 	}
 
@@ -146,7 +146,7 @@ final class DataSanitizer {
 			"script-src 'self' 'nonce-%s' https://*.wordpress.com https://*.wp.com; object-src 'none'; base-uri 'self';",
 			esc_attr( $nonce )
 		);
-		
+
 		header( 'Content-Security-Policy: ' . $csp );
 	}
 }

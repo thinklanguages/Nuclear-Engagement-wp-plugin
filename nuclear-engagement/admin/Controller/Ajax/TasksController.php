@@ -139,10 +139,10 @@ class TasksController extends BaseController {
 				'error'
 			);
 			// Use generic error message to avoid exposing internal details
-			if ($e instanceof \NuclearEngagement\Exceptions\UserFriendlyException) {
+			if ( $e instanceof \NuclearEngagement\Exceptions\UserFriendlyException ) {
 				$this->send_error( $e->getMessage(), $e->getStatusCode() );
 			} else {
-				$this->send_error( __('An error occurred while processing the task. Please try again.', 'nuclear-engagement'), 500 );
+				$this->send_error( __( 'An error occurred while processing the task. Please try again.', 'nuclear-engagement' ), 500 );
 			}
 		}
 	}
@@ -215,10 +215,10 @@ class TasksController extends BaseController {
 				'error'
 			);
 			// Use generic error message to avoid exposing internal details
-			if ($e instanceof \NuclearEngagement\Exceptions\UserFriendlyException) {
+			if ( $e instanceof \NuclearEngagement\Exceptions\UserFriendlyException ) {
 				$this->send_error( $e->getMessage(), $e->getStatusCode() );
 			} else {
-				$this->send_error( __('An error occurred while cancelling the task. Please try again.', 'nuclear-engagement'), 500 );
+				$this->send_error( __( 'An error occurred while cancelling the task. Please try again.', 'nuclear-engagement' ), 500 );
 			}
 		}
 	}
@@ -250,10 +250,10 @@ class TasksController extends BaseController {
 			wp_send_json_success( $status );
 		} catch ( \Exception $e ) {
 			// Use generic error message to avoid exposing internal details
-			if ($e instanceof \NuclearEngagement\Exceptions\UserFriendlyException) {
+			if ( $e instanceof \NuclearEngagement\Exceptions\UserFriendlyException ) {
 				$this->send_error( $e->getMessage(), $e->getStatusCode() );
 			} else {
-				$this->send_error( __('An error occurred while retrieving task status. Please try again.', 'nuclear-engagement'), 500 );
+				$this->send_error( __( 'An error occurred while retrieving task status. Please try again.', 'nuclear-engagement' ), 500 );
 			}
 		}
 	}
@@ -376,7 +376,7 @@ class TasksController extends BaseController {
 
 		$batch_data = TaskTransientManager::get_batch_transient( $task_id );
 		if ( $batch_data ) {
-			$old_status = $batch_data['status'] ?? 'unknown';
+			$old_status           = $batch_data['status'] ?? 'unknown';
 			$batch_data['status'] = 'cancelled';
 			TaskTransientManager::set_batch_transient( $task_id, $batch_data, DAY_IN_SECONDS );
 
@@ -404,7 +404,7 @@ class TasksController extends BaseController {
 
 		$batch_data = TaskTransientManager::get_task_transient( $task_id );
 		if ( $batch_data ) {
-			$old_status = $batch_data['status'] ?? 'unknown';
+			$old_status           = $batch_data['status'] ?? 'unknown';
 			$batch_data['status'] = 'cancelled';
 			TaskTransientManager::set_task_transient( $task_id, $batch_data, DAY_IN_SECONDS );
 
@@ -423,7 +423,7 @@ class TasksController extends BaseController {
 				// Update batch status in the parent data as well
 				$batch['status'] = 'cancelled';
 			}
-			
+
 			// Save the updated batch data back to the transient
 			TaskTransientManager::set_task_transient( $task_id, $batch_data, DAY_IN_SECONDS );
 
@@ -535,13 +535,94 @@ class TasksController extends BaseController {
 			}
 		} catch ( \Exception $e ) {
 			// Use generic error message to avoid exposing internal details
-			if ($e instanceof \NuclearEngagement\Exceptions\UserFriendlyException) {
+			if ( $e instanceof \NuclearEngagement\Exceptions\UserFriendlyException ) {
 				$this->send_error( $e->getMessage(), $e->getStatusCode() );
 			} else {
-				$this->send_error( __('An error occurred while retrieving recent completions. Please try again.', 'nuclear-engagement'), 500 );
+				$this->send_error( __( 'An error occurred while retrieving recent completions. Please try again.', 'nuclear-engagement' ), 500 );
 			}
 		}
 	}
+
+	/**
+	 * Retry a failed task
+	 */
+	public function retry_task(): void {
+		// Custom nonce verification for tasks
+		if ( ! current_user_can( 'manage_options' ) ) {
+			\NuclearEngagement\Services\LoggingService::log(
+				'[TasksController::retry_task] Access denied - insufficient permissions',
+				'warning'
+			);
+			$this->send_error( __( 'Insufficient permissions', 'nuclear-engagement' ), 403 );
+			return;
+		}
+
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Nonce doesn't need sanitization
+		if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( wp_unslash( $_POST['nonce'] ), 'nuclen_task_action' ) ) {
+			\NuclearEngagement\Services\LoggingService::log(
+				'[TasksController::retry_task] Security check failed - invalid nonce',
+				'warning'
+			);
+			$this->send_error( __( 'Security check failed', 'nuclear-engagement' ), 403 );
+			return;
+		}
+
+		$task_id = isset( $_POST['task_id'] ) ? sanitize_text_field( wp_unslash( $_POST['task_id'] ) ) : '';
+		if ( empty( $task_id ) ) {
+			$this->send_error( __( 'Invalid task ID', 'nuclear-engagement' ), 400 );
+			return;
+		}
+
+		$user_id = get_current_user_id();
+		\NuclearEngagement\Services\LoggingService::log(
+			sprintf( '[TasksController::retry_task] Retry task requested for ID: %s by user %d', $task_id, $user_id )
+		);
+
+		try {
+			// Get task data
+			$task_data = TaskTransientManager::get_task_transient( $task_id );
+			if ( ! $task_data || ! in_array( $task_data['status'] ?? '', array( 'failed', 'cancelled' ), true ) ) {
+				throw new \Exception( __( 'Task cannot be retried in its current state.', 'nuclear-engagement' ) );
+			}
+
+			// Reset task status to pending
+			$task_data['status']     = 'pending';
+			$task_data['error']      = null;
+			$task_data['retry_at']   = time();
+			$task_data['retried_by'] = $user_id;
+
+			TaskTransientManager::set_task_transient( $task_id, $task_data, DAY_IN_SECONDS );
+
+			// Update task index if available
+			if ( $this->container->has( 'task_index_service' ) ) {
+				$index_service = $this->container->get( 'task_index_service' );
+				$index_service->update_task_status( $task_id, 'pending' );
+			}
+
+			// Trigger immediate processing
+			if ( $this->container->has( 'bulk_generation_batch_processor' ) ) {
+				$processor = $this->container->get( 'bulk_generation_batch_processor' );
+				$processor->schedule_next_batch( $task_id );
+			}
+
+			\NuclearEngagement\Services\LoggingService::log(
+				sprintf( '[TasksController::retry_task] SUCCESS: Task %s queued for retry', $task_id )
+			);
+
+			wp_send_json_success(
+				array(
+					'message' => sprintf( __( 'Task %s has been queued for retry.', 'nuclear-engagement' ), $task_id ),
+				)
+			);
+		} catch ( \Exception $e ) {
+			\NuclearEngagement\Services\LoggingService::log(
+				sprintf( '[TasksController::retry_task] ERROR: Exception for task %s - %s', $task_id, $e->getMessage() ),
+				'error'
+			);
+			$this->send_error( $e->getMessage(), 400 );
+		}
+	}
+
 
 	/**
 	 * Get all tasks data for refresh
@@ -576,9 +657,9 @@ class TasksController extends BaseController {
 			$tasks_data = array();
 			foreach ( $generation_tasks['tasks'] as $task ) {
 				// Calculate progress and details similar to Tasks.php
-				$progress  = 0;
-				$processed = 0;
-				$failed    = 0;
+				$progress    = 0;
+				$processed   = 0;
+				$failed      = 0;
 				$total_posts = $task['total_posts'] ?? 0;
 
 				if ( isset( $task['batch_jobs'] ) && is_array( $task['batch_jobs'] ) ) {
@@ -632,14 +713,14 @@ class TasksController extends BaseController {
 				);
 
 				$tasks_data[] = array(
-					'id'             => $task['id'],
-					'workflow_type'  => $task['workflow_type'] ?? 'unknown',
-					'status'         => $task['status'] ?? 'pending',
-					'progress'       => $progress,
-					'details'        => $details,
-					'created_at'     => $task['created_at'] ?? '',
-					'scheduled_at'   => $task['scheduled_at'] ?? '',
-					'failed'         => $failed,
+					'id'            => $task['id'],
+					'workflow_type' => $task['workflow_type'] ?? 'unknown',
+					'status'        => $task['status'] ?? 'pending',
+					'progress'      => $progress,
+					'details'       => $details,
+					'created_at'    => $task['created_at'] ?? '',
+					'scheduled_at'  => $task['scheduled_at'] ?? '',
+					'failed'        => $failed,
 				);
 			}
 
@@ -652,10 +733,10 @@ class TasksController extends BaseController {
 			);
 		} catch ( \Exception $e ) {
 			// Use generic error message to avoid exposing internal details
-			if ($e instanceof \NuclearEngagement\Exceptions\UserFriendlyException) {
+			if ( $e instanceof \NuclearEngagement\Exceptions\UserFriendlyException ) {
 				$this->send_error( $e->getMessage(), $e->getStatusCode() );
 			} else {
-				$this->send_error( __('An error occurred while refreshing task data. Please try again.', 'nuclear-engagement'), 500 );
+				$this->send_error( __( 'An error occurred while refreshing task data. Please try again.', 'nuclear-engagement' ), 500 );
 			}
 		}
 	}

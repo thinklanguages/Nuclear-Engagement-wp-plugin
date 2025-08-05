@@ -95,8 +95,8 @@ trait SettingsSanitizeGeneralTrait {
 				$auto_summary = (bool) ( $in['auto_generate_summary_on_publish'] ?? false );
 
 		/* Auto-generation settings */
-		$auto_summary_format = in_array( $in['auto_summary_format'] ?? 'paragraph', array( 'paragraph', 'bullet_list' ), true ) ? $in['auto_summary_format'] : 'paragraph';
-		$auto_summary_length = max( 20, min( 50, (int) ( $in['auto_summary_length'] ?? 30 ) ) );
+		$auto_summary_format          = in_array( $in['auto_summary_format'] ?? 'paragraph', array( 'paragraph', 'bullet_list' ), true ) ? $in['auto_summary_format'] : 'paragraph';
+		$auto_summary_length          = max( 20, min( 50, (int) ( $in['auto_summary_length'] ?? 30 ) ) );
 		$auto_summary_number_of_items = max( 3, min( 7, (int) ( $in['auto_summary_number_of_items'] ?? 5 ) ) );
 
 				/* Attribution */

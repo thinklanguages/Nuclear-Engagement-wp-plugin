@@ -57,6 +57,12 @@ class Tasks {
 		if ( isset( $_GET['refresh'] ) && $_GET['refresh'] === '1' ) {
 			// Clear cache before redirect
 			self::clear_tasks_cache();
+			
+			// Also rebuild task index on refresh to ensure consistency
+			if ( $this->container->has( 'task_index_service' ) ) {
+				$index_service = $this->container->get( 'task_index_service' );
+				$index_service->rebuild_index();
+			}
 
 			// Remove refresh parameter and redirect to avoid re-refresh on page reload
 			$redirect_url = remove_query_arg( 'refresh' );
@@ -92,10 +98,10 @@ class Tasks {
 
 
 	/**
-	 * Handle manual task actions (run now, cancel)
+	 * Handle manual task actions (run now, cancel, recover)
 	 */
 	private function handle_task_actions(): void {
-		if ( ! isset( $_GET['action'] ) || ! isset( $_GET['task_id'] ) ) {
+		if ( ! isset( $_GET['action'] ) ) {
 			return;
 		}
 
@@ -104,16 +110,23 @@ class Tasks {
 			wp_die( __( 'Security check failed.', 'nuclear-engagement' ) );
 		}
 
-		$action  = sanitize_text_field( $_GET['action'] );
-		$task_id = sanitize_text_field( $_GET['task_id'] );
+		$action = sanitize_text_field( $_GET['action'] );
 
-		switch ( $action ) {
-			case 'run_now':
-				$this->run_task_now( $task_id );
-				break;
-			case 'cancel':
-				$this->cancel_task( $task_id );
-				break;
+		if ( isset( $_GET['task_id'] ) ) {
+			// Handle individual task actions
+			$task_id = sanitize_text_field( $_GET['task_id'] );
+
+			switch ( $action ) {
+				case 'run_now':
+					$this->run_task_now( $task_id );
+					break;
+				case 'cancel':
+					$this->cancel_task( $task_id );
+					break;
+				case 'retry':
+					$this->retry_task( $task_id );
+					break;
+			}
 		}
 
 		// Clear cache after any action
@@ -169,6 +182,49 @@ class Tasks {
 			}
 		}
 	}
+
+	/**
+	 * Retry a failed task
+	 */
+	private function retry_task( string $task_id ): void {
+		// Get task data
+		$task_data = \NuclearEngagement\Services\TaskTransientManager::get_task_transient( $task_id );
+		if ( ! $task_data || ! in_array( $task_data['status'] ?? '', array( 'failed', 'cancelled' ), true ) ) {
+			$this->add_admin_notice(
+				__( 'Task cannot be retried in its current state.', 'nuclear-engagement' ),
+				'error'
+			);
+			return;
+		}
+
+		// Reset task status to pending
+		$task_data['status']     = 'pending';
+		$task_data['error']      = null;
+		$task_data['retry_at']   = time();
+		$task_data['retried_by'] = get_current_user_id();
+
+		\NuclearEngagement\Services\TaskTransientManager::set_task_transient( $task_id, $task_data, DAY_IN_SECONDS );
+
+		// Update task index if available
+		if ( $this->container->has( 'task_index_service' ) ) {
+			$index_service = $this->container->get( 'task_index_service' );
+			$index_service->update_task_status( $task_id, 'pending' );
+		}
+
+		// Trigger immediate processing
+		if ( $this->container->has( 'bulk_generation_batch_processor' ) ) {
+			$processor = $this->container->get( 'bulk_generation_batch_processor' );
+			$processor->schedule_next_batch( $task_id );
+		}
+
+		$this->add_admin_notice(
+			sprintf( __( 'Task %s has been queued for retry.', 'nuclear-engagement' ), esc_html( $task_id ) ),
+			'success'
+		);
+	}
+
+
+
 
 	/**
 	 * Cancel a task
@@ -255,12 +311,7 @@ class Tasks {
 	 * Gather all task data
 	 */
 	private function gather_tasks_data(): array {
-		// Check and recover any stuck tasks before displaying
-		if ( $this->container->has( 'bulk_generation_batch_processor' ) ) {
-			$processor = $this->container->get( 'bulk_generation_batch_processor' );
-			$processor->check_and_recover_stuck_tasks();
-		}
-		
+
 		// Get current page
 		$current_page = isset( $_GET['paged'] ) ? max( 1, intval( $_GET['paged'] ) ) : 1;
 
@@ -276,6 +327,14 @@ class Tasks {
 		// Use TaskIndexService for efficient task retrieval
 		if ( $this->container->has( 'task_index_service' ) ) {
 			$index_service = $this->container->get( 'task_index_service' );
+
+			// Clean up orphaned tasks periodically (once per user session)
+			$cleanup_key = 'nuclen_task_cleanup_' . get_current_user_id();
+			if ( false === get_transient( $cleanup_key ) ) {
+				$index_service->cleanup_orphaned_tasks();
+				$index_service->cleanup_batch_tasks();
+				set_transient( $cleanup_key, true, HOUR_IN_SECONDS );
+			}
 
 			// Get filters if any
 			$filters = array();
@@ -294,6 +353,7 @@ class Tasks {
 
 			$data['generation_tasks'] = $tasks;
 			$data['pagination']       = array(
+				'total_items'  => $result['total'],
 				'total'        => $result['total'],
 				'current_page' => $result['page'],
 				'total_pages'  => $result['total_pages'],
@@ -371,11 +431,11 @@ class Tasks {
 			}
 
 			// Calculate progress based on batches with actual result counts
-			$progress  = 0;
-			$processed = 0;
-			$failed    = 0;
+			$progress            = 0;
+			$processed           = 0;
+			$failed              = 0;
 			$batches_with_counts = 0;
-			$total_batches = $job_data['total_batches'] ?? 0;
+			$total_batches       = $job_data['total_batches'] ?? 0;
 
 			if ( isset( $job_data['batch_jobs'] ) ) {
 				foreach ( $job_data['batch_jobs'] as $batch_job ) {
@@ -383,7 +443,7 @@ class Tasks {
 					if ( $batch_data ) {
 						// Check if batch has actual result counts
 						$has_counts = false;
-						
+
 						// Use actual success/fail counts if available
 						if ( isset( $batch_data['success_count'] ) ) {
 							$processed += $batch_data['success_count'];
@@ -392,25 +452,25 @@ class Tasks {
 							$processed += $batch_data['results']['success_count'];
 							$has_counts = true;
 						}
-						
+
 						if ( isset( $batch_data['fail_count'] ) ) {
-							$failed += $batch_data['fail_count'];
+							$failed    += $batch_data['fail_count'];
 							$has_counts = true;
 						} elseif ( isset( $batch_data['results']['fail_count'] ) ) {
-							$failed += $batch_data['results']['fail_count'];
+							$failed    += $batch_data['results']['fail_count'];
 							$has_counts = true;
 						}
-						
+
 						// Only count this batch as complete if it has actual counts
 						if ( $has_counts && in_array( $batch_data['status'] ?? '', array( 'completed', 'failed' ), true ) ) {
-							$batches_with_counts++;
+							++$batches_with_counts;
 						}
 					}
 				}
 			}
 
 			$total_posts = $job_data['total_posts'] ?? 0;
-			
+
 			// Calculate progress based on batches with counts if status is not yet completed
 			if ( in_array( $job_data['status'] ?? '', array( 'processing', 'scheduled', 'pending' ), true ) && $total_batches > 0 ) {
 				// For active tasks, use batch completion ratio to show more accurate progress
@@ -420,19 +480,18 @@ class Tasks {
 				$progress = round( ( $processed / $total_posts ) * 100 );
 			}
 
-
 			$tasks[] = array(
-				'id'             => $generation_id,
-				'created_at'     => $job_data['created_at'] ?? 0,
-				'scheduled_at'   => $job_data['scheduled_at'] ?? null,
-				'workflow_type'  => $job_data['workflow_type'] ?? 'unknown',
-				'status'         => $job_data['status'] ?? 'unknown',
-				'total_posts'    => $total_posts,
-				'processed'      => $processed,
-				'failed'         => $failed,
-				'progress'       => $progress,
-				'action'         => $job_data['action'] ?? 'bulk',
-				'details'        => sprintf(
+				'id'            => $generation_id,
+				'created_at'    => $job_data['created_at'] ?? 0,
+				'scheduled_at'  => $job_data['scheduled_at'] ?? null,
+				'workflow_type' => $job_data['workflow_type'] ?? 'unknown',
+				'status'        => $job_data['status'] ?? 'unknown',
+				'total_posts'   => $total_posts,
+				'processed'     => $processed,
+				'failed'        => $failed,
+				'progress'      => $progress,
+				'action'        => $job_data['action'] ?? 'bulk',
+				'details'       => sprintf(
 					__( '%1$d of %2$d posts successfully processed', 'nuclear-engagement' ),
 					$processed,
 					$total_posts
@@ -482,11 +541,11 @@ class Tasks {
 	 */
 	private function format_task_for_display( array $task_data ): array {
 		// Calculate progress based on batches with actual result counts
-		$progress  = 0;
-		$processed = 0;
-		$failed    = 0;
+		$progress            = 0;
+		$processed           = 0;
+		$failed              = 0;
 		$batches_with_counts = 0;
-		$total_batches = $task_data['total_batches'] ?? 0;
+		$total_batches       = $task_data['total_batches'] ?? 0;
 
 		if ( isset( $task_data['batch_jobs'] ) && is_array( $task_data['batch_jobs'] ) ) {
 			foreach ( $task_data['batch_jobs'] as $batch_job ) {
@@ -499,7 +558,7 @@ class Tasks {
 					if ( $batch_data && is_array( $batch_data ) ) {
 						// Check if batch has actual result counts
 						$has_counts = false;
-						
+
 						// Use actual success/fail counts if available
 						if ( isset( $batch_data['success_count'] ) ) {
 							$processed += $batch_data['success_count'];
@@ -510,16 +569,16 @@ class Tasks {
 						}
 
 						if ( isset( $batch_data['fail_count'] ) ) {
-							$failed += $batch_data['fail_count'];
+							$failed    += $batch_data['fail_count'];
 							$has_counts = true;
 						} elseif ( isset( $batch_data['results']['fail_count'] ) ) {
-							$failed += $batch_data['results']['fail_count'];
+							$failed    += $batch_data['results']['fail_count'];
 							$has_counts = true;
 						}
-						
+
 						// Only count this batch as complete if it has actual counts
 						if ( $has_counts && in_array( $batch_data['status'] ?? '', array( 'completed', 'failed' ), true ) ) {
-							$batches_with_counts++;
+							++$batches_with_counts;
 						}
 					}
 				} catch ( \Throwable $e ) {
@@ -535,7 +594,7 @@ class Tasks {
 		}
 
 		$total_posts = $task_data['total_posts'] ?? 0;
-		
+
 		// Calculate progress based on batches with counts if status is not yet completed
 		if ( in_array( $task_data['status'] ?? '', array( 'processing', 'scheduled', 'pending' ), true ) && $total_batches > 0 ) {
 			// For active tasks, use batch completion ratio to show more accurate progress
@@ -544,7 +603,6 @@ class Tasks {
 			// For completed tasks or as fallback, use post-based progress
 			$progress = round( ( $processed / $total_posts ) * 100 );
 		}
-
 
 		return array(
 			'id'                => $task_data['id'],
@@ -593,6 +651,8 @@ class Tasks {
 
 		return $status;
 	}
+
+
 
 	/**
 	 * Render the tasks view

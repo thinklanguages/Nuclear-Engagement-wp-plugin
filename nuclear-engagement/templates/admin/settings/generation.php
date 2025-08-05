@@ -62,15 +62,15 @@ if ( ! defined( 'ABSPATH' ) ) {
 		<div class="nuclen-column nuclen-input-col">
 			<?php
 			// Set up variables for the partial template
-			$summary_format = $settings['auto_summary_format'] ?? 'paragraph';
-			$summary_length = $settings['auto_summary_length'] ?? 30;
+			$summary_format          = $settings['auto_summary_format'] ?? 'paragraph';
+			$summary_length          = $settings['auto_summary_length'] ?? 30;
 			$summary_number_of_items = $settings['auto_summary_number_of_items'] ?? 5;
-			$field_prefix = 'auto_summary_';
-			$show_labels = true;
-			$use_array_notation = false;
-			
+			$field_prefix            = 'auto_summary_';
+			$show_labels             = true;
+			$use_array_notation      = false;
+
 			// Include the reusable summary format fields template
-			include NUCLEN_PLUGIN_DIR . 'templates/admin/partials/summary-format-fields.php';
+			require NUCLEN_PLUGIN_DIR . 'templates/admin/partials/summary-format-fields.php';
 			?>
 		</div>
 	</div>

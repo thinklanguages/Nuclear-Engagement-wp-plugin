@@ -79,10 +79,10 @@ final class Nuclen_Summary_Metabox {
 
 		$summary = $summary_data['summary'] ?? '';
 		// Clean any TinyMCE bookmarks that might have been saved
-		$summary = preg_replace('/<span[^>]*data-mce-type="bookmark"[^>]*>.*?<\/span>/i', '', $summary);
-		$summary = str_replace('﻿', '', $summary);
-		
-		$date    = $summary_data['date'] ?? '';
+		$summary = preg_replace( '/<span[^>]*data-mce-type="bookmark"[^>]*>.*?<\/span>/i', '', $summary );
+		$summary = str_replace( '﻿', '', $summary );
+
+		$date = $summary_data['date'] ?? '';
 
 				$summary_protected = get_post_meta( $post->ID, Summary_Service::PROTECTED_KEY, true );
 

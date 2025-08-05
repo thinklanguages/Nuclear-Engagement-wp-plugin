@@ -35,7 +35,7 @@ final class ProcessIdentifier {
 	/**
 	 * Get a unique process identifier.
 	 *
-	 * Generates a unique identifier using available PHP functions. 
+	 * Generates a unique identifier using available PHP functions.
 	 * The identifier is cached for the duration of the request to ensure consistency.
 	 *
 	 * @return string The process identifier.
@@ -96,13 +96,13 @@ final class ProcessIdentifier {
 	 */
 	public static function get_debug_info(): array {
 		$identifier = self::get();
-		
+
 		return array(
 			'identifier' => $identifier,
-			'type' => 'generated',
-			'sapi' => php_sapi_name(),
-			'time' => time(),
-			'server' => gethostname() ?: 'unknown',
+			'type'       => 'generated',
+			'sapi'       => php_sapi_name(),
+			'time'       => time(),
+			'server'     => gethostname() ?: 'unknown',
 		);
 	}
 

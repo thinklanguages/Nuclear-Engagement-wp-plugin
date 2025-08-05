@@ -77,7 +77,7 @@ class ContentExtractor {
 	 */
 	private static function extract_elementor_content( int $post_id ): string {
 		$elementor_data = get_post_meta( $post_id, '_elementor_data', true );
-		
+
 		if ( empty( $elementor_data ) ) {
 			return '';
 		}
@@ -102,7 +102,7 @@ class ContentExtractor {
 	 * @return string Concatenated text content.
 	 */
 	private static function extract_text_from_elementor_data( array $elements ): string {
-		$content = '';
+		$content   = '';
 		$extractor = new ElementorWidgetExtractor();
 
 		foreach ( $elements as $element ) {
@@ -132,7 +132,7 @@ class ContentExtractor {
  * Handles extraction of content from different Elementor widget types
  */
 class ElementorWidgetExtractor {
-	
+
 	/**
 	 * @var array Widget extractors mapped by widget type
 	 */
@@ -151,17 +151,17 @@ class ElementorWidgetExtractor {
 	 * @return array
 	 */
 	private function initializeExtractors(): array {
-		return [
-			'text-editor'         => new TextEditorExtractor(),
-			'theme-post-content'  => new TextEditorExtractor(),
-			'heading'             => new HeadingExtractor(),
-			'text'                => new TextExtractor(),
-			'blockquote'          => new BlockquoteExtractor(),
-			'testimonial'         => new TestimonialExtractor(),
-			'icon-list'           => new IconListExtractor(),
-			'accordion'           => new AccordionExtractor(),
-			'toggle'              => new AccordionExtractor(),
-		];
+		return array(
+			'text-editor'        => new TextEditorExtractor(),
+			'theme-post-content' => new TextEditorExtractor(),
+			'heading'            => new HeadingExtractor(),
+			'text'               => new TextExtractor(),
+			'blockquote'         => new BlockquoteExtractor(),
+			'testimonial'        => new TestimonialExtractor(),
+			'icon-list'          => new IconListExtractor(),
+			'accordion'          => new AccordionExtractor(),
+			'toggle'             => new AccordionExtractor(),
+		);
 	}
 
 	/**
@@ -172,7 +172,7 @@ class ElementorWidgetExtractor {
 	 */
 	public function extractFromWidget( array $element ): string {
 		$widget_type = $element['widgetType'] ?? '';
-		$settings = $element['settings'] ?? array();
+		$settings    = $element['settings'] ?? array();
 
 		if ( isset( $this->extractors[ $widget_type ] ) ) {
 			return $this->extractors[ $widget_type ]->extract( $settings );
@@ -228,18 +228,18 @@ class TextExtractor implements WidgetExtractorInterface {
 class BlockquoteExtractor implements WidgetExtractorInterface {
 	public function extract( array $settings ): string {
 		$content = '';
-		
+
 		if ( isset( $settings['text'] ) ) {
 			$content .= $settings['text'];
 		}
-		
+
 		if ( isset( $settings['blockquote_content'] ) ) {
 			if ( ! empty( $content ) ) {
 				$content .= ' ';
 			}
 			$content .= $settings['blockquote_content'];
 		}
-		
+
 		return $content;
 	}
 }
@@ -250,18 +250,18 @@ class BlockquoteExtractor implements WidgetExtractorInterface {
 class TestimonialExtractor implements WidgetExtractorInterface {
 	public function extract( array $settings ): string {
 		$content = '';
-		
+
 		if ( isset( $settings['testimonial_content'] ) ) {
 			$content .= $settings['testimonial_content'];
 		}
-		
+
 		if ( isset( $settings['testimonial_name'] ) ) {
 			if ( ! empty( $content ) ) {
 				$content .= ' ';
 			}
 			$content .= $settings['testimonial_name'];
 		}
-		
+
 		return $content;
 	}
 }
@@ -272,7 +272,7 @@ class TestimonialExtractor implements WidgetExtractorInterface {
 class IconListExtractor implements WidgetExtractorInterface {
 	public function extract( array $settings ): string {
 		$content = '';
-		
+
 		if ( isset( $settings['icon_list'] ) && is_array( $settings['icon_list'] ) ) {
 			$items = array();
 			foreach ( $settings['icon_list'] as $item ) {
@@ -282,7 +282,7 @@ class IconListExtractor implements WidgetExtractorInterface {
 			}
 			$content = implode( ' ', $items );
 		}
-		
+
 		return $content;
 	}
 }
@@ -293,7 +293,7 @@ class IconListExtractor implements WidgetExtractorInterface {
 class AccordionExtractor implements WidgetExtractorInterface {
 	public function extract( array $settings ): string {
 		$content = '';
-		
+
 		if ( isset( $settings['tabs'] ) && is_array( $settings['tabs'] ) ) {
 			$items = array();
 			foreach ( $settings['tabs'] as $tab ) {
@@ -306,7 +306,7 @@ class AccordionExtractor implements WidgetExtractorInterface {
 			}
 			$content = implode( ' ', $items );
 		}
-		
+
 		return $content;
 	}
 }

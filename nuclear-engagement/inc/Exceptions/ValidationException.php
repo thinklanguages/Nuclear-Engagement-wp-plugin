@@ -76,7 +76,7 @@ class ValidationException extends BaseException {
 		if ( ! empty( $this->getMessage() ) ) {
 			return $this->getMessage();
 		}
-		
+
 		// Otherwise, try to build a message from validation errors
 		if ( ! empty( $this->validation_errors ) ) {
 			$messages = array();
@@ -87,7 +87,7 @@ class ValidationException extends BaseException {
 					$messages[] = 'This post appears to be empty. No content can be generated.';
 				}
 			}
-			
+
 			if ( ! empty( $messages ) ) {
 				return implode( ', ', $messages );
 			}

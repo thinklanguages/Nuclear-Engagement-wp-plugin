@@ -55,7 +55,7 @@ trait RestTrait {
 					'error'
 				);
 				\NuclearEngagement\Services\LoggingService::log_exception( $e );
-				
+
 				// Fire action hook to allow error recovery or notification
 				do_action( 'nuclen_quiz_storage_failed', $post_id, $quiz_data, $e );
 				return false;
@@ -78,7 +78,7 @@ trait RestTrait {
 					'error'
 				);
 				\NuclearEngagement\Services\LoggingService::log_exception( $e );
-				
+
 				// Fire action hook to allow error recovery or retry
 				do_action( 'nuclen_api_send_failed', $data_to_send, $e );
 				return false;

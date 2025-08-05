@@ -51,7 +51,7 @@ final class JobQueue {
 			);
 			return $duplicate_id;
 		}
-		
+
 		$job_id = wp_generate_uuid4();
 
 		$job = array(
@@ -110,9 +110,9 @@ final class JobQueue {
 		$processing_count = $wpdb->get_var(
 			"SELECT COUNT(*) FROM {$wpdb->prefix}nuclen_background_jobs WHERE status = 'processing'"
 		);
-		
+
 		$available_slots = self::MAX_CONCURRENT_JOBS - intval( $processing_count );
-		
+
 		if ( $available_slots <= 0 ) {
 			return array();
 		}
@@ -171,10 +171,10 @@ final class JobQueue {
 	 */
 	private static function find_duplicate_job( string $type, array $data ): ?string {
 		global $wpdb;
-		
+
 		// Create a hash of the job data for comparison
 		$data_hash = md5( wp_json_encode( $data ) );
-		
+
 		// Check for existing job with same type and data within last hour
 		$existing_job = $wpdb->get_var(
 			$wpdb->prepare(
@@ -189,10 +189,10 @@ final class JobQueue {
 				time() - 3600 // Within last hour
 			)
 		);
-		
+
 		return $existing_job ?: null;
 	}
-	
+
 	/**
 	 * Store job in database.
 	 *

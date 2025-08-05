@@ -452,6 +452,12 @@ class TasksManager {
         document.querySelectorAll('.nuclen-cancel').forEach(button => {
             button.addEventListener('click', (e) => this.handleCancelTask(e));
         });
+
+        // Handle retry buttons
+        document.querySelectorAll('.nuclen-retry').forEach(button => {
+            button.addEventListener('click', (e) => this.handleRetryTask(e));
+        });
+
     }
 
     private setupRefreshButton(): void {
@@ -602,6 +608,21 @@ class TasksManager {
         await this.executeTaskAction('cancel_task', taskId, button);
     }
 
+    private async handleRetryTask(event: Event): Promise<void> {
+        event.preventDefault();
+        const button = event.currentTarget as HTMLElement;
+        const taskId = button.getAttribute('data-task-id');
+        
+        if (!taskId || this.isProcessing) return;
+        
+        if (!window.confirm('Retry this failed task?')) {
+            return;
+        }
+        
+        await this.executeTaskAction('retry_task', taskId, button);
+    }
+
+
     private async executeTaskAction(action: string, taskId: string, button: HTMLElement): Promise<void> {
         this.isProcessing = true;
         const originalText = button.textContent || '';
@@ -614,8 +635,10 @@ class TasksManager {
             
             if (action === 'run_task') {
                 button.textContent = nuclen_tasks.i18n.processing || 'Processing...';
-            } else {
+            } else if (action === 'cancel_task') {
                 button.textContent = nuclen_tasks.i18n.cancelling || 'Cancelling...';
+            } else if (action === 'retry_task') {
+                button.textContent = 'Retrying...';
             }
 
             // Make AJAX request
@@ -672,6 +695,18 @@ class TasksManager {
                         
                         // Remove from active tasks
                         this.activeTasks.delete(taskId);
+                    } else if (action === 'retry_task') {
+                        // For retry, show pending status
+                        const statusCell = row.querySelector('.column-status');
+                        if (statusCell) {
+                            statusCell.innerHTML = this.getStatusBadge('pending');
+                        }
+                        // Update action buttons to pending state
+                        this.updateActionButtons(row as HTMLElement, 'pending');
+                        
+                        // Track as active task and start polling
+                        this.activeTasks.add(taskId);
+                        this.startSmartPolling();
                     }
                 }
             } else {
@@ -716,34 +751,49 @@ class TasksManager {
         // Clear existing actions
         actionsCell.innerHTML = '';
 
+        const taskId = row.getAttribute('data-task-id');
+        if (!taskId) return;
+
         if (status === 'pending' || status === 'scheduled') {
-            const taskId = row.getAttribute('data-task-id');
-            if (taskId) {
-                actionsCell.innerHTML = `
-                    <button class="button button-small nuclen-run-now" data-task-id="${taskId}">
-                        Run Now
-                    </button>
-                    <button class="button button-small nuclen-cancel" data-task-id="${taskId}">
-                        Cancel
-                    </button>
-                `;
-                
-                // Re-attach event handlers
-                actionsCell.querySelector('.nuclen-run-now')?.addEventListener('click', (e) => this.handleRunTask(e));
-                actionsCell.querySelector('.nuclen-cancel')?.addEventListener('click', (e) => this.handleCancelTask(e));
-            }
+            actionsCell.innerHTML = `
+                <button class="button button-small nuclen-run-now" data-task-id="${taskId}">
+                    Run Now
+                </button>
+                <button class="button button-small nuclen-cancel" data-task-id="${taskId}">
+                    Cancel
+                </button>
+            `;
+            
+            // Re-attach event handlers
+            actionsCell.querySelector('.nuclen-run-now')?.addEventListener('click', (e) => this.handleRunTask(e));
+            actionsCell.querySelector('.nuclen-cancel')?.addEventListener('click', (e) => this.handleCancelTask(e));
         } else if (status === 'processing') {
-            const taskId = row.getAttribute('data-task-id');
-            if (taskId) {
-                actionsCell.innerHTML = `
-                    <span class="spinner is-active"></span>
-                    <button class="button button-small nuclen-cancel" data-task-id="${taskId}">
-                        Cancel
-                    </button>
-                `;
-                // Re-attach cancel event handler
-                actionsCell.querySelector('.nuclen-cancel')?.addEventListener('click', (e) => this.handleCancelTask(e));
-            }
+            // Get task age from row
+            const createdAtText = row.querySelector('td:nth-child(1)')?.textContent || '';
+            let showForceComplete = false;
+            
+            // Simple check: if the task shows a time that's likely old, show force complete
+            // This is a fallback since we can't easily parse the formatted date
+            actionsCell.innerHTML = `
+                <span class="spinner is-active"></span>
+                <button class="button button-small nuclen-cancel" data-task-id="${taskId}">
+                    Cancel
+                </button>
+            `;
+            
+            // Re-attach cancel event handler
+            actionsCell.querySelector('.nuclen-cancel')?.addEventListener('click', (e) => this.handleCancelTask(e));
+            
+            // Note: Force complete button is added by PHP template based on actual task age
+        } else if (status === 'failed' || status === 'cancelled') {
+            actionsCell.innerHTML = `
+                <button class="button button-small nuclen-retry" data-task-id="${taskId}">
+                    Retry
+                </button>
+            `;
+            
+            // Re-attach retry event handler
+            actionsCell.querySelector('.nuclen-retry')?.addEventListener('click', (e) => this.handleRetryTask(e));
         } else {
             actionsCell.innerHTML = '<span class="nuclen-no-actions">—</span>';
         }

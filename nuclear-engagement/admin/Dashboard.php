@@ -49,32 +49,32 @@ class Dashboard {
 				wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['nuclen_refresh_inventory_nonce'] ) ), 'nuclen_refresh_inventory' ) &&
 				current_user_can( 'manage_options' )
 		) {
-				try {
-					\NuclearEngagement\Core\InventoryCache::clear();
-					$redirect_url = add_query_arg( 
-						array( 
-							'page' => 'nuclear-engagement',
-							'inventory_refreshed' => '1'
-						), 
-						admin_url( 'admin.php' ) 
-					);
-					
-					if ( ! headers_sent() ) {
-						wp_safe_redirect( $redirect_url );
-						exit;
-					} else {
-						// Fallback: JavaScript redirect if headers already sent
-						echo '<script>window.location.href = "' . esc_url( $redirect_url ) . '";</script>';
-						echo '<meta http-equiv="refresh" content="0;url=' . esc_url( $redirect_url ) . '">';
-						exit;
-					}
-				} catch ( \Exception $e ) {
-					wp_die( 
-						esc_html__( 'Error refreshing inventory. Please try again.', 'nuclear-engagement' ),
-						esc_html__( 'Error', 'nuclear-engagement' ),
-						array( 'back_link' => true )
-					);
+			try {
+				\NuclearEngagement\Core\InventoryCache::clear();
+				$redirect_url = add_query_arg(
+					array(
+						'page'                => 'nuclear-engagement',
+						'inventory_refreshed' => '1',
+					),
+					admin_url( 'admin.php' )
+				);
+
+				if ( ! headers_sent() ) {
+					wp_safe_redirect( $redirect_url );
+					exit;
+				} else {
+					// Fallback: JavaScript redirect if headers already sent
+					echo '<script>window.location.href = "' . esc_url( $redirect_url ) . '";</script>';
+					echo '<meta http-equiv="refresh" content="0;url=' . esc_url( $redirect_url ) . '">';
+					exit;
 				}
+			} catch ( \Exception $e ) {
+				wp_die(
+					esc_html__( 'Error refreshing inventory. Please try again.', 'nuclear-engagement' ),
+					esc_html__( 'Error', 'nuclear-engagement' ),
+					array( 'back_link' => true )
+				);
+			}
 		}
 
 		$data = $this->gather_dashboard_data();
@@ -167,19 +167,19 @@ class Dashboard {
 	private function get_post_type_stats( array $post_types, array $statuses ): array {
 		$rows = $this->data_service->get_dual_counts( 'p.post_type', $post_types, $statuses );
 		$quiz = $summary = array();
-		
+
 		// Cache post type objects to avoid repeated calls
 		$post_type_cache = array();
 		foreach ( $rows as $r ) {
 			$post_type = $r['g'];
-			
+
 			// Use cached post type object if available
 			if ( ! isset( $post_type_cache[ $post_type ] ) ) {
-				$pt_obj = get_post_type_object( $post_type );
+				$pt_obj                        = get_post_type_object( $post_type );
 				$post_type_cache[ $post_type ] = $pt_obj ? $pt_obj->labels->name : ucfirst( $post_type );
 			}
-			
-			$label = $post_type_cache[ $post_type ];
+
+			$label                        = $post_type_cache[ $post_type ];
 			$quiz[ $label ]['with']       = (int) $r['quiz_with'];
 			$quiz[ $label ]['without']    = (int) $r['quiz_without'];
 			$summary[ $label ]['with']    = (int) $r['summary_with'];

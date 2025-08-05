@@ -1,7 +1,7 @@
 <?php
 /**
  * Summary format fields partial - Part of the Nuclear Engagement plugin.
- * 
+ *
  * Common template for summary format selection fields used in both bulk generation and single post metabox.
  *
  * @package Nuclear_Engagement
@@ -12,12 +12,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Set default values if not provided
-$summary_format = isset( $summary_format ) ? $summary_format : 'paragraph';
-$summary_length = isset( $summary_length ) ? $summary_length : 30;
+$summary_format          = isset( $summary_format ) ? $summary_format : 'paragraph';
+$summary_length          = isset( $summary_length ) ? $summary_length : 30;
 $summary_number_of_items = isset( $summary_number_of_items ) ? $summary_number_of_items : 5;
-$field_prefix = isset( $field_prefix ) ? $field_prefix : '';
-$show_labels = isset( $show_labels ) ? $show_labels : true;
-$use_array_notation = isset( $use_array_notation ) ? $use_array_notation : true;
+$field_prefix            = isset( $field_prefix ) ? $field_prefix : '';
+$show_labels             = isset( $show_labels ) ? $show_labels : true;
+$use_array_notation      = isset( $use_array_notation ) ? $use_array_notation : true;
 ?>
 
 <div class="nuclen-summary-format-fields">

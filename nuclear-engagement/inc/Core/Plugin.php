@@ -180,6 +180,7 @@ class Plugin {
 		$this->loader->nuclen_add_action( 'wp_ajax_nuclen_get_posts_count', $posts_count_controller, 'handle' );
 		$this->loader->nuclen_add_action( 'wp_ajax_nuclen_run_task', $tasks_controller, 'run_task' );
 		$this->loader->nuclen_add_action( 'wp_ajax_nuclen_cancel_task', $tasks_controller, 'cancel_task' );
+		$this->loader->nuclen_add_action( 'wp_ajax_nuclen_retry_task', $tasks_controller, 'retry_task' );
 		$this->loader->nuclen_add_action( 'wp_ajax_nuclen_get_task_status', $tasks_controller, 'get_task_status' );
 		$this->loader->nuclen_add_action( 'wp_ajax_nuclen_get_recent_completions', $tasks_controller, 'get_recent_completions' );
 		$this->loader->nuclen_add_action( 'wp_ajax_nuclen_refresh_tasks_data', $tasks_controller, 'refresh_tasks_data' );

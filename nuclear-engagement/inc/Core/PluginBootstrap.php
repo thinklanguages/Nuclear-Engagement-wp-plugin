@@ -189,6 +189,11 @@ final class PluginBootstrap {
 			// Clear any bootstrap errors from previous activation attempts
 			delete_option( 'nuclen_bootstrap_error' );
 
+			// Schedule more frequent timeout checks (every 5 minutes instead of hourly)
+			// This helps catch stuck tasks more quickly
+			if ( ! wp_next_scheduled( 'nuclen_frequent_timeout_check' ) ) {
+				wp_schedule_event( time() + 60, 'nuclen_five_minutes', 'nuclen_frequent_timeout_check' );
+			}
 		} catch ( \Throwable $e ) {
 			// Log but don't block activation
 			LoggingService::log( 'Activation error: ' . $e->getMessage() );
@@ -199,6 +204,11 @@ final class PluginBootstrap {
 		// Clean up scheduled events.
 		wp_clear_scheduled_hook( 'nuclen_theme_migration' );
 		wp_clear_scheduled_hook( 'nuclen_cleanup_logs' );
+		wp_clear_scheduled_hook( 'nuclen_frequent_timeout_check' );
+		wp_clear_scheduled_hook( 'nuclen_check_task_timeouts' );
+		wp_clear_scheduled_hook( 'nuclear_engagement_daily_generation' );
+		wp_clear_scheduled_hook( 'nuclen_check_generation_status' );
+		wp_clear_scheduled_hook( 'nuclen_cleanup_batch_transients' );
 	}
 
 	private function initializeEssentialServices(): void {
@@ -236,7 +246,6 @@ final class PluginBootstrap {
 			// Mark that full plugin is loaded so we don't duplicate menu registration
 			$this->lazy_services['plugin_loaded'] = true;
 		}
-
 	}
 
 	/**
@@ -317,7 +326,6 @@ final class PluginBootstrap {
 		// Initialize batch processing handler immediately during bootstrap
 		$this->initializeBatchProcessing();
 
-
 		// Initialize circuit breaker service
 		add_action( 'init', array( $this, 'initializeCircuitBreaker' ), 5 );
 
@@ -331,6 +339,12 @@ final class PluginBootstrap {
 		if ( ! wp_next_scheduled( 'nuclen_cleanup_logs' ) ) {
 			wp_schedule_event( time(), 'weekly', 'nuclen_cleanup_logs' );
 		}
+
+		// Register custom cron schedules
+		add_filter( 'cron_schedules', array( $this, 'registerCronSchedules' ) );
+
+		// Register frequent timeout check hook
+		add_action( 'nuclen_frequent_timeout_check', array( $this, 'runFrequentTimeoutCheck' ) );
 		add_action( 'nuclen_cleanup_logs', array( $this, 'cleanupLogs' ) );
 	}
 
@@ -526,9 +540,12 @@ final class PluginBootstrap {
 	 * Initialize batch processing handler.
 	 */
 	public function initializeBatchProcessing(): void {
-		// BatchProcessingHandler initializes itself when needed through the service container
-		// or when its static methods are called. No explicit initialization needed here.
-		// This method is kept for backward compatibility but doesn't need to do anything.
+		// Initialize BatchProcessingHandler early to ensure hooks are registered
+		// before any batch scheduling occurs. This prevents warning messages
+		// about missing handlers.
+		if ( class_exists( '\NuclearEngagement\Services\BatchProcessingHandler' ) ) {
+			\NuclearEngagement\Services\BatchProcessingHandler::init();
+		}
 	}
 
 	/**
@@ -545,6 +562,22 @@ final class PluginBootstrap {
 			$timeout_handler = $container->get( 'task_timeout_handler' );
 			$timeout_handler->register_hooks();
 			self::$initialized_services['task_timeout'] = true;
+
+			// Run an immediate timeout check on initialization, but only once per request
+			// and not during AJAX or cron requests to avoid excessive checks
+			static $initial_check_done = false;
+			if ( ! $initial_check_done && ! wp_doing_ajax() && ! wp_doing_cron() ) {
+				$initial_check_done = true;
+				try {
+					LoggingService::log( '[PluginBootstrap] Running immediate timeout check on initialization' );
+					$timeout_handler->check_timeouts();
+				} catch ( \Throwable $e ) {
+					LoggingService::log(
+						sprintf( '[PluginBootstrap] Error running initial timeout check: %s', $e->getMessage() ),
+						'error'
+					);
+				}
+			}
 		}
 	}
 
@@ -923,5 +956,39 @@ final class PluginBootstrap {
 		}
 
 		wp_send_json_success();
+	}
+
+	/**
+	 * Register custom cron schedules.
+	 *
+	 * @param array $schedules Existing cron schedules.
+	 * @return array Modified schedules.
+	 */
+	public function registerCronSchedules( array $schedules ): array {
+		// Add 5 minute schedule for more frequent timeout checks
+		$schedules['nuclen_five_minutes'] = array(
+			'interval' => 300, // 5 minutes in seconds
+			'display'  => __( 'Every Five Minutes', 'nuclear-engagement' ),
+		);
+
+		return $schedules;
+	}
+
+	/**
+	 * Run frequent timeout check.
+	 */
+	public function runFrequentTimeoutCheck(): void {
+		try {
+			$container = ServiceContainer::getInstance();
+			if ( $container->has( 'task_timeout_handler' ) ) {
+				$timeout_handler = $container->get( 'task_timeout_handler' );
+				$timeout_handler->check_timeouts();
+			}
+		} catch ( \Throwable $e ) {
+			LoggingService::log(
+				sprintf( '[PluginBootstrap] Error running frequent timeout check: %s', $e->getMessage() ),
+				'error'
+			);
+		}
 	}
 }

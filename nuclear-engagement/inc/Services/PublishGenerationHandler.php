@@ -128,7 +128,6 @@ class PublishGenerationHandler {
 					$gen_quiz    = $this->settings_repository->get( 'auto_generate_quiz_on_publish', false );
 					$gen_summary = $this->settings_repository->get( 'auto_generate_summary_on_publish', false );
 
-
 			if ( ! $gen_quiz && ! $gen_summary ) {
 				return;
 			}
@@ -156,7 +155,6 @@ class PublishGenerationHandler {
 					}
 				}
 
-
 				// Skip if protected or if quiz content already exists
 				if ( ! $protected && ! $has_quiz_content ) {
 					$args = array( $post->ID, 'quiz' );
@@ -181,7 +179,6 @@ class PublishGenerationHandler {
 					$has_summary_content = ! empty( trim( $existing_summary['summary'] ) );
 				}
 
-
 				// Skip if protected or if summary content already exists
 				if ( ! $protected && ! $has_summary_content ) {
 					$args = array( $post->ID, 'summary' );
@@ -195,7 +192,6 @@ class PublishGenerationHandler {
 					}
 				}
 			}
-			
 		} catch ( \Throwable $e ) {
 			\NuclearEngagement\Services\LoggingService::log(
 				sprintf( 'Error in handle_post_publish (part 2): %s', $e->getMessage() )

@@ -8,7 +8,7 @@ Tags: AI writer, quiz, summary, table of contents, email optin
 Requires at least: 6.1
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 2.1.7
+Stable tag: 2.1.8
 License: GPL-2.0+
 License URI: http://www.gnu.org/licenses/gpl-2.0.txt
 Donate link: https://buy.stripe.com/3csg1Tdn0a9h3ss288
@@ -281,6 +281,9 @@ No. Generation is done via the NE app. You only need a free account on the NE ap
 The tiny codebase and lazy loading assure fast loading, both in admin and on frontend. You won't even notice it's active. No conflicts are known to occur.
 
 == Changelog ==
+
+= 2.1.8 – 2025-08-05 =
+* Fixed: Bulk content generation.
 
 = 2.1.7 – 2025-08-05 =
 * Added: Settings for summary auto-generation on publish.

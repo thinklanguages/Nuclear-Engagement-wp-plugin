@@ -101,7 +101,6 @@ class ContentStorageService extends BaseService {
 				continue;
 			}
 
-
 			// Ensure date is set.
 			if ( empty( $data['date'] ) ) {
 				$data['date'] = $dateNow;
@@ -121,7 +120,6 @@ class ContentStorageService extends BaseService {
 						clean_post_cache( $post_id );
 				}
 
-							
 										$statuses[ $post_id ] = true;
 
 			} catch ( \Throwable $e ) {
@@ -129,11 +127,11 @@ class ContentStorageService extends BaseService {
 					$statuses[ $post_id ] = $e->getMessage();
 
 					// If we're getting errors for a post that shouldn't be processed, clean up its transients
-					if ( strpos( $e->getMessage(), 'Failed to update' ) !== false ) {
-						if ( class_exists( '\NuclearEngagement\Utils\TransientCleanup' ) ) {
-							\NuclearEngagement\Utils\TransientCleanup::cleanup_post_transients( $post_id );
-						}
+				if ( strpos( $e->getMessage(), 'Failed to update' ) !== false ) {
+					if ( class_exists( '\NuclearEngagement\Utils\TransientCleanup' ) ) {
+						\NuclearEngagement\Utils\TransientCleanup::cleanup_post_transients( $post_id );
 					}
+				}
 			}
 		}
 

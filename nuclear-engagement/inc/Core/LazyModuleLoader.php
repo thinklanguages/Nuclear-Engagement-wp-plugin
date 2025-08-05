@@ -116,7 +116,7 @@ class LazyModuleLoader {
 
 		// Don't skip loading on post-new.php - we need metaboxes there
 		// if ( 'post-new.php' === $pagenow ) {
-		// 	return;
+		// return;
 		// }
 
 		foreach ( self::$module_definitions as $module_id => $definition ) {

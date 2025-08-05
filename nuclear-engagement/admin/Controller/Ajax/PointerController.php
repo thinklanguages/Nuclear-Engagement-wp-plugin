@@ -28,7 +28,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 class PointerController extends BaseController {
 	/**
 	 * The pointer service instance.
-	 * 
+	 *
 	 * @var PointerService
 	 */
 	private PointerService $service;

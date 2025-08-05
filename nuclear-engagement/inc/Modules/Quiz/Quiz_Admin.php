@@ -113,7 +113,6 @@ final class Quiz_Admin {
 				LoggingService::log( 'Failed to update modified time for post ' . $post_id . ': ' . $result->get_error_message() );
 				LoggingService::notify_admin( 'Failed to update modified time for post ' . $post_id . ': ' . $result->get_error_message() );
 			}
-
 		}
 
 		// phpcs:ignore WordPress.Security.NonceVerification

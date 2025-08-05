@@ -164,7 +164,6 @@ class ServiceContainer {
 			}
 		);
 
-
 		// Cache Manager.
 		$this->register(
 			'cache_manager',

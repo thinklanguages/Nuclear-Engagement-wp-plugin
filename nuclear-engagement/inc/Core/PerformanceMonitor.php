@@ -182,16 +182,16 @@ final class PerformanceMonitor {
 		$current = memory_get_usage( true );
 		$peak    = memory_get_peak_usage( true );
 		$limit   = (int) ini_get( 'memory_limit' ) !== -1 ? self::parseMemoryLimit() : -1;
-		
+
 		$percentage = 0.0;
 		if ( $limit > 0 ) {
 			$percentage = ( $current / $limit ) * 100;
 		}
-		
+
 		return array(
-			'current' => $current,
-			'peak'    => $peak,
-			'limit'   => $limit,
+			'current'    => $current,
+			'peak'       => $peak,
+			'limit'      => $limit,
 			'percentage' => $percentage,
 		);
 	}
@@ -223,7 +223,7 @@ final class PerformanceMonitor {
 	/**
 	 * Check if enough memory is available for an operation.
 	 *
-	 * @param int $required_bytes Required memory in bytes.
+	 * @param int   $required_bytes Required memory in bytes.
 	 * @param float $safety_factor Safety factor (default 1.5).
 	 * @return bool True if enough memory is available.
 	 */

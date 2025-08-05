@@ -78,9 +78,9 @@ final class HeadingExtractor {
 			hash( 'sha256', $html ),
 			implode( '', $heading_levels ),
 		);
-		$key = \NuclearEngagement\Utils\CacheUtils::generate_key( $key_components );
-		$transient = 'nuclen_toc_' . substr( $key, 0, 40 ); // Limit transient key length
-		$hit       = wp_cache_get( $key, self::CACHE_GROUP );
+		$key            = \NuclearEngagement\Utils\CacheUtils::generate_key( $key_components );
+		$transient      = 'nuclen_toc_' . substr( $key, 0, 40 ); // Limit transient key length
+		$hit            = wp_cache_get( $key, self::CACHE_GROUP );
 		if ( $hit === false ) {
 			$hit = get_transient( $transient );
 		}

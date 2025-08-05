@@ -297,7 +297,7 @@ trait AdminAssets {
 
 		// Enqueue generate page scripts if needed
 		$this->nuclen_enqueue_generate_page_scripts( $this->get_current_hook() );
-		
+
 		// Enqueue tasks page scripts if needed
 		$this->nuclen_enqueue_tasks_page_scripts( $this->get_current_hook() );
 	}
@@ -380,7 +380,7 @@ trait AdminAssets {
 		if ( 'nuclear-engagement_page_nuclear-engagement-tasks' !== $hook ) {
 			return;
 		}
-		
+
 		wp_enqueue_script(
 			'nuclen-tasks',
 			NUCLEN_PLUGIN_URL . 'admin/js/nuclen-tasks.js',
@@ -393,12 +393,17 @@ trait AdminAssets {
 		);
 
 		// Make it a module
-		add_filter( 'script_loader_tag', function( $tag, $handle ) {
-			if ( 'nuclen-tasks' === $handle ) {
-				return str_replace( '<script ', '<script type="module" ', $tag );
-			}
-			return $tag;
-		}, 10, 2 );
+		add_filter(
+			'script_loader_tag',
+			function ( $tag, $handle ) {
+				if ( 'nuclen-tasks' === $handle ) {
+					return str_replace( '<script ', '<script type="module" ', $tag );
+				}
+				return $tag;
+			},
+			10,
+			2
+		);
 
 		wp_localize_script(
 			'nuclen-tasks',

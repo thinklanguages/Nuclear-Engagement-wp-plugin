@@ -249,12 +249,12 @@ class CircuitBreakerService {
 		);
 
 		$statuses = array();
-		
+
 		// Cache date/time formats to avoid repeated get_option calls
-		$date_format = get_option( 'date_format' );
-		$time_format = get_option( 'time_format' );
+		$date_format     = get_option( 'date_format' );
+		$time_format     = get_option( 'time_format' );
 		$datetime_format = $date_format . ' ' . $time_format;
-		
+
 		foreach ( $options as $option ) {
 			$service_name = str_replace( $prefix, '', $option->option_name );
 			$state        = maybe_unserialize( $option->option_value );

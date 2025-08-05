@@ -29,8 +29,8 @@ final class CacheWarmer {
 	/**
 	 * Warming strategies.
 	 */
-	private const STRATEGY_EAGER = 'eager';
-	private const STRATEGY_LAZY = 'lazy';
+	private const STRATEGY_EAGER      = 'eager';
+	private const STRATEGY_LAZY       = 'lazy';
 	private const STRATEGY_PREDICTIVE = 'predictive';
 
 	/**
@@ -46,7 +46,7 @@ final class CacheWarmer {
 		}
 
 		add_action( 'nuclen_warm_cache', array( self::class, 'schedule_warming' ) );
-		
+
 		// Warm cache after content changes
 		add_action( 'save_post', array( self::class, 'warm_post_cache' ), 10, 3 );
 		add_action( 'deleted_post', array( self::class, 'invalidate_post_cache' ) );
@@ -69,7 +69,7 @@ final class CacheWarmer {
 		BackgroundProcessor::queue_job(
 			self::JOB_TYPE,
 			array(
-				'items' => $items_to_warm,
+				'items'    => $items_to_warm,
 				'strategy' => $strategy,
 			),
 			5 // Higher priority
@@ -83,7 +83,7 @@ final class CacheWarmer {
 	 * @return bool Success status.
 	 */
 	public static function handle_warm_job( array $data ): bool {
-		$items = $data['items'] ?? array();
+		$items    = $data['items'] ?? array();
 		$strategy = $data['strategy'] ?? self::STRATEGY_LAZY;
 
 		if ( empty( $items ) ) {
@@ -91,7 +91,7 @@ final class CacheWarmer {
 		}
 
 		$warmed = 0;
-		$total = count( $items );
+		$total  = count( $items );
 
 		foreach ( $items as $index => $item ) {
 			// Check memory before warming
@@ -108,7 +108,7 @@ final class CacheWarmer {
 			}
 
 			if ( self::warm_cache_item( $item ) ) {
-				$warmed++;
+				++$warmed;
 			}
 
 			// Update progress
@@ -178,29 +178,31 @@ final class CacheWarmer {
 		$items = array();
 
 		// Get recent posts with nuclear engagement content
-		$posts = get_posts( array(
-			'posts_per_page' => $limit,
-			'post_status' => 'publish',
-			'meta_query' => array(
-				'relation' => 'OR',
-				array(
-					'key' => 'nuclen-quiz-data',
-					'compare' => 'EXISTS',
+		$posts = get_posts(
+			array(
+				'posts_per_page' => $limit,
+				'post_status'    => 'publish',
+				'meta_query'     => array(
+					'relation' => 'OR',
+					array(
+						'key'     => 'nuclen-quiz-data',
+						'compare' => 'EXISTS',
+					),
+					array(
+						'key'     => 'nuclen-summary-data',
+						'compare' => 'EXISTS',
+					),
 				),
-				array(
-					'key' => 'nuclen-summary-data',
-					'compare' => 'EXISTS',
-				),
-			),
-			'fields' => 'ids',
-			'orderby' => 'modified',
-			'order' => 'DESC',
-		) );
+				'fields'         => 'ids',
+				'orderby'        => 'modified',
+				'order'          => 'DESC',
+			)
+		);
 
 		foreach ( $posts as $post_id ) {
 			$items[] = array(
-				'type' => 'post',
-				'id' => $post_id,
+				'type'  => 'post',
+				'id'    => $post_id,
 				'group' => 'posts',
 			);
 		}
@@ -218,13 +220,19 @@ final class CacheWarmer {
 
 		// Common query patterns
 		$query_types = array(
-			array( 'post_type' => 'post', 'post_status' => 'publish' ),
-			array( 'post_type' => 'page', 'post_status' => 'publish' ),
+			array(
+				'post_type'   => 'post',
+				'post_status' => 'publish',
+			),
+			array(
+				'post_type'   => 'page',
+				'post_status' => 'publish',
+			),
 		);
 
 		foreach ( $query_types as $query ) {
 			$items[] = array(
-				'type' => 'query',
+				'type'  => 'query',
 				'query' => $query,
 				'group' => 'queries',
 			);
@@ -241,13 +249,13 @@ final class CacheWarmer {
 	private static function get_settings_cache_items(): array {
 		return array(
 			array(
-				'type' => 'settings',
-				'key' => 'all_settings',
+				'type'  => 'settings',
+				'key'   => 'all_settings',
 				'group' => 'nuclen_settings',
 			),
 			array(
-				'type' => 'settings',
-				'key' => 'active_theme',
+				'type'  => 'settings',
+				'key'   => 'active_theme',
 				'group' => 'nuclen_settings',
 			),
 		);
@@ -274,7 +282,7 @@ final class CacheWarmer {
 
 		// Add frequently accessed items from access logs
 		$frequent_items = self::get_frequently_accessed_items();
-		$items = array_merge( $items, $frequent_items );
+		$items          = array_merge( $items, $frequent_items );
 
 		return array_slice( $items, 0, 100 ); // Limit to 100 items
 	}
@@ -336,10 +344,15 @@ final class CacheWarmer {
 	 */
 	private static function warm_query_item( array $query ): bool {
 		// Execute query to populate cache
-		$posts = get_posts( array_merge( $query, array(
-			'posts_per_page' => 20,
-			'fields' => 'ids',
-		) ) );
+		$posts = get_posts(
+			array_merge(
+				$query,
+				array(
+					'posts_per_page' => 20,
+					'fields'         => 'ids',
+				)
+			)
+		);
 
 		return ! empty( $posts );
 	}
@@ -352,17 +365,17 @@ final class CacheWarmer {
 	 */
 	private static function warm_settings_item( string $key ): bool {
 		$container = ServiceContainer::getInstance();
-		
+
 		if ( $container->has( 'settings_repository' ) ) {
 			$settings = $container->get( 'settings_repository' );
-			
+
 			// Trigger cache population
 			if ( $key === 'all_settings' ) {
 				$settings->get_all();
 			} else {
 				$settings->get( $key );
 			}
-			
+
 			return true;
 		}
 
@@ -399,13 +412,13 @@ final class CacheWarmer {
 		// For now, return common items
 		return array(
 			array(
-				'type' => 'settings',
-				'key' => 'theme',
+				'type'  => 'settings',
+				'key'   => 'theme',
 				'group' => 'nuclen_settings',
 			),
 			array(
-				'type' => 'settings',
-				'key' => 'display_quiz',
+				'type'  => 'settings',
+				'key'   => 'display_quiz',
 				'group' => 'nuclen_settings',
 			),
 		);
@@ -427,10 +440,10 @@ final class CacheWarmer {
 		BackgroundProcessor::queue_job(
 			self::JOB_TYPE,
 			array(
-				'items' => array(
+				'items'    => array(
 					array(
-						'type' => 'post',
-						'id' => $post_id,
+						'type'  => 'post',
+						'id'    => $post_id,
 						'group' => 'posts',
 					),
 				),
@@ -458,7 +471,7 @@ final class CacheWarmer {
 		BackgroundProcessor::queue_job(
 			self::JOB_TYPE,
 			array(
-				'items' => self::get_settings_cache_items(),
+				'items'    => self::get_settings_cache_items(),
 				'strategy' => self::STRATEGY_EAGER,
 			),
 			1 // High priority

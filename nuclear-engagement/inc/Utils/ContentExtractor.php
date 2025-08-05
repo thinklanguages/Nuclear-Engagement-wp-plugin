@@ -77,7 +77,7 @@ class ContentExtractor {
 	 */
 	private static function extract_elementor_content( int $post_id ): string {
 		$elementor_data = get_post_meta( $post_id, '_elementor_data', true );
-		
+
 		if ( empty( $elementor_data ) ) {
 			return '';
 		}

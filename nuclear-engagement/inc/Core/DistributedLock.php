@@ -27,8 +27,8 @@ final class DistributedLock {
 	 * Lock storage mechanism.
 	 */
 	private const STORAGE_OPTION = 'option';
-	private const STORAGE_CACHE = 'cache';
-	private const STORAGE_DB = 'database';
+	private const STORAGE_CACHE  = 'cache';
+	private const STORAGE_DB     = 'database';
 
 	/**
 	 * Default lock timeout in seconds.
@@ -72,11 +72,11 @@ final class DistributedLock {
 	 * @return bool True if lock acquired.
 	 */
 	public static function acquire( string $lock_name, string $lock_value, int $timeout = self::DEFAULT_TIMEOUT ): bool {
-		$lock_key = self::get_lock_key( $lock_name );
+		$lock_key  = self::get_lock_key( $lock_name );
 		$lock_data = array(
-			'value' => $lock_value,
-			'expires' => time() + $timeout,
-			'server' => gethostname() ?: 'unknown',
+			'value'      => $lock_value,
+			'expires'    => time() + $timeout,
+			'server'     => gethostname() ?: 'unknown',
 			'process_id' => ProcessIdentifier::get(),
 		);
 
@@ -128,7 +128,7 @@ final class DistributedLock {
 	 * @return bool True if lock is held.
 	 */
 	public static function is_locked( string $lock_name ): bool {
-		$lock_key = self::get_lock_key( $lock_name );
+		$lock_key  = self::get_lock_key( $lock_name );
 		$lock_data = self::get_lock_data( $lock_key );
 
 		if ( ! $lock_data ) {
@@ -171,7 +171,7 @@ final class DistributedLock {
 	 * @return array|null Lock information or null.
 	 */
 	public static function get_info( string $lock_name ): ?array {
-		$lock_key = self::get_lock_key( $lock_name );
+		$lock_key  = self::get_lock_key( $lock_name );
 		$lock_data = self::get_lock_data( $lock_key );
 
 		if ( ! $lock_data ) {
@@ -179,7 +179,7 @@ final class DistributedLock {
 		}
 
 		// Add calculated fields
-		$lock_data['is_expired'] = isset( $lock_data['expires'] ) && $lock_data['expires'] < time();
+		$lock_data['is_expired']     = isset( $lock_data['expires'] ) && $lock_data['expires'] < time();
 		$lock_data['remaining_time'] = isset( $lock_data['expires'] ) ? max( 0, $lock_data['expires'] - time() ) : 0;
 
 		return $lock_data;
@@ -210,20 +210,20 @@ final class DistributedLock {
 				// Direct database insert for true atomicity
 				global $wpdb;
 				$table = $wpdb->prefix . 'nuclen_locks';
-				
+
 				// Create table if not exists
 				self::ensure_lock_table();
-				
+
 				$result = $wpdb->insert(
 					$table,
 					array(
-						'lock_key' => $lock_key,
-						'lock_data' => serialize( $lock_data ),
+						'lock_key'   => $lock_key,
+						'lock_data'  => serialize( $lock_data ),
 						'expires_at' => $lock_data['expires'],
 					),
 					array( '%s', '%s', '%d' )
 				);
-				
+
 				return $result !== false;
 
 			default:
@@ -254,7 +254,7 @@ final class DistributedLock {
 			case self::STORAGE_DB:
 				global $wpdb;
 				$table = $wpdb->prefix . 'nuclen_locks';
-				
+
 				$result = $wpdb->get_var(
 					$wpdb->prepare(
 						"SELECT lock_data FROM $table WHERE lock_key = %s AND expires_at > %d",
@@ -262,7 +262,7 @@ final class DistributedLock {
 						time()
 					)
 				);
-				
+
 				return $result ? unserialize( $result ) : null;
 
 			default:
@@ -292,18 +292,18 @@ final class DistributedLock {
 			case self::STORAGE_DB:
 				global $wpdb;
 				$table = $wpdb->prefix . 'nuclen_locks';
-				
+
 				$result = $wpdb->update(
 					$table,
 					array(
-						'lock_data' => serialize( $lock_data ),
+						'lock_data'  => serialize( $lock_data ),
 						'expires_at' => $lock_data['expires'],
 					),
 					array( 'lock_key' => $lock_key ),
 					array( '%s', '%d' ),
 					array( '%s' )
 				);
-				
+
 				return $result !== false;
 
 			default:
@@ -332,13 +332,13 @@ final class DistributedLock {
 			case self::STORAGE_DB:
 				global $wpdb;
 				$table = $wpdb->prefix . 'nuclen_locks';
-				
+
 				$result = $wpdb->delete(
 					$table,
 					array( 'lock_key' => $lock_key ),
 					array( '%s' )
 				);
-				
+
 				return $result !== false;
 
 			default:
@@ -359,7 +359,7 @@ final class DistributedLock {
 		if ( self::$storage_type === self::STORAGE_DB ) {
 			global $wpdb;
 			$table = $wpdb->prefix . 'nuclen_locks';
-			
+
 			$result = $wpdb->query(
 				$wpdb->prepare(
 					"UPDATE $table SET lock_data = %s, expires_at = %d 
@@ -370,15 +370,15 @@ final class DistributedLock {
 					serialize( $existing )
 				)
 			);
-			
+
 			return $result > 0;
 		}
-		
+
 		// For option storage, delete and re-add
 		if ( self::delete_lock( $lock_key ) ) {
 			return self::try_acquire_lock( $lock_key, $new_data );
 		}
-		
+
 		return false;
 	}
 
@@ -397,10 +397,10 @@ final class DistributedLock {
 	 */
 	private static function ensure_lock_table(): void {
 		global $wpdb;
-		
-		$table_name = $wpdb->prefix . 'nuclen_locks';
+
+		$table_name      = $wpdb->prefix . 'nuclen_locks';
 		$charset_collate = $wpdb->get_charset_collate();
-		
+
 		$sql = "CREATE TABLE IF NOT EXISTS $table_name (
 			lock_key varchar(255) NOT NULL,
 			lock_data text NOT NULL,
@@ -408,7 +408,7 @@ final class DistributedLock {
 			PRIMARY KEY (lock_key),
 			KEY expires_at (expires_at)
 		) $charset_collate;";
-		
+
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 		dbDelta( $sql );
 	}
@@ -422,7 +422,7 @@ final class DistributedLock {
 		if ( self::$storage_type === self::STORAGE_DB ) {
 			global $wpdb;
 			$table = $wpdb->prefix . 'nuclen_locks';
-			
+
 			return $wpdb->query(
 				$wpdb->prepare(
 					"DELETE FROM $table WHERE expires_at < %d",
@@ -430,7 +430,7 @@ final class DistributedLock {
 				)
 			);
 		}
-		
+
 		// For option storage, we'd need to scan all options
 		// This is expensive, so it should be done in a scheduled task
 		return 0;

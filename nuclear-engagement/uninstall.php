@@ -103,7 +103,7 @@ if ( $delete_settings ) {
 			'_transient_nuclen_%'
 		)
 	);
-	
+
 	if ( $result === false ) {
 		// Log error but continue with uninstall process
 		if ( class_exists( '\NuclearEngagement\Services\LoggingService' ) ) {
@@ -155,7 +155,7 @@ if ( $delete_settings || $delete_generated ) {
 				$table_name
 			)
 		);
-		
+
 		if ( $result === false ) {
 			// Log error but continue with uninstall process
 			if ( class_exists( '\NuclearEngagement\Services\LoggingService' ) ) {

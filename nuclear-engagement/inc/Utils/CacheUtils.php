@@ -178,7 +178,7 @@ final class CacheUtils {
 	public static function generate_key( array $components, string $separator = '_' ): string {
 		// Get cache salt
 		$salt = self::get_cache_salt();
-		
+
 		// Filter and sanitize components.
 		$clean_components = array_filter(
 			array_map(
@@ -297,7 +297,7 @@ final class CacheUtils {
 	private static function sanitize_key( string $key ): string {
 		// Get cache salt for security
 		$salt = self::get_cache_salt();
-		
+
 		// Add plugin prefix and salt.
 		$prefixed_key = self::KEY_PREFIX . $key . '_' . $salt;
 
@@ -379,10 +379,10 @@ final class CacheUtils {
 		}
 
 		// Add user context for cache isolation
-		$user_id = get_current_user_id();
+		$user_id   = get_current_user_id();
 		$user_role = '';
 		if ( $user_id > 0 ) {
-			$user = wp_get_current_user();
+			$user      = wp_get_current_user();
 			$user_role = ! empty( $user->roles ) ? $user->roles[0] : 'none';
 		}
 
@@ -482,7 +482,7 @@ final class CacheUtils {
 				'WP_Term',
 				'WP_Comment',
 			);
-			$class_name = get_class( $data );
+			$class_name      = get_class( $data );
 			if ( ! in_array( $class_name, $allowed_classes, true ) ) {
 				\NuclearEngagement\Services\LoggingService::log(
 					sprintf( 'Cache validation failed: unexpected object type %s', $class_name ),

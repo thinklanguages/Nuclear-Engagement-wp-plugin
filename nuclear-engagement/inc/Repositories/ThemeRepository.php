@@ -135,13 +135,13 @@ class ThemeRepository {
 
 		// Start transaction to prevent race condition
 		$wpdb->query( 'START TRANSACTION' );
-		
+
 		try {
 			// First deactivate all themes
 			$deactivate_result = $wpdb->query(
 				"UPDATE {$this->table_name} SET is_active = 0 WHERE is_active = 1"
 			);
-			
+
 			// Then activate the selected theme
 			$activate_result = $wpdb->update(
 				$this->table_name,
@@ -150,7 +150,7 @@ class ThemeRepository {
 				array( '%d' ),
 				array( '%d' )
 			);
-			
+
 			if ( $activate_result !== false ) {
 				$wpdb->query( 'COMMIT' );
 				return $activate_result;

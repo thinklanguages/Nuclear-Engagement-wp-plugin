@@ -40,7 +40,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 final class PluginBootstrap {
 	private static ?self $instance = null;
-	private bool $initialized = false;
+	private bool $initialized      = false;
 	private BootstrapConstants $constants;
 	private AutoloaderManager $autoloader;
 	private LifecycleManager $lifecycle;
@@ -48,14 +48,14 @@ final class PluginBootstrap {
 	private HookManager $hooks;
 	private ModuleManager $modules;
 	private AdminLoader $admin_loader;
-	
+
 	private function __construct() {
-		$this->constants = new BootstrapConstants();
-		$this->autoloader = new AutoloaderManager();
-		$this->lifecycle = new LifecycleManager();
-		$this->services = new ServiceManager();
-		$this->hooks = new HookManager();
-		$this->modules = new ModuleManager();
+		$this->constants    = new BootstrapConstants();
+		$this->autoloader   = new AutoloaderManager();
+		$this->lifecycle    = new LifecycleManager();
+		$this->services     = new ServiceManager();
+		$this->hooks        = new HookManager();
+		$this->modules      = new ModuleManager();
 		$this->admin_loader = new AdminLoader();
 	}
 
@@ -340,7 +340,7 @@ class LifecycleManager {
  * Manages service initialization
  */
 class ServiceManager {
-	private array $lazy_services = array();
+	private array $lazy_services               = array();
 	private static array $initialized_services = array();
 
 	public function initializeEssentialServices(): void {
@@ -423,7 +423,7 @@ class ServiceManager {
 		}
 
 		$container = ServiceContainer::getInstance();
-		$settings = SettingsRepository::get_instance();
+		$settings  = SettingsRepository::get_instance();
 
 		// Ensure core services and container are registered
 		if ( ! $container->has( 'settings' ) ) {
@@ -503,7 +503,7 @@ class ServiceManager {
 	private function initializeFrontendServices(): void {
 		// Load frontend-specific services.
 		$container = ServiceContainer::getInstance();
-		$settings = SettingsRepository::get_instance();
+		$settings  = SettingsRepository::get_instance();
 
 		// Ensure container is properly initialized.
 		if ( ! $container->has( 'settings' ) ) {
@@ -513,7 +513,7 @@ class ServiceManager {
 
 		if ( class_exists( 'NuclearEngagement\Front\FrontClass' ) ) {
 			$plugin_version = defined( 'NUCLEN_PLUGIN_VERSION' ) ? NUCLEN_PLUGIN_VERSION : '1.0.0';
-			$frontend = new \NuclearEngagement\Front\FrontClass( 'nuclear-engagement', $plugin_version, $settings, $container );
+			$frontend       = new \NuclearEngagement\Front\FrontClass( 'nuclear-engagement', $plugin_version, $settings, $container );
 
 			// Register frontend hooks.
 			add_action( 'wp_enqueue_scripts', array( $frontend, 'wp_enqueue_styles' ) );
@@ -527,7 +527,7 @@ class ServiceManager {
 	private function initializeApiServices(): void {
 		// Load API-specific services.
 		$container = ServiceContainer::getInstance();
-		$settings = SettingsRepository::get_instance();
+		$settings  = SettingsRepository::get_instance();
 
 		// Ensure container is properly initialized.
 		if ( ! $container->has( 'settings' ) ) {
@@ -567,7 +567,7 @@ class ServiceManager {
 class HookManager {
 	public function registerWordPressHooks(): void {
 		$bootstrap = PluginBootstrap::getInstance();
-		
+
 		// Register hooks for lazy loading services.
 		add_action( 'wp_loaded', array( $bootstrap, 'maybeLoadFrontendServices' ) );
 		add_action( 'rest_api_init', array( $bootstrap, 'maybeLoadApiServices' ) );
@@ -709,7 +709,7 @@ class AdminLoader {
 	public function initializeAdminServices(): void {
 		// Load admin-specific services.
 		$container = ServiceContainer::getInstance();
-		$settings = SettingsRepository::get_instance();
+		$settings  = SettingsRepository::get_instance();
 
 		// Register core services and containers first.
 		$container->registerCoreServices();
@@ -718,7 +718,7 @@ class AdminLoader {
 		// Initialize admin controllers and services.
 		if ( class_exists( 'NuclearEngagement\Admin\Admin' ) ) {
 			$plugin_version = defined( 'NUCLEN_PLUGIN_VERSION' ) ? NUCLEN_PLUGIN_VERSION : '1.0.0';
-			$admin = new \NuclearEngagement\Admin\Admin( 'nuclear-engagement', $plugin_version, $settings, $container );
+			$admin          = new \NuclearEngagement\Admin\Admin( 'nuclear-engagement', $plugin_version, $settings, $container );
 
 			// Register admin hooks.
 			add_action( 'init', array( $admin, 'nuclen_register_admin_scripts' ), 9 );
@@ -744,11 +744,11 @@ class AdminLoader {
 	}
 
 	private function registerAdminAjaxHooks( ServiceContainer $container ): void {
-		$generate_controller = $container->get( 'generate_controller' );
-		$updates_controller = $container->get( 'updates_controller' );
+		$generate_controller    = $container->get( 'generate_controller' );
+		$updates_controller     = $container->get( 'updates_controller' );
 		$posts_count_controller = $container->get( 'posts_count_controller' );
-		$pointer_controller = $container->get( 'pointer_controller' );
-		$stream_controller = $container->get( 'stream_controller' );
+		$pointer_controller     = $container->get( 'pointer_controller' );
+		$stream_controller      = $container->get( 'stream_controller' );
 
 		add_action( 'wp_ajax_nuclen_trigger_generation', array( $generate_controller, 'handle' ) );
 		add_action( 'wp_ajax_nuclen_fetch_app_updates', array( $updates_controller, 'handle' ) );
@@ -792,7 +792,7 @@ class AdminLoader {
 		$cached_types = get_transient( 'nuclear_engagement_allowed_post_types' );
 
 		if ( false === $cached_types ) {
-			$settings = get_option( 'nuclear_engagement_settings', array() );
+			$settings     = get_option( 'nuclear_engagement_settings', array() );
 			$cached_types = isset( $settings['generation_post_types'] ) ?
 				$settings['generation_post_types'] : array( 'post' );
 			set_transient( 'nuclear_engagement_allowed_post_types', $cached_types, HOUR_IN_SECONDS );

@@ -95,7 +95,6 @@ class ServiceRegistry {
 	public static function initCoreServices(): void {
 		$registry = self::getInstance();
 
-
 		// Settings Repository.
 		$registry->register(
 			'settings',

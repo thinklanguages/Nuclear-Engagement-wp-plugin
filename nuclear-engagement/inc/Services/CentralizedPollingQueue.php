@@ -336,8 +336,8 @@ class CentralizedPollingQueue extends BaseService {
 		if ( add_option(
 			self::LOCK_OPTION,
 			array(
-				'value' => $lock_value,
-				'time'  => time(),
+				'value'      => $lock_value,
+				'time'       => time(),
 				'process_id' => ProcessIdentifier::get(),
 			),
 			'',
@@ -355,8 +355,8 @@ class CentralizedPollingQueue extends BaseService {
 				if ( update_option(
 					self::LOCK_OPTION,
 					array(
-						'value' => $lock_value,
-						'time'  => time(),
+						'value'      => $lock_value,
+						'time'       => time(),
 						'process_id' => ProcessIdentifier::get(),
 					)
 				) ) {

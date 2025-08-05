@@ -64,7 +64,7 @@ class TransientCleanupCommand {
 		delete_transient( 'nuclen_cleanup_results' );
 
 		$message = sprintf(
-			__( 'Nuclear Engagement cleanup completed: %d transients deleted, %d cron jobs cleared.', 'nuclear-engagement' ),
+			__( 'Nuclear Engagement cleanup completed: %1$d transients deleted, %2$d cron jobs cleared.', 'nuclear-engagement' ),
 			$stats['transients_deleted'],
 			$stats['cron_jobs_cleared']
 		);

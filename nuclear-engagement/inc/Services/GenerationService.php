@@ -143,7 +143,6 @@ class GenerationService {
 		// Get posts data.
 		$posts = $this->getPostsData( $request->postIds, $request->postType, $request->postStatus, $request->workflowType );
 
-
 		if ( empty( $posts ) ) {
 			// Check if posts exist but have empty content
 			$empty_content_posts = array();
@@ -153,7 +152,7 @@ class GenerationService {
 					$empty_content_posts[] = $post_id;
 				}
 			}
-			
+
 			if ( ! empty( $empty_content_posts ) ) {
 				\NuclearEngagement\Services\LoggingService::log(
 					sprintf(
@@ -171,7 +170,7 @@ class GenerationService {
 					'This post appears to be empty. No content can be generated.'
 				);
 			}
-			
+
 			\NuclearEngagement\Services\LoggingService::log(
 				sprintf(
 					'[ERROR] No matching posts found | GenID: %s | Requested: %s',
@@ -239,7 +238,6 @@ class GenerationService {
 		$response->totalPosts   = count( $posts );
 		$response->totalBatches = count( $batches );
 
-
 		return $response;
 	}
 
@@ -257,19 +255,16 @@ class GenerationService {
 			$data      = array();
 			$postsById = array();
 
-
 			$chunkSize = defined( 'NUCLEN_POST_FETCH_CHUNK' ) ? (int) constant( 'NUCLEN_POST_FETCH_CHUNK' ) : 200;
 			$chunks    = count( $post_ids ) <= $chunkSize ? array( $post_ids ) : array_chunk( $post_ids, $chunkSize );
-
 
 		foreach ( $chunks as $chunkIndex => $chunk ) {
 				$posts = $this->fetcher->fetch( $chunk, $workflowType );
 
-
 			foreach ( $posts as $post ) {
-				$title = trim( $post->post_title );
+				$title   = trim( $post->post_title );
 				$content = ContentExtractor::extract_content( $post );
-				
+
 				// Skip posts with empty title or content
 				if ( empty( $title ) || empty( $content ) ) {
 					\NuclearEngagement\Services\LoggingService::log(
@@ -277,7 +272,7 @@ class GenerationService {
 					);
 					continue;
 				}
-				
+
 				$postsById[ (int) $post->ID ] = array(
 					'id'      => (int) $post->ID,
 					'title'   => $title,
@@ -379,7 +374,6 @@ class GenerationService {
 
 		// Use batch processor's queue method
 		$generation_id = $this->batchProcessor->queue_generation( $filtered_ids, $workflow_type, 'low', 'auto', $workflow_settings );
-
 
 		return $generation_id;
 	}
@@ -526,7 +520,6 @@ class GenerationService {
 
 		set_transient( $recovery_key, $recovery_data, DAY_IN_SECONDS );
 
-
 		// Schedule recovery attempt
 		$scheduled_time = time() + 300; // 5 minutes
 		wp_schedule_single_event(
@@ -534,7 +527,6 @@ class GenerationService {
 			'nuclen_recover_generation',
 			array( $request->generationId )
 		);
-
 	}
 
 	/**
@@ -571,7 +563,6 @@ class GenerationService {
 			return false;
 		}
 
-
 		try {
 			// Recreate request
 			$request                = new GenerateRequestData();
@@ -587,7 +578,6 @@ class GenerationService {
 			$request->source        = 'recovery';
 			$request->retryCount    = ( $recovery_data['request']['retry_count'] ?? 0 ) + 1;
 			$request->maxRetries    = $recovery_data['request']['max_retries'] ?? 3;
-
 
 			// Try to generate again
 			$response = $this->generateContent( $request );

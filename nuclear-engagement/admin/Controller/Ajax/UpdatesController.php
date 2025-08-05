@@ -96,7 +96,7 @@ class UpdatesController extends BaseController {
 			if ( $batch_status && is_array( $batch_status ) ) {
 				// Check if the task has been cancelled
 				if ( isset( $batch_status['status'] ) && $batch_status['status'] === 'cancelled' ) {
-					\NuclearEngagement\Services\LoggingService::log( 
+					\NuclearEngagement\Services\LoggingService::log(
 						sprintf( 'Task %s has been cancelled, stopping polling', $request->generationId )
 					);
 					$this->send_error( __( 'Task has been cancelled', 'nuclear-engagement' ), 410 );
@@ -124,7 +124,7 @@ class UpdatesController extends BaseController {
 				if ( ! empty( $batch_results ) && is_array( $batch_results ) ) {
 					$data['results']  = $batch_results;
 					$data['workflow'] = $this->detectWorkflowType( $batch_results, reset( $batch_results ), $request->generationId );
-					\NuclearEngagement\Services\LoggingService::log( 
+					\NuclearEngagement\Services\LoggingService::log(
 						sprintf( '[UpdatesController] New batch results found: %d items', count( $batch_results ) )
 					);
 				}
@@ -133,18 +133,18 @@ class UpdatesController extends BaseController {
 				if ( ! empty( $batch_results ) && is_array( $batch_results ) ) {
 					$data['results']  = $batch_results;
 					$data['workflow'] = $this->detectWorkflowType( $batch_results, reset( $batch_results ), $request->generationId );
-					\NuclearEngagement\Services\LoggingService::log( 
+					\NuclearEngagement\Services\LoggingService::log(
 						sprintf( '[UpdatesController] New batch results found: %d items', count( $batch_results ) )
 					);
 				}
-				
+
 				// If all batches are complete or we don't have results yet, gather all results
 				if ( ( isset( $batch_status['status'] ) && ( $batch_status['status'] === 'completed' || $batch_status['status'] === 'completed_with_errors' ) ) || empty( $data['results'] ) ) {
 					$all_available_results = $this->gatherBatchResults( $request->generationId );
 					if ( ! empty( $all_available_results ) && is_array( $all_available_results ) ) {
-						$data['results'] = $all_available_results;
+						$data['results']  = $all_available_results;
 						$data['workflow'] = $this->detectWorkflowType( $data['results'], reset( $data['results'] ), $request->generationId );
-						\NuclearEngagement\Services\LoggingService::log( 
+						\NuclearEngagement\Services\LoggingService::log(
 							sprintf( '[UpdatesController] Gathered all results for completed generation %s: %d items', $request->generationId, count( $all_available_results ) )
 						);
 					}
@@ -155,7 +155,7 @@ class UpdatesController extends BaseController {
 
 				// Ensure $data is an array before proceeding
 				if ( ! is_array( $data ) ) {
-					\NuclearEngagement\Services\LoggingService::log( 
+					\NuclearEngagement\Services\LoggingService::log(
 						sprintf(
 							'Invalid API response format - Expected: array | Actual: %s | Generation: %s | Data sample: %s',
 							gettype( $data ),
@@ -168,7 +168,7 @@ class UpdatesController extends BaseController {
 
 				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 					$log_prefix = $is_credits_check ? 'CREDIT_CHECK' : 'GENERATION_UPDATE';
-					\NuclearEngagement\Services\LoggingService::log( 
+					\NuclearEngagement\Services\LoggingService::log(
 						sprintf(
 							'DEBUG: %s - Generation: %s | Status: %s | Results: %s | Credits: %d',
 							$log_prefix,
@@ -196,7 +196,7 @@ class UpdatesController extends BaseController {
 			if ( isset( $data['message'] ) ) {
 				$response->message = $data['message'];
 			}
-			
+
 			// Add workflow if present in data (for batch mode)
 			if ( isset( $data['workflow'] ) ) {
 				$response->workflow = $data['workflow'];
@@ -205,31 +205,31 @@ class UpdatesController extends BaseController {
 				/* ── Persist & return results ───────────────────────────── */
 			if ( ! empty( $data['results'] ) && is_array( $data['results'] ) ) {
 					// Filter out summary statistics from results
-					$post_results = array_filter( 
-						$data['results'], 
-						function( $key ) {
+					$post_results = array_filter(
+						$data['results'],
+						function ( $key ) {
 							// Only keep numeric post IDs, filter out summary keys
-							return is_numeric( $key ) && ! in_array( $key, ['success_count', 'fail_count', 'processed_count'], true );
+							return is_numeric( $key ) && ! in_array( $key, array( 'success_count', 'fail_count', 'processed_count' ), true );
 						},
 						ARRAY_FILTER_USE_KEY
 					);
 
-					if ( ! empty( $post_results ) ) {
-						$first = reset( $post_results );
+				if ( ! empty( $post_results ) ) {
+					$first = reset( $post_results );
 
-						// Improve workflow detection logic
-						$workflow_type = $this->detectWorkflowType( $post_results, $first, $request->generationId );
+					// Improve workflow detection logic
+					$workflow_type = $this->detectWorkflowType( $post_results, $first, $request->generationId );
 
-						$statuses = $this->storage->storeResults( $post_results, $workflow_type );
+					$statuses = $this->storage->storeResults( $post_results, $workflow_type );
 
-				if ( array_filter( $statuses, static fn( $s ) => $s !== true ) ) {
+					if ( array_filter( $statuses, static fn( $s ) => $s !== true ) ) {
 								$this->send_error( __( 'Failed to store content.', 'nuclear-engagement' ) );
 								return;
-				}
+					}
 
 					$response->results  = $post_results;  // Send only actual post results
 					$response->workflow = $workflow_type; // NEW → lets JS forward it to /receive-content.
-					
+
 					// Add summary statistics to response if they exist
 					if ( isset( $data['results']['success_count'] ) ) {
 						$response->success_count = $data['results']['success_count'];
@@ -249,7 +249,7 @@ class UpdatesController extends BaseController {
 				wp_send_json_success( $response->toArray() );
 
 		} catch ( ApiException $e ) {
-			\NuclearEngagement\Services\LoggingService::log( 
+			\NuclearEngagement\Services\LoggingService::log(
 				sprintf(
 					'API error fetching updates - Generation: %s | Error: %s | Code: %d | Workflow: %s',
 					$request->generationId ?? 'unknown',
@@ -261,12 +261,12 @@ class UpdatesController extends BaseController {
 			$message = __( 'Failed to fetch updates. Please try again later.', 'nuclear-engagement' );
 			$this->send_error( $message, $e->getCode() ?: 500 );
 		} catch ( \Throwable $e ) {
-			\NuclearEngagement\Services\LoggingService::log( 
+			\NuclearEngagement\Services\LoggingService::log(
 				sprintf(
 					'Unexpected error fetching updates - Generation: %s | Error: %s | Type: %s',
 					$request->generationId ?? 'unknown',
 					$e->getMessage(),
-					get_class($e)
+					get_class( $e )
 				)
 			);
 			$this->send_error( __( 'An unexpected error occurred.', 'nuclear-engagement' ) );
@@ -396,28 +396,28 @@ class UpdatesController extends BaseController {
 						$batch_data['status'] = 'completed';
 						// Move accumulated results to final results
 						$batch_data['results'] = $batch_data['accumulated_results'];
-						
+
 						// Calculate success/fail counts from accumulated results
 						$success_count = 0;
-						$fail_count = 0;
+						$fail_count    = 0;
 						if ( isset( $batch_data['accumulated_results'] ) && is_array( $batch_data['accumulated_results'] ) ) {
 							foreach ( $batch_data['accumulated_results'] as $post_id => $result ) {
 								if ( is_array( $result ) ) {
 									// Check if the result indicates success or failure
-									if ( isset( $result['error'] ) || isset( $result['failed'] ) || 
-										 ( isset( $result['status'] ) && $result['status'] === 'failed' ) ) {
-										$fail_count++;
+									if ( isset( $result['error'] ) || isset( $result['failed'] ) ||
+										( isset( $result['status'] ) && $result['status'] === 'failed' ) ) {
+										++$fail_count;
 									} else {
-										$success_count++;
+										++$success_count;
 									}
 								}
 							}
 						}
-						
+
 						// Store counts in batch data
 						$batch_data['success_count'] = $success_count;
-						$batch_data['fail_count'] = $fail_count;
-						
+						$batch_data['fail_count']    = $fail_count;
+
 						\NuclearEngagement\Services\LoggingService::log(
 							sprintf(
 								'Batch %s completed with counts - Success: %d, Failed: %d',
@@ -426,12 +426,17 @@ class UpdatesController extends BaseController {
 								$fail_count
 							)
 						);
-						
+
 						// Update parent job status with counts
-						$this->updateParentJobStatus( $generationId, $job['batch_id'], 'completed', array(
-							'success_count' => $success_count,
-							'fail_count' => $fail_count
-						) );
+						$this->updateParentJobStatus(
+							$generationId,
+							$job['batch_id'],
+							'completed',
+							array(
+								'success_count' => $success_count,
+								'fail_count'    => $fail_count,
+							)
+						);
 					}
 					TaskTransientManager::set_batch_transient( $job['batch_id'], $batch_data, DAY_IN_SECONDS );
 
@@ -468,7 +473,7 @@ class UpdatesController extends BaseController {
 	 * @param string $parentId Parent generation ID
 	 * @param string $batchId Batch ID
 	 * @param string $status New status
-	 * @param array $results Optional results array with success/fail counts
+	 * @param array  $results Optional results array with success/fail counts
 	 */
 	private function updateParentJobStatus( string $parentId, string $batchId, string $status, array $results = array() ): void {
 		$processor = new \NuclearEngagement\Services\BulkGenerationBatchProcessor(

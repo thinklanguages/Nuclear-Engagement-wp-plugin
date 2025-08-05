@@ -29,7 +29,7 @@ class LoggingService {
 
 		/** Buffered log messages. */
 	private array $buffer = array();
-	
+
 		/** Maximum buffer size to prevent memory issues. */
 	private const MAX_BUFFER_SIZE = 100;
 
@@ -230,7 +230,7 @@ class LoggingService {
 			}
 		}
 	}
-	
+
 	/**
 	 * Clean up old log files to prevent disk space issues.
 	 *
@@ -238,18 +238,21 @@ class LoggingService {
 	 */
 	private function cleanup_old_log_files( string $log_folder ): void {
 		$max_logs = defined( 'NUCLEN_MAX_LOG_FILES' ) ? NUCLEN_MAX_LOG_FILES : 5;
-		
+
 		// Get all log files
 		$files = glob( $log_folder . '/log-*.txt' );
 		if ( ! $files || count( $files ) <= $max_logs ) {
 			return;
 		}
-		
+
 		// Sort by modification time (oldest first)
-		usort( $files, function( $a, $b ) {
-			return filemtime( $a ) - filemtime( $b );
-		} );
-		
+		usort(
+			$files,
+			function ( $a, $b ) {
+				return filemtime( $a ) - filemtime( $b );
+			}
+		);
+
 		// Remove oldest files
 		$files_to_remove = array_slice( $files, 0, count( $files ) - $max_logs );
 		foreach ( $files_to_remove as $file ) {
@@ -321,11 +324,11 @@ class LoggingService {
 
 		if ( $instance->use_buffer() ) {
 				// Check buffer size to prevent memory issues
-				if ( count( $instance->buffer ) >= self::MAX_BUFFER_SIZE ) {
-					// Flush buffer when it reaches max size
-					$instance->flush();
-				}
-				
+			if ( count( $instance->buffer ) >= self::MAX_BUFFER_SIZE ) {
+				// Flush buffer when it reaches max size
+				$instance->flush();
+			}
+
 				$instance->buffer[] = $message;
 			if ( ! $instance->shutdown_registered ) {
 					register_shutdown_function( array( self::class, 'flush' ) );

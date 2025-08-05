@@ -105,7 +105,7 @@ class TransientCleanup {
 		);
 
 		foreach ( $patterns as $pattern ) {
-			$deleted = $wpdb->query(
+			$deleted                      = $wpdb->query(
 				$wpdb->prepare(
 					"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s",
 					$pattern

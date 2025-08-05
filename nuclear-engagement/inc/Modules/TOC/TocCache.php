@@ -55,8 +55,8 @@ final class TocCache {
 			hash( 'sha256', $post->post_content ),
 			implode( '', $levels ),
 		);
-		$key = \NuclearEngagement\Utils\CacheUtils::generate_key( $key_components );
-		$transient = 'nuclen_toc_' . substr( $key, 0, 40 ); // Limit transient key length
+		$key            = \NuclearEngagement\Utils\CacheUtils::generate_key( $key_components );
+		$transient      = 'nuclen_toc_' . substr( $key, 0, 40 ); // Limit transient key length
 
 		wp_cache_delete( $key, self::CACHE_GROUP );
 		delete_transient( $transient );

@@ -204,7 +204,6 @@ class ApiUserManager {
 			),
 			$context
 		);
-
 	}
 
 	/**

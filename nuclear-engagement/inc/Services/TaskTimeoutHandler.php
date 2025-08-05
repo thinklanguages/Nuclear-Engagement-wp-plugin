@@ -89,13 +89,15 @@ class TaskTimeoutHandler extends BaseService {
 
 		// Clean up old timeout records
 		$this->cleanup_old_records();
-		
-		// Check for stuck tasks (tasks showing as processing but all batches are complete)
-		$this->check_stuck_tasks();
 
 		// Only log if tasks were found
 		if ( $timed_out_count > 0 ) {
 			LoggingService::log( sprintf( '[TaskTimeoutHandler] Found %d timed out tasks', $timed_out_count ) );
+		}
+
+		// Log statistics every hour (when minute is 0)
+		if ( intval( date( 'i' ) ) === 0 ) {
+			$this->log_timeout_statistics();
 		}
 	}
 
@@ -250,15 +252,28 @@ class TaskTimeoutHandler extends BaseService {
 	 */
 	private function handle_timed_out_task( string $task_id, array $task_data, string $type ): void {
 		try {
+			$task_age = time() - ( $task_data['created_at'] ?? 0 );
+
 			LoggingService::log(
 				sprintf(
 					'[TaskTimeoutHandler] Task %s (type: %s) timed out. Status: %s, Age: %d seconds',
 					$task_id,
 					$type,
 					$task_data['status'] ?? 'unknown',
-					time() - ( $task_data['created_at'] ?? 0 )
+					$task_age
 				),
 				'error'
+			);
+
+			// Record timeout event for monitoring
+			$this->record_timeout_event(
+				$task_id,
+				$type,
+				array(
+					'status'      => $task_data['status'] ?? 'unknown',
+					'age_seconds' => $task_age,
+					'post_count'  => $task_data['total_posts'] ?? 0,
+				)
 			);
 
 			// Update task status to failed
@@ -334,14 +349,28 @@ class TaskTimeoutHandler extends BaseService {
 	 * @param array  $batch_data Batch data
 	 */
 	private function handle_timed_out_batch( string $batch_id, array $batch_data ): void {
+		$batch_age = time() - ( $batch_data['updated_at'] ?? $batch_data['created_at'] ?? 0 );
+
 		LoggingService::log(
 			sprintf(
 				'[TaskTimeoutHandler] Batch %s timed out. Status: %s, Age: %d seconds',
 				$batch_id,
 				$batch_data['status'] ?? 'unknown',
-				time() - ( $batch_data['updated_at'] ?? $batch_data['created_at'] ?? 0 )
+				$batch_age
 			),
 			'error'
+		);
+
+		// Record timeout event for monitoring
+		$this->record_timeout_event(
+			$batch_id,
+			'batch',
+			array(
+				'status'      => $batch_data['status'] ?? 'unknown',
+				'age_seconds' => $batch_age,
+				'post_count'  => is_array( $batch_data['posts'] ?? null ) ? count( $batch_data['posts'] ) : 0,
+				'parent_id'   => $batch_data['parent_id'] ?? null,
+			)
 		);
 
 		// Get batch processor to handle the failure
@@ -463,54 +492,87 @@ class TaskTimeoutHandler extends BaseService {
 		return 'task_timeout_handler';
 	}
 
+
+
 	/**
-	 * Force expire stuck tasks
-	 *
-	 * @param int $age_hours Age in hours
-	 * @return int Number of tasks expired
+	 * Log timeout statistics for monitoring
 	 */
-	public function force_expire_stuck_tasks( int $age_hours = 24 ): int {
-		$count  = 0;
-		$cutoff = time() - ( $age_hours * HOUR_IN_SECONDS );
+	public function log_timeout_statistics(): void {
+		$stats = $this->get_timeout_statistics();
 
-		// Get task index
-		$container = \NuclearEngagement\Core\ServiceContainer::getInstance();
-		if ( ! $container->has( 'task_index_service' ) ) {
-			return 0;
+		if ( $stats['total_timeouts'] > 0 ) {
+			LoggingService::log(
+				sprintf(
+					'[TaskTimeoutHandler] Timeout Statistics - Total: %d | Last 24h: %d | Last Hour: %d | By Type: %s',
+					$stats['total_timeouts'],
+					$stats['timeouts_24h'],
+					$stats['timeouts_1h'],
+					json_encode( $stats['by_type'] )
+				),
+				'info'
+			);
 		}
-
-		$index_service = $container->get( 'task_index_service' );
-		$all_tasks     = $index_service->get_paginated_tasks( 1, 1000 );
-
-		foreach ( $all_tasks['tasks'] as $task ) {
-			// Only check non-terminal states
-			if ( ! in_array( $task['status'], array( 'pending', 'processing' ), true ) ) {
-				continue;
-			}
-
-			$created_at = $task['created_at'] ?? 0;
-			if ( $created_at < $cutoff ) {
-				$this->handle_timed_out_task( $task['id'], $task, 'forced' );
-				++$count;
-			}
-		}
-
-		if ( $count > 0 ) {
-			LoggingService::log( sprintf( '[TaskTimeoutHandler] Force expired %d stuck tasks older than %d hours', $count, $age_hours ) );
-		}
-
-		return $count;
 	}
-	
+
 	/**
-	 * Check for stuck tasks and trigger recovery
+	 * Get timeout statistics
+	 *
+	 * @return array Timeout statistics
 	 */
-	private function check_stuck_tasks(): void {
-		$container = \NuclearEngagement\Core\ServiceContainer::getInstance();
-		
-		if ( $container->has( 'bulk_generation_batch_processor' ) ) {
-			$processor = $container->get( 'bulk_generation_batch_processor' );
-			$processor->check_and_recover_stuck_tasks();
+	private function get_timeout_statistics(): array {
+		$timeout_log = get_option( 'nuclen_timeout_log', array() );
+
+		$now   = time();
+		$stats = array(
+			'total_timeouts' => count( $timeout_log ),
+			'timeouts_24h'   => 0,
+			'timeouts_1h'    => 0,
+			'by_type'        => array(),
+		);
+
+		foreach ( $timeout_log as $entry ) {
+			$age_hours = ( $now - $entry['timestamp'] ) / 3600;
+
+			if ( $age_hours <= 24 ) {
+				++$stats['timeouts_24h'];
+			}
+
+			if ( $age_hours <= 1 ) {
+				++$stats['timeouts_1h'];
+			}
+
+			$type = $entry['type'] ?? 'unknown';
+			if ( ! isset( $stats['by_type'][ $type ] ) ) {
+				$stats['by_type'][ $type ] = 0;
+			}
+			++$stats['by_type'][ $type ];
 		}
+
+		return $stats;
+	}
+
+	/**
+	 * Record a timeout event for monitoring
+	 *
+	 * @param string $task_id Task ID
+	 * @param string $type Task type (generation, batch, etc)
+	 * @param array  $details Additional details
+	 */
+	private function record_timeout_event( string $task_id, string $type, array $details = array() ): void {
+		$timeout_log = get_option( 'nuclen_timeout_log', array() );
+
+		// Keep only last 1000 entries
+		if ( count( $timeout_log ) >= 1000 ) {
+			$timeout_log = array_slice( $timeout_log, -999, null, true );
+		}
+
+		$timeout_log[] = array(
+			'task_id'   => $task_id,
+			'type'      => $type,
+			'timestamp' => time(),
+			'details'   => $details,
+		);
+
+		update_option( 'nuclen_timeout_log', $timeout_log, false );
 	}
 }

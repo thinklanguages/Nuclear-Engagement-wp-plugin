@@ -118,28 +118,28 @@ trait AdminAutoGenerate {
 			// Check if we have results.
 			if ( ! empty( $data['results'] ) && is_array( $data['results'] ) ) {
 					// Filter out summary statistics from results
-					$post_results = array_filter( 
-						$data['results'], 
-						function( $key ) {
+					$post_results = array_filter(
+						$data['results'],
+						function ( $key ) {
 							// Only keep numeric post IDs, filter out summary keys
-							return is_numeric( $key ) && ! in_array( $key, ['success_count', 'fail_count', 'processed_count'], true );
+							return is_numeric( $key ) && ! in_array( $key, array( 'success_count', 'fail_count', 'processed_count' ), true );
 						},
 						ARRAY_FILTER_USE_KEY
 					);
 
-					if ( ! empty( $post_results ) ) {
-						$statuses = $storage->storeResults( $post_results, $workflow_type );
-				if ( array_filter( $statuses, static fn( $s ) => $s !== true ) ) {
+				if ( ! empty( $post_results ) ) {
+					$statuses = $storage->storeResults( $post_results, $workflow_type );
+					if ( array_filter( $statuses, static fn( $s ) => $s !== true ) ) {
 								\NuclearEngagement\Services\LoggingService::notify_admin(
 									sprintf( 'Failed to store results for post %d', $post_id )
 								);
-				} else {
+					} else {
 									\NuclearEngagement\Services\LoggingService::log(
 										"Poll success for post {$post_id} ({$workflow_type}), generation {$generation_id}"
 									);
-				}
-						return;
 					}
+					return;
+				}
 			}
 
 			// Check if still processing.
