@@ -25,6 +25,7 @@ $summary_format          = $summary_data['format'] ?? 'paragraph';
 $summary_length          = $summary_data['length'] ?? 30;
 $summary_number_of_items = $summary_data['number_of_items'] ?? 5;
 $field_prefix            = 'nuclen_summary_data';
+$id_prefix               = 'nuclen_summary_data_';
 $show_labels             = true;
 $use_array_notation      = true;
 

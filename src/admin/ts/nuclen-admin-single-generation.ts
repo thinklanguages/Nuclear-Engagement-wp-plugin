@@ -2,7 +2,7 @@ import { initSingleGenerationButtons } from './single/single-generation-handlers
 
 // Initialize summary format field toggling for metabox
 function initSummaryFormatToggle(): void {
-	const formatSelect = document.getElementById('nuclen_summary_dataformat') as HTMLSelectElement;
+	const formatSelect = document.getElementById('nuclen_summary_data_format') as HTMLSelectElement;
 	if (!formatSelect) return;
 
 	const paragraphOptions = document.querySelector('.nuclen-summary-paragraph-options') as HTMLElement;
@@ -10,7 +10,7 @@ function initSummaryFormatToggle(): void {
 
 	function toggleFormatFields(): void {
 		if (!paragraphOptions || !bulletOptions) return;
-		
+
 		if (formatSelect.value === 'paragraph') {
 			paragraphOptions.style.display = 'block';
 			bulletOptions.style.display = 'none';

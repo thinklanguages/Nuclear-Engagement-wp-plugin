@@ -51,9 +51,9 @@ export function initSingleGenerationButtons(): void {
 
 		// If generating summary, include format options
 		if (workflow === 'summary') {
-			const formatSelect = document.getElementById('nuclen_summary_dataformat') as HTMLSelectElement;
-			const lengthSelect = document.getElementById('nuclen_summary_datalength') as HTMLSelectElement;
-			const itemsSelect = document.getElementById('nuclen_summary_datanumber_of_items') as HTMLSelectElement;
+			const formatSelect = document.getElementById('nuclen_summary_data_format') as HTMLSelectElement;
+			const lengthSelect = document.getElementById('nuclen_summary_data_length') as HTMLSelectElement;
+			const itemsSelect = document.getElementById('nuclen_summary_data_number_of_items') as HTMLSelectElement;
 
 			if (formatSelect) {
 				payload.nuclen_selected_summary_format = formatSelect.value;
