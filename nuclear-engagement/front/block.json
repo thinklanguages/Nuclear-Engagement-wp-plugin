@@ -1,5 +1,5 @@
 {
-    "apiVersion": 2,
+    "apiVersion": 3,
     "name": "nuclear-engagement/quiz-block",
     "title": "Nuclear Engagement Quiz",
     "category": "widgets",

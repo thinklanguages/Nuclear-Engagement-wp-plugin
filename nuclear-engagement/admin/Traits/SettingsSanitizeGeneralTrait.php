@@ -32,7 +32,7 @@ trait SettingsSanitizeGeneralTrait {
 		if ( isset( $in['theme'] ) && $in['theme'] === 'bright' ) {
 			$in['theme'] = 'light';
 		}
-		$theme = in_array( $in['theme'] ?? 'light', $themes, true ) ? $in['theme'] : 'light';
+		$theme = in_array( $in['theme'] ?? 'light', $themes, true ) ? ( $in['theme'] ?? 'light' ) : 'light';
 
 		/* Counts */
 		$q_per_quiz = max( 3, min( 10, (int) ( $in['questions_per_quiz'] ?? 3 ) ) );
@@ -40,9 +40,9 @@ trait SettingsSanitizeGeneralTrait {
 
 		/* Placement */
 		$disp  = array( 'manual', 'before', 'after' );
-		$d_sum = in_array( $in['display_summary'] ?? 'manual', $disp, true ) ? $in['display_summary'] : 'manual';
-		$d_q   = in_array( $in['display_quiz'] ?? 'manual', $disp, true ) ? $in['display_quiz'] : 'manual';
-		$d_toc = in_array( $in['display_toc'] ?? 'manual', $disp, true ) ? $in['display_toc'] : 'manual';
+		$d_sum = in_array( $in['display_summary'] ?? 'manual', $disp, true ) ? ( $in['display_summary'] ?? 'manual' ) : 'manual';
+		$d_q   = in_array( $in['display_quiz'] ?? 'manual', $disp, true ) ? ( $in['display_quiz'] ?? 'manual' ) : 'manual';
+		$d_toc = in_array( $in['display_toc'] ?? 'manual', $disp, true ) ? ( $in['display_toc'] ?? 'manual' ) : 'manual';
 
 		$toc_sticky       = ! empty( $in['toc_sticky'] ) ? '1' : '0';
 		$toc_show_toggle  = ! empty( $in['toc_show_toggle'] ) ? '1' : '0';
@@ -95,7 +95,7 @@ trait SettingsSanitizeGeneralTrait {
 				$auto_summary = (bool) ( $in['auto_generate_summary_on_publish'] ?? false );
 
 		/* Auto-generation settings */
-		$auto_summary_format          = in_array( $in['auto_summary_format'] ?? 'paragraph', array( 'paragraph', 'bullet_list' ), true ) ? $in['auto_summary_format'] : 'paragraph';
+		$auto_summary_format          = in_array( $in['auto_summary_format'] ?? 'paragraph', array( 'paragraph', 'bullet_list' ), true ) ? ( $in['auto_summary_format'] ?? 'paragraph' ) : 'paragraph';
 		$auto_summary_length          = max( 20, min( 50, (int) ( $in['auto_summary_length'] ?? 30 ) ) );
 		$auto_summary_number_of_items = max( 3, min( 7, (int) ( $in['auto_summary_number_of_items'] ?? 5 ) ) );
 
