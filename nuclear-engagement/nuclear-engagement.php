@@ -3,7 +3,7 @@
  * Plugin Name:       Nuclear Engagement
  * Plugin URI:        https://www.nuclearengagement.com
  * Description:       Bulk generate engaging content for your blog posts with AI in one click.
- * Version:           2.1.12
+ * Version:           2.1.13
  * Author:            Stefano Lodola
  * Requires at least: 6.1
  * Tested up to:      6.9

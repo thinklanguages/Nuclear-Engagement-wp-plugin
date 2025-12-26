@@ -189,11 +189,9 @@ final class PluginBootstrap {
 			// Clear any bootstrap errors from previous activation attempts
 			delete_option( 'nuclen_bootstrap_error' );
 
-			// Schedule more frequent timeout checks (every 5 minutes instead of hourly)
-			// This helps catch stuck tasks more quickly
-			if ( ! wp_next_scheduled( 'nuclen_frequent_timeout_check' ) ) {
-				wp_schedule_event( time() + 60, 'nuclen_five_minutes', 'nuclen_frequent_timeout_check' );
-			}
+			// Clean up redundant cron job from previous versions
+			// Timeout checks are now handled by nuclen_check_task_timeouts in TaskTimeoutHandler
+			wp_clear_scheduled_hook( 'nuclen_frequent_timeout_check' );
 		} catch ( \Throwable $e ) {
 			// Log but don't block activation
 			LoggingService::log( 'Activation error: ' . $e->getMessage() );
@@ -204,7 +202,6 @@ final class PluginBootstrap {
 		// Clean up scheduled events.
 		wp_clear_scheduled_hook( 'nuclen_theme_migration' );
 		wp_clear_scheduled_hook( 'nuclen_cleanup_logs' );
-		wp_clear_scheduled_hook( 'nuclen_frequent_timeout_check' );
 		wp_clear_scheduled_hook( 'nuclen_check_task_timeouts' );
 		wp_clear_scheduled_hook( 'nuclear_engagement_daily_generation' );
 		wp_clear_scheduled_hook( 'nuclen_check_generation_status' );
@@ -343,8 +340,6 @@ final class PluginBootstrap {
 		// Register custom cron schedules
 		add_filter( 'cron_schedules', array( $this, 'registerCronSchedules' ) );
 
-		// Register frequent timeout check hook
-		add_action( 'nuclen_frequent_timeout_check', array( $this, 'runFrequentTimeoutCheck' ) );
 		add_action( 'nuclen_cleanup_logs', array( $this, 'cleanupLogs' ) );
 	}
 
@@ -563,21 +558,10 @@ final class PluginBootstrap {
 			$timeout_handler->register_hooks();
 			self::$initialized_services['task_timeout'] = true;
 
-			// Run an immediate timeout check on initialization, but only once per request
-			// and not during AJAX or cron requests to avoid excessive checks
-			static $initial_check_done = false;
-			if ( ! $initial_check_done && ! wp_doing_ajax() && ! wp_doing_cron() ) {
-				$initial_check_done = true;
-				try {
-					LoggingService::log( '[PluginBootstrap] Running immediate timeout check on initialization' );
-					$timeout_handler->check_timeouts();
-				} catch ( \Throwable $e ) {
-					LoggingService::log(
-						sprintf( '[PluginBootstrap] Error running initial timeout check: %s', $e->getMessage() ),
-						'error'
-					);
-				}
-			}
+			// Timeout checks are handled by the cron job (nuclen_check_task_timeouts)
+			// running every 5 minutes. No immediate check is needed - this avoids
+			// database overhead on every page load while still ensuring stuck tasks
+			// are detected within 5 minutes (well within the 30-minute timeout thresholds).
 		}
 	}
 
@@ -972,23 +956,5 @@ final class PluginBootstrap {
 		);
 
 		return $schedules;
-	}
-
-	/**
-	 * Run frequent timeout check.
-	 */
-	public function runFrequentTimeoutCheck(): void {
-		try {
-			$container = ServiceContainer::getInstance();
-			if ( $container->has( 'task_timeout_handler' ) ) {
-				$timeout_handler = $container->get( 'task_timeout_handler' );
-				$timeout_handler->check_timeouts();
-			}
-		} catch ( \Throwable $e ) {
-			LoggingService::log(
-				sprintf( '[PluginBootstrap] Error running frequent timeout check: %s', $e->getMessage() ),
-				'error'
-			);
-		}
 	}
 }
