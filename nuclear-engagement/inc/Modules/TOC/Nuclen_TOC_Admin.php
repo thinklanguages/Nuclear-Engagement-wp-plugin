@@ -26,9 +26,9 @@ final class Nuclen_TOC_Admin {
 	/**
 	 * Hook suffix for the options page.
 	 *
-	 * @var string
+	 * @var string|false
 	 */
-	private string $hook = '';
+	private string|false $hook = '';
 
 	/**
 	 * Register admin hooks.
