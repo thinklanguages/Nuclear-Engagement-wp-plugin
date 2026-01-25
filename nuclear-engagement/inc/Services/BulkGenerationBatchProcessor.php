@@ -1376,236 +1376,28 @@ class BulkGenerationBatchProcessor extends BaseService {
 
 
 	/**
-	 * Clean up orphaned batches
+	 * Clean up orphaned batches.
 	 *
-	 * @return int Number of orphaned batches cleaned
+	 * Delegates to BatchCleanupService for the actual cleanup.
+	 *
+	 * @return int Number of orphaned batches cleaned.
 	 */
 	public function cleanup_orphaned_batches(): int {
-		global $wpdb;
-
-		$cleaned = 0;
-
-		// Find all batch transients
-		$batch_transients = $wpdb->get_results(
-			$wpdb->prepare(
-				"SELECT option_name, option_value FROM $wpdb->options 
-				WHERE option_name LIKE %s 
-				AND option_name NOT LIKE %s
-				LIMIT 100",
-				'_transient_nuclen_batch_%',
-				'_transient_timeout_nuclen_batch_%'
-			)
-		);
-
-		foreach ( $batch_transients as $transient ) {
-			$batch_data = maybe_unserialize( $transient->option_value );
-			if ( ! is_array( $batch_data ) || ! isset( $batch_data['parent_id'] ) ) {
-				continue;
-			}
-
-			// Check if parent exists
-			$parent_id   = $batch_data['parent_id'];
-			$parent_data = TaskTransientManager::get_task_transient( $parent_id );
-
-			if ( false === $parent_data ) {
-				// Parent doesn't exist, this is an orphaned batch
-				$batch_id = str_replace( '_transient_nuclen_batch_', '', $transient->option_name );
-
-				// Clean up batch and its results
-				delete_transient( 'nuclen_batch_' . $batch_id );
-				delete_transient( 'nuclen_batch_results_' . $batch_id );
-				++$cleaned;
-			}
-		}
-
-		return $cleaned;
+		$cleanup_service = new BatchCleanupService();
+		return $cleanup_service->cleanup_orphaned_batches();
 	}
 
 	/**
-	 * Clean up old batch data with optimized bulk operations
+	 * Clean up old batch data with optimized bulk operations.
 	 *
-	 * @param int $older_than_hours Clean batches older than this many hours
-	 * @return int Number of cleaned batches
+	 * Delegates to BatchCleanupService for the actual cleanup.
+	 *
+	 * @param int $older_than_hours Clean batches older than this many hours.
+	 * @return int Number of cleaned batches.
 	 */
 	public function cleanup_old_batches( int $older_than_hours = 24 ): int {
-		global $wpdb;
-
-		$cutoff_time = time() - ( $older_than_hours * HOUR_IN_SECONDS );
-		$cleaned     = 0;
-		$batch_size  = 50; // Process in batches to avoid memory issues
-
-		// Apply filter to allow customization of bulk job retention
-		$bulk_job_retention_hours = apply_filters( 'nuclen_bulk_job_retention_hours', 7 * 24 ); // Default 7 days
-		$bulk_job_cutoff_time     = time() - ( $bulk_job_retention_hours * HOUR_IN_SECONDS );
-
-		// Find old transients in batches
-		$offset = 0;
-		do {
-			// Only clean up batch and batch_results transients, not bulk_job transients
-			$transients = $wpdb->get_results(
-				$wpdb->prepare(
-					"SELECT option_name, option_value FROM $wpdb->options 
-					WHERE (option_name LIKE %s 
-					OR option_name LIKE %s)
-					AND option_name NOT LIKE %s
-					LIMIT %d OFFSET %d",
-					'_transient_nuclen_batch_%',
-					'_transient_nuclen_batch_results_%',
-					'_transient_nuclen_bulk_job_%',
-					$batch_size,
-					$offset
-				)
-			);
-
-			if ( empty( $transients ) ) {
-				break;
-			}
-
-			$to_delete = array();
-
-			foreach ( $transients as $transient ) {
-				try {
-					$data = maybe_unserialize( $transient->option_value );
-					if ( ! is_array( $data ) ) {
-						// Corrupted transient, mark for deletion
-						$to_delete[] = $transient->option_name;
-						$to_delete[] = str_replace( '_transient_', '_transient_timeout_', $transient->option_name );
-					} elseif ( isset( $data['created_at'] ) && $data['created_at'] < $cutoff_time ) {
-						$to_delete[] = $transient->option_name;
-						// Also add timeout option
-						$to_delete[] = str_replace( '_transient_', '_transient_timeout_', $transient->option_name );
-					}
-				} catch ( \Exception $e ) {
-					// Failed to unserialize, mark for deletion
-					$to_delete[] = $transient->option_name;
-					$to_delete[] = str_replace( '_transient_', '_transient_timeout_', $transient->option_name );
-					\NuclearEngagement\Services\LoggingService::log(
-						sprintf(
-							'Failed to unserialize transient %s: %s',
-							$transient->option_name,
-							$e->getMessage()
-						)
-					);
-				}
-			}
-
-			// Bulk delete old transients
-			if ( ! empty( $to_delete ) ) {
-				$placeholders = implode( ',', array_fill( 0, count( $to_delete ), '%s' ) );
-				$deleted      = $wpdb->query(
-					$wpdb->prepare(
-						"DELETE FROM $wpdb->options WHERE option_name IN ($placeholders)",
-						$to_delete
-					)
-				);
-				$cleaned     += intval( $deleted / 2 ); // Divide by 2 because we delete both value and timeout
-
-				// Clear object cache for deleted transients
-				foreach ( $to_delete as $option_name ) {
-					if ( strpos( $option_name, '_transient_' ) === 0 && strpos( $option_name, '_timeout_' ) === false ) {
-						$transient_name = str_replace( '_transient_', '', $option_name );
-						wp_cache_delete( $transient_name, 'transient' );
-					}
-				}
-			}
-
-			$offset += $batch_size;
-
-			// Prevent runaway queries
-			if ( $offset > 1000 ) {
-				break;
-			}
-		} while ( count( $transients ) === $batch_size );
-
-		// Now clean up old bulk job transients separately with longer retention
-		$cleaned += $this->cleanup_old_bulk_jobs( $bulk_job_cutoff_time );
-
-		return $cleaned;
-	}
-
-	/**
-	 * Clean up old bulk job transients
-	 *
-	 * @param int $cutoff_time Timestamp before which jobs should be cleaned
-	 * @return int Number of cleaned bulk jobs
-	 */
-	private function cleanup_old_bulk_jobs( int $cutoff_time ): int {
-		global $wpdb;
-
-		$cleaned    = 0;
-		$batch_size = 20; // Smaller batch size for bulk jobs
-
-		// Find old bulk job transients
-		$bulk_jobs = $wpdb->get_results(
-			$wpdb->prepare(
-				"SELECT option_name, option_value FROM $wpdb->options 
-				WHERE option_name LIKE %s 
-				AND option_name NOT LIKE %s
-				LIMIT %d",
-				'_transient_nuclen_bulk_job_%',
-				'_transient_timeout_nuclen_bulk_job_%',
-				$batch_size
-			)
-		);
-
-		$to_delete = array();
-
-		foreach ( $bulk_jobs as $job ) {
-			try {
-				$data = maybe_unserialize( $job->option_value );
-				if ( ! is_array( $data ) ) {
-					// Corrupted transient
-					$to_delete[] = $job->option_name;
-					$to_delete[] = str_replace( '_transient_', '_transient_timeout_', $job->option_name );
-					continue;
-				}
-
-				// Only delete if older than cutoff AND completed
-				if ( isset( $data['created_at'] ) &&
-					$data['created_at'] < $cutoff_time &&
-					isset( $data['status'] ) &&
-					in_array( $data['status'], array( 'completed', 'failed', 'cancelled' ), true ) ) {
-
-					$to_delete[] = $job->option_name;
-					$to_delete[] = str_replace( '_transient_', '_transient_timeout_', $job->option_name );
-
-					\NuclearEngagement\Services\LoggingService::log(
-						sprintf(
-							'Cleaning up old bulk job: %s (status: %s, age: %d hours)',
-							str_replace( '_transient_nuclen_bulk_job_', '', $job->option_name ),
-							$data['status'],
-							round( ( time() - $data['created_at'] ) / HOUR_IN_SECONDS )
-						)
-					);
-				}
-			} catch ( \Exception $e ) {
-				// Failed to unserialize
-				$to_delete[] = $job->option_name;
-				$to_delete[] = str_replace( '_transient_', '_transient_timeout_', $job->option_name );
-			}
-		}
-
-		// Bulk delete old bulk jobs
-		if ( ! empty( $to_delete ) ) {
-			$placeholders = implode( ',', array_fill( 0, count( $to_delete ), '%s' ) );
-			$deleted      = $wpdb->query(
-				$wpdb->prepare(
-					"DELETE FROM $wpdb->options WHERE option_name IN ($placeholders)",
-					$to_delete
-				)
-			);
-			$cleaned      = intval( $deleted / 2 ); // Divide by 2 because we delete both value and timeout
-
-			// Clear object cache
-			foreach ( $to_delete as $option_name ) {
-				if ( strpos( $option_name, '_transient_' ) === 0 && strpos( $option_name, '_timeout_' ) === false ) {
-					$transient_name = str_replace( '_transient_', '', $option_name );
-					wp_cache_delete( $transient_name, 'transient' );
-				}
-			}
-		}
-
-		return $cleaned;
+		$cleanup_service = new BatchCleanupService();
+		return $cleanup_service->cleanup_old_batches( $older_than_hours );
 	}
 
 	/**

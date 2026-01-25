@@ -212,12 +212,10 @@ class CentralizedPollingQueue extends BaseService {
 			$this->mark_generation_complete( $item['generation_id'] );
 
 		} catch ( \Exception $e ) {
-			\NuclearEngagement\Services\LoggingService::log(
-				sprintf(
-					'Error polling generation %s: %s',
-					$item['generation_id'],
-					$e->getMessage()
-				)
+			$this->log_exception(
+				$e,
+				'poll_single_generation',
+				array( 'generation_id' => $item['generation_id'] )
 			);
 		}
 	}

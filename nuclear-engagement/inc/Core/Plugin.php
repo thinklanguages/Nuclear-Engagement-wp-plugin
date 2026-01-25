@@ -31,8 +31,11 @@ use NuclearEngagement\Services\{GenerationService, RemoteApiService, ContentStor
 use NuclearEngagement\Admin\Controller\Ajax\{GenerateController, UpdatesController, PointerController, PostsCountController};
 use NuclearEngagement\Front\Controller\Rest\ContentController;
 use NuclearEngagement\Core\ContainerRegistrar;
+use NuclearEngagement\Traits\ErrorHandlingTrait;
 
 class Plugin {
+
+	use ErrorHandlingTrait;
 
 		protected $loader;
 	protected string $plugin_name;
@@ -331,9 +334,7 @@ class Plugin {
 				}
 			}
 		} catch ( \Exception $e ) {
-			\NuclearEngagement\Services\LoggingService::log(
-				'Error during batch cleanup: ' . $e->getMessage()
-			);
+			$this->log_exception( $e, 'cleanup_old_batches' );
 		}
 	}
 
@@ -352,9 +353,7 @@ class Plugin {
 				}
 			}
 		} catch ( \Exception $e ) {
-			\NuclearEngagement\Services\LoggingService::log(
-				'Error during orphaned batch cleanup: ' . $e->getMessage()
-			);
+			$this->log_exception( $e, 'cleanup_orphaned_batches' );
 		}
 	}
 
@@ -370,9 +369,7 @@ class Plugin {
 				$generation_service->recoverGeneration( $generation_id );
 			}
 		} catch ( \Exception $e ) {
-			\NuclearEngagement\Services\LoggingService::log(
-				sprintf( 'Error recovering generation %s: %s', $generation_id, $e->getMessage() )
-			);
+			$this->log_exception( $e, 'recover_generation', array( 'generation_id' => $generation_id ) );
 		}
 	}
 
@@ -428,9 +425,7 @@ class Plugin {
 				);
 			}
 		} catch ( \Exception $e ) {
-			\NuclearEngagement\Services\LoggingService::log(
-				'Error during content lock cleanup: ' . $e->getMessage()
-			);
+			$this->log_exception( $e, 'cleanup_content_locks' );
 		}
 	}
 }

@@ -36,6 +36,11 @@ class LoggingService {
 		/** Whether the shutdown hook has been registered. */
 	private bool $shutdown_registered = false;
 
+	/**
+	 * Constructor.
+	 *
+	 * @param AdminNoticeService $notices Admin notice service for displaying log errors.
+	 */
 	public function __construct( AdminNoticeService $notices ) {
 			$this->notices  = $notices;
 			self::$instance = $this;
@@ -49,7 +54,11 @@ class LoggingService {
 			return self::$instance;
 	}
 
-		/** Get directory, path and URL for the log file. */
+		/**
+	 * Get directory, path and URL for the log file.
+	 *
+	 * @return array{dir: string, path: string, url: string} Log file information.
+	 */
 	public static function get_log_file_info(): array {
 			$instance   = self::instance();
 			$upload_dir = wp_upload_dir();
@@ -82,20 +91,35 @@ class LoggingService {
 			$this->notices->add( $message );
 	}
 
-		/** Public helper to show an admin error notice. */
+		/**
+	 * Show an admin error notice.
+	 *
+	 * @param string $message Message to display to admin.
+	 */
 	public static function notify_admin( string $message ): void {
 			$instance = self::instance();
 			$instance->add_admin_notice( $message );
 	}
 
-		/** Debug level logging, only when WP_DEBUG is true. */
+		/**
+	 * Debug level logging, only when WP_DEBUG is true.
+	 *
+	 * @param string $message Debug message to log.
+	 */
 	public static function debug( string $message ): void {
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 				self::log( '[DEBUG] ' . $message );
 		}
 	}
 
-		/** Log an exception including file and line. */
+		/**
+	 * Log an exception including file and line.
+	 *
+	 * Logs the exception message, file location, and optionally a stack trace
+	 * when WP_DEBUG is enabled.
+	 *
+	 * @param \Throwable $e Exception to log.
+	 */
 	public static function log_exception( \Throwable $e ): void {
 			$msg = $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine();
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
@@ -142,7 +166,11 @@ class LoggingService {
 			return (bool) apply_filters( 'nuclen_enable_log_buffer', $default );
 	}
 
-		/** Flush buffered messages to the log file. */
+		/**
+	 * Flush buffered messages to the log file.
+	 *
+	 * Called automatically on shutdown when buffering is enabled.
+	 */
 	public static function flush(): void {
 			$instance = self::instance();
 		if ( empty( $instance->buffer ) ) {
@@ -309,7 +337,14 @@ class LoggingService {
 		}
 	}
 
-		/** Append a message to the plugin log file. */
+		/**
+	 * Append a message to the plugin log file.
+	 *
+	 * Messages are buffered by default and written on shutdown.
+	 * Empty messages are ignored. Messages over 1000 chars are truncated.
+	 *
+	 * @param string $message Message to log.
+	 */
 	public static function log( string $message ): void {
 		if ( $message === '' ) {
 				return;

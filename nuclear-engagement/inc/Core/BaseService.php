@@ -12,6 +12,7 @@ namespace NuclearEngagement\Core;
 use NuclearEngagement\Utils\CacheUtils;
 use NuclearEngagement\Utils\ValidationUtils;
 use NuclearEngagement\Services\LoggingService;
+use NuclearEngagement\Traits\ErrorHandlingTrait;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -27,6 +28,8 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @since   1.0.0
  */
 abstract class BaseService {
+
+	use ErrorHandlingTrait;
 
 	/**
 	 * Service name for logging and caching.
@@ -120,8 +123,7 @@ abstract class BaseService {
 	protected function validate_input( array $data, array $rules ): ?array {
 		$validated = ValidationUtils::validate_batch( $data, $rules );
 
-		// Return null on validation failure
-
+		// Return null on validation failure.
 		return $validated;
 	}
 
@@ -139,8 +141,8 @@ abstract class BaseService {
 			// Check for WordPress database errors.
 			global $wpdb;
 			if ( $wpdb->last_error ) {
-				LoggingService::log(
-					"[{$this->service_name}] Database error in {$operation_name}: {$wpdb->last_error}"
+				$this->log_error(
+					"Database error in {$operation_name}: {$wpdb->last_error}"
 				);
 				return false;
 			}
@@ -148,10 +150,7 @@ abstract class BaseService {
 			return $result;
 
 		} catch ( \Throwable $e ) {
-			LoggingService::log_exception( $e );
-			LoggingService::log(
-				"[{$this->service_name}] Exception in {$operation_name}: {$e->getMessage()}"
-			);
+			$this->log_exception( $e, $operation_name );
 			return false;
 		}
 	}

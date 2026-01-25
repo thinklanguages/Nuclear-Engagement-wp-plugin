@@ -1,7 +1,17 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "Bash(composer lint:*)",
+      "Bash(vendor/bin/phpcs:*)",
+      "Bash(vendor/bin/phpcbf:*)",
+      "Bash(vendor/bin/phpunit:*)",
+      "Bash(../vendor/bin/phpcs:*)",
+      "Bash(composer test:*)",
+      "mcp__plugin_serena_serena__get_symbols_overview",
+      "mcp__plugin_serena_serena__find_symbol",
+      "Bash(../vendor/bin/phpcbf:*)",
+      "Bash(grep:*)"
     ],
     "deny": [],
     "ask": []

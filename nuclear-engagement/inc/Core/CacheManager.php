@@ -560,11 +560,89 @@ final class CacheManager {
 	/**
 	 * Warmup specific cache key.
 	 *
+	 * Pre-populates frequently accessed data into the cache.
+	 *
 	 * @param string $key   Cache key.
 	 * @param string $group Cache group.
 	 */
 	private static function warmup_cache_key( string $key, string $group ): void {
-		// Implementation would depend on the specific data being cached.
-		// This is a placeholder for the warmup logic.
+		switch ( $key ) {
+			case 'plugin_settings':
+				// Cache plugin settings.
+				$settings = get_option( 'nuclear_engagement_setup', array() );
+				if ( ! empty( $settings ) ) {
+					self::set( 'plugin_settings', $settings, 'metadata' );
+				}
+				break;
+
+			case 'theme_config':
+				// Cache theme configuration.
+				$theme_settings = get_option( 'nuclen_theme_settings', array() );
+				if ( ! empty( $theme_settings ) ) {
+					self::set( 'theme_config', $theme_settings, 'metadata' );
+				}
+				break;
+
+			case 'dashboard_counts':
+				// Cache dashboard post counts.
+				$counts = array(
+					'posts'     => wp_count_posts( 'post' ),
+					'pages'     => wp_count_posts( 'page' ),
+					'with_quiz' => self::count_posts_with_meta( 'nuclen-quiz-data' ),
+				);
+				self::set( 'dashboard_counts', $counts, 'queries' );
+				break;
+
+			case 'post_types':
+				// Cache available post types.
+				$post_types = get_post_types( array( 'public' => true ), 'objects' );
+				$simplified = array();
+				foreach ( $post_types as $slug => $type ) {
+					$simplified[ $slug ] = array(
+						'name'   => $type->name,
+						'label'  => $type->label,
+						'labels' => array(
+							'singular_name' => $type->labels->singular_name,
+						),
+					);
+				}
+				self::set( 'post_types', $simplified, 'queries' );
+				break;
+
+			case 'recent_posts':
+				// Cache recent posts for quick access.
+				$recent = get_posts(
+					array(
+						'numberposts' => 20,
+						'post_status' => 'publish',
+						'fields'      => 'ids',
+					)
+				);
+				self::set( 'recent_post_ids', $recent, 'posts' );
+				break;
+
+			case 'popular_posts':
+				// Skip if no popularity tracking - would need custom implementation.
+				break;
+		}
+	}
+
+	/**
+	 * Count posts with specific meta key.
+	 *
+	 * @param string $meta_key Meta key to search for.
+	 * @return int Post count.
+	 */
+	private static function count_posts_with_meta( string $meta_key ): int {
+		global $wpdb;
+
+		$count = $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT COUNT(DISTINCT post_id) FROM {$wpdb->postmeta} WHERE meta_key = %s",
+				$meta_key
+			)
+		);
+
+		return (int) $count;
 	}
 }

@@ -13,6 +13,7 @@ namespace NuclearEngagement\Core;
 use NuclearEngagement\Core\SettingsRepository;
 use NuclearEngagement\OptinData;
 use NuclearEngagement\Core\AssetVersions;
+use NuclearEngagement\Core\CacheManager;
 use NuclearEngagement\Modules\Summary\Summary_Service;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -48,6 +49,28 @@ class Activator {
 
 				// Generate asset version strings for cache busting.
 				AssetVersions::update_versions();
+
+				// Warm up critical caches on activation.
+				self::warm_up_caches();
+	}
+
+	/**
+	 * Warm up critical caches on plugin activation.
+	 *
+	 * Pre-populates frequently accessed data to improve initial performance
+	 * after plugin activation or update.
+	 */
+	private static function warm_up_caches(): void {
+		// Initialize CacheManager hooks.
+		CacheManager::init();
+
+		// Warm up with default configuration.
+		CacheManager::warmup(
+			array(
+				'metadata' => array( 'plugin_settings', 'theme_config' ),
+				'queries'  => array( 'dashboard_counts', 'post_types' ),
+			)
+		);
 	}
 
 		/**
