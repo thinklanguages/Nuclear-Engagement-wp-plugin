@@ -574,11 +574,28 @@ class BatchProcessingHandler {
 	 * @param array  $results Results from API
 	 * @param string $workflow_type Workflow type
 	 */
-	private function process_batch_results( string $batch_id, array $results, string $workflow_type ): void {
+	private function process_batch_results(
+		string $batch_id,
+		array $results,
+		string $workflow_type,
+		int $expected_posts = 0,
+		?int $known_remote_fail_count = null
+	): void {
 		try {
 			// Keep the raw post results available for the UI even after backend storage completes.
 			set_transient( 'nuclen_batch_results_' . $batch_id, $results, DAY_IN_SECONDS );
 			$counts = $this->store_batch_results( $results, $workflow_type );
+			$fail_count = $counts['fail_count'];
+
+			if ( $expected_posts > 0 ) {
+				if ( null !== $known_remote_fail_count ) {
+					$known_remote_fail_count = max( 0, $known_remote_fail_count );
+					$fail_count             += $known_remote_fail_count;
+					$fail_count             += max( 0, $expected_posts - count( $results ) - $known_remote_fail_count );
+				} else {
+					$fail_count += max( 0, $expected_posts - count( $results ) );
+				}
+			}
 
 			// Update batch status with counts in a single atomic operation
 			// This ensures counts are ALWAYS available when status is 'completed'
@@ -587,7 +604,7 @@ class BatchProcessingHandler {
 				'completed',
 				array(
 					'success_count'   => $counts['success_count'],
-					'fail_count'      => $counts['fail_count'],
+					'fail_count'      => $fail_count,
 					// Don't store full results to avoid memory issues
 					'processed_count' => count( $results ),
 				)
@@ -599,7 +616,7 @@ class BatchProcessingHandler {
 					$batch_id,
 					count( $results ),
 					$counts['success_count'],
-					$counts['fail_count']
+					$fail_count
 				)
 			);
 
@@ -798,6 +815,15 @@ class BatchProcessingHandler {
 		if ( isset( $updates['total'] ) ) {
 			$batch_data['total'] = (int) $updates['total'];
 		}
+		if ( isset( $updates['successCount'] ) ) {
+			$batch_data['remote_success_count'] = max( 0, (int) $updates['successCount'] );
+		}
+		if ( isset( $updates['failCount'] ) ) {
+			$batch_data['remote_fail_count'] = max( 0, (int) $updates['failCount'] );
+		}
+		if ( isset( $updates['error'] ) && is_string( $updates['error'] ) && $updates['error'] !== '' ) {
+			$batch_data['remote_error'] = $updates['error'];
+		}
 
 		$status       = isset( $updates['status'] ) ? (string) $updates['status'] : 'unknown';
 		$is_complete  = ! empty( $updates['completed'] );
@@ -841,6 +867,11 @@ class BatchProcessingHandler {
 		// Terminal branches.
 		if ( $is_cancelled ) {
 			$this->handle_cancelled( $batch_id, $batch_data );
+			return;
+		}
+
+		if ( $status === 'failed' ) {
+			$this->handle_failed_terminal( $batch_id, $batch_data );
 			return;
 		}
 
@@ -930,7 +961,8 @@ class BatchProcessingHandler {
 			}
 
 			$workflow_type = isset( $batch_data['workflow']['type'] ) ? $batch_data['workflow']['type'] : 'default';
-			$this->process_batch_results( $batch_id, $final_results, $workflow_type );
+			$remote_fail_count = isset( $batch_data['remote_fail_count'] ) ? (int) $batch_data['remote_fail_count'] : null;
+			$this->process_batch_results( $batch_id, $final_results, $workflow_type, $expected_posts, $remote_fail_count );
 
 			$this->cleanup_terminal( $batch_id );
 			$this->fire_action( 'nuclen_task_completed', $batch_id );
@@ -953,6 +985,53 @@ class BatchProcessingHandler {
 				'error'         => 'Generation completed but no results received',
 				'fail_count'    => $expected_posts,
 				'success_count' => 0,
+			)
+		);
+		$this->cleanup_terminal( $batch_id );
+		$this->fire_action( 'nuclen_task_completed', $batch_id );
+	}
+
+	/**
+	 * Handle a remote batch that has reached a failed terminal state.
+	 *
+	 * Successful partial results are still stored locally so the parent task can
+	 * account for them, but the batch remains failed because the remote worker
+	 * never reached a clean completion state.
+	 *
+	 * @param string $batch_id   Batch ID.
+	 * @param array  $batch_data Current batch data.
+	 */
+	private function handle_failed_terminal( string $batch_id, array $batch_data ): void {
+		$results_key       = 'nuclen_batch_results_' . $batch_id;
+		$final_results     = $this->fetch_transient( $results_key );
+		$expected_posts    = count( $batch_data['posts'] ?? array() );
+		$workflow_type     = isset( $batch_data['workflow']['type'] ) ? $batch_data['workflow']['type'] : 'default';
+		$known_remote_fail = isset( $batch_data['remote_fail_count'] ) ? max( 0, (int) $batch_data['remote_fail_count'] ) : null;
+		$success_count     = 0;
+		$fail_count        = $expected_posts;
+
+		if ( is_array( $final_results ) && ! empty( $final_results ) ) {
+			$counts        = $this->store_batch_results( $final_results, $workflow_type );
+			$success_count = $counts['success_count'];
+			$fail_count    = $counts['fail_count'];
+
+			if ( null !== $known_remote_fail ) {
+				$fail_count += $known_remote_fail;
+				$fail_count += max( 0, $expected_posts - count( $final_results ) - $known_remote_fail );
+			} else {
+				$fail_count += max( 0, $expected_posts - count( $final_results ) );
+			}
+		}
+
+		$this->batchProcessor->update_batch_status(
+			$batch_id,
+			'failed',
+			array(
+				'error'         => isset( $batch_data['remote_error'] ) && is_string( $batch_data['remote_error'] ) && $batch_data['remote_error'] !== ''
+					? $batch_data['remote_error']
+					: 'Generation failed',
+				'success_count' => $success_count,
+				'fail_count'    => $fail_count,
 			)
 		);
 		$this->cleanup_terminal( $batch_id );

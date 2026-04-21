@@ -271,10 +271,11 @@ class BatchProcessingHandlerTest extends TestCase {
 		$this->assertSame( 1, $this->hooks->actions['nuclen_task_completed'] ?? 0 );
 	}
 
-	public function test_cancelled_status_halts_without_processing(): void {
+	public function test_cancelled_status_stores_partial_results_and_marks_remaining_posts_failed(): void {
 		$batch_id = 'b-cancel';
 
-		// Pre-seed the results transient. handle_cancelled must NOT process them.
+		// Pre-seed the results transient. Partial successes should still be stored
+		// before the batch is finalized as cancelled.
 		$this->hooks->transients['nuclen_batch_results_' . $batch_id] = array(
 			1 => array( 'foo' => 'bar' ),
 		);
@@ -290,17 +291,82 @@ class BatchProcessingHandlerTest extends TestCase {
 
 		$this->makeHandler()->handle_poll( $batch_id, $this->baseBatchData( $batch_id ) );
 
-		// storeResults NOT called.
-		$this->assertCount( 0, $this->storage->stored );
+		$this->assertCount( 1, $this->storage->stored );
 
 		$this->assertNotEmpty( $this->batchProcessor->status_updates );
 		$last = end( $this->batchProcessor->status_updates );
 		$this->assertSame( 'cancelled', $last['status'] );
+		$this->assertSame( 1, $last['results']['success_count'] );
+		$this->assertSame( 1, $last['results']['fail_count'] );
 
 		$this->assertArrayNotHasKey( 'nuclen_batch_results_' . $batch_id, $this->hooks->transients );
 		$this->assertContains( 'nuclen_poll_batch', $this->hooks->cleared );
 		$this->assertSame( 1, $this->hooks->actions['nuclen_task_completed'] ?? 0 );
 		$this->assertEmpty( $this->pollEvents() );
+	}
+
+	public function test_completed_with_failures_uses_remote_fail_count(): void {
+		$batch_id = 'b-complete-partial';
+
+		$this->hooks->transients['nuclen_batch_results_' . $batch_id] = array(
+			1 => array( 'foo' => 'bar' ),
+		);
+
+		$batch_data                      = $this->baseBatchData( $batch_id );
+		$batch_data['remote_fail_count'] = 1;
+
+		$this->api->responses[] = array(
+			'success'      => true,
+			'status'       => 'completed_with_failures',
+			'completed'    => true,
+			'processed'    => 2,
+			'total'        => 2,
+			'successCount' => 1,
+			'failCount'    => 1,
+		);
+
+		$this->makeHandler()->handle_poll( $batch_id, $batch_data );
+
+		$this->assertNotEmpty( $this->batchProcessor->status_updates );
+		$last = end( $this->batchProcessor->status_updates );
+		$this->assertSame( 'completed', $last['status'] );
+		$this->assertSame( 1, $last['results']['success_count'] );
+		$this->assertSame( 1, $last['results']['fail_count'] );
+	}
+
+	public function test_failed_terminal_status_preserves_partial_successes_but_keeps_batch_failed(): void {
+		$batch_id = 'b-failed-terminal';
+
+		$this->hooks->transients['nuclen_batch_results_' . $batch_id] = array(
+			1 => array( 'foo' => 'bar' ),
+		);
+
+		$batch_data                  = $this->baseBatchData( $batch_id );
+		$batch_data['remote_error']  = 'Remote worker crashed';
+		$batch_data['remote_fail_count'] = 1;
+
+		$this->api->responses[] = array(
+			'success'      => true,
+			'status'       => 'failed',
+			'completed'    => true,
+			'processed'    => 2,
+			'total'        => 2,
+			'successCount' => 1,
+			'failCount'    => 1,
+			'error'        => 'Remote worker crashed',
+		);
+
+		$this->makeHandler()->handle_poll( $batch_id, $batch_data );
+
+		$this->assertCount( 1, $this->storage->stored );
+		$this->assertNotEmpty( $this->batchProcessor->status_updates );
+		$last = end( $this->batchProcessor->status_updates );
+		$this->assertSame( 'failed', $last['status'] );
+		$this->assertSame( 1, $last['results']['success_count'] );
+		$this->assertSame( 1, $last['results']['fail_count'] );
+		$this->assertSame( 'Remote worker crashed', $last['results']['error'] );
+		$this->assertContains( 'nuclen_poll_batch', $this->hooks->cleared );
+		$this->assertSame( 1, $this->hooks->actions['nuclen_task_completed'] ?? 0 );
 	}
 
 	public function test_not_found_streak_increments_and_fails_at_20(): void {
