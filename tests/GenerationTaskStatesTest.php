@@ -14,11 +14,14 @@ use NuclearEngagement\Services\TaskTransientManager;
 use NuclearEngagement\Services\CentralizedPollingQueue;
 use NuclearEngagement\Services\CircuitBreakerService;
 use NuclearEngagement\Core\ServiceContainer;
+use NuclearEngagement\Tests\Support\TaskTransientStubTrait;
 
 /**
  * Test all generation task states and transitions
  */
 class GenerationTaskStatesTest extends TestCase {
+	use TaskTransientStubTrait;
+
 	private ServiceContainer $container;
 	private GenerationService $generation_service;
 	private BulkGenerationBatchProcessor $batch_processor;
@@ -46,9 +49,8 @@ class GenerationTaskStatesTest extends TestCase {
 		\Brain\Monkey\Functions\when('time')->justReturn(1234567890);
 		\Brain\Monkey\Functions\when('__')->returnArg();
 		
-		// Mock TaskTransientManager
-		$this->mockTaskTransientManager();
-		
+		$this->resetTransientStubs();
+
 		// Define constants
 		if (!defined('DAY_IN_SECONDS')) {
 			define('DAY_IN_SECONDS', 86400);
@@ -59,6 +61,7 @@ class GenerationTaskStatesTest extends TestCase {
 	}
 
 	public function tearDown(): void {
+		$this->resetTransientStubs();
 		\Brain\Monkey\tearDown();
 		parent::tearDown();
 	}
@@ -492,48 +495,4 @@ class GenerationTaskStatesTest extends TestCase {
 		$this->assertEquals('processing', $final['batch_jobs'][1]['status']);
 	}
 
-	/**
-	 * Mock TaskTransientManager for testing
-	 */
-	private function mockTaskTransientManager() {
-		if (!class_exists('NuclearEngagement\Services\TaskTransientManager')) {
-			eval('
-			namespace NuclearEngagement\Services;
-			class TaskTransientManager {
-				public static $test_data = [];
-				
-				public static function get_task_transient($id) {
-					return self::$test_data[$id] ?? null;
-				}
-				
-				public static function set_task_transient($id, $data, $expiry) {
-					self::$test_data[$id] = $data;
-					return true;
-				}
-				
-				public static function get_batch_transient($id) {
-					return self::$test_data[$id] ?? null;
-				}
-				
-				public static function set_batch_transient($id, $data, $expiry) {
-					self::$test_data[$id] = $data;
-					return true;
-				}
-				
-				public static function delete_task_transient($id) {
-					unset(self::$test_data[$id]);
-					return true;
-				}
-				
-				public static function delete_batch_transient($id) {
-					unset(self::$test_data[$id]);
-					return true;
-				}
-			}
-			');
-		}
-		
-		// Reset test data
-		TaskTransientManager::$test_data = [];
-	}
 }

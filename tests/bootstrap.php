@@ -28,6 +28,9 @@ if (file_exists($autoloader)) {
 // Load Brain Monkey mock
 require_once __DIR__ . '/brain-monkey-mock.php';
 
+// Shared test-support traits (TaskTransientStubTrait + namespaced shims).
+require_once __DIR__ . '/support/TaskTransientStubTrait.php';
+
 // Define WordPress time constants
 if ( ! defined( 'MINUTE_IN_SECONDS' ) ) {
 	define( 'MINUTE_IN_SECONDS', 60 );

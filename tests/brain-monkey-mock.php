@@ -45,6 +45,13 @@ namespace Brain\Monkey\Functions {
     function expectAdded($filter) {
         return expect('add_filter')->with($filter);
     }
+
+    // Argument-matcher helper used by real Brain\Monkey for type-constrained
+    // expectations. Our in-repo fake doesn't verify expectations, so the
+    // returned sentinel is unused — we only need the symbol to exist.
+    function type($type_name) {
+        return '__nuclen_any_' . $type_name . '__';
+    }
 }
 
 namespace Brain\Monkey\Actions {

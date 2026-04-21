@@ -19,14 +19,17 @@ use NuclearEngagement\Services\ContentStorageService;
 use NuclearEngagement\Services\AutoGenerationService;
 use NuclearEngagement\Core\ServiceContainer;
 use NuclearEngagement\Core\SettingsRepository;
+use NuclearEngagement\Tests\Support\TaskTransientStubTrait;
 
 /**
  * Integration tests for complete task workflows
- * 
+ *
  * These tests verify the end-to-end flow of task generation,
  * from creation through processing to completion.
  */
 class TaskWorkflowIntegrationTest extends TestCase {
+	use TaskTransientStubTrait;
+
 	private ServiceContainer $container;
 	private GenerationService $generation_service;
 	private BulkGenerationBatchProcessor $batch_processor;
@@ -673,19 +676,9 @@ class TaskWorkflowIntegrationTest extends TestCase {
 	 * Setup WordPress mocks
 	 */
 	private function setupWordPressMocks(): void {
-		\Brain\Monkey\Functions\when('get_transient')->alias(function($key) {
-			return TaskTransientManager::$test_data[$key] ?? false;
-		});
-		
-		\Brain\Monkey\Functions\when('set_transient')->alias(function($key, $value, $expiry) {
-			TaskTransientManager::$test_data[$key] = $value;
-			return true;
-		});
-		
-		\Brain\Monkey\Functions\when('delete_transient')->alias(function($key) {
-			unset(TaskTransientManager::$test_data[$key]);
-			return true;
-		});
+		// No custom get_transient/set_transient aliases needed: the real
+		// TaskTransientManager calls the global get/set_transient stubs defined
+		// in tests/bootstrap.php, which read and write $GLOBALS['wp_transients'].
 		
 		\Brain\Monkey\Functions\when('wp_generate_uuid4')->alias(function() {
 			return 'uuid_' . uniqid();
@@ -764,55 +757,18 @@ class TaskWorkflowIntegrationTest extends TestCase {
 	}
 
 	/**
-	 * Setup test database
+	 * Setup test database — resets the in-memory transient store so each test
+	 * starts from a clean slate. The real TaskTransientManager is used.
 	 */
 	private function setupTestDatabase(): void {
-		// Mock TaskTransientManager storage
-		if (!class_exists('NuclearEngagement\Services\TaskTransientManager')) {
-			eval('
-			namespace NuclearEngagement\Services;
-			class TaskTransientManager {
-				public static $test_data = [];
-				
-				public static function get_task_transient($id) {
-					return self::$test_data[$id] ?? null;
-				}
-				
-				public static function set_task_transient($id, $data, $expiry) {
-					self::$test_data[$id] = $data;
-					return true;
-				}
-				
-				public static function get_batch_transient($id) {
-					return self::$test_data[$id] ?? null;
-				}
-				
-				public static function set_batch_transient($id, $data, $expiry) {
-					self::$test_data[$id] = $data;
-					return true;
-				}
-				
-				public static function delete_task_transient($id) {
-					unset(self::$test_data[$id]);
-					return true;
-				}
-				
-				public static function delete_batch_transient($id) {
-					unset(self::$test_data[$id]);
-					return true;
-				}
-			}
-			');
-		}
-		
-		TaskTransientManager::$test_data = [];
+		$this->resetTransientStubs();
 	}
 
 	/**
 	 * Cleanup test data
 	 */
 	private function cleanupTestData(): void {
-		TaskTransientManager::$test_data = [];
+		$this->resetTransientStubs();
 	}
 }
 
