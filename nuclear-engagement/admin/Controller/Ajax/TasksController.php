@@ -948,10 +948,11 @@ class TasksController extends BaseController {
 			$tasks_data = array();
 			foreach ( $generation_tasks['tasks'] as $task ) {
 				// Calculate progress and details similar to Tasks.php
-				$progress    = 0;
-				$processed   = 0;
-				$failed      = 0;
-				$total_posts = $task['total_posts'] ?? 0;
+				$progress      = 0;
+				$processed     = 0;
+				$failed        = 0;
+				$handled_posts = 0;
+				$total_posts   = $task['total_posts'] ?? 0;
 
 				if ( isset( $task['batch_jobs'] ) && is_array( $task['batch_jobs'] ) ) {
 					foreach ( $task['batch_jobs'] as $batch_job ) {
@@ -967,18 +968,18 @@ class TasksController extends BaseController {
 									$processed += $batch_data['success_count'];
 								} elseif ( isset( $batch_data['results']['success_count'] ) ) {
 									$processed += $batch_data['results']['success_count'];
-								} elseif ( isset( $batch_data['status'] ) && $batch_data['status'] === 'completed' ) {
-									// Fallback to post count if no specific counts available
-									$processed += $batch_job['post_count'] ?? 0;
 								}
 
 								if ( isset( $batch_data['fail_count'] ) ) {
 									$failed += $batch_data['fail_count'];
 								} elseif ( isset( $batch_data['results']['fail_count'] ) ) {
 									$failed += $batch_data['results']['fail_count'];
-								} elseif ( isset( $batch_data['status'] ) && $batch_data['status'] === 'failed' ) {
-									// Fallback to post count if no specific counts available
-									$failed += $batch_job['post_count'] ?? 0;
+								}
+
+								if ( isset( $batch_data['processed_count'] ) ) {
+									$handled_posts += $batch_data['processed_count'];
+								} elseif ( isset( $batch_data['results']['processed_count'] ) ) {
+									$handled_posts += $batch_data['results']['processed_count'];
 								}
 							}
 						} catch ( \Throwable $e ) {
@@ -993,15 +994,25 @@ class TasksController extends BaseController {
 					}
 				}
 
-				if ( $total_posts > 0 ) {
-					$progress = round( ( $processed / $total_posts ) * 100 );
+				if ( $handled_posts < ( $processed + $failed ) ) {
+					$handled_posts = $processed + $failed;
 				}
 
-				$details = sprintf(
-					__( '%1$d of %2$d posts successfully processed', 'nuclear-engagement' ),
-					$processed,
-					$total_posts
-				);
+				if ( $total_posts > 0 ) {
+					$progress = round( ( $handled_posts / $total_posts ) * 100 );
+				}
+
+				$details = $failed > 0
+					? sprintf(
+						__( '%1$d succeeded, %2$d failed', 'nuclear-engagement' ),
+						$processed,
+						$failed
+					)
+					: sprintf(
+						__( '%1$d of %2$d posts successfully processed', 'nuclear-engagement' ),
+						$processed,
+						$total_posts
+					);
 
 				$tasks_data[] = array(
 					'id'            => $task['id'],

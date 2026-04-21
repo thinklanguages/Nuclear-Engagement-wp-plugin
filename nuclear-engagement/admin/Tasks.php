@@ -531,15 +531,27 @@ class Tasks {
 				}
 			}
 
-			$total_posts = $job_data['total_posts'] ?? 0;
+			$total_posts     = $job_data['total_posts'] ?? 0;
+			$handled_posts   = $processed + $failed;
+			$details_message = $failed > 0
+				? sprintf(
+					__( '%1$d succeeded, %2$d failed', 'nuclear-engagement' ),
+					$processed,
+					$failed
+				)
+				: sprintf(
+					__( '%1$d of %2$d posts successfully processed', 'nuclear-engagement' ),
+					$processed,
+					$total_posts
+				);
 
 			// Calculate progress based on batches with counts if status is not yet completed
 			if ( in_array( $job_data['status'] ?? '', array( 'processing', 'scheduled', 'pending' ), true ) && $total_batches > 0 ) {
 				// For active tasks, use batch completion ratio to show more accurate progress
 				$progress = round( ( $batches_with_counts / $total_batches ) * 100 );
 			} elseif ( $total_posts > 0 ) {
-				// For completed tasks or as fallback, use post-based progress
-				$progress = round( ( $processed / $total_posts ) * 100 );
+				// For completed tasks or as fallback, use all handled posts.
+				$progress = round( ( $handled_posts / $total_posts ) * 100 );
 			}
 
 			$tasks[] = array(
@@ -553,11 +565,7 @@ class Tasks {
 				'failed'        => $failed,
 				'progress'      => $progress,
 				'action'        => $job_data['action'] ?? 'bulk',
-				'details'       => sprintf(
-					__( '%1$d of %2$d posts successfully processed', 'nuclear-engagement' ),
-					$processed,
-					$total_posts
-				),
+				'details'       => $details_message,
 			);
 		}
 
@@ -671,7 +679,8 @@ class Tasks {
 			}
 		}
 
-		$total_posts = $task_data['total_posts'] ?? 0;
+		$total_posts   = $task_data['total_posts'] ?? 0;
+		$handled_posts = $processed + $failed;
 
 		// Prefer explicit server-provided terminal state (status + completed/completed_at)
 		// over math, but still fall back to counts when those are absent.
@@ -691,8 +700,8 @@ class Tasks {
 			// For active tasks, use batch completion ratio to show more accurate progress
 			$progress = round( ( $batches_with_counts / $total_batches ) * 100 );
 		} elseif ( $total_posts > 0 ) {
-			// For completed tasks or as fallback, use post-based progress
-			$progress = round( ( $processed / $total_posts ) * 100 );
+			// For completed tasks or as fallback, use all handled posts.
+			$progress = round( ( $handled_posts / $total_posts ) * 100 );
 		}
 
 		if ( $is_terminal && $progress < 100 && $raw_status === 'completed' ) {
@@ -720,12 +729,18 @@ class Tasks {
 			'refunded_credits'  => isset( $task_data['refunded_credits'] ) ? (int) $task_data['refunded_credits'] : 0,
 			'lost_track'        => $lost_track,
 			'not_found_streak'  => $max_not_found_streak,
-			'details'           => sprintf(
-				/* translators: 1: successfully processed, 2: total */
-				__( '%1$d of %2$d posts successfully processed', 'nuclear-engagement' ),
-				$processed,
-				$total_posts
-			),
+			'details'           => $failed > 0
+				? sprintf(
+					__( '%1$d succeeded, %2$d failed', 'nuclear-engagement' ),
+					$processed,
+					$failed
+				)
+				: sprintf(
+					/* translators: 1: successfully processed, 2: total */
+					__( '%1$d of %2$d posts successfully processed', 'nuclear-engagement' ),
+					$processed,
+					$total_posts
+				),
 		);
 	}
 
