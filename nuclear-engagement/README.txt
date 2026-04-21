@@ -8,7 +8,7 @@ Tags: AI writer, quiz, summary, table of contents, email optin
 Requires at least: 6.1
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 2.1.16
+Stable tag: 2.1.17
 License: GPL-2.0+
 License URI: http://www.gnu.org/licenses/gpl-2.0.txt
 Donate link: https://buy.stripe.com/3csg1Tdn0a9h3ss288
@@ -281,6 +281,10 @@ No. Generation is done via the NE app. You only need a free account on the NE ap
 The tiny codebase and lazy loading assure fast loading, both in admin and on frontend. You won't even notice it's active. No conflicts are known to occur.
 
 == Changelog ==
+
+= 2.1.17 - 2026-04-22 =
+* Fixed: Credit balance checks now surface the real plugin-side error state instead of a generic unexpected-error message.
+* Fixed: Generation task progress and completion summaries now report partial failures correctly instead of overstating successful posts.
 
 = 2.1.16 - 2026-04-21 =
 * Improved: Bulk content generation.
