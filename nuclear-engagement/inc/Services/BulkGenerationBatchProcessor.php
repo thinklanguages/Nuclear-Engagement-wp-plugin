@@ -829,38 +829,34 @@ class BulkGenerationBatchProcessor extends BaseService {
 		foreach ( $job_data['batch_jobs'] as $batch ) {
 			$batch_data = TaskTransientManager::get_batch_transient( $batch['batch_id'] );
 			if ( is_array( $batch_data ) ) {
-				if ( $batch_data['status'] === 'completed' || $batch_data['status'] === 'failed' ) {
-					// Check if we have actual count data
-					$has_success_count = isset( $batch_data['success_count'] ) || isset( $batch_data['results']['success_count'] );
-					$has_fail_count    = isset( $batch_data['fail_count'] ) || isset( $batch_data['results']['fail_count'] );
+				$post_count = (int) ( $batch['post_count'] ?? count( $batch_data['posts'] ?? array() ) );
+				$status     = $batch_data['status'] ?? 'pending';
 
-					if ( $has_success_count || $has_fail_count ) {
-						// We have actual counts, use them (even if they're 0)
-						$success_count = 0;
-						$fail_count    = 0;
+				if ( in_array( $status, array( 'completed', 'completed_with_errors', 'failed' ), true ) ) {
+					$counts = $this->extract_batch_counts( $batch_data );
 
-						if ( isset( $batch_data['success_count'] ) ) {
-							$success_count = $batch_data['success_count'];
-						} elseif ( isset( $batch_data['results']['success_count'] ) ) {
-							$success_count = $batch_data['results']['success_count'];
-						}
-
-						if ( isset( $batch_data['fail_count'] ) ) {
-							$fail_count = $batch_data['fail_count'];
-						} elseif ( isset( $batch_data['results']['fail_count'] ) ) {
-							$fail_count = $batch_data['results']['fail_count'];
-						}
-
-						$total_processed += $success_count + $fail_count;
-						$total_failed    += $fail_count;
+					if ( $counts['has_counts'] ) {
+						$total_processed += $counts['success_count'] + $counts['fail_count'];
+						$total_failed    += $counts['fail_count'];
 					} else {
-						// Fall back to scheduled count if no actual counts available
-						if ( $batch_data['status'] === 'completed' ) {
-							$total_processed += $batch['post_count'];
+						// Fall back to scheduled count if no actual counts are available yet.
+						if ( $status === 'failed' ) {
+							$total_processed += $post_count;
+							$total_failed    += $post_count;
 						} else {
-							$total_failed += $batch['post_count'];
+							$total_processed += $post_count;
 						}
 					}
+				} elseif ( $status === 'processing' ) {
+					$partial_processed = 0;
+
+					if ( isset( $batch_data['processed'] ) ) {
+						$partial_processed = (int) $batch_data['processed'];
+					} elseif ( isset( $batch_data['result_count'] ) ) {
+						$partial_processed = (int) $batch_data['result_count'];
+					}
+
+					$total_processed += min( $post_count, max( 0, $partial_processed ) );
 				}
 			}
 		}
@@ -875,6 +871,233 @@ class BulkGenerationBatchProcessor extends BaseService {
 			'status'              => $job_data['status'],
 			'progress_percentage' => $job_data['total_posts'] > 0 ? round( ( $total_processed / $job_data['total_posts'] ) * 100 ) : 0,
 		);
+	}
+
+	/**
+	 * Reconcile parent task completion outside the batch update hot path.
+	 *
+	 * This is used by delayed follow-up hooks when a batch enters a terminal state
+	 * before all result counts are available or when parent completion has to be
+	 * re-evaluated after transient writes settle.
+	 *
+	 * @param string $parent_id Parent generation ID.
+	 * @return bool True when the parent task was finalized, false otherwise.
+	 */
+	public function reconcile_parent_task( string $parent_id ): bool {
+		$parent_lock_key      = 'nuclen_parent_lock_' . $parent_id;
+		$parent_lock_acquired = false;
+		$parent_lock_value    = wp_generate_uuid4();
+
+		for ( $i = 0; $i < 20; $i++ ) {
+			if ( function_exists( 'wp_cache_add' ) && wp_using_ext_object_cache() ) {
+				if ( wp_cache_add( $parent_lock_key, $parent_lock_value, '', 10 ) ) {
+					$parent_lock_acquired = true;
+					break;
+				}
+			} else {
+				if ( false === get_transient( $parent_lock_key ) ) {
+					set_transient( $parent_lock_key, $parent_lock_value, 10 );
+					if ( get_transient( $parent_lock_key ) === $parent_lock_value ) {
+						$parent_lock_acquired = true;
+						break;
+					}
+				}
+			}
+
+			usleep( 50000 );
+		}
+
+		if ( ! $parent_lock_acquired ) {
+			\NuclearEngagement\Services\LoggingService::log(
+				sprintf( '[BulkGenerationBatchProcessor::reconcile_parent_task] Failed to acquire parent lock for %s', $parent_id ),
+				'error'
+			);
+			return false;
+		}
+
+		try {
+			$parent_data = TaskTransientManager::get_task_transient( $parent_id );
+			if ( ! is_array( $parent_data ) ) {
+				return false;
+			}
+
+			$current_status = $parent_data['status'] ?? 'unknown';
+			if ( isset( $parent_data['completed_at'] ) && in_array( $current_status, array( 'completed', 'completed_with_errors', 'failed', 'cancelled' ), true ) ) {
+				return true;
+			}
+
+			$success_count        = 0;
+			$fail_count           = 0;
+			$completed_batches    = 0;
+			$failed_batches       = 0;
+			$all_terminal         = true;
+			$all_counts_available = true;
+			$batches_with_no_counts = array();
+			$active_batches       = array();
+
+			foreach ( $parent_data['batch_jobs'] as &$batch_job ) {
+				$batch_data = TaskTransientManager::get_batch_transient( $batch_job['batch_id'] );
+				if ( ! is_array( $batch_data ) ) {
+					$all_terminal         = false;
+					$all_counts_available = false;
+					$active_batches[]     = $batch_job['batch_id'];
+					continue;
+				}
+
+				$status              = $batch_data['status'] ?? ( $batch_job['status'] ?? 'pending' );
+				$batch_job['status'] = $status;
+
+				if ( in_array( $status, array( 'completed', 'completed_with_errors' ), true ) ) {
+					++$completed_batches;
+				} elseif ( $status === 'failed' ) {
+					++$failed_batches;
+				} elseif ( $status !== 'cancelled' ) {
+					$all_terminal     = false;
+					$active_batches[] = $batch_job['batch_id'];
+				}
+
+				if ( in_array( $status, array( 'completed', 'completed_with_errors', 'failed' ), true ) ) {
+					$counts = $this->extract_batch_counts( $batch_data );
+					if ( $counts['has_counts'] ) {
+						$success_count += $counts['success_count'];
+						$fail_count    += $counts['fail_count'];
+					} else {
+						$all_counts_available   = false;
+						$batches_with_no_counts[] = $batch_job['batch_id'];
+					}
+				}
+			}
+			unset( $batch_job );
+
+			$parent_data['completed_batches']   = $completed_batches;
+			$parent_data['failed_batches']      = $failed_batches;
+			$parent_data['pending_count_batches'] = count( $batches_with_no_counts );
+
+			if ( ! $all_terminal ) {
+				TaskTransientManager::set_task_transient( $parent_id, $parent_data, DAY_IN_SECONDS );
+				return false;
+			}
+
+			$started_at   = $parent_data['started_at'] ?? $parent_data['created_at'] ?? time();
+			$waiting_time = time() - $started_at;
+
+			if ( ! $all_counts_available ) {
+				if ( $waiting_time <= 600 ) {
+					if ( ! wp_next_scheduled( 'nuclen_check_task_completion', array( $parent_id ) ) ) {
+						wp_schedule_single_event( time() + 5, 'nuclen_check_task_completion', array( $parent_id ) );
+					}
+
+					TaskTransientManager::set_task_transient( $parent_id, $parent_data, DAY_IN_SECONDS );
+					return false;
+				}
+
+				foreach ( $batches_with_no_counts as $missing_batch_id ) {
+					foreach ( $parent_data['batch_jobs'] as $batch_job ) {
+						if ( $batch_job['batch_id'] === $missing_batch_id ) {
+							$fail_count += (int) ( $batch_job['post_count'] ?? 0 );
+							break;
+						}
+					}
+				}
+			}
+
+			$expected_total  = (int) ( $parent_data['total_posts'] ?? 0 );
+			$total_processed = $success_count + $fail_count;
+
+			if ( $expected_total > 0 && $total_processed < $expected_total ) {
+				if ( $waiting_time <= 600 ) {
+					if ( ! wp_next_scheduled( 'nuclen_check_task_completion', array( $parent_id ) ) ) {
+						wp_schedule_single_event( time() + 5, 'nuclen_check_task_completion', array( $parent_id ) );
+					}
+
+					TaskTransientManager::set_task_transient( $parent_id, $parent_data, DAY_IN_SECONDS );
+					return false;
+				}
+
+				$missing_posts = $expected_total - $total_processed;
+				$fail_count   += $missing_posts;
+				$total_processed = $expected_total;
+
+				\NuclearEngagement\Services\LoggingService::log(
+					sprintf(
+						'[BulkGenerationBatchProcessor::reconcile_parent_task] Forced completion for %s after waiting %d seconds; marking %d missing posts as failed',
+						$parent_id,
+						$waiting_time,
+						$missing_posts
+					),
+					'warning'
+				);
+			}
+
+			$parent_data['success_count']   = $success_count;
+			$parent_data['fail_count']      = $fail_count;
+			$parent_data['processed_count'] = $total_processed;
+
+			if ( $current_status !== 'cancelled' ) {
+				$parent_data['status']       = ( $failed_batches > 0 || $fail_count > 0 ) ? 'completed_with_errors' : 'completed';
+				$parent_data['completed_at'] = time();
+			} elseif ( ! isset( $parent_data['completed_at'] ) ) {
+				$parent_data['completed_at'] = time();
+			}
+
+			TaskTransientManager::set_task_transient( $parent_id, $parent_data, DAY_IN_SECONDS );
+
+			$container = \NuclearEngagement\Core\ServiceContainer::getInstance();
+			if ( $container->has( 'task_index_service' ) ) {
+				$index_service = $container->get( 'task_index_service' );
+				$index_service->update_task_status(
+					$parent_id,
+					$parent_data['status'],
+					array(
+						'completed_at'      => $parent_data['completed_at'] ?? null,
+						'completed_batches' => $parent_data['completed_batches'],
+						'failed_batches'    => $parent_data['failed_batches'],
+					)
+				);
+			}
+
+			if ( class_exists( '\NuclearEngagement\Admin\Tasks' ) ) {
+				\NuclearEngagement\Admin\Tasks::clear_tasks_cache();
+			}
+
+			if ( $current_status !== 'cancelled' && $total_processed > 0 ) {
+				if ( $container->has( 'admin_notice_service' ) ) {
+					$notice_service = $container->get( 'admin_notice_service' );
+					$notice_service->add_generation_complete_notice(
+						$parent_id,
+						$total_processed,
+						$success_count,
+						$fail_count,
+						$parent_data['workflow_type'] ?? 'unknown'
+					);
+				}
+
+				$recent_completions   = get_transient( 'nuclen_recent_completions' ) ?: array();
+				$recent_completions[] = array(
+					'task_id'       => $parent_id,
+					'status'        => $parent_data['status'],
+					'fail_count'    => $fail_count,
+					'success_count' => $success_count,
+					'completed_at'  => time(),
+				);
+
+				if ( count( $recent_completions ) > 10 ) {
+					$recent_completions = array_slice( $recent_completions, -10 );
+				}
+
+				set_transient( 'nuclen_recent_completions', $recent_completions, HOUR_IN_SECONDS );
+			}
+
+			return true;
+		} finally {
+			if ( $parent_lock_acquired ) {
+				if ( function_exists( 'wp_cache_delete' ) && wp_using_ext_object_cache() ) {
+					wp_cache_delete( $parent_lock_key );
+				} else {
+					delete_transient( $parent_lock_key );
+				}
+			}
+		}
 	}
 
 	/**
@@ -1670,7 +1893,7 @@ class BulkGenerationBatchProcessor extends BaseService {
 
 		++$retry_count;
 
-		if ( $retry_count < $max_retries ) {
+		if ( $retry_count <= $max_retries ) {
 			// Update retry info
 			$retries[ $batch_id ] = array(
 				'count'        => $retry_count,
@@ -1720,8 +1943,10 @@ class BulkGenerationBatchProcessor extends BaseService {
 				$batch_id,
 				'failed',
 				array(
-					'error'       => $error_message,
-					'retry_count' => $retry_count,
+					'error'         => $error_message,
+					'retry_count'   => $retry_count,
+					'fail_count'    => count( $batch_data['posts'] ?? array() ),
+					'success_count' => 0,
 				)
 			);
 
@@ -1853,5 +2078,39 @@ class BulkGenerationBatchProcessor extends BaseService {
 			// Still no counts, schedule another check
 			wp_schedule_single_event( time() + 5, 'nuclen_recheck_batch_counts', array( $batch_id, $parent_id ) );
 		}
+	}
+
+	/**
+	 * Extract success/failure counts from a batch record.
+	 *
+	 * @param array $batch_data Batch transient data.
+	 * @return array{success_count:int, fail_count:int, has_counts:bool}
+	 */
+	private function extract_batch_counts( array $batch_data ): array {
+		$success_count = 0;
+		$fail_count    = 0;
+		$has_counts    = false;
+
+		if ( isset( $batch_data['success_count'] ) ) {
+			$success_count = (int) $batch_data['success_count'];
+			$has_counts    = true;
+		} elseif ( isset( $batch_data['results']['success_count'] ) ) {
+			$success_count = (int) $batch_data['results']['success_count'];
+			$has_counts    = true;
+		}
+
+		if ( isset( $batch_data['fail_count'] ) ) {
+			$fail_count = (int) $batch_data['fail_count'];
+			$has_counts = true;
+		} elseif ( isset( $batch_data['results']['fail_count'] ) ) {
+			$fail_count = (int) $batch_data['results']['fail_count'];
+			$has_counts = true;
+		}
+
+		return array(
+			'success_count' => $success_count,
+			'fail_count'    => $fail_count,
+			'has_counts'    => $has_counts,
+		);
 	}
 }

@@ -208,7 +208,7 @@ class GenerationService {
 		// Include priority and retry info in workflow
 		$workflow['priority']    = $request->priority;
 		$workflow['source']      = $request->source;
-		$workflow['max_retries'] = $request->maxRetries > 0 ? $request->maxRetries : 0;
+		$workflow['max_retries'] = max( 0, $request->maxRetries );
 
 		$batch_jobs = $this->batchProcessor->create_batch_jobs( $request->generationId, $batches, $workflow );
 

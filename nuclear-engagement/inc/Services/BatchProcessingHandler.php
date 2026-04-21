@@ -477,10 +477,7 @@ class BatchProcessingHandler {
 						// Ensure workflow type exists
 						$workflow_type = isset( $batch_data['workflow']['type'] ) ? $batch_data['workflow']['type'] : 'default';
 						$this->process_batch_results( $batch_id, $existing_results, $workflow_type );
-						
-						// Clean up the results transient after processing
-						delete_transient( $results_key );
-						
+
 						// Mark task as completed for timeout tracking
 						do_action( 'nuclen_task_completed', $batch_id );
 						
@@ -534,6 +531,8 @@ class BatchProcessingHandler {
 						'failed',
 						array(
 							'error'         => $e->getMessage(),
+							'fail_count'    => count( $batch_data['posts'] ?? array() ),
+							'success_count' => 0,
 							'non_retryable' => true,
 						)
 					);
@@ -577,6 +576,9 @@ class BatchProcessingHandler {
 	 */
 	private function process_batch_results( string $batch_id, array $results, string $workflow_type ): void {
 		try {
+			// Keep the raw post results available for the UI even after backend storage completes.
+			set_transient( 'nuclen_batch_results_' . $batch_id, $results, DAY_IN_SECONDS );
+
 			// Process results in chunks to avoid memory issues
 			$chunk_size    = 10;
 			$total_success = 0;
@@ -637,7 +639,9 @@ class BatchProcessingHandler {
 				$batch_id,
 				'failed',
 				array(
-					'error' => 'Failed to store results: ' . $e->getMessage(),
+					'error'         => 'Failed to store results: ' . $e->getMessage(),
+					'fail_count'    => count( $results ),
+					'success_count' => 0,
 				)
 			);
 		}
@@ -716,6 +720,12 @@ class BatchProcessingHandler {
 
 				// Update batch data with result count only
 				$batch_data['result_count'] = count( $existing_results );
+				if ( isset( $updates['processed'] ) ) {
+					$batch_data['processed'] = (int) $updates['processed'];
+				}
+				if ( isset( $updates['total'] ) ) {
+					$batch_data['total'] = (int) $updates['total'];
+				}
 				TaskTransientManager::set_batch_transient( $batch_id, $batch_data, DAY_IN_SECONDS );
 
 			}
@@ -759,9 +769,6 @@ class BatchProcessingHandler {
 					// Ensure workflow type exists
 					$workflow_type = isset( $batch_data['workflow']['type'] ) ? $batch_data['workflow']['type'] : 'default';
 					$handler->process_batch_results( $batch_id, $final_results, $workflow_type );
-
-					// Clean up the results transient after processing
-					delete_transient( $results_key );
 
 					// Mark task as completed for timeout tracking
 					do_action( 'nuclen_task_completed', $batch_id );
@@ -923,8 +930,9 @@ class BatchProcessingHandler {
 	 * @param string $task_id Task ID to check
 	 */
 	public static function check_task_completion_hook( string $task_id ): void {
-		// Task completion is handled automatically when batches complete
-		return;
+		$settings  = SettingsRepository::get_instance();
+		$processor = new BulkGenerationBatchProcessor( $settings );
+		$processor->reconcile_parent_task( $task_id );
 	}
 
 }

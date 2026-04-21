@@ -92,8 +92,9 @@ class UpdatesController extends BaseController {
 				BulkGenerationTimeoutHandler::send_keepalive();
 
 				// Check if this is a batch job (skip for credits check)
-				$batch_status = ! $is_credits_check ? $this->getBatchStatus( $request->generationId ) : null;
-			if ( $batch_status && is_array( $batch_status ) ) {
+				$batch_status  = ! $is_credits_check ? $this->getBatchStatus( $request->generationId ) : null;
+				$is_batch_mode = $batch_status && is_array( $batch_status );
+			if ( $is_batch_mode ) {
 				// Check if the task has been cancelled
 				if ( isset( $batch_status['status'] ) && $batch_status['status'] === 'cancelled' ) {
 					\NuclearEngagement\Services\LoggingService::log(
@@ -104,6 +105,7 @@ class UpdatesController extends BaseController {
 				}
 				// For batch jobs, we need to poll individual batches
 				$batch_results = $this->pollBatchResults( $request->generationId );
+				$batch_status  = $this->getBatchStatus( $request->generationId ) ?: $batch_status;
 
 				// Return aggregated batch progress
 				$data = array(
@@ -119,15 +121,6 @@ class UpdatesController extends BaseController {
 					'is_batch_mode'  => true,
 					'batch_progress' => isset( $batch_status['progress_percentage'] ) ? $batch_status['progress_percentage'] : 0,
 				);
-
-				// Add any new results from polling
-				if ( ! empty( $batch_results ) && is_array( $batch_results ) ) {
-					$data['results']  = $batch_results;
-					$data['workflow'] = $this->detectWorkflowType( $batch_results, reset( $batch_results ), $request->generationId );
-					\NuclearEngagement\Services\LoggingService::log(
-						sprintf( '[UpdatesController] New batch results found: %d items', count( $batch_results ) )
-					);
-				}
 
 				// Add any new results from polling
 				if ( ! empty( $batch_results ) && is_array( $batch_results ) ) {
@@ -220,11 +213,13 @@ class UpdatesController extends BaseController {
 					// Improve workflow detection logic
 					$workflow_type = $this->detectWorkflowType( $post_results, $first, $request->generationId );
 
-					$statuses = $this->storage->storeResults( $post_results, $workflow_type );
+					if ( ! $is_batch_mode ) {
+						$statuses = $this->storage->storeResults( $post_results, $workflow_type );
 
-					if ( array_filter( $statuses, static fn( $s ) => $s !== true ) ) {
-								$this->send_error( __( 'Failed to store content.', 'nuclear-engagement' ) );
-								return;
+						if ( array_filter( $statuses, static fn( $s ) => $s !== true ) ) {
+									$this->send_error( __( 'Failed to store content.', 'nuclear-engagement' ) );
+									return;
+						}
 					}
 
 					$response->results  = $post_results;  // Send only actual post results
@@ -343,20 +338,31 @@ class UpdatesController extends BaseController {
 
 		foreach ( $parent_data['batch_jobs'] as $job ) {
 			$batch_data = TaskTransientManager::get_batch_transient( $job['batch_id'] );
-			if ( ! is_array( $batch_data ) || $batch_data['status'] !== 'processing' ) {
+			if ( ! is_array( $batch_data ) ) {
+				continue;
+			}
+
+			$this->mergeNumericResults( $all_results, $this->getStoredBatchResults( $job['batch_id'], $batch_data ) );
+
+			if ( ( $batch_data['status'] ?? 'pending' ) !== 'processing' ) {
 				continue;
 			}
 
 			// Poll for this batch's results
-			if ( isset( $batch_data['api_generation_id'] ) ) {
-				$api_generation_id = $batch_data['api_generation_id'];
-			} else {
-				// Use the batch ID as the API generation ID
-				$api_generation_id = $job['batch_id'];
+			if ( ! isset( $batch_data['api_generation_id'] ) ) {
+				continue;
 			}
+			$api_generation_id = $batch_data['api_generation_id'];
 
 			try {
 				$updates = $this->api->fetch_updates( $api_generation_id );
+
+				if ( isset( $updates['processed'] ) ) {
+					$batch_data['processed'] = (int) $updates['processed'];
+				}
+				if ( isset( $updates['total'] ) ) {
+					$batch_data['total'] = (int) $updates['total'];
+				}
 
 				if ( ! empty( $updates['results'] ) && is_array( $updates['results'] ) ) {
 					\NuclearEngagement\Services\LoggingService::log(
@@ -368,93 +374,22 @@ class UpdatesController extends BaseController {
 						)
 					);
 
-					// Check if we have all results or if generation is complete
-					$is_complete = false;
-					if ( isset( $updates['processed'] ) && isset( $updates['total'] ) ) {
-						$is_complete = $updates['processed'] >= $updates['total'];
-						\NuclearEngagement\Services\LoggingService::log(
-							sprintf(
-								'Batch %s: processed=%d, total=%d, complete=%s',
-								$job['batch_id'],
-								$updates['processed'],
-								$updates['total'],
-								$is_complete ? 'yes' : 'no'
-							)
-						);
-					}
-
 					// Store partial results in batch transient using accumulated_results
 					if ( ! isset( $batch_data['accumulated_results'] ) ) {
 						$batch_data['accumulated_results'] = array();
 					}
 					// Merge new results with existing accumulated ones
 					foreach ( $updates['results'] as $post_id => $result ) {
-						$batch_data['accumulated_results'][ $post_id ] = $result;
-					}
-
-					if ( $is_complete ) {
-						$batch_data['status'] = 'completed';
-						// Move accumulated results to final results
-						$batch_data['results'] = $batch_data['accumulated_results'];
-
-						// Calculate success/fail counts from accumulated results
-						$success_count = 0;
-						$fail_count    = 0;
-						if ( isset( $batch_data['accumulated_results'] ) && is_array( $batch_data['accumulated_results'] ) ) {
-							foreach ( $batch_data['accumulated_results'] as $post_id => $result ) {
-								if ( is_array( $result ) ) {
-									// Check if the result indicates success or failure
-									if ( isset( $result['error'] ) || isset( $result['failed'] ) ||
-										( isset( $result['status'] ) && $result['status'] === 'failed' ) ) {
-										++$fail_count;
-									} else {
-										++$success_count;
-									}
-								}
-							}
+						if ( is_numeric( $post_id ) ) {
+							$batch_data['accumulated_results'][ $post_id ] = $result;
 						}
-
-						// Store counts in batch data
-						$batch_data['success_count'] = $success_count;
-						$batch_data['fail_count']    = $fail_count;
-
-						\NuclearEngagement\Services\LoggingService::log(
-							sprintf(
-								'Batch %s completed with counts - Success: %d, Failed: %d',
-								$job['batch_id'],
-								$success_count,
-								$fail_count
-							)
-						);
-
-						// Update parent job status with counts
-						$this->updateParentJobStatus(
-							$generationId,
-							$job['batch_id'],
-							'completed',
-							array(
-								'success_count' => $success_count,
-								'fail_count'    => $fail_count,
-							)
-						);
 					}
+					$batch_data['result_count'] = count( $batch_data['accumulated_results'] );
+					set_transient( 'nuclen_batch_results_' . $job['batch_id'], $batch_data['accumulated_results'], DAY_IN_SECONDS );
 					TaskTransientManager::set_batch_transient( $job['batch_id'], $batch_data, DAY_IN_SECONDS );
 
-					// Add to results - preserve keys!
-					foreach ( $updates['results'] as $post_id => $result ) {
-						// Only add numeric post IDs to avoid issues
-						if ( is_numeric( $post_id ) ) {
-							$all_results[ $post_id ] = $result;
-						} else {
-							\NuclearEngagement\Services\LoggingService::log(
-								sprintf( '[pollBatchResults] Skipping non-numeric key: %s', $post_id )
-							);
-						}
-					}
+					$this->mergeNumericResults( $all_results, $batch_data['accumulated_results'] );
 				} elseif ( isset( $updates['processed'] ) && isset( $updates['total'] ) ) {
-					// Still processing, update progress in batch data
-					$batch_data['processed'] = $updates['processed'];
-					$batch_data['total']     = $updates['total'];
 					TaskTransientManager::set_batch_transient( $job['batch_id'], $batch_data, DAY_IN_SECONDS );
 				}
 			} catch ( \Exception $e ) {
@@ -465,21 +400,6 @@ class UpdatesController extends BaseController {
 		}
 
 		return $all_results;
-	}
-
-	/**
-	 * Update parent job status when a batch completes
-	 *
-	 * @param string $parentId Parent generation ID
-	 * @param string $batchId Batch ID
-	 * @param string $status New status
-	 * @param array  $results Optional results array with success/fail counts
-	 */
-	private function updateParentJobStatus( string $parentId, string $batchId, string $status, array $results = array() ): void {
-		$processor = new \NuclearEngagement\Services\BulkGenerationBatchProcessor(
-			\NuclearEngagement\Core\SettingsRepository::get_instance()
-		);
-		$processor->update_batch_status( $batchId, $status, $results );
 	}
 
 	/**
@@ -499,28 +419,48 @@ class UpdatesController extends BaseController {
 		foreach ( $parent_data['batch_jobs'] as $job ) {
 			$batch_data = TaskTransientManager::get_batch_transient( $job['batch_id'] );
 			if ( is_array( $batch_data ) ) {
-				// Check for results from completed batches
-				if ( ! empty( $batch_data['results'] ) && is_array( $batch_data['results'] ) ) {
-					// Preserve post ID keys
-					foreach ( $batch_data['results'] as $post_id => $result ) {
-						// Only add numeric post IDs
-						if ( is_numeric( $post_id ) ) {
-							$all_results[ $post_id ] = $result;
-						}
-					}
-				}
-				// Also check for accumulated results from in-progress batches
-				if ( ! empty( $batch_data['accumulated_results'] ) && is_array( $batch_data['accumulated_results'] ) ) {
-					foreach ( $batch_data['accumulated_results'] as $post_id => $result ) {
-						// Only add numeric post IDs
-						if ( is_numeric( $post_id ) ) {
-							$all_results[ $post_id ] = $result;
-						}
-					}
-				}
+				$this->mergeNumericResults( $all_results, $this->getStoredBatchResults( $job['batch_id'], $batch_data ) );
 			}
 		}
 
 		return $all_results;
+	}
+
+	/**
+	 * Return locally cached raw post results for a batch.
+	 *
+	 * @param string $batchId Batch ID.
+	 * @param array  $batch_data Batch transient data.
+	 * @return array Raw batch results keyed by post ID.
+	 */
+	private function getStoredBatchResults( string $batchId, array $batch_data ): array {
+		$stored_results = get_transient( 'nuclen_batch_results_' . $batchId );
+		if ( is_array( $stored_results ) && ! empty( $stored_results ) ) {
+			return $stored_results;
+		}
+
+		if ( ! empty( $batch_data['accumulated_results'] ) && is_array( $batch_data['accumulated_results'] ) ) {
+			return $batch_data['accumulated_results'];
+		}
+
+		if ( ! empty( $batch_data['results'] ) && is_array( $batch_data['results'] ) ) {
+			return $batch_data['results'];
+		}
+
+		return array();
+	}
+
+	/**
+	 * Merge post-keyed results while ignoring summary-statistic keys.
+	 *
+	 * @param array $all_results Aggregated results, passed by reference.
+	 * @param array $candidate_results Candidate result set to merge.
+	 */
+	private function mergeNumericResults( array &$all_results, array $candidate_results ): void {
+		foreach ( $candidate_results as $post_id => $result ) {
+			if ( is_numeric( $post_id ) ) {
+				$all_results[ $post_id ] = $result;
+			}
+		}
 	}
 }

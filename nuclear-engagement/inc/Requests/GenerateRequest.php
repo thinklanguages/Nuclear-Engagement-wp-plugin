@@ -108,7 +108,7 @@ class GenerateRequest {
 	 *
 	 * @var int
 	 */
-	public int $maxRetries = 0;
+	public int $maxRetries = 3;
 
 	/**
 	 * Create from POST data.
