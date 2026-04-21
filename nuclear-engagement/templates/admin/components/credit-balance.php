@@ -99,7 +99,8 @@ $inline          = $inline ?? false;
 					msgEl.classList.add('nuclen-credits-error');
 				}
 			} catch (err) {
-				msgEl.innerHTML = '<?php echo esc_js( __( 'Error loading credits', 'nuclear-engagement' ) ); ?>: ' + err.message;
+				const message = err instanceof Error ? err.message : String(err);
+				msgEl.innerHTML = '<?php echo esc_js( __( 'Error loading credits', 'nuclear-engagement' ) ); ?>: ' + message;
 				msgEl.classList.add('nuclen-credits-error');
 			}
 		},

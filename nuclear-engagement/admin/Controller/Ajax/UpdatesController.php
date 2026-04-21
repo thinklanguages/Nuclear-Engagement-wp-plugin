@@ -20,7 +20,9 @@ use NuclearEngagement\Requests\UpdatesRequest;
 use NuclearEngagement\Services\RemoteApiService;
 use NuclearEngagement\Services\ContentStorageService;
 use NuclearEngagement\Responses\UpdatesResponse;
-use NuclearEngagement\Services\ApiException;
+use NuclearEngagement\Exceptions\ApiException as RemoteApiException;
+use NuclearEngagement\Exceptions\ValidationException;
+use NuclearEngagement\Services\ApiException as LegacyApiException;
 use NuclearEngagement\Services\BulkGenerationTimeoutHandler;
 use NuclearEngagement\Services\TaskTransientManager;
 
@@ -59,6 +61,9 @@ class UpdatesController extends BaseController {
 	 * Handle updates request.
 	 */
 	public function handle(): void {
+		$request       = null;
+		$workflow_type = 'unknown';
+
 		try {
 			if ( ! $this->verify_request( 'nuclen_admin_ajax_nonce' ) ) {
 				return;
@@ -243,23 +248,35 @@ class UpdatesController extends BaseController {
 
 				wp_send_json_success( $response->toArray() );
 
-		} catch ( ApiException $e ) {
+		} catch ( RemoteApiException | ValidationException | LegacyApiException $e ) {
 			\NuclearEngagement\Services\LoggingService::log(
 				sprintf(
 					'API error fetching updates - Generation: %s | Error: %s | Code: %d | Workflow: %s',
-					$request->generationId ?? 'unknown',
+					$request instanceof UpdatesRequest ? $request->generationId : 'unknown',
 					$e->getMessage(),
 					$e->getCode(),
 					$workflow_type ?? 'unknown'
 				)
 			);
-			$message = __( 'Failed to fetch updates. Please try again later.', 'nuclear-engagement' );
-			$this->send_error( $message, $e->getCode() ?: 500 );
+
+			if ( $e instanceof RemoteApiException ) {
+				$status_code = $e->get_http_status_code() ?: $e->getCode() ?: 500;
+			} elseif ( $e instanceof ValidationException ) {
+				$status_code = $e->getCode() ?: 400;
+			} else {
+				$status_code = $e->getCode() ?: 500;
+			}
+
+			$message = method_exists( $e, 'get_user_message' )
+				? $e->get_user_message()
+				: __( 'Failed to fetch updates. Please try again later.', 'nuclear-engagement' );
+
+			$this->send_error( $message, $status_code );
 		} catch ( \Throwable $e ) {
 			\NuclearEngagement\Services\LoggingService::log(
 				sprintf(
 					'Unexpected error fetching updates - Generation: %s | Error: %s | Type: %s',
-					$request->generationId ?? 'unknown',
+					$request instanceof UpdatesRequest ? $request->generationId : 'unknown',
 					$e->getMessage(),
 					get_class( $e )
 				)

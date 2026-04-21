@@ -45,10 +45,29 @@ interface CreditsResponse {
 	success: boolean;
 	message?: string;
 	data: {
-	remaining_credits?: number;
-	message?: string;
-	[key: string]: unknown;
+		remaining_credits?: number;
+		message?: string;
+		[key: string]: unknown;
 	};
+}
+
+function getCreditsErrorMessage(
+	payload: CreditsResponse | null,
+	fallback: string
+): string {
+	if (!payload || typeof payload !== 'object') {
+		return fallback;
+	}
+
+	if (payload.message) {
+		return payload.message;
+	}
+
+	if (payload.data?.message) {
+		return payload.data.message;
+	}
+
+	return fallback;
 }
 
 export async function nuclenCheckCreditsAjax(): Promise<number> {
@@ -72,11 +91,19 @@ export async function nuclenCheckCreditsAjax(): Promise<number> {
 		}
 	);
 	if (!result.ok) {
-		throw new Error(result.error || `HTTP ${result.status}`);
+		throw new Error(
+			getCreditsErrorMessage(
+				result.data as CreditsResponse | null,
+				result.error || `HTTP ${result.status}`
+			)
+		);
 	}
-	const data = result.data as CreditsResponse;
+	const data = result.data as CreditsResponse | null;
+	if (!data || typeof data !== 'object') {
+		throw new Error('Invalid credits response from WordPress.');
+	}
 	if (!data.success) {
-		throw new Error(data.message || data.data?.message || 'Failed to fetch credits from SaaS');
+		throw new Error(getCreditsErrorMessage(data, 'Failed to fetch credits from SaaS'));
 	}
 	if (typeof data.data.remaining_credits === 'number') {
 		return data.data.remaining_credits;

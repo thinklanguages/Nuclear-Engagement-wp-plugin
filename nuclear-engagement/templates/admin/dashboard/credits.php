@@ -42,7 +42,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 			msgEl.textContent = '<?php echo esc_js( __( 'No credits info returned.', 'nuclear-engagement' ) ); ?>';
 		}
 		} catch (err) {
-		msgEl.textContent = 'Error: ' + err;
+		const message = err instanceof Error ? err.message : String(err);
+		msgEl.textContent = 'Error: ' + message;
 		}
 	});
 	</script>

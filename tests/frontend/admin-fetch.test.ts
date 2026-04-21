@@ -69,7 +69,7 @@ describe('nuclenFetchUpdates', () => {
 describe('NuclenStartGeneration', () => {
   beforeEach(() => {
 	(window as any).nuclenAdminVars = { ajax_url: 'a' };
-	(window as any).nuclenAjax = { nonce: 'n' };
+	(window as any).nuclenAjax = { ajax_url: 'a', nonce: 'n' };
   });
 
   it('throws message from response when generation fails', async () => {
