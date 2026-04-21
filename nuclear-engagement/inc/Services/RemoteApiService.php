@@ -138,23 +138,16 @@ class RemoteApiService extends BaseService {
 
 			return $result;
 		} catch ( \Throwable $e ) {
-			// Record failure
-			$this->circuit_breaker->record_failure();
-
-			// Convert to custom exception if not already
-			if ( ! $e instanceof CustomApiException ) {
-				$api_exception = CustomApiException::fromThrowable( $e );
-				$api_exception->set_context(
-					array(
-						'endpoint'      => '/process-posts',
-						'generation_id' => $generation_id,
-						'post_count'    => count( $payload['posts'] ?? array() ),
-					)
-				);
-				throw $api_exception;
-			}
-
-			throw $e;
+			$api_exception = $this->normalize_api_exception(
+				$e,
+				array(
+					'endpoint'      => '/process-posts',
+					'generation_id' => $generation_id,
+					'post_count'    => count( $payload['posts'] ?? array() ),
+				)
+			);
+			$this->record_circuit_breaker_failure( $api_exception );
+			throw $api_exception;
 		}
 	}
 
@@ -245,22 +238,15 @@ class RemoteApiService extends BaseService {
 
 			return $data;
 		} catch ( \Throwable $e ) {
-			// Record failure
-			$this->circuit_breaker->record_failure();
-
-			// Convert to custom exception if not already
-			if ( ! $e instanceof CustomApiException ) {
-				$api_exception = CustomApiException::fromThrowable( $e );
-				$api_exception->set_context(
-					array(
-						'endpoint'      => '/updates',
-						'generation_id' => $generation_id,
-					)
-				);
-				throw $api_exception;
-			}
-
-			throw $e;
+			$api_exception = $this->normalize_api_exception(
+				$e,
+				array(
+					'endpoint'      => '/updates',
+					'generation_id' => $generation_id,
+				)
+			);
+			$this->record_circuit_breaker_failure( $api_exception );
+			throw $api_exception;
 		}
 	}
 
@@ -318,9 +304,16 @@ class RemoteApiService extends BaseService {
 			}
 
 			return $data;
-		} catch ( \Exception $e ) {
-			$this->circuit_breaker->record_failure();
-			throw $e;
+		} catch ( \Throwable $e ) {
+			$api_exception = $this->normalize_api_exception(
+				$e,
+				array(
+					'endpoint' => '/updates',
+					'purpose'  => 'credits_only',
+				)
+			);
+			$this->record_circuit_breaker_failure( $api_exception );
+			throw $api_exception;
 		}
 	}
 
@@ -406,21 +399,56 @@ class RemoteApiService extends BaseService {
 
 			return is_array( $result ) ? $result : array( 'success' => true );
 		} catch ( \Throwable $e ) {
-			$this->circuit_breaker->record_failure();
+			$api_exception = $this->normalize_api_exception(
+				$e,
+				array(
+					'endpoint'      => '/cancel-generation',
+					'generation_id' => $generation_id,
+				)
+			);
+			$this->record_circuit_breaker_failure( $api_exception );
 
 			\NuclearEngagement\Services\LoggingService::log(
 				sprintf(
 					'[RemoteApiService::cancel_generation] ERROR | GenID: %s | %s',
 					$generation_id,
-					$e->getMessage()
+					$api_exception->getMessage()
 				),
 				'error'
 			);
 
 			return array(
 				'success' => false,
-				'error'   => $e->getMessage(),
+				'error'   => $api_exception->get_user_message(),
 			);
+		}
+	}
+
+	/**
+	 * Normalize arbitrary throwables into the plugin API exception type.
+	 *
+	 * @param \Throwable $e       Source exception.
+	 * @param array      $context Additional context to attach.
+	 * @return CustomApiException
+	 */
+	private function normalize_api_exception( \Throwable $e, array $context = array() ): CustomApiException {
+		$api_exception = $e instanceof CustomApiException ? $e : CustomApiException::fromThrowable( $e );
+
+		if ( ! empty( $context ) ) {
+			$api_exception->set_context( array_merge( $api_exception->get_context(), $context ) );
+		}
+
+		return $api_exception;
+	}
+
+	/**
+	 * Only transient failures should contribute to opening the circuit breaker.
+	 *
+	 * @param CustomApiException $api_exception Normalized API exception.
+	 */
+	private function record_circuit_breaker_failure( CustomApiException $api_exception ): void {
+		if ( $api_exception->is_retryable() ) {
+			$this->circuit_breaker->record_failure();
 		}
 	}
 

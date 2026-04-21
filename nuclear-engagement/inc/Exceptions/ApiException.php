@@ -81,13 +81,25 @@ class ApiException extends BaseException {
 	 */
 	public static function httpError( string $url, int $status_code, array $response = array() ): self {
 		$retryable = in_array( $status_code, array( 408, 429, 500, 502, 503, 504 ), true );
-
-		return new self(
-			sprintf( 'HTTP %d error from %s', $status_code, $url ),
+		$message   = self::extract_response_message( $response );
+		$exception = new self(
+			'' !== $message ? $message : sprintf( 'HTTP %d error from %s', $status_code, $url ),
 			$status_code,
 			$response,
 			$retryable
 		);
+
+		$error_code = self::extract_response_error_code( $response );
+		if ( '' !== $error_code ) {
+			$exception->set_error_code( $error_code );
+		}
+
+		$user_message = self::derive_user_message( $status_code, $response, $error_code, $message );
+		if ( '' !== $user_message ) {
+			$exception->setUserMessage( $user_message );
+		}
+
+		return $exception;
 	}
 
 	/**
@@ -120,6 +132,13 @@ class ApiException extends BaseException {
 			return $this->user_message;
 		}
 
+		$response_message = self::extract_response_message( $this->response_data );
+		$error_code       = self::extract_response_error_code( $this->response_data );
+		$user_message     = self::derive_user_message( $this->http_status_code, $this->response_data, $error_code, $response_message );
+		if ( '' !== $user_message ) {
+			return $user_message;
+		}
+
 		if ( $this->is_retryable ) {
 			return __( 'Temporary connection issue. Please try again in a few moments.', 'nuclear-engagement' );
 		}
@@ -146,6 +165,68 @@ class ApiException extends BaseException {
 	public function setUserMessage( string $message ): self {
 		$this->user_message = $message;
 		return $this;
+	}
+
+	/**
+	 * Extract a message from a structured API response.
+	 *
+	 * @param array $response API response payload.
+	 * @return string
+	 */
+	private static function extract_response_message( array $response ): string {
+		foreach ( array( 'message', 'error' ) as $key ) {
+			if ( isset( $response[ $key ] ) && is_string( $response[ $key ] ) ) {
+				$message = trim( $response[ $key ] );
+				if ( '' !== $message ) {
+					return $message;
+				}
+			}
+		}
+
+		return '';
+	}
+
+	/**
+	 * Extract a normalized error code from a structured API response.
+	 *
+	 * @param array $response API response payload.
+	 * @return string
+	 */
+	private static function extract_response_error_code( array $response ): string {
+		if ( isset( $response['error_code'] ) && is_string( $response['error_code'] ) ) {
+			return trim( $response['error_code'] );
+		}
+
+		return '';
+	}
+
+	/**
+	 * Build a user-facing message from an API error response when possible.
+	 *
+	 * @param int    $status_code HTTP status code.
+	 * @param array  $response    API response payload.
+	 * @param string $error_code  Parsed error code.
+	 * @param string $message     Parsed response message.
+	 * @return string
+	 */
+	private static function derive_user_message( int $status_code, array $response, string $error_code, string $message ): string {
+		if ( 'invalid_api_key' === $error_code ) {
+			return __( 'Invalid API key. Please update it on the Setup page.', 'nuclear-engagement' );
+		}
+
+		if ( 'invalid_wp_app_pass' === $error_code ) {
+			return __( 'Invalid plugin password. Please re-generate on the Setup page.', 'nuclear-engagement' );
+		}
+
+		if ( '' !== $message && stripos( $message, 'not enough credits' ) !== false ) {
+			return __( 'Not enough credits. Please top up your account or reduce the number of posts.', 'nuclear-engagement' );
+		}
+
+		if ( '' !== $message && 403 !== $status_code ) {
+			return $message;
+		}
+
+		return '';
 	}
 
 	/**
