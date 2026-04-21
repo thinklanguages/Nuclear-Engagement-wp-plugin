@@ -8,7 +8,7 @@ Tags: AI writer, quiz, summary, table of contents, email optin
 Requires at least: 6.1
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 2.1.14
+Stable tag: 2.1.15
 License: GPL-2.0+
 License URI: http://www.gnu.org/licenses/gpl-2.0.txt
 Donate link: https://buy.stripe.com/3csg1Tdn0a9h3ss288
@@ -282,8 +282,12 @@ The tiny codebase and lazy loading assure fast loading, both in admin and on fro
 
 == Changelog ==
 
+= 2.1.15 – 2026-04-21 =
+* Fixed: Non-admin users blocked from accessing admin pages.
+* Fixed: Batch generation completion and retry handling.
+
 = 2.1.14 – 2026-01-25 =
-* Fixed: Non-admin users blocked from accessing admin pages due to TypeError in TOC module.
+* Fixed: Non-admin users blocked from accessing admin pages.
 
 = 2.1.13 – 2025-12-26 =
 * Fixed: Excessive logging of timeout checks on every page load.

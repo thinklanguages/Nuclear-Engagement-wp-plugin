@@ -11,7 +11,13 @@
       "mcp__plugin_serena_serena__get_symbols_overview",
       "mcp__plugin_serena_serena__find_symbol",
       "Bash(../vendor/bin/phpcbf:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(composer phpstan:*)",
+      "Bash(npx phpstan:*)",
+      "Bash(vendor/bin/phpstan analyse:*)",
+      "Bash(php:*)",
+      "Bash(ls:*)",
+      "Bash(dir:*)"
     ],
     "deny": [],
     "ask": []
