@@ -160,6 +160,7 @@ namespace {
 			$GLOBALS['nuclen_test_actions']         = array();
 			$GLOBALS['nuclen_test_status_code']     = null;
 			$GLOBALS['nuclen_test_json_sent']       = false;
+			$GLOBALS['wp_events']                   = array();
 
 			$this->container           = $this->createMock(ServiceContainer::class);
 			$this->mock_polling_queue  = $this->createMock(CentralizedPollingQueue::class);
@@ -480,13 +481,25 @@ namespace {
 					array( 'batch_id' => 'gen_parent_batch_2', 'status' => 'pending' ),
 				),
 			) );
-			$this->seedBatchTransient( 'gen_parent_batch_1', array( 'status' => 'processing' ) );
-			$this->seedBatchTransient( 'gen_parent_batch_2', array( 'status' => 'pending' ) );
+			$this->seedBatchTransient( 'gen_parent_batch_1', array(
+				'status'            => 'processing',
+				'api_generation_id' => 'remote_batch_1',
+				'posts'             => array(
+					array( 'post_id' => 1 ),
+					array( 'post_id' => 2 ),
+				),
+			) );
+			$this->seedBatchTransient( 'gen_parent_batch_2', array(
+				'status' => 'pending',
+				'posts'  => array(
+					array( 'post_id' => 3 ),
+				),
+			) );
 
 			$remote_api = new class {
-				public $called_with = null;
+				public $called_with = array();
 				public function cancel_generation( string $generation_id ) : array {
-					$this->called_with = $generation_id;
+					$this->called_with[] = $generation_id;
 					return array(
 						'success'          => true,
 						'status'           => 'cancelled',
@@ -517,32 +530,56 @@ namespace {
 			$_POST['nonce']         = 'test_nonce';
 			$_POST['generation_id'] = 'gen_parent';
 
+			$polling_queue->expects( $this->once() )
+				->method( 'mark_generation_complete' )
+				->with( 'gen_parent' );
+
+			$this->expectJson(
+				true,
+				array(
+					'refunded_credits' => 7,
+					'status'           => 'cancelled',
+					'message'          => 'Generation cancelled. 7 credits refunded.',
+				)
+			);
 			$this->invokeController( fn() => $controller->handle_cancel() );
 
-			$this->assertSame( 'gen_parent', $remote_api->called_with, 'remote cancel called with parent id' );
+			$this->assertSame( array( 'remote_batch_1' ), $remote_api->called_with, 'remote cancel called per active batch' );
 
 			$clears        = $GLOBALS['nuclen_test_clear_calls'];
 			$poll_calls    = array_values( array_filter( $clears, static fn( $c ) => $c['hook'] === 'nuclen_poll_batch' ) );
 			$process_calls = array_values( array_filter( $clears, static fn( $c ) => $c['hook'] === 'nuclen_process_batch' ) );
 			$this->assertCount( 2, $poll_calls, 'poll cron cleared for each batch' );
 			$this->assertCount( 2, $process_calls, 'process cron cleared for each batch' );
+			$this->assertSame( 'cancelled', $this->getTaskTransientRaw( 'gen_parent' )['status'] );
+			$this->assertSame( 7, $this->getTaskTransientRaw( 'gen_parent' )['refunded_credits'] );
+			$this->assertSame( 'cancelled', $this->getBatchTransientRaw( 'gen_parent_batch_1' )['status'] );
+			$this->assertSame( 'cancelled', $this->getBatchTransientRaw( 'gen_parent_batch_2' )['status'] );
 		}
 
-		public function test_cancel_updates_status_and_returns_refund() {
+		public function test_cancel_returns_cancelling_when_remote_worker_is_still_running() {
 			$this->seedTaskTransient( 'gen_x', array(
 				'status'     => 'processing',
 				'batch_jobs' => array(
 					array( 'batch_id' => 'gen_x_batch_1', 'status' => 'processing' ),
 				),
 			) );
-			$this->seedBatchTransient( 'gen_x_batch_1', array( 'status' => 'processing' ) );
+			$this->seedBatchTransient( 'gen_x_batch_1', array(
+				'status'            => 'processing',
+				'api_generation_id' => 'remote_gen_x_batch_1',
+				'posts'             => array(
+					array( 'post_id' => 1 ),
+				),
+			) );
 
 			$remote_api = new class {
+				public $called_with = array();
 				public function cancel_generation( string $generation_id ) : array {
+					$this->called_with[] = $generation_id;
 					return array(
 						'success'          => true,
-						'status'           => 'cancelled',
-						'refunded_credits' => 42,
+						'status'           => 'cancelling',
+						'refunded_credits' => 0,
 					);
 				}
 			};
@@ -563,11 +600,110 @@ namespace {
 			$_POST['nonce']         = 'test_nonce';
 			$_POST['generation_id'] = 'gen_x';
 
+			$polling_queue->expects( $this->never() )
+				->method( 'mark_generation_complete' );
+
+			$this->expectJson(
+				true,
+				array(
+					'refunded_credits' => 0,
+					'status'           => 'cancelling',
+					'message'          => 'Cancellation requested. Waiting for the remote worker to stop.',
+				)
+			);
 			$this->invokeController( fn() => $controller->handle_cancel() );
 
-			$this->assertSame( 'cancelled', $this->getTaskTransientRaw( 'gen_x' )['status'] );
-			$this->assertSame( 42, $this->getTaskTransientRaw( 'gen_x' )['refunded_credits'] );
-			$this->assertSame( 'cancelled', $this->getBatchTransientRaw( 'gen_x_batch_1' )['status'] );
+			$this->assertSame( array( 'remote_gen_x_batch_1' ), $remote_api->called_with );
+			$this->assertSame( 'processing', $this->getTaskTransientRaw( 'gen_x' )['status'] );
+			$this->assertArrayHasKey( 'cancel_requested_at', $this->getTaskTransientRaw( 'gen_x' ) );
+			$this->assertSame( 'processing', $this->getBatchTransientRaw( 'gen_x_batch_1' )['status'] );
+			$this->assertCount( 1, $GLOBALS['wp_events'] );
+			$this->assertSame( 'nuclen_poll_batch', $GLOBALS['wp_events'][0]['hook'] );
+			$this->assertSame( array( 'gen_x_batch_1' ), $GLOBALS['wp_events'][0]['args'] );
+		}
+
+		public function test_cancel_refreshes_terminal_status_when_remote_batch_already_completed() {
+			$this->seedTaskTransient( 'gen_done', array(
+				'status'     => 'processing',
+				'batch_jobs' => array(
+					array( 'batch_id' => 'gen_done_batch_1', 'status' => 'processing' ),
+				),
+			) );
+			$this->seedBatchTransient( 'gen_done_batch_1', array(
+				'status'            => 'processing',
+				'api_generation_id' => 'remote_gen_done_batch_1',
+			) );
+
+			$remote_api = new class {
+				public $called_with = array();
+				public function cancel_generation( string $generation_id ) : array {
+					$this->called_with[] = $generation_id;
+					return array(
+						'success'          => true,
+						'status'           => 'completed',
+						'refunded_credits' => 0,
+					);
+				}
+			};
+
+			$processor = new class {
+				public function reconcile_parent_task( string $generation_id ): void {
+					$task_data                 = \NuclearEngagement\Services\TaskTransientManager::get_task_transient( $generation_id );
+					$task_data['status']       = 'completed';
+					$task_data['completed_at'] = time();
+					\NuclearEngagement\Services\TaskTransientManager::set_task_transient( $generation_id, $task_data, DAY_IN_SECONDS );
+				}
+			};
+
+			$container     = $this->createMock( ServiceContainer::class );
+			$polling_queue = $this->createMock( CentralizedPollingQueue::class );
+			$container->method( 'has' )->willReturnCallback( function ( $service ) {
+				return in_array(
+					$service,
+					array( 'remote_api', 'centralized_polling_queue', 'bulk_generation_batch_processor' ),
+					true
+				);
+			} );
+			$container->method( 'get' )->willReturnCallback(
+				function ( $service ) use ( $remote_api, $polling_queue, $processor ) {
+					if ( 'remote_api' === $service ) {
+						return $remote_api;
+					}
+					if ( 'centralized_polling_queue' === $service ) {
+						return $polling_queue;
+					}
+					if ( 'bulk_generation_batch_processor' === $service ) {
+						return $processor;
+					}
+					return null;
+				}
+			);
+
+			$controller = new TasksController( $container );
+
+			$_POST['nonce']         = 'test_nonce';
+			$_POST['generation_id'] = 'gen_done';
+
+			$polling_queue->expects( $this->once() )
+				->method( 'mark_generation_complete' )
+				->with( 'gen_done' );
+
+			$this->expectJson(
+				true,
+				array(
+					'refunded_credits' => 0,
+					'status'           => 'completed',
+					'message'          => 'The generation had already reached a terminal state. Local status has been refreshed.',
+				)
+			);
+			$this->invokeController( fn() => $controller->handle_cancel() );
+
+			$this->assertSame( array( 'remote_gen_done_batch_1' ), $remote_api->called_with );
+			$this->assertSame( 'completed', $this->getTaskTransientRaw( 'gen_done' )['status'] );
+			$this->assertSame( 'processing', $this->getBatchTransientRaw( 'gen_done_batch_1' )['status'] );
+			$this->assertCount( 1, $GLOBALS['wp_events'] );
+			$this->assertSame( 'nuclen_poll_batch', $GLOBALS['wp_events'][0]['hook'] );
+			$this->assertSame( array( 'gen_done_batch_1' ), $GLOBALS['wp_events'][0]['args'] );
 		}
 	}
 }

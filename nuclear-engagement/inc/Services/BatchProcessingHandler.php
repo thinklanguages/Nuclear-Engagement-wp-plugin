@@ -578,36 +578,7 @@ class BatchProcessingHandler {
 		try {
 			// Keep the raw post results available for the UI even after backend storage completes.
 			set_transient( 'nuclen_batch_results_' . $batch_id, $results, DAY_IN_SECONDS );
-
-			// Process results in chunks to avoid memory issues
-			$chunk_size    = 10;
-			$total_success = 0;
-			$total_fail    = 0;
-			$chunks        = array_chunk( $results, $chunk_size, true );
-
-			foreach ( $chunks as $chunk_index => $chunk ) {
-				try {
-					// Store results chunk
-					$statuses = $this->storage->storeResults( $chunk, $workflow_type );
-
-					$success_count = count( array_filter( $statuses, fn( $s ) => $s === true ) );
-					$fail_count    = count( $statuses ) - $success_count;
-
-					$total_success += $success_count;
-					$total_fail    += $fail_count;
-
-					// Free memory after each chunk
-					unset( $chunk );
-
-					// Small delay between chunks to avoid overwhelming the system
-					if ( $chunk_index < count( $chunks ) - 1 ) {
-						usleep( 100000 ); // 100ms
-					}
-				} catch ( \Throwable $e ) {
-					\NuclearEngagement\Services\LoggingService::log_exception( $e );
-					$total_fail += count( $chunk );
-				}
-			}
+			$counts = $this->store_batch_results( $results, $workflow_type );
 
 			// Update batch status with counts in a single atomic operation
 			// This ensures counts are ALWAYS available when status is 'completed'
@@ -615,8 +586,8 @@ class BatchProcessingHandler {
 				$batch_id,
 				'completed',
 				array(
-					'success_count'   => $total_success,
-					'fail_count'      => $total_fail,
+					'success_count'   => $counts['success_count'],
+					'fail_count'      => $counts['fail_count'],
 					// Don't store full results to avoid memory issues
 					'processed_count' => count( $results ),
 				)
@@ -627,8 +598,8 @@ class BatchProcessingHandler {
 					'[BatchProcessingHandler::process_batch_results] BATCH COMPLETED - ID: %s | Total: %d | Success: %d | Failed: %d',
 					$batch_id,
 					count( $results ),
-					$total_success,
-					$total_fail
+					$counts['success_count'],
+					$counts['fail_count']
 				)
 			);
 
@@ -645,6 +616,39 @@ class BatchProcessingHandler {
 				)
 			);
 		}
+	}
+
+	private function store_batch_results( array $results, string $workflow_type ): array {
+		$chunk_size    = 10;
+		$total_success = 0;
+		$total_fail    = 0;
+		$chunks        = array_chunk( $results, $chunk_size, true );
+
+		foreach ( $chunks as $chunk_index => $chunk ) {
+			try {
+				$statuses = $this->storage->storeResults( $chunk, $workflow_type );
+
+				$success_count = count( array_filter( $statuses, fn( $s ) => $s === true ) );
+				$fail_count    = count( $statuses ) - $success_count;
+
+				$total_success += $success_count;
+				$total_fail    += $fail_count;
+
+				unset( $chunk );
+
+				if ( $chunk_index < count( $chunks ) - 1 ) {
+					usleep( 100000 );
+				}
+			} catch ( \Throwable $e ) {
+				\NuclearEngagement\Services\LoggingService::log_exception( $e );
+				$total_fail += count( $chunk );
+			}
+		}
+
+		return array(
+			'success_count' => $total_success,
+			'fail_count'    => $total_fail,
+		);
 	}
 
 
@@ -836,7 +840,7 @@ class BatchProcessingHandler {
 
 		// Terminal branches.
 		if ( $is_cancelled ) {
-			$this->handle_cancelled( $batch_id );
+			$this->handle_cancelled( $batch_id, $batch_data );
 			return;
 		}
 
@@ -873,8 +877,28 @@ class BatchProcessingHandler {
 	 *
 	 * @param string $batch_id Batch ID.
 	 */
-	private function handle_cancelled( string $batch_id ): void {
-		$this->batchProcessor->update_batch_status( $batch_id, 'cancelled' );
+	private function handle_cancelled( string $batch_id, array $batch_data ): void {
+		$results_key    = 'nuclen_batch_results_' . $batch_id;
+		$final_results  = $this->fetch_transient( $results_key );
+		$expected_posts = count( $batch_data['posts'] ?? array() );
+		$success_count  = 0;
+		$fail_count     = $expected_posts;
+
+		if ( is_array( $final_results ) && ! empty( $final_results ) ) {
+			$workflow_type = isset( $batch_data['workflow']['type'] ) ? $batch_data['workflow']['type'] : 'default';
+			$counts        = $this->store_batch_results( $final_results, $workflow_type );
+			$success_count = $counts['success_count'];
+			$fail_count    = $counts['fail_count'] + max( 0, $expected_posts - count( $final_results ) );
+		}
+
+		$this->batchProcessor->update_batch_status(
+			$batch_id,
+			'cancelled',
+			array(
+				'success_count' => $success_count,
+				'fail_count'    => $fail_count,
+			)
+		);
 		$this->cleanup_terminal( $batch_id );
 		$this->fire_action( 'nuclen_task_completed', $batch_id );
 	}

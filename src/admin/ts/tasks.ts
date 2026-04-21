@@ -514,22 +514,34 @@ class TasksManager {
             if (result && result.success) {
                 const data = result.data || {};
                 const refunded = Number(data.refunded_credits || 0);
+                const rawStatus = String(data.status || 'cancelled');
+                const finalStatus = rawStatus === 'completed_with_failures'
+                    ? 'completed_with_errors'
+                    : rawStatus;
 
                 if (row) {
                     const statusCell = row.querySelector('.column-status');
-                    if (statusCell) {
-                        statusCell.innerHTML = this.getStatusBadge('cancelled');
-                    }
                     const actionsCell = row.querySelector('.column-actions');
-                    if (actionsCell) {
-                        actionsCell.innerHTML = '<span class="nuclen-no-actions">—</span>';
-                    }
-                    row.setAttribute('data-status', 'cancelled');
-                    row.setAttribute('data-is-terminal', '1');
 
-                    if (refunded > 0) {
+                    if (finalStatus === 'cancelled' || finalStatus === 'completed'
+                        || finalStatus === 'completed_with_errors' || finalStatus === 'failed') {
+                        if (statusCell) {
+                            statusCell.innerHTML = this.getStatusBadge(finalStatus);
+                        }
+                        this.updateActionButtons(row as HTMLElement, finalStatus);
+                        row.setAttribute('data-status', finalStatus);
+                        row.setAttribute(
+                            'data-is-terminal',
+                            finalStatus === 'cancelled' || finalStatus === 'completed'
+                                || finalStatus === 'completed_with_errors' || finalStatus === 'failed'
+                                ? '1'
+                                : '0'
+                        );
+                    }
+
+                    if (finalStatus === 'cancelled' && refunded > 0) {
                         const detailsCell = row.querySelector('td:nth-child(7)');
-                        if (detailsCell) {
+                        if (detailsCell && !detailsCell.querySelector('.nuclen-refunded-credits')) {
                             const note = document.createElement('div');
                             note.className = 'nuclen-refunded-credits';
                             note.textContent = `${refunded} credits refunded`;
@@ -538,14 +550,19 @@ class TasksManager {
                     }
                 }
 
-                this.activeTasks.delete(generationId);
+                if (finalStatus === 'cancelled' || finalStatus === 'completed'
+                    || finalStatus === 'completed_with_errors' || finalStatus === 'failed') {
+                    this.activeTasks.delete(generationId);
+                }
 
                 const message = data.message
                     ? String(data.message)
                     : (refunded > 0
                         ? `Generation cancelled. ${refunded} credits refunded.`
                         : 'Generation cancelled.');
-                const type: 'success' | 'info' = data.remote_error ? 'info' : 'success';
+                const type: 'success' | 'info' = data.remote_error || finalStatus === 'cancelling'
+                    ? 'info'
+                    : 'success';
                 this.showNotice(message, type);
             } else {
                 const data = (result && result.data) || {};

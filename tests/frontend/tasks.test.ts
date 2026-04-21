@@ -415,6 +415,44 @@ describe('TasksManager', () => {
 
             confirmSpy.mockRestore();
         });
+
+        it('should keep the row active when the server reports cancelling', async () => {
+            vi.spyOn(window, 'confirm').mockReturnValue(true);
+
+            const actions = document.querySelector('tr[data-task-id="gen_124"] .column-actions')!;
+            const btn = injectCancelButton('gen_124', actions)!;
+
+            fetchMock.mockResolvedValue({
+                ok: true,
+                json: () => Promise.resolve({
+                    success: true,
+                    data: {
+                        refunded_credits: 0,
+                        status: 'cancelling',
+                        message: 'Cancellation requested. Waiting for the remote worker to stop.'
+                    }
+                })
+            });
+
+            const { default: TasksManager } = await import('../../src/admin/ts/tasks');
+            new TasksManager();
+
+            btn.click();
+
+            await new Promise(resolve => setTimeout(resolve, 80));
+
+            const statusCell = document.querySelector('tr[data-task-id="gen_124"] .column-status');
+            expect(statusCell?.innerHTML).toContain('Processing');
+            expect(statusCell?.innerHTML).not.toContain('Cancelled');
+
+            const actionsCell = document.querySelector('tr[data-task-id="gen_124"] .column-actions');
+            expect(actionsCell?.querySelector('.nuclen-cancel-task')).not.toBeNull();
+            expect(actionsCell?.textContent).toContain('Cancelling...');
+
+            const notice = document.querySelector('.notice-info');
+            expect(notice).toBeDefined();
+            expect(notice?.textContent).toContain('Cancellation requested. Waiting for the remote worker to stop.');
+        });
     });
 
     describe('UI Updates', () => {
