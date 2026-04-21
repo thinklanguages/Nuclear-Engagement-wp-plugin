@@ -582,6 +582,171 @@ class TasksControllerTest extends TestCase {
 	}
 
 	/**
+	 * handle_cancel: requires a valid nonce.
+	 */
+	public function test_cancel_requires_valid_nonce() {
+		\Brain\Monkey\Functions\when('wp_verify_nonce')->justReturn(false);
+
+		$_POST['nonce']         = 'bad';
+		$_POST['generation_id'] = 'gen_abc';
+
+		$this->expectOutputString(json_encode([
+			'success' => false,
+			'data'    => [ 'message' => 'Security check failed' ],
+		]));
+
+		try {
+			$this->controller->handle_cancel();
+		} catch (\Exception $e) {
+			// expected exit
+		}
+	}
+
+	/**
+	 * handle_cancel: requires manage_options capability.
+	 */
+	public function test_cancel_requires_capability() {
+		\Brain\Monkey\Functions\when('current_user_can')->justReturn(false);
+
+		$_POST['nonce']         = 'test_nonce';
+		$_POST['generation_id'] = 'gen_abc';
+
+		$this->expectOutputString(json_encode([
+			'success' => false,
+			'data'    => [ 'message' => 'Insufficient permissions' ],
+		]));
+
+		try {
+			$this->controller->handle_cancel();
+		} catch (\Exception $e) {
+			// expected exit
+		}
+	}
+
+	/**
+	 * handle_cancel: clears scheduled crons for every child batch and calls
+	 * RemoteApiService::cancel_generation with the parent id.
+	 */
+	public function test_cancel_clears_crons_and_calls_server() {
+		$this->mockTaskTransientManager();
+		TaskTransientManager::$test_data['gen_parent'] = [
+			'status'     => 'processing',
+			'batch_jobs' => [
+				[ 'batch_id' => 'gen_parent_batch_1', 'status' => 'processing' ],
+				[ 'batch_id' => 'gen_parent_batch_2', 'status' => 'pending' ],
+			],
+		];
+		TaskTransientManager::$test_data['gen_parent_batch_1'] = [ 'status' => 'processing' ];
+		TaskTransientManager::$test_data['gen_parent_batch_2'] = [ 'status' => 'pending' ];
+
+		// Count wp_clear_scheduled_hook invocations (both poll + process per batch).
+		$GLOBALS['nuclen_test_clear_calls'] = [];
+		\Brain\Monkey\Functions\when('wp_clear_scheduled_hook')
+			->alias(function( $hook, $args = array() ) {
+				$GLOBALS['nuclen_test_clear_calls'][] = array( 'hook' => $hook, 'args' => $args );
+				return null;
+			});
+
+		// Mock RemoteApiService wired into the container.
+		$remote_api = new class {
+			public $called_with = null;
+			public function cancel_generation( string $generation_id ) : array {
+				$this->called_with = $generation_id;
+				return [
+					'success'          => true,
+					'status'           => 'cancelled',
+					'refunded_credits' => 7,
+				];
+			}
+		};
+
+		$container           = $this->createMock(ServiceContainer::class);
+		$polling_queue       = $this->createMock(CentralizedPollingQueue::class);
+		$container->method('has')->willReturnCallback(function ( $service ) {
+			return in_array($service, ['remote_api', 'centralized_polling_queue'], true);
+		});
+		$container->method('get')->willReturnCallback(function ( $service ) use ( $remote_api, $polling_queue ) {
+			if ( 'remote_api' === $service ) {
+				return $remote_api;
+			}
+			if ( 'centralized_polling_queue' === $service ) {
+				return $polling_queue;
+			}
+			return null;
+		});
+
+		$controller = new TasksController( $container );
+
+		$_POST['nonce']         = 'test_nonce';
+		$_POST['generation_id'] = 'gen_parent';
+
+		try {
+			$controller->handle_cancel();
+		} catch (\Exception $e) {
+			// expected exit
+		}
+
+		$this->assertSame( 'gen_parent', $remote_api->called_with, 'remote cancel called with parent id' );
+
+		// Two batches * (poll + process) = 4 clears total.
+		$clears = $GLOBALS['nuclen_test_clear_calls'];
+		$poll_calls    = array_values( array_filter( $clears, static fn( $c ) => $c['hook'] === 'nuclen_poll_batch' ) );
+		$process_calls = array_values( array_filter( $clears, static fn( $c ) => $c['hook'] === 'nuclen_process_batch' ) );
+		$this->assertCount( 2, $poll_calls, 'poll cron cleared for each batch' );
+		$this->assertCount( 2, $process_calls, 'process cron cleared for each batch' );
+	}
+
+	/**
+	 * handle_cancel: updates local statuses to cancelled and returns
+	 * refunded_credits from the server response.
+	 */
+	public function test_cancel_updates_status_and_returns_refund() {
+		$this->mockTaskTransientManager();
+		TaskTransientManager::$test_data['gen_x'] = [
+			'status'     => 'processing',
+			'batch_jobs' => [
+				[ 'batch_id' => 'gen_x_batch_1', 'status' => 'processing' ],
+			],
+		];
+		TaskTransientManager::$test_data['gen_x_batch_1'] = [ 'status' => 'processing' ];
+
+		$remote_api = new class {
+			public function cancel_generation( string $generation_id ) : array {
+				return [
+					'success'          => true,
+					'status'           => 'cancelled',
+					'refunded_credits' => 42,
+				];
+			}
+		};
+
+		$container     = $this->createMock(ServiceContainer::class);
+		$polling_queue = $this->createMock(CentralizedPollingQueue::class);
+		$container->method('has')->willReturnCallback(function ( $service ) {
+			return in_array($service, ['remote_api', 'centralized_polling_queue'], true);
+		});
+		$container->method('get')->willReturnCallback(function ( $service ) use ( $remote_api, $polling_queue ) {
+			return 'remote_api' === $service ? $remote_api : $polling_queue;
+		});
+
+		$controller = new TasksController( $container );
+
+		$_POST['nonce']         = 'test_nonce';
+		$_POST['generation_id'] = 'gen_x';
+
+		try {
+			$controller->handle_cancel();
+		} catch (\Exception $e) {
+			// expected exit
+		}
+
+		// Parent + batch transients are marked cancelled.
+		$this->assertSame( 'cancelled', TaskTransientManager::$test_data['gen_x']['status'] );
+		$this->assertSame( 42,         TaskTransientManager::$test_data['gen_x']['refunded_credits'] );
+		$this->assertSame( 'cancelled', TaskTransientManager::$test_data['gen_x_batch_1']['status'] );
+	}
+
+	/**
 	 * Mock TaskTransientManager for testing
 	 */
 	private function mockTaskTransientManager() {

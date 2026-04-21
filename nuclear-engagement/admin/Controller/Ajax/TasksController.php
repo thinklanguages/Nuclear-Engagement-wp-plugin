@@ -457,6 +457,218 @@ class TasksController extends BaseController {
 	}
 
 	/**
+	 * Handle cancel-generation AJAX request.
+	 *
+	 * Registered on wp_ajax_nuclen_cancel_generation. Coordinates a full
+	 * cancel: clears scheduled crons for all child batches, asks the remote
+	 * server to cancel + refund credits, updates local statuses to cancelled,
+	 * fires nuclen_task_completed so timeout tracking stops, and returns the
+	 * refunded credit count to the UI.
+	 */
+	public function handle_cancel(): void {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			\NuclearEngagement\Services\LoggingService::log(
+				'[TasksController::handle_cancel] Access denied - insufficient permissions',
+				'warning'
+			);
+			$this->send_error( __( 'Insufficient permissions', 'nuclear-engagement' ), 403 );
+			return;
+		}
+
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Nonce doesn't need sanitization
+		if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( wp_unslash( $_POST['nonce'] ), 'nuclen_task_action' ) ) {
+			\NuclearEngagement\Services\LoggingService::log(
+				'[TasksController::handle_cancel] Security check failed - invalid nonce',
+				'warning'
+			);
+			$this->send_error( __( 'Security check failed', 'nuclear-engagement' ), 403 );
+			return;
+		}
+
+		$generation_id = isset( $_POST['generation_id'] )
+			? sanitize_text_field( wp_unslash( $_POST['generation_id'] ) )
+			: '';
+		if ( empty( $generation_id ) ) {
+			$this->send_error( __( 'Invalid generation ID', 'nuclear-engagement' ), 400 );
+			return;
+		}
+
+		$user_id = get_current_user_id();
+		\NuclearEngagement\Services\LoggingService::log(
+			sprintf(
+				'[TasksController::handle_cancel] Cancel requested for generation: %s by user %d',
+				$generation_id,
+				$user_id
+			)
+		);
+
+		try {
+			// 1. Resolve parent task + child batches.
+			$task_data   = TaskTransientManager::get_task_transient( $generation_id );
+			$batch_jobs  = array();
+			$batch_ids   = array();
+			if ( is_array( $task_data ) && isset( $task_data['batch_jobs'] ) && is_array( $task_data['batch_jobs'] ) ) {
+				$batch_jobs = $task_data['batch_jobs'];
+				foreach ( $batch_jobs as $batch ) {
+					if ( isset( $batch['batch_id'] ) ) {
+						$batch_ids[] = $batch['batch_id'];
+					}
+				}
+			}
+
+			// 2. Clear scheduled crons for every child batch (poll + process).
+			foreach ( $batch_ids as $batch_id ) {
+				wp_clear_scheduled_hook( 'nuclen_poll_batch', array( $batch_id ) );
+				wp_clear_scheduled_hook( 'nuclen_process_batch', array( $batch_id ) );
+			}
+
+			// 3. Ask the remote server to cancel + compute refunds.
+			$refunded       = 0;
+			$remote_status  = '';
+			$remote_error   = '';
+			$remote_success = false;
+
+			if ( $this->container->has( 'remote_api' ) ) {
+				$remote_api = $this->container->get( 'remote_api' );
+				$response   = $remote_api->cancel_generation( $generation_id );
+
+				if ( is_array( $response ) ) {
+					if ( ! empty( $response['success'] ) || isset( $response['status'] ) || isset( $response['refunded_credits'] ) ) {
+						$remote_success = ! isset( $response['success'] ) || $response['success'] !== false;
+						$refunded       = isset( $response['refunded_credits'] ) ? (int) $response['refunded_credits'] : 0;
+						$remote_status  = isset( $response['status'] ) ? (string) $response['status'] : '';
+					}
+					if ( isset( $response['success'] ) && $response['success'] === false ) {
+						$remote_error = isset( $response['error'] ) ? (string) $response['error'] : '';
+					}
+				}
+			}
+
+			// 4. Update each child batch + the parent task to cancelled locally.
+			$processor = $this->container->has( 'bulk_generation_batch_processor' )
+				? $this->container->get( 'bulk_generation_batch_processor' )
+				: null;
+
+			foreach ( $batch_ids as $batch_id ) {
+				$batch_data = TaskTransientManager::get_batch_transient( $batch_id );
+				if ( ! is_array( $batch_data ) ) {
+					continue;
+				}
+
+				// Skip if already terminal.
+				$status = $batch_data['status'] ?? '';
+				if ( in_array( $status, array( 'completed', 'completed_with_failures', 'failed', 'cancelled' ), true ) ) {
+					continue;
+				}
+
+				if ( $processor ) {
+					$processor->update_batch_status( $batch_id, 'cancelled' );
+				} else {
+					$batch_data['status']     = 'cancelled';
+					$batch_data['updated_at'] = time();
+					TaskTransientManager::set_batch_transient( $batch_id, $batch_data, DAY_IN_SECONDS );
+				}
+			}
+
+			// Refresh + update parent task data.
+			$task_data = TaskTransientManager::get_task_transient( $generation_id );
+			if ( is_array( $task_data ) ) {
+				$task_data['status']           = 'cancelled';
+				$task_data['completed_at']     = time();
+				$task_data['cancelled_at']     = time();
+				$task_data['cancelled_by']     = $user_id;
+				$task_data['refunded_credits'] = $refunded;
+				if ( $remote_status !== '' ) {
+					$task_data['remote_status'] = $remote_status;
+				}
+				if ( isset( $task_data['batch_jobs'] ) && is_array( $task_data['batch_jobs'] ) ) {
+					foreach ( $task_data['batch_jobs'] as &$batch_ref ) {
+						if ( isset( $batch_ref['status'] )
+							&& ! in_array( $batch_ref['status'], array( 'completed', 'completed_with_failures', 'failed', 'cancelled' ), true ) ) {
+							$batch_ref['status'] = 'cancelled';
+						}
+					}
+					unset( $batch_ref );
+				}
+				TaskTransientManager::set_task_transient( $generation_id, $task_data, DAY_IN_SECONDS );
+			}
+
+			// 5. Task index.
+			if ( $this->container->has( 'task_index_service' ) ) {
+				$index_service = $this->container->get( 'task_index_service' );
+				$index_service->update_task_status( $generation_id, 'cancelled' );
+			}
+
+			// 6. Remove from centralized polling queue.
+			if ( $this->container->has( 'centralized_polling_queue' ) ) {
+				$queue = $this->container->get( 'centralized_polling_queue' );
+				$queue->mark_generation_complete( $generation_id );
+			}
+
+			// 7. Fire nuclen_task_completed to stop timeout tracking for parent + each batch.
+			do_action( 'nuclen_task_completed', $generation_id );
+			foreach ( $batch_ids as $batch_id ) {
+				do_action( 'nuclen_task_completed', $batch_id );
+			}
+
+			\NuclearEngagement\Services\LoggingService::log(
+				sprintf(
+					'[TasksController::handle_cancel] Cancel completed | GenID: %s | Remote: %s | Refunded: %d',
+					$generation_id,
+					$remote_success ? 'ok' : 'failed',
+					$refunded
+				)
+			);
+
+			if ( ! $remote_success && $remote_error !== '' ) {
+				// Local state still updated; surface the server error so the UI can warn.
+				wp_send_json_success(
+					array(
+						'refunded_credits' => $refunded,
+						'status'           => 'cancelled',
+						'remote_status'    => $remote_status,
+						'remote_error'     => $remote_error,
+						'message'          => sprintf(
+							/* translators: %s error message */
+							__( 'Local generation cancelled, but the server could not be reached: %s', 'nuclear-engagement' ),
+							$remote_error
+						),
+					)
+				);
+				return;
+			}
+
+			wp_send_json_success(
+				array(
+					'refunded_credits' => $refunded,
+					'status'           => 'cancelled',
+					'remote_status'    => $remote_status,
+					'message'          => $refunded > 0
+						? sprintf(
+							/* translators: %d credits */
+							__( 'Generation cancelled. %d credits refunded.', 'nuclear-engagement' ),
+							$refunded
+						)
+						: __( 'Generation cancelled.', 'nuclear-engagement' ),
+				)
+			);
+		} catch ( \Throwable $e ) {
+			\NuclearEngagement\Services\LoggingService::log(
+				sprintf(
+					'[TasksController::handle_cancel] ERROR | GenID: %s | %s',
+					$generation_id,
+					$e->getMessage()
+				),
+				'error'
+			);
+			$this->send_error(
+				__( 'An error occurred while cancelling the generation. Please try again.', 'nuclear-engagement' ),
+				500
+			);
+		}
+	}
+
+	/**
 	 * Get current task status
 	 */
 	private function get_task_current_status( string $task_id ): array {

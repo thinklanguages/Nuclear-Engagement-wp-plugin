@@ -448,9 +448,14 @@ class TasksManager {
             button.addEventListener('click', (e) => this.handleRunTask(e));
         });
 
-        // Handle cancel buttons
+        // Handle cancel buttons (legacy local cancel)
         document.querySelectorAll('.nuclen-cancel').forEach(button => {
             button.addEventListener('click', (e) => this.handleCancelTask(e));
+        });
+
+        // Handle server-coordinated cancel buttons (cancel + refund flow)
+        document.querySelectorAll('.nuclen-cancel-task').forEach(button => {
+            button.addEventListener('click', (e) => this.handleCancelGeneration(e));
         });
 
         // Handle retry buttons
@@ -458,6 +463,114 @@ class TasksManager {
             button.addEventListener('click', (e) => this.handleRetryTask(e));
         });
 
+    }
+
+    private async handleCancelGeneration(event: Event): Promise<void> {
+        event.preventDefault();
+        const button = event.currentTarget as HTMLElement;
+        const generationId = button.getAttribute('data-generation-id')
+            || button.getAttribute('data-task-id');
+        const nonce = button.getAttribute('data-nonce') || nuclen_tasks.nonce;
+
+        if (!generationId || this.isProcessing) return;
+
+        if (!window.confirm('Cancel this generation? Unused credits will be refunded.')) {
+            return;
+        }
+
+        this.isProcessing = true;
+        const originalText = button.textContent || '';
+        const row = button.closest('tr') as HTMLElement | null;
+
+        try {
+            button.classList.add('disabled');
+            button.setAttribute('disabled', 'disabled');
+            button.textContent = nuclen_tasks.i18n.cancelling || 'Cancelling...';
+
+            if (row) {
+                row.classList.add('nuclen-row-busy');
+                const spinnerExists = row.querySelector('.nuclen-inline-spinner');
+                if (!spinnerExists) {
+                    const spinner = document.createElement('span');
+                    spinner.className = 'spinner is-active nuclen-inline-spinner';
+                    button.parentElement?.insertBefore(spinner, button);
+                }
+            }
+
+            const response = await fetch(ajaxurl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    action: 'nuclen_cancel_generation',
+                    generation_id: generationId,
+                    nonce: nonce,
+                }),
+            });
+
+            const result = await response.json();
+
+            if (result && result.success) {
+                const data = result.data || {};
+                const refunded = Number(data.refunded_credits || 0);
+
+                if (row) {
+                    const statusCell = row.querySelector('.column-status');
+                    if (statusCell) {
+                        statusCell.innerHTML = this.getStatusBadge('cancelled');
+                    }
+                    const actionsCell = row.querySelector('.column-actions');
+                    if (actionsCell) {
+                        actionsCell.innerHTML = '<span class="nuclen-no-actions">—</span>';
+                    }
+                    row.setAttribute('data-status', 'cancelled');
+                    row.setAttribute('data-is-terminal', '1');
+
+                    if (refunded > 0) {
+                        const detailsCell = row.querySelector('td:nth-child(7)');
+                        if (detailsCell) {
+                            const note = document.createElement('div');
+                            note.className = 'nuclen-refunded-credits';
+                            note.textContent = `${refunded} credits refunded`;
+                            detailsCell.appendChild(note);
+                        }
+                    }
+                }
+
+                this.activeTasks.delete(generationId);
+
+                const message = data.message
+                    ? String(data.message)
+                    : (refunded > 0
+                        ? `Generation cancelled. ${refunded} credits refunded.`
+                        : 'Generation cancelled.');
+                const type: 'success' | 'info' = data.remote_error ? 'info' : 'success';
+                this.showNotice(message, type);
+            } else {
+                const data = (result && result.data) || {};
+                const serverMsg = typeof data === 'string'
+                    ? data
+                    : (data.message || nuclen_tasks.i18n.error || 'An error occurred.');
+                throw new Error(serverMsg);
+            }
+        } catch (err) {
+            error('Cancel generation failed:', err);
+            const msg = err instanceof Error && err.message
+                ? err.message
+                : (nuclen_tasks.i18n.error || 'An error occurred.');
+            this.showNotice(msg, 'error');
+
+            button.textContent = originalText;
+            button.classList.remove('disabled');
+            button.removeAttribute('disabled');
+            if (row) {
+                row.classList.remove('nuclen-row-busy');
+                row.querySelector('.nuclen-inline-spinner')?.remove();
+            }
+        } finally {
+            this.isProcessing = false;
+        }
     }
 
     private setupRefreshButton(): void {
@@ -759,31 +872,26 @@ class TasksManager {
                 <button class="button button-small nuclen-run-now" data-task-id="${taskId}">
                     Run Now
                 </button>
-                <button class="button button-small nuclen-cancel" data-task-id="${taskId}">
+                <button class="button button-small button-link-delete nuclen-cancel-task" data-task-id="${taskId}" data-generation-id="${taskId}" data-nonce="${nuclen_tasks.nonce}">
                     Cancel
                 </button>
             `;
-            
+
             // Re-attach event handlers
             actionsCell.querySelector('.nuclen-run-now')?.addEventListener('click', (e) => this.handleRunTask(e));
-            actionsCell.querySelector('.nuclen-cancel')?.addEventListener('click', (e) => this.handleCancelTask(e));
+            actionsCell.querySelector('.nuclen-cancel-task')?.addEventListener('click', (e) => this.handleCancelGeneration(e));
         } else if (status === 'processing') {
-            // Get task age from row
-            const createdAtText = row.querySelector('td:nth-child(1)')?.textContent || '';
-            let showForceComplete = false;
-            
-            // Simple check: if the task shows a time that's likely old, show force complete
-            // This is a fallback since we can't easily parse the formatted date
+            // Note: Force complete button is added by PHP template based on actual task age.
             actionsCell.innerHTML = `
                 <span class="spinner is-active"></span>
-                <button class="button button-small nuclen-cancel" data-task-id="${taskId}">
+                <button class="button button-small button-link-delete nuclen-cancel-task" data-task-id="${taskId}" data-generation-id="${taskId}" data-nonce="${nuclen_tasks.nonce}">
                     Cancel
                 </button>
             `;
-            
+
             // Re-attach cancel event handler
-            actionsCell.querySelector('.nuclen-cancel')?.addEventListener('click', (e) => this.handleCancelTask(e));
-            
+            actionsCell.querySelector('.nuclen-cancel-task')?.addEventListener('click', (e) => this.handleCancelGeneration(e));
+
             // Note: Force complete button is added by PHP template based on actual task age
         } else if (status === 'failed' || status === 'cancelled') {
             actionsCell.innerHTML = `

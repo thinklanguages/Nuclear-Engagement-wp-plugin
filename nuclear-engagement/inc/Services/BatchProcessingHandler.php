@@ -658,12 +658,34 @@ class BatchProcessingHandler {
 	}
 
 	/**
-	 * Poll for batch results
+	 * Hard cap on consecutive not_found responses before failing the batch.
+	 */
+	private const MAX_NOT_FOUND_STREAK = 20;
+
+	/**
+	 * Hard cap on total poll attempts before failing the batch.
+	 */
+	private const MAX_POLL_ATTEMPTS = 240;
+
+	/**
+	 * Optional test-only collaborators for scheduling / hooks / transients.
+	 *
+	 * Production code leaves this null and the normal WordPress functions are
+	 * called directly. Tests may assign an object with method names matching
+	 * schedule_single_event, clear_scheduled_hook, get_transient, set_transient,
+	 * delete_transient, do_action, and spawn_cron so the poll loop can be
+	 * asserted without relying on (potentially polluted) global function stubs.
+	 *
+	 * @var object|null
+	 */
+	public static $test_hooks = null;
+
+	/**
+	 * Poll for batch results (static entry point that wires dependencies).
 	 *
 	 * @param string $batch_id Batch ID
 	 */
 	public static function poll_batch( string $batch_id ): void {
-
 		$batch_data = TaskTransientManager::get_batch_transient( $batch_id );
 		if ( ! is_array( $batch_data ) ) {
 			\NuclearEngagement\Services\LoggingService::log(
@@ -683,7 +705,7 @@ class BatchProcessingHandler {
 
 		$settings = SettingsRepository::get_instance();
 
-		// Create circuit breaker instance
+		// Create circuit breaker instance.
 		$circuit_breaker = new CircuitBreaker( 'remote_api', 5, 300, 2 );
 
 		$api = new RemoteApiService(
@@ -693,144 +715,426 @@ class BatchProcessingHandler {
 			$circuit_breaker
 		);
 
+		$storage        = new ContentStorageService( $settings );
+		$batchProcessor = new BulkGenerationBatchProcessor( $settings );
+
+		$handler = new self( $api, $storage, $batchProcessor );
+		$handler->handle_poll( $batch_id, $batch_data );
+	}
+
+	/**
+	 * Core polling routine.
+	 *
+	 * Branches on the server-provided status/completed/not_found contract. All
+	 * terminal branches (complete/cancelled/failed) clear any queued poll
+	 * events and the results transient. Non-terminal branches write poll state
+	 * back to the batch transient and schedule the next poll with exponential
+	 * backoff, subject to bounded caps on attempts and consecutive not_found
+	 * responses.
+	 *
+	 * @param string $batch_id   Batch ID.
+	 * @param array  $batch_data Pre-loaded batch data.
+	 */
+	public function handle_poll( string $batch_id, array $batch_data ): void {
 		try {
-
-			$updates = $api->fetch_updates( $batch_data['api_generation_id'] );
-
-			// Store partial results without marking batch as complete
-			if ( ! empty( $updates['results'] ) && is_array( $updates['results'] ) ) {
-				// Store results in separate transient to avoid memory issues
-				$results_key      = 'nuclen_batch_results_' . $batch_id;
-				$existing_results = get_transient( $results_key ) ?: array();
-
-				// Merge new results with existing ones
-				foreach ( $updates['results'] as $post_id => $result ) {
-					$existing_results[ $post_id ] = $result;
-				}
-
-				// Check result size before storing
-				$serialized_size = strlen( serialize( $existing_results ) );
-				if ( $serialized_size > 5 * MB_IN_BYTES ) {
-					// Keep only the latest results
-					$existing_results = array_slice( $existing_results, -50, null, true );
-				}
-
-				// Store results separately from batch data
-				set_transient( $results_key, $existing_results, DAY_IN_SECONDS );
-
-				// Update batch data with result count only
-				$batch_data['result_count'] = count( $existing_results );
-				if ( isset( $updates['processed'] ) ) {
-					$batch_data['processed'] = (int) $updates['processed'];
-				}
-				if ( isset( $updates['total'] ) ) {
-					$batch_data['total'] = (int) $updates['total'];
-				}
-				TaskTransientManager::set_batch_transient( $batch_id, $batch_data, DAY_IN_SECONDS );
-
-			}
-
-			// Check if generation is complete
-			$is_complete = false;
-			if ( isset( $updates['processed'] ) && isset( $updates['total'] ) ) {
-				$is_complete = $updates['processed'] >= $updates['total'];
-			}
-
-			if ( $is_complete ) {
-				// Load results from separate transient
-				$results_key   = 'nuclen_batch_results_' . $batch_id;
-				$final_results = get_transient( $results_key );
-
-				// Create services once for use in both branches
-				$storage        = new ContentStorageService( $settings );
-				$batchProcessor = new BulkGenerationBatchProcessor( $settings );
-
-				// Validate we have sufficient results
-				$expected_posts = count( $batch_data['posts'] ?? array() );
-				$actual_results = count( $final_results ?? array() );
-				
-				if ( ! empty( $final_results ) && $actual_results > 0 ) {
-					// Log if we have fewer results than expected
-					if ( $actual_results < $expected_posts ) {
-						\NuclearEngagement\Services\LoggingService::log(
-							sprintf( 
-								'[BatchProcessingHandler::poll_batch] WARNING: Batch %s has fewer results than expected (%d/%d posts)',
-								$batch_id,
-								$actual_results,
-								$expected_posts
-							),
-							'warning'
-						);
-					}
-					
-					// Process all accumulated results
-					$handler = new self( $api, $storage, $batchProcessor );
-
-					// Ensure workflow type exists
-					$workflow_type = isset( $batch_data['workflow']['type'] ) ? $batch_data['workflow']['type'] : 'default';
-					$handler->process_batch_results( $batch_id, $final_results, $workflow_type );
-
-					// Mark task as completed for timeout tracking
-					do_action( 'nuclen_task_completed', $batch_id );
-				} else {
-					\NuclearEngagement\Services\LoggingService::log(
-						sprintf( 
-							'[BatchProcessingHandler::poll_batch] ERROR: Batch %s marked as complete but no results found (expected %d posts)',
-							$batch_id,
-							$expected_posts
-						),
-						'error'
-					);
-
-					// Mark batch as failed if no results, with proper counts
-					$batchProcessor->update_batch_status(
-						$batch_id,
-						'failed',
-						array( 
-							'error' => 'Generation completed but no results received',
-							'fail_count' => $expected_posts,
-							'success_count' => 0
-						)
-					);
-				}
-			} else {
-				// Still processing, schedule another poll
-				wp_schedule_single_event( time() + 30, 'nuclen_poll_batch', array( $batch_id ) );
-				\NuclearEngagement\Services\LoggingService::log(
-					sprintf( '[BatchProcessingHandler::poll_batch] Batch %s still processing, scheduled next poll in 30 seconds', $batch_id )
-				);
-
-				// Force immediate cron spawn to process the scheduled event
-				if ( ! defined( 'DOING_CRON' ) ) {
-					spawn_cron();
-				}
-			}
+			$updates = $this->api->fetch_updates( $batch_data['api_generation_id'] );
 		} catch ( \Throwable $e ) {
 			\NuclearEngagement\Services\LoggingService::log(
 				sprintf(
-					'[BatchProcessingHandler::poll_batch] ERROR: Exception during poll for batch %s - %s',
+					'[BatchProcessingHandler::handle_poll] ERROR: Exception during poll for batch %s - %s',
 					$batch_id,
 					$e->getMessage()
 				),
 				'error'
 			);
-			\NuclearEngagement\Services\LoggingService::log_exception( $e );
-
-			// Check if this is a retryable error during polling
-			if ( strpos( $e->getMessage(), 'timeout' ) !== false ||
-				strpos( $e->getMessage(), 'network' ) !== false ) {
-				// Reschedule the poll
-				wp_schedule_single_event( time() + 60, 'nuclen_poll_batch', array( $batch_id ) );
-				\NuclearEngagement\Services\LoggingService::log(
-					sprintf( '[BatchProcessingHandler::poll_batch] Poll failed with retryable error for batch %s, rescheduling in 60 seconds', $batch_id )
-				);
-
-				// Force immediate cron spawn to process the scheduled event
-				if ( ! defined( 'DOING_CRON' ) ) {
-					spawn_cron();
-				}
+			if ( method_exists( \NuclearEngagement\Services\LoggingService::class, 'log_exception' ) ) {
+				\NuclearEngagement\Services\LoggingService::log_exception( $e );
 			}
+
+			// Treat exceptions as soft failures - do not bump not_found_streak,
+			// just reschedule subject to poll_attempts cap.
+			$this->handle_soft_failure( $batch_id, $batch_data, 'exception: ' . $e->getMessage() );
+			return;
 		}
+
+		// Soft-fail shape: null, false, WP_Error, empty, or non-array. Do not
+		// touch not_found_streak; treat as transient network error.
+		if ( ! is_array( $updates ) || empty( $updates ) ) {
+			$this->handle_soft_failure( $batch_id, $batch_data, 'empty or invalid fetch_updates response' );
+			return;
+		}
+
+		// Accumulate partial results into the separate results transient so the
+		// UI keeps seeing progress even when the batch is not yet complete.
+		if ( ! empty( $updates['results'] ) && is_array( $updates['results'] ) ) {
+			$results_key      = 'nuclen_batch_results_' . $batch_id;
+			$existing_results = get_transient( $results_key );
+			if ( ! is_array( $existing_results ) ) {
+				$existing_results = array();
+			}
+
+			foreach ( $updates['results'] as $post_id => $result ) {
+				$existing_results[ $post_id ] = $result;
+			}
+
+			// Guard against runaway size.
+			$serialized_size = strlen( serialize( $existing_results ) );
+			if ( $serialized_size > 5 * MB_IN_BYTES ) {
+				$existing_results = array_slice( $existing_results, -50, null, true );
+			}
+
+			set_transient( $results_key, $existing_results, DAY_IN_SECONDS );
+
+			$batch_data['result_count'] = count( $existing_results );
+		}
+
+		if ( isset( $updates['processed'] ) ) {
+			$batch_data['processed'] = (int) $updates['processed'];
+		}
+		if ( isset( $updates['total'] ) ) {
+			$batch_data['total'] = (int) $updates['total'];
+		}
+
+		$status       = isset( $updates['status'] ) ? (string) $updates['status'] : 'unknown';
+		$is_complete  = ! empty( $updates['completed'] );
+		$is_cancelled = $status === 'cancelled';
+		$is_not_found = $status === 'not_found';
+
+		// Update poll counters.
+		$poll_attempts    = isset( $batch_data['poll_attempts'] ) ? (int) $batch_data['poll_attempts'] : 0;
+		$not_found_streak = isset( $batch_data['not_found_streak'] ) ? (int) $batch_data['not_found_streak'] : 0;
+
+		$poll_attempts++;
+		if ( $is_not_found ) {
+			$not_found_streak++;
+		} else {
+			$not_found_streak = 0;
+		}
+
+		$batch_data['poll_attempts']    = $poll_attempts;
+		$batch_data['not_found_streak'] = $not_found_streak;
+		$batch_data['last_poll_at']     = time();
+		$batch_data['last_status']      = $status;
+
+		// Persist counters before branching so state is never lost.
+		TaskTransientManager::set_batch_transient( $batch_id, $batch_data, DAY_IN_SECONDS );
+
+		$results_count = isset( $batch_data['result_count'] ) ? (int) $batch_data['result_count'] : 0;
+		$processed     = isset( $batch_data['processed'] ) ? (int) $batch_data['processed'] : 0;
+		$total         = isset( $batch_data['total'] ) ? (int) $batch_data['total'] : 0;
+
+		$this->log_poll_branch(
+			$batch_id,
+			$status,
+			$is_complete,
+			$poll_attempts,
+			$not_found_streak,
+			$processed,
+			$total,
+			$results_count
+		);
+
+		// Terminal branches.
+		if ( $is_cancelled ) {
+			$this->handle_cancelled( $batch_id );
+			return;
+		}
+
+		if ( $is_complete ) {
+			$this->handle_completed( $batch_id, $batch_data );
+			return;
+		}
+
+		// Bounded-polling caps.
+		if ( $not_found_streak >= self::MAX_NOT_FOUND_STREAK ) {
+			$this->handle_cap_exceeded(
+				$batch_id,
+				$batch_data,
+				sprintf( 'Server lost track of generation (%d consecutive not_found)', self::MAX_NOT_FOUND_STREAK )
+			);
+			return;
+		}
+
+		if ( $poll_attempts >= self::MAX_POLL_ATTEMPTS ) {
+			$this->handle_cap_exceeded(
+				$batch_id,
+				$batch_data,
+				sprintf( 'Polling exceeded %d attempts', self::MAX_POLL_ATTEMPTS )
+			);
+			return;
+		}
+
+		// Still polling - schedule next poll with exponential backoff.
+		$this->schedule_next_poll( $batch_id, $poll_attempts );
+	}
+
+	/**
+	 * Handle a cancelled batch: mark cancelled, clean up, fire completion hook.
+	 *
+	 * @param string $batch_id Batch ID.
+	 */
+	private function handle_cancelled( string $batch_id ): void {
+		$this->batchProcessor->update_batch_status( $batch_id, 'cancelled' );
+		$this->cleanup_terminal( $batch_id );
+		$this->fire_action( 'nuclen_task_completed', $batch_id );
+	}
+
+	/**
+	 * Handle a completed batch. Existing results sanity check is preserved:
+	 * if completed is true but results are empty, the batch is marked failed.
+	 *
+	 * @param string $batch_id   Batch ID.
+	 * @param array  $batch_data Current batch data.
+	 */
+	private function handle_completed( string $batch_id, array $batch_data ): void {
+		$results_key    = 'nuclen_batch_results_' . $batch_id;
+		$final_results  = $this->fetch_transient( $results_key );
+		$expected_posts = count( $batch_data['posts'] ?? array() );
+		$actual_results = is_array( $final_results ) ? count( $final_results ) : 0;
+
+		if ( ! empty( $final_results ) && $actual_results > 0 ) {
+			if ( $actual_results < $expected_posts ) {
+				\NuclearEngagement\Services\LoggingService::log(
+					sprintf(
+						'[BatchProcessingHandler::handle_poll] WARNING: Batch %s has fewer results than expected (%d/%d posts)',
+						$batch_id,
+						$actual_results,
+						$expected_posts
+					),
+					'warning'
+				);
+			}
+
+			$workflow_type = isset( $batch_data['workflow']['type'] ) ? $batch_data['workflow']['type'] : 'default';
+			$this->process_batch_results( $batch_id, $final_results, $workflow_type );
+
+			$this->cleanup_terminal( $batch_id );
+			$this->fire_action( 'nuclen_task_completed', $batch_id );
+			return;
+		}
+
+		\NuclearEngagement\Services\LoggingService::log(
+			sprintf(
+				'[BatchProcessingHandler::handle_poll] ERROR: Batch %s marked as complete but no results found (expected %d posts)',
+				$batch_id,
+				$expected_posts
+			),
+			'error'
+		);
+
+		$this->batchProcessor->update_batch_status(
+			$batch_id,
+			'failed',
+			array(
+				'error'         => 'Generation completed but no results received',
+				'fail_count'    => $expected_posts,
+				'success_count' => 0,
+			)
+		);
+		$this->cleanup_terminal( $batch_id );
+		$this->fire_action( 'nuclen_task_completed', $batch_id );
+	}
+
+	/**
+	 * Handle hitting a bounded-polling cap (not_found streak or poll_attempts).
+	 *
+	 * @param string $batch_id   Batch ID.
+	 * @param array  $batch_data Current batch data.
+	 * @param string $error      Error message to record on the batch.
+	 */
+	private function handle_cap_exceeded( string $batch_id, array $batch_data, string $error ): void {
+		$expected_posts = count( $batch_data['posts'] ?? array() );
+
+		$this->batchProcessor->update_batch_status(
+			$batch_id,
+			'failed',
+			array(
+				'error'         => $error,
+				'fail_count'    => $expected_posts,
+				'success_count' => 0,
+			)
+		);
+		$this->cleanup_terminal( $batch_id );
+		$this->fire_action( 'nuclen_task_completed', $batch_id );
+	}
+
+	/**
+	 * Schedule the next poll with exponential backoff based on poll_attempts.
+	 *
+	 * Polls 1-10: +30s, 11-30: +60s, 31+: +120s.
+	 *
+	 * @param string $batch_id      Batch ID.
+	 * @param int    $poll_attempts Current attempt count (already incremented).
+	 */
+	private function schedule_next_poll( string $batch_id, int $poll_attempts ): void {
+		if ( $poll_attempts <= 10 ) {
+			$delay = 30;
+		} elseif ( $poll_attempts <= 30 ) {
+			$delay = 60;
+		} else {
+			$delay = 120;
+		}
+
+		$this->schedule_event( time() + $delay, 'nuclen_poll_batch', array( $batch_id ) );
+
+		\NuclearEngagement\Services\LoggingService::log(
+			sprintf(
+				'[BatchProcessingHandler::handle_poll] Batch %s still processing, scheduled next poll in %d seconds (attempt %d)',
+				$batch_id,
+				$delay,
+				$poll_attempts
+			)
+		);
+
+		$this->spawn_cron_if_possible();
+	}
+
+	/**
+	 * Handle a soft failure - fetch_updates returned null/false/WP_Error or
+	 * threw. Reschedule subject to the poll_attempts cap without bumping
+	 * not_found_streak.
+	 *
+	 * @param string $batch_id   Batch ID.
+	 * @param array  $batch_data Current batch data.
+	 * @param string $reason     Reason string for logging.
+	 */
+	private function handle_soft_failure( string $batch_id, array $batch_data, string $reason ): void {
+		$poll_attempts    = isset( $batch_data['poll_attempts'] ) ? (int) $batch_data['poll_attempts'] : 0;
+		$not_found_streak = isset( $batch_data['not_found_streak'] ) ? (int) $batch_data['not_found_streak'] : 0;
+
+		$poll_attempts++;
+
+		$batch_data['poll_attempts']    = $poll_attempts;
+		$batch_data['not_found_streak'] = $not_found_streak;
+		$batch_data['last_poll_at']     = time();
+		$batch_data['last_status']      = 'soft_fail';
+
+		TaskTransientManager::set_batch_transient( $batch_id, $batch_data, DAY_IN_SECONDS );
+
+		$processed     = isset( $batch_data['processed'] ) ? (int) $batch_data['processed'] : 0;
+		$total         = isset( $batch_data['total'] ) ? (int) $batch_data['total'] : 0;
+		$results_count = isset( $batch_data['result_count'] ) ? (int) $batch_data['result_count'] : 0;
+
+		$this->log_poll_branch(
+			$batch_id,
+			'soft_fail',
+			false,
+			$poll_attempts,
+			$not_found_streak,
+			$processed,
+			$total,
+			$results_count,
+			$reason
+		);
+
+		if ( $poll_attempts >= self::MAX_POLL_ATTEMPTS ) {
+			$this->handle_cap_exceeded(
+				$batch_id,
+				$batch_data,
+				sprintf( 'Polling exceeded %d attempts', self::MAX_POLL_ATTEMPTS )
+			);
+			return;
+		}
+
+		$this->schedule_next_poll( $batch_id, $poll_attempts );
+	}
+
+	/**
+	 * Clear any queued poll events and delete the results transient on a
+	 * terminal outcome. Audited to cover every terminal branch: complete,
+	 * completed-but-empty, cancelled, cap-exceeded.
+	 *
+	 * @param string $batch_id Batch ID.
+	 */
+	private function cleanup_terminal( string $batch_id ): void {
+		$this->clear_scheduled( 'nuclen_poll_batch', array( $batch_id ) );
+		$this->remove_transient( 'nuclen_batch_results_' . $batch_id );
+	}
+
+	/**
+	 * Indirect wrappers around the WordPress globals so tests can redirect
+	 * them without needing namespace-scoped function overrides (which are
+	 * prone to collisions when multiple test files define the same function
+	 * in the same namespace).
+	 */
+	private function schedule_event( int $timestamp, string $hook, array $args ): void {
+		if ( is_object( self::$test_hooks ) && method_exists( self::$test_hooks, 'schedule_single_event' ) ) {
+			self::$test_hooks->schedule_single_event( $timestamp, $hook, $args );
+			return;
+		}
+		wp_schedule_single_event( $timestamp, $hook, $args );
+	}
+
+	private function clear_scheduled( string $hook, array $args ): void {
+		if ( is_object( self::$test_hooks ) && method_exists( self::$test_hooks, 'clear_scheduled_hook' ) ) {
+			self::$test_hooks->clear_scheduled_hook( $hook, $args );
+			return;
+		}
+		wp_clear_scheduled_hook( $hook, $args );
+	}
+
+	private function fetch_transient( string $key ) {
+		if ( is_object( self::$test_hooks ) && method_exists( self::$test_hooks, 'get_transient' ) ) {
+			return self::$test_hooks->get_transient( $key );
+		}
+		return get_transient( $key );
+	}
+
+	private function remove_transient( string $key ): void {
+		if ( is_object( self::$test_hooks ) && method_exists( self::$test_hooks, 'delete_transient' ) ) {
+			self::$test_hooks->delete_transient( $key );
+			return;
+		}
+		delete_transient( $key );
+	}
+
+	private function fire_action( string $hook, ...$args ): void {
+		if ( is_object( self::$test_hooks ) && method_exists( self::$test_hooks, 'do_action' ) ) {
+			self::$test_hooks->do_action( $hook, ...$args );
+			return;
+		}
+		do_action( $hook, ...$args );
+	}
+
+	private function spawn_cron_if_possible(): void {
+		if ( is_object( self::$test_hooks ) && method_exists( self::$test_hooks, 'spawn_cron' ) ) {
+			self::$test_hooks->spawn_cron();
+			return;
+		}
+		if ( ! defined( 'DOING_CRON' ) ) {
+			spawn_cron();
+		}
+	}
+
+	/**
+	 * Single pipe-separated debug line for each poll iteration / branch.
+	 */
+	private function log_poll_branch(
+		string $batch_id,
+		string $status,
+		bool $is_complete,
+		int $poll_attempts,
+		int $not_found_streak,
+		int $processed,
+		int $total,
+		int $results_count,
+		string $extra = ''
+	): void {
+		$message = sprintf(
+			'[BatchProcessingHandler::handle_poll] batch_id=%s | status=%s | completed=%s | poll_attempts=%d | not_found_streak=%d | processed=%d | total=%d | results_count=%d',
+			$batch_id,
+			$status,
+			$is_complete ? 'true' : 'false',
+			$poll_attempts,
+			$not_found_streak,
+			$processed,
+			$total,
+			$results_count
+		);
+		if ( $extra !== '' ) {
+			$message .= ' | note=' . $extra;
+		}
+		\NuclearEngagement\Services\LoggingService::log( $message );
 	}
 
 	/**

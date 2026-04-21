@@ -326,6 +326,97 @@ describe('TasksManager', () => {
         });
     });
 
+    describe('Cancel Generation Action (server-coordinated)', () => {
+        const injectCancelButton = (taskId: string, cell: Element) => {
+            // Add a cancel-generation button (the new server-coordinated one)
+            // INTO the DOM *before* TasksManager is instantiated so the
+            // manager can wire up its click handler.
+            cell.innerHTML = `
+                <button class="button button-small button-link-delete nuclen-cancel-task"
+                        data-task-id="${taskId}"
+                        data-generation-id="${taskId}"
+                        data-nonce="test_nonce_123">Cancel</button>
+            `;
+            return cell.querySelector('.nuclen-cancel-task') as HTMLButtonElement;
+        };
+
+        it('should POST to nuclen_cancel_generation with generation_id and show refunded credits on success', async () => {
+            const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
+
+            // Inject the button BEFORE TasksManager so attachActionHandlers wires it up.
+            const actions = document.querySelector('tr[data-task-id="gen_124"] .column-actions')!;
+            const btn = injectCancelButton('gen_124', actions)!;
+            expect(btn).not.toBeNull();
+
+            // First fetch call is checkRecentCompletions (from constructor),
+            // so we push two responses to be safe.
+            fetchMock.mockResolvedValue({
+                ok: true,
+                json: () => Promise.resolve({
+                    success: true,
+                    data: {
+                        refunded_credits: 12,
+                        status: 'cancelled',
+                        message: 'Generation cancelled. 12 credits refunded.'
+                    }
+                })
+            });
+
+            const { default: TasksManager } = await import('../../src/admin/ts/tasks');
+            new TasksManager();
+
+            btn.click();
+
+            expect(confirmSpy).toHaveBeenCalledWith(
+                'Cancel this generation? Unused credits will be refunded.'
+            );
+
+            await new Promise(resolve => setTimeout(resolve, 80));
+
+            const cancelCalls = fetchMock.mock.calls.filter(c => {
+                const body = c[1]?.body;
+                return body instanceof URLSearchParams
+                    && body.get('action') === 'nuclen_cancel_generation';
+            });
+            expect(cancelCalls.length).toBeGreaterThan(0);
+
+            const body = cancelCalls[0][1].body as URLSearchParams;
+            expect(body.get('generation_id')).toBe('gen_124');
+            expect(body.get('nonce')).toBe('test_nonce_123');
+
+            const statusCell = document.querySelector('tr[data-task-id="gen_124"] .column-status');
+            expect(statusCell?.innerHTML).toContain('Cancelled');
+
+            confirmSpy.mockRestore();
+        });
+
+        it('should abort when the user declines the confirm dialog', async () => {
+            const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false);
+
+            const actions = document.querySelector('tr[data-task-id="gen_123"] .column-actions')!;
+            const btn = injectCancelButton('gen_123', actions)!;
+
+            const { default: TasksManager } = await import('../../src/admin/ts/tasks');
+            new TasksManager();
+
+            btn.click();
+
+            expect(confirmSpy).toHaveBeenCalled();
+
+            // Wait to ensure no async fetch happened.
+            await new Promise(resolve => setTimeout(resolve, 20));
+
+            const cancelFetchCalls = fetchMock.mock.calls.filter(c => {
+                const body = c[1]?.body;
+                return body instanceof URLSearchParams
+                    && body.get('action') === 'nuclen_cancel_generation';
+            });
+            expect(cancelFetchCalls).toHaveLength(0);
+
+            confirmSpy.mockRestore();
+        });
+    });
+
     describe('UI Updates', () => {
         it('should update status badge correctly', async () => {
             const { default: TasksManager } = await import('../../src/admin/ts/tasks');

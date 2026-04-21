@@ -832,7 +832,7 @@ class BulkGenerationBatchProcessor extends BaseService {
 				$post_count = (int) ( $batch['post_count'] ?? count( $batch_data['posts'] ?? array() ) );
 				$status     = $batch_data['status'] ?? 'pending';
 
-				if ( in_array( $status, array( 'completed', 'completed_with_errors', 'failed' ), true ) ) {
+				if ( in_array( $status, array( 'completed', 'completed_with_errors', 'failed', 'cancelled' ), true ) ) {
 					$counts = $this->extract_batch_counts( $batch_data );
 
 					if ( $counts['has_counts'] ) {
@@ -840,7 +840,7 @@ class BulkGenerationBatchProcessor extends BaseService {
 						$total_failed    += $counts['fail_count'];
 					} else {
 						// Fall back to scheduled count if no actual counts are available yet.
-						if ( $status === 'failed' ) {
+						if ( $status === 'failed' || $status === 'cancelled' ) {
 							$total_processed += $post_count;
 							$total_failed    += $post_count;
 						} else {
@@ -956,7 +956,7 @@ class BulkGenerationBatchProcessor extends BaseService {
 					$active_batches[] = $batch_job['batch_id'];
 				}
 
-				if ( in_array( $status, array( 'completed', 'completed_with_errors', 'failed' ), true ) ) {
+				if ( in_array( $status, array( 'completed', 'completed_with_errors', 'failed', 'cancelled' ), true ) ) {
 					$counts = $this->extract_batch_counts( $batch_data );
 					if ( $counts['has_counts'] ) {
 						$success_count += $counts['success_count'];

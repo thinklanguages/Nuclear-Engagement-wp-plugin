@@ -309,3 +309,44 @@
 		font-size: 14px;
 	}
 }
+
+/* Row busy state during cancel */
+.nuclen-tasks-table tr.nuclen-row-busy {
+	opacity: 0.65;
+	pointer-events: none;
+}
+
+.nuclen-tasks-table tr.nuclen-row-busy .nuclen-inline-spinner {
+	pointer-events: auto;
+}
+
+.nuclen-inline-spinner {
+	float: none !important;
+	margin: 0 6px 0 0 !important;
+	vertical-align: middle;
+}
+
+/* Server lost-track badge sits next to the status badge */
+.nuclen-lost-track {
+	margin-left: 6px;
+	white-space: normal;
+	text-transform: none;
+	font-weight: 500;
+}
+
+/* Refunded credits inline note */
+.nuclen-refunded-credits {
+	display: inline-block;
+	margin-top: 3px;
+	color: #135e96;
+	font-size: 12px;
+	font-style: italic;
+}
+
+/* Completed-at timestamp under created */
+.nuclen-completed-at {
+	display: inline-block;
+	margin-top: 3px;
+	color: #646970;
+	font-size: 12px;
+}

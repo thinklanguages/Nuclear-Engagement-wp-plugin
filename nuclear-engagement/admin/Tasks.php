@@ -609,6 +609,12 @@ class Tasks {
 		$batches_with_counts = 0;
 		$total_batches       = $task_data['total_batches'] ?? 0;
 
+		// Server-side "lost track" detection: a batch is marked as
+		// not_found for more than MAX polling cycles by BatchProcessingHandler.
+		$lost_track             = false;
+		$max_not_found_streak   = 0;
+		$not_found_threshold    = 10;
+
 		if ( isset( $task_data['batch_jobs'] ) && is_array( $task_data['batch_jobs'] ) ) {
 			foreach ( $task_data['batch_jobs'] as $batch_job ) {
 				try {
@@ -642,6 +648,16 @@ class Tasks {
 						if ( $has_counts && in_array( $batch_data['status'] ?? '', array( 'completed', 'failed' ), true ) ) {
 							++$batches_with_counts;
 						}
+
+						// Server lost-track detection.
+						$last_status      = isset( $batch_data['last_status'] ) ? (string) $batch_data['last_status'] : '';
+						$not_found_streak = isset( $batch_data['not_found_streak'] ) ? (int) $batch_data['not_found_streak'] : 0;
+						if ( $last_status === 'not_found' && $not_found_streak > $not_found_threshold ) {
+							$lost_track = true;
+						}
+						if ( $not_found_streak > $max_not_found_streak ) {
+							$max_not_found_streak = $not_found_streak;
+						}
 					}
 				} catch ( \Throwable $e ) {
 					\NuclearEngagement\Services\LoggingService::log(
@@ -657,8 +673,21 @@ class Tasks {
 
 		$total_posts = $task_data['total_posts'] ?? 0;
 
+		// Prefer explicit server-provided terminal state (status + completed/completed_at)
+		// over math, but still fall back to counts when those are absent.
+		$raw_status    = $task_data['status'] ?? 'pending';
+		$is_terminal   = in_array(
+			$raw_status,
+			array( 'completed', 'completed_with_errors', 'completed_with_failures', 'failed', 'cancelled' ),
+			true
+		) || ! empty( $task_data['completed'] );
+
+		// Normalize any server-reported "completed_with_failures" to the UI's existing
+		// "completed_with_errors" label so downstream status classes keep working.
+		$display_status = $raw_status === 'completed_with_failures' ? 'completed_with_errors' : $raw_status;
+
 		// Calculate progress based on batches with counts if status is not yet completed
-		if ( in_array( $task_data['status'] ?? '', array( 'processing', 'scheduled', 'pending' ), true ) && $total_batches > 0 ) {
+		if ( ! $is_terminal && in_array( $raw_status, array( 'processing', 'scheduled', 'pending' ), true ) && $total_batches > 0 ) {
 			// For active tasks, use batch completion ratio to show more accurate progress
 			$progress = round( ( $batches_with_counts / $total_batches ) * 100 );
 		} elseif ( $total_posts > 0 ) {
@@ -666,9 +695,15 @@ class Tasks {
 			$progress = round( ( $processed / $total_posts ) * 100 );
 		}
 
+		if ( $is_terminal && $progress < 100 && $raw_status === 'completed' ) {
+			$progress = 100;
+		}
+
 		return array(
 			'id'                => $task_data['id'],
-			'status'            => $task_data['status'] ?? 'pending',
+			'status'            => $display_status,
+			'raw_status'        => $raw_status,
+			'is_terminal'       => $is_terminal,
 			'workflow_type'     => $task_data['workflow_type'] ?? 'unknown',
 			'priority'          => $task_data['priority'] ?? 'normal',
 			'action'            => $task_data['action'] ?? 'bulk',
@@ -682,7 +717,11 @@ class Tasks {
 			'completed_batches' => $task_data['completed_batches'] ?? 0,
 			'failed_batches'    => $task_data['failed_batches'] ?? 0,
 			'total_batches'     => $task_data['total_batches'] ?? 0,
+			'refunded_credits'  => isset( $task_data['refunded_credits'] ) ? (int) $task_data['refunded_credits'] : 0,
+			'lost_track'        => $lost_track,
+			'not_found_streak'  => $max_not_found_streak,
 			'details'           => sprintf(
+				/* translators: 1: successfully processed, 2: total */
 				__( '%1$d of %2$d posts successfully processed', 'nuclear-engagement' ),
 				$processed,
 				$total_posts

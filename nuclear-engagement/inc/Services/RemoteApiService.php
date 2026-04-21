@@ -188,19 +188,19 @@ class RemoteApiService extends BaseService {
 			);
 		}
 
-		// Check cache first for completed generations only
+		// Check cache first for completed generations only.
+		// Use the server's explicit `completed` boolean — `processed >= total`
+		// is trivially true for the not_found stub (0 >= 0) and would cache a
+		// spurious "complete" result.
 		$cache_key = 'nuclen_update_' . $generation_id;
 		$cached    = wp_cache_get( $cache_key, self::CACHE_GROUP );
 
-		// If we have cached data and generation is complete, return it
-		if ( is_array( $cached ) && isset( $cached['processed'] ) && isset( $cached['total'] )
-			&& $cached['processed'] >= $cached['total'] ) {
+		if ( is_array( $cached ) && ! empty( $cached['completed'] ) ) {
 			\NuclearEngagement\Services\LoggingService::log(
 				sprintf(
-					'[INFO] Returning cached data | GenID: %s | Processed: %d/%d',
+					'[INFO] Returning cached completed response | GenID: %s | Status: %s',
 					$generation_id,
-					$cached['processed'],
-					$cached['total']
+					isset( $cached['status'] ) ? (string) $cached['status'] : 'unknown'
 				)
 			);
 			return $cached;
@@ -230,12 +230,16 @@ class RemoteApiService extends BaseService {
 			// Record success
 			$this->circuit_breaker->record_success();
 
-			// Only cache if we have valid data
+			// Only cache if we have valid data.
 			if ( is_array( $data ) ) {
-				wp_cache_set( $cache_key, $data, self::CACHE_GROUP, self::CACHE_TTL );
-				// Only set transient for completed generations
-				if ( isset( $data['processed'] ) && isset( $data['total'] ) && $data['processed'] >= $data['total'] ) {
-					set_transient( $cache_key, $data, 300 ); // 5 minutes for completed generations
+				$is_not_found = isset( $data['status'] ) && 'not_found' === $data['status'];
+				if ( ! $is_not_found ) {
+					wp_cache_set( $cache_key, $data, self::CACHE_GROUP, self::CACHE_TTL );
+				}
+				// Longer-lived transient only for truly terminal responses — gated
+				// on the server's `completed` boolean, not processed/total math.
+				if ( ! empty( $data['completed'] ) && ! $is_not_found ) {
+					set_transient( $cache_key, $data, 300 );
 				}
 			}
 
@@ -317,6 +321,106 @@ class RemoteApiService extends BaseService {
 		} catch ( \Exception $e ) {
 			$this->circuit_breaker->record_failure();
 			throw $e;
+		}
+	}
+
+	/**
+	 * Cancel an in-flight generation on the remote server.
+	 *
+	 * Wraps POST /api/cancel-generation. The endpoint is idempotent: if the
+	 * generation has already reached a terminal state it returns
+	 * refunded_credits: 0 with the existing status.
+	 *
+	 * @param string $generation_id Parent generation identifier.
+	 * @return array Either the parsed server response on success, or
+	 *               [ 'success' => false, 'error' => string ] on failure.
+	 */
+	public function cancel_generation( string $generation_id ): array {
+		$api_key = $this->settings->get_string( 'api_key', '' );
+
+		if ( empty( $api_key ) ) {
+			\NuclearEngagement\Services\LoggingService::log(
+				'[RemoteApiService::cancel_generation] API key not configured',
+				'error'
+			);
+			return array(
+				'success' => false,
+				'error'   => __( 'API key not configured. Please configure it in the plugin settings.', 'nuclear-engagement' ),
+			);
+		}
+
+		if ( empty( $generation_id ) ) {
+			return array(
+				'success' => false,
+				'error'   => __( 'Missing generation_id.', 'nuclear-engagement' ),
+			);
+		}
+
+		// Check circuit breaker.
+		if ( ! $this->circuit_breaker->is_request_allowed() ) {
+			$status = $this->circuit_breaker->get_status();
+			\NuclearEngagement\Services\LoggingService::log(
+				sprintf(
+					'[RemoteApiService::cancel_generation] Circuit breaker open; retry in %ds',
+					$status['time_until_retry']
+				),
+				'warning'
+			);
+			return array(
+				'success' => false,
+				'error'   => sprintf(
+					/* translators: %d seconds */
+					__( 'API temporarily unavailable. Retry in %d seconds.', 'nuclear-engagement' ),
+					$status['time_until_retry']
+				),
+			);
+		}
+
+		$payload = array(
+			'api_key'       => $api_key,
+			'siteUrl'       => get_site_url(),
+			'generation_id' => $generation_id,
+		);
+
+		\NuclearEngagement\Services\LoggingService::log(
+			sprintf(
+				'[RemoteApiService::cancel_generation] Sending cancel request | GenID: %s',
+				$generation_id
+			)
+		);
+
+		try {
+			$response = $this->request->post( '/cancel-generation', $payload, $api_key );
+			$result   = $this->handler->handle( $response );
+
+			$this->circuit_breaker->record_success();
+
+			\NuclearEngagement\Services\LoggingService::log(
+				sprintf(
+					'[RemoteApiService::cancel_generation] SUCCESS | GenID: %s | Status: %s | Refunded: %d',
+					$generation_id,
+					is_array( $result ) ? ( $result['status'] ?? 'unknown' ) : 'unknown',
+					is_array( $result ) ? (int) ( $result['refunded_credits'] ?? 0 ) : 0
+				)
+			);
+
+			return is_array( $result ) ? $result : array( 'success' => true );
+		} catch ( \Throwable $e ) {
+			$this->circuit_breaker->record_failure();
+
+			\NuclearEngagement\Services\LoggingService::log(
+				sprintf(
+					'[RemoteApiService::cancel_generation] ERROR | GenID: %s | %s',
+					$generation_id,
+					$e->getMessage()
+				),
+				'error'
+			);
+
+			return array(
+				'success' => false,
+				'error'   => $e->getMessage(),
+			);
 		}
 	}
 

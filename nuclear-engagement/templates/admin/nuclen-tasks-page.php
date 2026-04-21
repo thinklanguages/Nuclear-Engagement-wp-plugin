@@ -97,7 +97,7 @@ $pagination       = $data['pagination'] ?? array();
 						</thead>
 						<tbody>
 							<?php foreach ( $generation_tasks as $task ) : ?>
-								<tr data-task-id="<?php echo esc_attr( $task['id'] ); ?>" data-status="<?php echo esc_attr( $task['status'] ); ?>">
+								<tr data-task-id="<?php echo esc_attr( $task['id'] ); ?>" data-status="<?php echo esc_attr( $task['status'] ); ?>" data-is-terminal="<?php echo ! empty( $task['is_terminal'] ) ? '1' : '0'; ?>">
 									<td>
 										<?php
 										if ( ! empty( $task['created_at'] ) && $task['created_at'] > 0 ) {
@@ -108,6 +108,21 @@ $pagination       = $data['pagination'] ?? array();
 											echo '—';
 										}
 										?>
+										<?php if ( ! empty( $task['completed_at'] ) && $task['completed_at'] > 0 ) : ?>
+											<br><span class="nuclen-completed-at" title="<?php esc_attr_e( 'Completed at', 'nuclear-engagement' ); ?>">
+												<?php
+												$date_format_c = get_option( 'date_format' );
+												$time_format_c = get_option( 'time_format' );
+												echo esc_html(
+													sprintf(
+														/* translators: %s: formatted date */
+														__( 'Done: %s', 'nuclear-engagement' ),
+														date_i18n( $date_format_c . ' ' . $time_format_c, (int) $task['completed_at'] )
+													)
+												);
+												?>
+											</span>
+										<?php endif; ?>
 									</td>
 									<td>
 										<?php
@@ -168,6 +183,13 @@ $pagination       = $data['pagination'] ?? array();
 										echo '<span class="nuclen-badge ' . esc_attr( $status_class ) . '">';
 										echo esc_html( $status_labels[ $task['status'] ] ?? ucfirst( $task['status'] ) );
 										echo '</span>';
+										if ( ! empty( $task['lost_track'] ) ) :
+											?>
+										<span class="nuclen-badge nuclen-badge-warning nuclen-lost-track" title="<?php esc_attr_e( 'The server has not acknowledged this generation for multiple polling cycles. It will fail soon or retry automatically.', 'nuclear-engagement' ); ?>">
+											<?php esc_html_e( 'Server lost track — will fail soon or retry', 'nuclear-engagement' ); ?>
+										</span>
+										<?php
+										endif;
 										?>
 									</td>
 									<td class="column-progress">
@@ -185,8 +207,16 @@ $pagination       = $data['pagination'] ?? array();
 												<?php echo esc_html( sprintf( __( '%d failed', 'nuclear-engagement' ), $task['failed'] ) ); ?>
 											</span>
 										<?php endif; ?>
+										<?php if ( ! empty( $task['refunded_credits'] ) && (int) $task['refunded_credits'] > 0 ) : ?>
+											<br><span class="nuclen-refunded-credits">
+												<?php echo esc_html( sprintf( __( '%d credits refunded', 'nuclear-engagement' ), (int) $task['refunded_credits'] ) ); ?>
+											</span>
+										<?php endif; ?>
 									</td>
 									<td class="nuclen-task-actions column-actions">
+										<?php
+										$task_cancel_nonce = wp_create_nonce( 'nuclen_task_action' );
+										?>
 										<?php if ( $task['status'] === 'pending' || $task['status'] === 'scheduled' ) : ?>
 											<button type="button" 
 													class="button button-small nuclen-run-now" 
@@ -195,17 +225,21 @@ $pagination       = $data['pagination'] ?? array();
 												<?php esc_html_e( 'Run Now', 'nuclear-engagement' ); ?>
 											</button>
 											<button type="button" 
-													class="button button-small nuclen-cancel" 
+													class="button button-small button-link-delete nuclen-cancel-task" 
 													data-task-id="<?php echo esc_attr( $task['id'] ); ?>"
-													title="<?php esc_attr_e( 'Cancel this task', 'nuclear-engagement' ); ?>">
+													data-generation-id="<?php echo esc_attr( $task['id'] ); ?>"
+													data-nonce="<?php echo esc_attr( $task_cancel_nonce ); ?>"
+													title="<?php esc_attr_e( 'Cancel this generation and refund unused credits', 'nuclear-engagement' ); ?>">
 												<?php esc_html_e( 'Cancel', 'nuclear-engagement' ); ?>
 											</button>
 										<?php elseif ( $task['status'] === 'processing' ) : ?>
 											<span class="spinner is-active"></span>
 											<button type="button" 
-													class="button button-small nuclen-cancel" 
+													class="button button-small button-link-delete nuclen-cancel-task" 
 													data-task-id="<?php echo esc_attr( $task['id'] ); ?>"
-													title="<?php esc_attr_e( 'Cancel this task', 'nuclear-engagement' ); ?>">
+													data-generation-id="<?php echo esc_attr( $task['id'] ); ?>"
+													data-nonce="<?php echo esc_attr( $task_cancel_nonce ); ?>"
+													title="<?php esc_attr_e( 'Cancel this generation and refund unused credits', 'nuclear-engagement' ); ?>">
 												<?php esc_html_e( 'Cancel', 'nuclear-engagement' ); ?>
 											</button>
 										<?php elseif ( $task['status'] === 'failed' || $task['status'] === 'cancelled' ) : ?>
