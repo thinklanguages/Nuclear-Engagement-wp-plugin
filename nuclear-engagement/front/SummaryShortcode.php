@@ -3,13 +3,13 @@
  * Backwards compatibility wrapper for moved class.
  */
 
-if ( ! defined( 'ABSPATH' ) ) {
-	exit;
-}
-
 declare(strict_types=1);
 
 namespace NuclearEngagement\Front;
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
 
 use NuclearEngagement\Modules\Summary\Nuclen_Summary_Shortcode as ModuleSummaryShortcode;
 

@@ -5,13 +5,13 @@
  * @package NuclearEngagement_Admin
  */
 
-if ( ! defined( 'ABSPATH' ) ) {
-	exit;
-}
-
 declare(strict_types=1);
 
 namespace NuclearEngagement\Admin;
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
 
 use NuclearEngagement\Utils\TransientCleanup;
 
