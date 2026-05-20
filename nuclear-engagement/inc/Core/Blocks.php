@@ -38,7 +38,7 @@ final class Blocks {
 
 		// Build block configuration
 		$block_args = array(
-			'api_version'     => 2,
+			'api_version'     => 3,
 			'title'           => __( 'Quiz', 'nuclear-engagement' ),
 			'category'        => 'widgets',
 			'icon'            => 'editor-help',
@@ -60,7 +60,7 @@ final class Blocks {
 
 		// Summary block
 		$summary_args = array(
-			'api_version'     => 2,
+			'api_version'     => 3,
 			'title'           => __( 'Summary', 'nuclear-engagement' ),
 			'category'        => 'widgets',
 			'icon'            => 'excerpt-view',
@@ -79,7 +79,7 @@ final class Blocks {
 
 		// TOC block
 		$toc_args = array(
-			'api_version'     => 2,
+			'api_version'     => 3,
 			'title'           => __( 'TOC', 'nuclear-engagement' ),
 			'category'        => 'widgets',
 			'icon'            => 'list-view',

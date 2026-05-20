@@ -17,7 +17,7 @@
 	const { createElement } = wp.element;
 	const { __ } = wp.i18n;
 	registerBlockType('nuclear-engagement/quiz', {
-		apiVersion: 2,
+		apiVersion: 3,
 		title: __('Quiz', 'nuclear-engagement'),
 		icon: 'editor-help',
 		category: 'widgets',
@@ -25,7 +25,7 @@
 		save: () => null,
 	});
 	registerBlockType('nuclear-engagement/summary', {
-		apiVersion: 2,
+		apiVersion: 3,
 		title: __('Summary', 'nuclear-engagement'),
 		icon: 'excerpt-view',
 		category: 'widgets',
@@ -33,7 +33,7 @@
 		save: () => null,
 	});
 	registerBlockType('nuclear-engagement/toc', {
-		apiVersion: 2,
+		apiVersion: 3,
 		title: __('TOC', 'nuclear-engagement'),
 		icon: 'list-view',
 		category: 'widgets',

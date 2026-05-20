@@ -6,9 +6,9 @@ Author URI: https://www.nuclearengagement.com/about?ref=wp_listing&link=author_u
 Contributors: stefanolodola
 Tags: AI writer, quiz, summary, table of contents, email optin
 Requires at least: 6.1
-Tested up to: 6.9
+Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 2.1.18
+Stable tag: 2.1.19
 License: GPL-2.0+
 License URI: http://www.gnu.org/licenses/gpl-2.0.txt
 Donate link: https://buy.stripe.com/3csg1Tdn0a9h3ss288
@@ -281,6 +281,10 @@ No. Generation is done via the NE app. You only need a free account on the NE ap
 The tiny codebase and lazy loading assure fast loading, both in admin and on frontend. You won't even notice it's active. No conflicts are known to occur.
 
 == Changelog ==
+
+= 2.1.19 - 2026-05-20 =
+* Updated: Block apiVersion bumped from 2 to 3 in server-side and editor registrations so the iframed editor stays enabled on WordPress 7.0.
+* Tested up to WordPress 7.0.
 
 = 2.1.18 - 2026-04-30 =
 * Improved: Maintenance updates and dependency compatibility.
