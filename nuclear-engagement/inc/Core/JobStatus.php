@@ -75,6 +75,7 @@ final class JobStatus {
 	public static function update_job_status( string $job_id, string $status, int $progress = 0, string $message = '' ): void {
 		global $wpdb;
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB management
 		$wpdb->update(
 			$wpdb->prefix . 'nuclen_background_jobs',
 			array(
@@ -107,6 +108,7 @@ final class JobStatus {
 	public static function retry_job( string $job_id, int $attempts, int $delay ): void {
 		global $wpdb;
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB management
 		$wpdb->update(
 			$wpdb->prefix . 'nuclen_background_jobs',
 			array(

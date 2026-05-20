@@ -34,7 +34,7 @@ final class Nuclen_TOC_View {
 	public function get_toc_title( SettingsRepository $settings ): string {
 		$title = $settings->get_string( 'toc_title' );
 		if ( empty( $title ) ) {
-			return esc_html__( 'Table of Contents', 'nuclen-toc-shortcode' );
+			return esc_html__( 'Table of Contents', 'nuclear-engagement' );
 		}
 		return esc_html( $title );
 	}

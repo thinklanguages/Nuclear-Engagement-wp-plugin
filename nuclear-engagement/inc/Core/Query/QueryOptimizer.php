@@ -138,10 +138,8 @@ final class QueryOptimizer {
 		$values_sql = implode( ', ', $values );
 		$sql        = "INSERT INTO {$table} ({$columns_sql}) VALUES {$values_sql}";
 
-		$result = // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
-	// phpcs:ignore WordPress.DB.DirectDatabaseQuery
-
-		$wpdb->query( $sql );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.NotPrepared -- low-level DB management, values are individually prepared
+		$result = $wpdb->query( $sql );
 
 		// Invalidate related caches.
 		$this->invalidateTableCache( $table );

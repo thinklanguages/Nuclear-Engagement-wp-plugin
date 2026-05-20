@@ -37,11 +37,13 @@ class FormSanitizer {
 	 * @return string Sanitized value.
 	 */
 	public static function sanitize_post_text( string $key, string $default = '', array $validation_rules = array() ): string {
+		// phpcs:disable WordPress.Security.NonceVerification.Missing -- nonce verified by caller
 		if ( ! isset( $_POST[ $key ] ) ) {
 			return $default;
 		}
 
-		$value = wp_unslash( $_POST[ $key ] );
+		$value = sanitize_text_field( wp_unslash( $_POST[ $key ] ) );
+		// phpcs:enable WordPress.Security.NonceVerification.Missing
 
 		// Apply validation if rules provided.
 		if ( ! empty( $validation_rules ) ) {
@@ -49,7 +51,7 @@ class FormSanitizer {
 			return $validated !== false ? $validated : $default;
 		}
 
-		return sanitize_text_field( $value );
+		return $value;
 	}
 
 	/**
@@ -60,10 +62,12 @@ class FormSanitizer {
 	 * @return string Sanitized email or default.
 	 */
 	public static function sanitize_post_email( string $key, string $default = '' ): string {
+		// phpcs:disable WordPress.Security.NonceVerification.Missing -- nonce verified by caller
 		if ( ! isset( $_POST[ $key ] ) ) {
 			return $default;
 		}
 		$email = sanitize_email( wp_unslash( $_POST[ $key ] ) );
+		// phpcs:enable WordPress.Security.NonceVerification.Missing
 		return $email !== false ? $email : $default;
 	}
 
@@ -75,10 +79,13 @@ class FormSanitizer {
 	 * @return string Sanitized textarea content.
 	 */
 	public static function sanitize_post_textarea( string $key, string $default = '' ): string {
+		// phpcs:disable WordPress.Security.NonceVerification.Missing -- nonce verified by caller
 		if ( ! isset( $_POST[ $key ] ) ) {
 			return $default;
 		}
-		return sanitize_textarea_field( wp_unslash( $_POST[ $key ] ) );
+		$value = sanitize_textarea_field( wp_unslash( $_POST[ $key ] ) );
+		// phpcs:enable WordPress.Security.NonceVerification.Missing
+		return $value;
 	}
 
 	/**
@@ -89,10 +96,12 @@ class FormSanitizer {
 	 * @return string Sanitized URL or default.
 	 */
 	public static function sanitize_post_url( string $key, string $default = '' ): string {
+		// phpcs:disable WordPress.Security.NonceVerification.Missing -- nonce verified by caller
 		if ( ! isset( $_POST[ $key ] ) ) {
 			return $default;
 		}
 		$url = esc_url_raw( wp_unslash( $_POST[ $key ] ) );
+		// phpcs:enable WordPress.Security.NonceVerification.Missing
 		return $url !== '' ? $url : $default;
 	}
 
@@ -107,6 +116,7 @@ class FormSanitizer {
 	 * @return int Sanitized integer value.
 	 */
 	public static function sanitize_post_int( string $key, int $default = 0, int $min = PHP_INT_MIN, int $max = PHP_INT_MAX ): int {
+		// phpcs:disable WordPress.Security.NonceVerification.Missing -- nonce verified by caller
 		if ( ! isset( $_POST[ $key ] ) ) {
 			return $default;
 		}
@@ -117,7 +127,8 @@ class FormSanitizer {
 			'default' => $default,
 		);
 
-		$validated = InputValidator::validate_integer( $_POST[ $key ], $key, $validation_rules );
+		$validated = InputValidator::validate_integer( wp_unslash( $_POST[ $key ] ), $key, $validation_rules );
+		// phpcs:enable WordPress.Security.NonceVerification.Missing
 		return $validated !== false ? $validated : $default;
 	}
 
@@ -128,6 +139,7 @@ class FormSanitizer {
 	 * @return bool True if key exists and has truthy value, false otherwise.
 	 */
 	public static function sanitize_post_bool( string $key ): bool {
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- nonce verified by caller
 		return isset( $_POST[ $key ] ) && ! empty( $_POST[ $key ] );
 	}
 
@@ -140,11 +152,13 @@ class FormSanitizer {
 	 * @return array Sanitized array.
 	 */
 	public static function sanitize_post_array( string $key, array $default = array(), ?callable $sanitize_callback = null ): array {
+		// phpcs:disable WordPress.Security.NonceVerification.Missing -- nonce verified by caller
 		if ( ! isset( $_POST[ $key ] ) || ! is_array( $_POST[ $key ] ) ) {
 			return $default;
 		}
 
 		$array = wp_unslash( $_POST[ $key ] );
+		// phpcs:enable WordPress.Security.NonceVerification.Missing
 
 		if ( $sanitize_callback !== null ) {
 			return array_map( $sanitize_callback, $array );

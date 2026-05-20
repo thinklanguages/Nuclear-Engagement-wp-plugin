@@ -57,7 +57,7 @@ class ResourceException extends BaseException {
 	 */
 	public static function executionTimeExceeded( float $time_percent, float $limit_percent ): self {
 		$max_execution = (int) ini_get( 'max_execution_time' );
-		$elapsed       = microtime( true ) - ( $_SERVER['REQUEST_TIME_FLOAT'] ?? microtime( true ) );
+		$elapsed       = microtime( true ) - (float) ( $_SERVER['REQUEST_TIME_FLOAT'] ?? microtime( true ) );
 
 		return new self(
 			sprintf( 'Execution time limit approaching: %.1f%% used (limit: %.0f%%)', $time_percent, $limit_percent ),

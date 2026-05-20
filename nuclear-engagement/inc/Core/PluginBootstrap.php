@@ -164,7 +164,7 @@ final class PluginBootstrap {
 		require_once $autoloader_path;
 
 		if ( ! class_exists( 'NuclearEngagement\Core\Autoloader' ) ) {
-			throw new \RuntimeException( 'Autoloader class not found after including file' );
+			throw new \RuntimeException( esc_html( 'Autoloader class not found after including file' ) );
 		}
 
 		Autoloader::register();
@@ -908,11 +908,13 @@ final class PluginBootstrap {
 	}
 
 	public function handleDismissPointer(): void {
-		if ( ! wp_verify_nonce( $_POST['nonce'] ?? '', 'nuclen_admin_ajax_nonce' ) ) {
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized,WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- value used only for nonce verification
+		if ( ! wp_verify_nonce( isset( $_POST['nonce'] ) ? sanitize_text_field( wp_unslash( $_POST['nonce'] ) ) : '', 'nuclen_admin_ajax_nonce' ) ) {
 			wp_die( 'Security check failed' );
 		}
 
-		$pointer_id = sanitize_text_field( $_POST['pointer_id'] ?? '' );
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- nonce verified above
+		$pointer_id = isset( $_POST['pointer_id'] ) ? sanitize_text_field( wp_unslash( $_POST['pointer_id'] ) ) : '';
 		if ( $pointer_id ) {
 			$dismissed_pointers = get_user_meta( get_current_user_id(), 'dismissed_wp_pointers', true );
 			$dismissed_pointers = $dismissed_pointers ? explode( ',', $dismissed_pointers ) : array();
@@ -930,7 +932,8 @@ final class PluginBootstrap {
 	 * Handle deferred asset loading request.
 	 */
 	public function handleLoadEditorAssets(): void {
-		if ( ! wp_verify_nonce( $_POST['nonce'] ?? '', 'nuclen_load_assets' ) ) {
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized,WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- value used only for nonce verification
+		if ( ! wp_verify_nonce( isset( $_POST['nonce'] ) ? sanitize_text_field( wp_unslash( $_POST['nonce'] ) ) : '', 'nuclen_load_assets' ) ) {
 			wp_die( 'Security check failed' );
 		}
 

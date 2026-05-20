@@ -93,7 +93,7 @@ try {
 	}
 
 	// Initialize the plugin.
-	$bootstrap = \NuclearEngagement\Core\PluginBootstrap::getInstance();
+	$bootstrap = \NuclearEngagement\Core\PluginBootstrap::getInstance(); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- local bootstrap variable, not global
 	$bootstrap->init();
 
 } catch ( \Throwable $e ) {

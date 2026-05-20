@@ -126,7 +126,7 @@ class ApiUserManager {
 	 */
 	private static function create_service_account() {
 		$username = self::SERVICE_ACCOUNT_USERNAME;
-		$email    = 'api@' . parse_url( home_url(), PHP_URL_HOST );
+		$email    = 'api@' . wp_parse_url( home_url(), PHP_URL_HOST );
 		$password = wp_generate_password( 32, true, true );
 
 		// Create user with API role.

@@ -42,8 +42,8 @@ class SecurityException extends BaseException {
 			array_merge(
 				$context,
 				array(
-					'ip_address' => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
-					'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? 'unknown',
+					'ip_address' => isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : 'unknown',
+					'user_agent' => isset( $_SERVER['HTTP_USER_AGENT'] ) ? sanitize_text_field( wp_unslash( $_SERVER['HTTP_USER_AGENT'] ) ) : 'unknown',
 					'timestamp'  => time(),
 				)
 			)
@@ -84,8 +84,8 @@ class SecurityException extends BaseException {
 			null,
 			array(
 				'action'         => $action,
-				'request_method' => $_SERVER['REQUEST_METHOD'] ?? 'unknown',
-				'referer'        => $_SERVER['HTTP_REFERER'] ?? 'none',
+				'request_method' => isset( $_SERVER['REQUEST_METHOD'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REQUEST_METHOD'] ) ) : 'unknown',
+				'referer'        => isset( $_SERVER['HTTP_REFERER'] ) ? sanitize_text_field( wp_unslash( $_SERVER['HTTP_REFERER'] ) ) : 'none',
 			)
 		);
 	}
@@ -103,9 +103,9 @@ class SecurityException extends BaseException {
 			null,
 			array(
 				'details'    => $details,
-				'ip_address' => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
-				'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? 'unknown',
-				'referer'    => $_SERVER['HTTP_REFERER'] ?? 'none',
+				'ip_address' => isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : 'unknown',
+				'user_agent' => isset( $_SERVER['HTTP_USER_AGENT'] ) ? sanitize_text_field( wp_unslash( $_SERVER['HTTP_USER_AGENT'] ) ) : 'unknown',
+				'referer'    => isset( $_SERVER['HTTP_REFERER'] ) ? sanitize_text_field( wp_unslash( $_SERVER['HTTP_REFERER'] ) ) : 'none',
 			)
 		);
 	}
@@ -127,7 +127,7 @@ class SecurityException extends BaseException {
 				'action'     => $action,
 				'limit'      => $limit,
 				'window'     => $window,
-				'ip_address' => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
+				'ip_address' => isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : 'unknown',
 			)
 		);
 	}
@@ -147,8 +147,8 @@ class SecurityException extends BaseException {
 			array(
 				'activity'   => $activity,
 				'indicators' => $indicators,
-				'ip_address' => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
-				'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? 'unknown',
+				'ip_address' => isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : 'unknown',
+				'user_agent' => isset( $_SERVER['HTTP_USER_AGENT'] ) ? sanitize_text_field( wp_unslash( $_SERVER['HTTP_USER_AGENT'] ) ) : 'unknown',
 				'user_id'    => get_current_user_id(),
 			)
 		);
@@ -167,7 +167,7 @@ class SecurityException extends BaseException {
 			null,
 			array(
 				'key_hint'   => $key_hint,
-				'ip_address' => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
+				'ip_address' => isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : 'unknown',
 			)
 		);
 	}

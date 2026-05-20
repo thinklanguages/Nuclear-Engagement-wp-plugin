@@ -31,9 +31,7 @@ trait ConsolidatedSettingsPageTrait {
 		$current_settings = $this->nuclen_get_current_settings();
 
 		// Handle save action.
-		// phpcs:ignore WordPress.Security.NonceVerification
-
-		if ( isset( $_POST['nuclen_save_settings'] ) ) {
+		if ( isset( $_POST['nuclen_save_settings'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing -- nonce is verified inside nuclen_handle_save_settings() before any data is processed
 			$this->nuclen_handle_save_settings();
 			// Refresh settings after save.
 			$current_settings = $this->nuclen_get_current_settings();
@@ -66,7 +64,7 @@ trait ConsolidatedSettingsPageTrait {
 	public function nuclen_handle_save_settings(): bool {
 		// Verify nonce.
 		if ( ! isset( $_POST['nuclen_settings_nonce'] ) ||
-			! wp_verify_nonce( $_POST['nuclen_settings_nonce'], 'nuclen_save_settings' ) ) {
+			! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['nuclen_settings_nonce'] ) ), 'nuclen_save_settings' ) ) {
 			$this->add_admin_notice( 'Security check failed. Please try again.', 'error' );
 			return false;
 		}
@@ -141,10 +139,8 @@ trait ConsolidatedSettingsPageTrait {
 		);
 
 		foreach ( $general_fields as $field ) {
-			// phpcs:ignore WordPress.Security.NonceVerification
-
-			if ( isset( $_POST[ $field ] ) ) {
-				$collected[ $field ] = sanitize_text_field( $_POST[ $field ] );
+			if ( isset( $_POST[ $field ] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing -- nonce verified by nuclen_handle_save_settings() before this method is called
+				$collected[ $field ] = sanitize_text_field( wp_unslash( $_POST[ $field ] ) );
 			}
 		}
 	}
@@ -186,10 +182,8 @@ trait ConsolidatedSettingsPageTrait {
 		);
 
 		foreach ( $style_fields as $field ) {
-			// phpcs:ignore WordPress.Security.NonceVerification
-
-			if ( isset( $_POST[ $field ] ) ) {
-				$collected[ $field ] = sanitize_text_field( $_POST[ $field ] );
+			if ( isset( $_POST[ $field ] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing -- nonce verified by nuclen_handle_save_settings() before this method is called
+				$collected[ $field ] = sanitize_text_field( wp_unslash( $_POST[ $field ] ) );
 			}
 		}
 	}
@@ -210,10 +204,8 @@ trait ConsolidatedSettingsPageTrait {
 		);
 
 		foreach ( $optin_fields as $field ) {
-			// phpcs:ignore WordPress.Security.NonceVerification
-
-			if ( isset( $_POST[ $field ] ) ) {
-				$collected[ $field ] = sanitize_text_field( $_POST[ $field ] );
+			if ( isset( $_POST[ $field ] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing -- nonce verified by nuclen_handle_save_settings() before this method is called
+				$collected[ $field ] = sanitize_text_field( wp_unslash( $_POST[ $field ] ) );
 			}
 		}
 	}
@@ -420,13 +412,14 @@ trait ConsolidatedSettingsPageTrait {
 				return false;
 			}
 
+			// phpcs:ignore WordPress.WP.AlternativeFunctions.rename_rename -- atomic CSS file replacement; WP_Filesystem unavailable here as credentials not initialized in this context
 			if ( ! rename( $temp_file, $css_file_path ) ) {
 				\NuclearEngagement\Services\LoggingService::log(
 					sprintf( '[ERROR] Failed to rename CSS file from %s to %s', $temp_file, $css_file_path ),
 					'error'
 				);
 				// Clean up temp file
-				@unlink( $temp_file );
+				wp_delete_file( $temp_file );
 				return false;
 			}
 

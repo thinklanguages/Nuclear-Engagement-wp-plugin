@@ -5,6 +5,10 @@
  * @package NuclearEngagement_Admin
  */
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 declare(strict_types=1);
 
 namespace NuclearEngagement\Admin;
@@ -63,6 +67,7 @@ class TransientCleanupCommand {
 
 		delete_transient( 'nuclen_cleanup_results' );
 
+		/* translators: 1: number of transients deleted, 2: number of cron jobs cleared */
 		$message = sprintf(
 			__( 'Nuclear Engagement cleanup completed: %1$d transients deleted, %2$d cron jobs cleared.', 'nuclear-engagement' ),
 			$stats['transients_deleted'],
@@ -70,6 +75,7 @@ class TransientCleanupCommand {
 		);
 
 		if ( ! empty( $stats['posts_checked'] ) ) {
+			/* translators: %s: comma-separated list of post IDs */
 			$message .= ' ' . sprintf(
 				__( 'Posts referenced in cleaned jobs: %s', 'nuclear-engagement' ),
 				implode( ', ', $stats['posts_checked'] )

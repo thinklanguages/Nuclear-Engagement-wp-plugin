@@ -167,7 +167,8 @@ abstract class BaseController {
 		}
 
 		// For regular requests.
-		$nonce = $_REQUEST[ $field ] ?? '';
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- nonce verified by route handler before reaching this helper
+		$nonce = isset( $_REQUEST[ $field ] ) ? sanitize_text_field( wp_unslash( $_REQUEST[ $field ] ) ) : '';
 		return ValidationUtils::validate_nonce( $nonce, $action );
 	}
 
@@ -189,6 +190,7 @@ abstract class BaseController {
 	 * @return array|null Validated data or null on failure.
 	 */
 	protected function validate_post_data( array $rules ): ?array {
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- nonce verified by route handler before reaching this helper
 		$validated = ValidationUtils::validate_batch( $_POST, $rules );
 
 		if ( $validated === null ) {
@@ -212,10 +214,12 @@ abstract class BaseController {
 	 * @return int|null Validated integer or null if invalid.
 	 */
 	protected function get_post_int( string $key, int $min = 0, int $max = PHP_INT_MAX ): ?int {
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- nonce verified by route handler before reaching this helper
 		if ( ! isset( $_POST[ $key ] ) ) {
 			return null;
 		}
 
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.ValidatedSanitizedInput.MissingUnslash,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- validated by ValidationUtils::validate_int
 		return ValidationUtils::validate_int( $_POST[ $key ], $min, $max );
 	}
 
@@ -234,10 +238,12 @@ abstract class BaseController {
 		array $allowed = array(),
 		bool $allow_html = false
 	): ?string {
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- nonce verified by route handler before reaching this helper
 		if ( ! isset( $_POST[ $key ] ) ) {
 			return null;
 		}
 
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.ValidatedSanitizedInput.MissingUnslash,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- sanitized by ValidationUtils::validate_string
 		return ValidationUtils::validate_string( $_POST[ $key ], $max_length, $allowed, $allow_html );
 	}
 
@@ -256,10 +262,12 @@ abstract class BaseController {
 		string $item_type = 'string',
 		array $options = array()
 	): ?array {
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- nonce verified by route handler before reaching this helper
 		if ( ! isset( $_POST[ $key ] ) ) {
 			return null;
 		}
 
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.ValidatedSanitizedInput.MissingUnslash,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- validated/sanitized by ValidationUtils::validate_array
 		return ValidationUtils::validate_array( $_POST[ $key ], $max_items, $item_type, $options );
 	}
 
@@ -303,6 +311,7 @@ abstract class BaseController {
 		if ( $value === null ) {
 			$this->send_error(
 				sprintf(
+					/* translators: %s: parameter name */
 					__( 'Required parameter "%s" is missing or invalid.', 'nuclear-engagement' ),
 					$key
 				),

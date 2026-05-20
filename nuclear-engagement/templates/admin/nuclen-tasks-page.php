@@ -10,6 +10,7 @@ declare(strict_types=1);
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- template-scoped variables, not global
 
 // Extract data
 $generation_tasks = $data['generation_tasks'] ?? array();
@@ -39,19 +40,21 @@ $pagination       = $data['pagination'] ?? array();
 		<div class="nuclen-card" style="border-left: 4px solid #d63638;">
 			<h3 style="color: #d63638;"><?php esc_html_e( 'API Circuit Breaker Open', 'nuclear-engagement' ); ?></h3>
 			<p>
-				<?php 
+				<?php
 				printf(
+					/* translators: %d: number of consecutive failures */
 					esc_html__( 'The API circuit breaker is currently open due to %d consecutive failures. API calls are temporarily blocked to prevent system overload.', 'nuclear-engagement' ),
-					$cb_status['failures']
+					esc_html( $cb_status['failures'] )
 				);
 				?>
 			</p>
 			<p>
-				<?php 
+				<?php
 				if ( $cb_status['time_until_retry'] > 0 ) {
 					printf(
+						/* translators: %d: number of seconds */
 						esc_html__( 'Automatic retry in %d seconds.', 'nuclear-engagement' ),
-						$cb_status['time_until_retry']
+						esc_html( $cb_status['time_until_retry'] )
 					);
 				}
 				?>
@@ -204,12 +207,12 @@ $pagination       = $data['pagination'] ?? array();
 										<?php echo esc_html( $task['details'] ); ?>
 										<?php if ( $task['failed'] > 0 ) : ?>
 											<br><span class="nuclen-error-text">
-												<?php echo esc_html( sprintf( __( '%d failed', 'nuclear-engagement' ), $task['failed'] ) ); ?>
+												<?php echo esc_html( sprintf( /* translators: %d: number of failed items */ __( '%d failed', 'nuclear-engagement' ), $task['failed'] ) ); ?>
 											</span>
 										<?php endif; ?>
 										<?php if ( ! empty( $task['refunded_credits'] ) && (int) $task['refunded_credits'] > 0 ) : ?>
 											<br><span class="nuclen-refunded-credits">
-												<?php echo esc_html( sprintf( __( '%d credits refunded', 'nuclear-engagement' ), (int) $task['refunded_credits'] ) ); ?>
+												<?php echo esc_html( sprintf( /* translators: %d: number of credits */ __( '%d credits refunded', 'nuclear-engagement' ), (int) $task['refunded_credits'] ) ); ?>
 											</span>
 										<?php endif; ?>
 									</td>
@@ -265,6 +268,7 @@ $pagination       = $data['pagination'] ?? array();
 									<?php
 									echo esc_html(
 										sprintf(
+											/* translators: %s: formatted number of items */
 											_n( '%s item', '%s items', $pagination['total_items'], 'nuclear-engagement' ),
 											number_format_i18n( $pagination['total_items'] )
 										)
@@ -287,7 +291,7 @@ $pagination       = $data['pagination'] ?? array();
 								);
 
 								if ( $page_links ) {
-									echo '<span class="pagination-links">' . $page_links . '</span>';
+									echo '<span class="pagination-links">' . wp_kses_post( $page_links ) . '</span>';
 								}
 								?>
 							</div>
@@ -305,6 +309,7 @@ $pagination       = $data['pagination'] ?? array();
 					<?php
 					echo esc_html(
 						sprintf(
+							/* translators: %s: formatted date and time */
 							__( 'Next cron run: %s', 'nuclear-engagement' ),
 							date_i18n( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), $cron_status['next_run'] )
 						)
@@ -315,3 +320,4 @@ $pagination       = $data['pagination'] ?? array();
 		<?php endif; ?>
 	</div>
 </div>
+<?php // phpcs:enable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound ?>

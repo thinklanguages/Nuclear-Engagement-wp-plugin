@@ -73,6 +73,7 @@ final class BatchCleanupService extends BaseService {
 		$cleaned = 0;
 
 		// Find all batch transients.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB ops
 		$batch_transients = $wpdb->get_results(
 			$wpdb->prepare(
 				"SELECT option_name, option_value FROM $wpdb->options
@@ -158,6 +159,7 @@ final class BatchCleanupService extends BaseService {
 
 		do {
 			// Only clean up batch and batch_results transients, not bulk_job transients.
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB ops
 			$transients = $wpdb->get_results(
 				$wpdb->prepare(
 					"SELECT option_name, option_value FROM $wpdb->options
@@ -206,6 +208,7 @@ final class BatchCleanupService extends BaseService {
 		$batch_size = 20; // Smaller batch size for bulk jobs.
 
 		// Find old bulk job transients.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB ops
 		$bulk_jobs = $wpdb->get_results(
 			$wpdb->prepare(
 				"SELECT option_name, option_value FROM $wpdb->options
@@ -298,14 +301,14 @@ final class BatchCleanupService extends BaseService {
 		global $wpdb;
 
 		$placeholders = implode( ',', array_fill( 0, count( $to_delete ), '%s' ) );
-		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
 		$deleted = $wpdb->query(
 			$wpdb->prepare(
 				"DELETE FROM $wpdb->options WHERE option_name IN ($placeholders)",
 				$to_delete
 			)
 		);
-		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
 
 		// Clear object cache for deleted transients.
 		foreach ( $to_delete as $option_name ) {

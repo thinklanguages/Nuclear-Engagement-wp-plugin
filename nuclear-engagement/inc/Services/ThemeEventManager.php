@@ -7,6 +7,10 @@
 
 namespace NuclearEngagement\Services;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 class ThemeEventManager {
 
 	private static $instance = null;

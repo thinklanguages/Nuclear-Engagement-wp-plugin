@@ -76,7 +76,7 @@ class ContentStorageService extends BaseService {
 					count( $results ),
 					$workflowType,
 					implode( ', ', $post_ids ),
-					wp_debug_backtrace_summary( null, 0, false )
+					wp_debug_backtrace_summary( null, 0, false ) // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_wp_debug_backtrace_summary -- diagnostic on lock failure
 				)
 			);
 
@@ -163,7 +163,7 @@ class ContentStorageService extends BaseService {
 		if ( empty( $data['questions'] ) || ! is_array( $data['questions'] ) ) {
 			$error_details = 'questions field is ' . ( ! isset( $data['questions'] ) ? 'missing' : ( is_array( $data['questions'] ) ? 'empty array' : 'not an array' ) );
 			\NuclearEngagement\Services\LoggingService::log( "Quiz data validation failed for post {$post_id}: {$error_details}. Full data: " . wp_json_encode( $data ) );
-			throw new \InvalidArgumentException( "Invalid quiz data for post {$post_id}: {$error_details}" );
+			throw new \InvalidArgumentException( esc_html( "Invalid quiz data for post {$post_id}: {$error_details}" ) );
 		}
 	}
 
@@ -192,7 +192,7 @@ class ContentStorageService extends BaseService {
 
 		if ( empty( $questions ) ) {
 			\NuclearEngagement\Services\LoggingService::log( "No valid questions found after processing quiz data for post {$post_id}. Original questions count: " . count( $raw_questions ) );
-			throw new \InvalidArgumentException( "No valid quiz questions found for post {$post_id}" );
+			throw new \InvalidArgumentException( esc_html( "No valid quiz questions found for post {$post_id}" ) );
 		}
 
 		return $questions;
@@ -309,7 +309,7 @@ class ContentStorageService extends BaseService {
 		}
 
 		if ( ! $lock_acquired ) {
-			throw new \RuntimeException( "Failed to acquire lock for post {$post_id} after {$max_attempts} attempts" );
+			throw new \RuntimeException( esc_html( "Failed to acquire lock for post {$post_id} after {$max_attempts} attempts" ) );
 		}
 
 		try {
@@ -350,7 +350,7 @@ class ContentStorageService extends BaseService {
 			// Check if the update actually worked (WordPress quirk)
 			$check = get_post_meta( $post_id, 'nuclen-quiz-data', true );
 			if ( $check !== $formatted ) {
-				throw new \RuntimeException( "Failed to update quiz data for post {$post_id}" );
+				throw new \RuntimeException( esc_html( "Failed to update quiz data for post {$post_id}" ) );
 			}
 		}
 	}
@@ -368,7 +368,7 @@ class ContentStorageService extends BaseService {
 			if ( isset( $data['content'] ) && is_string( $data['content'] ) ) {
 				$data['summary'] = $data['content'];
 			} else {
-				throw new \InvalidArgumentException( "Invalid summary data for post {$post_id}" );
+				throw new \InvalidArgumentException( esc_html( "Invalid summary data for post {$post_id}" ) );
 			}
 		}
 
@@ -445,7 +445,7 @@ class ContentStorageService extends BaseService {
 				}
 
 				if ( ! $lock_acquired ) {
-					throw new \RuntimeException( "Failed to acquire lock for post {$post_id} after {$max_attempts} attempts" );
+					throw new \RuntimeException( esc_html( "Failed to acquire lock for post {$post_id} after {$max_attempts} attempts" ) );
 				}
 
 				try {
@@ -460,7 +460,7 @@ class ContentStorageService extends BaseService {
 						// Check if the update actually worked (WordPress quirk).
 						$check = get_post_meta( $post_id, Summary_Service::META_KEY, true );
 						if ( $check !== $formatted ) {
-							throw new \RuntimeException( "Failed to update summary data for post {$post_id}" );
+							throw new \RuntimeException( esc_html( "Failed to update summary data for post {$post_id}" ) );
 						}
 					}
 				} finally {

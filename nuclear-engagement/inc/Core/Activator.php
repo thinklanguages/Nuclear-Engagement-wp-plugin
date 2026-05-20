@@ -88,22 +88,20 @@ class Activator {
 			);
 
 			foreach ( $indexes as $index => $meta_key ) {
-					$exists = // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-				$wpdb->get_var(
-					$wpdb->prepare(
-						"SHOW INDEX FROM {$table} WHERE Key_name = %s",
-						$index
-					)
-				);
+					// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB management
+					$exists = $wpdb->get_var(
+						$wpdb->prepare(
+							"SHOW INDEX FROM {$table} WHERE Key_name = %s", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- safe table name from wpdb->postmeta
+							$index
+						)
+					);
 				if ( $exists ) {
 					continue;
 				}
 
 					$sql = "CREATE INDEX {$index} ON {$table} (post_id, meta_key(191))";
-					// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
-	// phpcs:ignore WordPress.DB.DirectDatabaseQuery
-
-				$wpdb->query( $sql );
+					// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.NotPrepared -- low-level DB management, index name and table name are safe
+					$wpdb->query( $sql );
 			}
 	}
 }

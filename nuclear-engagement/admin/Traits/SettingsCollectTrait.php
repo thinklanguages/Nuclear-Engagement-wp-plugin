@@ -27,6 +27,7 @@ trait SettingsCollectTrait {
 		 * Collect raw input values from $_POST.
 		 */
 	private function nuclen_collect_input(): array {
+			// phpcs:disable WordPress.Security.NonceVerification.Missing -- nonce verified by caller (nuclen_handle_save_settings) before invoking this trait
 			$raw = array();
 
 			// theme preset.
@@ -42,6 +43,7 @@ trait SettingsCollectTrait {
 				$this->collect_flags_and_generation()
 			);
 
+			// phpcs:enable WordPress.Security.NonceVerification.Missing
 			return $raw;
 	}
 
@@ -89,8 +91,6 @@ trait SettingsCollectTrait {
 			);
 
 			foreach ( $field_map as $post_key => $opt_key ) {
-				// phpcs:ignore WordPress.Security.NonceVerification
-
 				if ( isset( $_POST[ $post_key ] ) ) {
 						$style[ $opt_key ] = sanitize_text_field( wp_unslash( $_POST[ $post_key ] ) );
 				}
@@ -110,8 +110,6 @@ trait SettingsCollectTrait {
 			);
 
 			foreach ( $field_map as $post_key => $opt_key ) {
-				// phpcs:ignore WordPress.Security.NonceVerification
-
 				if ( isset( $_POST[ $post_key ] ) ) {
 						$structure[ $opt_key ] = sanitize_text_field( wp_unslash( $_POST[ $post_key ] ) );
 				}
@@ -151,8 +149,6 @@ trait SettingsCollectTrait {
 			);
 
 			foreach ( $field_map as $post_key => $opt_key ) {
-				// phpcs:ignore WordPress.Security.NonceVerification
-
 				if ( isset( $_POST[ $post_key ] ) ) {
 						$toc[ $opt_key ] = sanitize_text_field( wp_unslash( $_POST[ $post_key ] ) );
 				}
@@ -216,8 +212,6 @@ trait SettingsCollectTrait {
 				'optin_prompt_text' => isset( $_POST['optin_prompt_text'] ) ? sanitize_text_field( wp_unslash( $_POST['optin_prompt_text'] ) ) : '',
 				'optin_button_text' => isset( $_POST['optin_button_text'] ) ? sanitize_text_field( wp_unslash( $_POST['optin_button_text'] ) ) : '',
 			);
-
-			// phpcs:ignore WordPress.Security.NonceVerification
 
 			if ( isset( $_POST['optin_webhook'] ) ) {
 					$optin['optin_webhook'] = esc_url_raw( trim( sanitize_text_field( wp_unslash( $_POST['optin_webhook'] ) ) ) );

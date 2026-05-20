@@ -326,6 +326,7 @@ class ThemeMigrationService {
 
 		if ( file_exists( $legacy_css_path ) ) {
 			$backup_path = str_replace( '.css', '-backup.css', $legacy_css_path );
+			// phpcs:ignore WordPress.WP.AlternativeFunctions.rename_rename -- atomic theme file move
 			rename( $legacy_css_path, $backup_path );
 		}
 	}

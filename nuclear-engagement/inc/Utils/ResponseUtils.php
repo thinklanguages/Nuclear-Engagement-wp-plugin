@@ -38,7 +38,7 @@ class ResponseUtils {
 	public static function redirect_with_message( string $page, string $message, bool $is_error = false ): void {
 		$key = $is_error ? 'nuclen_error' : 'nuclen_success';
 
-		wp_redirect(
+		wp_safe_redirect(
 			add_query_arg(
 				array(
 					'page'     => $page,
@@ -63,7 +63,11 @@ class ResponseUtils {
 			$class   = 'notice notice-error';
 		}
 
-		if ( $message && wp_verify_nonce( $_GET['_wpnonce'] ?? '', $_GET['page'] ?? '' ) ) {
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- nonce is being verified on this line
+		$nonce_value = sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ?? '' ) );
+		$page_value  = sanitize_key( wp_unslash( $_GET['page'] ?? '' ) );
+		// phpcs:enable WordPress.Security.NonceVerification.Recommended
+		if ( $message && wp_verify_nonce( $nonce_value, $page_value ) ) {
 			return sprintf( '<div class="%s is-dismissible"><p>%s</p></div>', esc_attr( $class ), esc_html( $message ) );
 		}
 

@@ -80,7 +80,7 @@ abstract class AbstractModule implements ModuleInterface {
 		foreach ( $this->dependencies as $dependency ) {
 			if ( ! $this->isDependencyAvailable( $dependency ) ) {
 				throw new \RuntimeException(
-					sprintf( 'Module %s requires %s but it is not available', $this->name, $dependency )
+					esc_html( sprintf( 'Module %s requires %s but it is not available', $this->name, $dependency ) )
 				);
 			}
 		}

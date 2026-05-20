@@ -89,6 +89,7 @@ class DashboardDataService {
 		$placeholders_pt = implode( ',', array_fill( 0, count( $post_types ), '%s' ) );
 		$placeholders_st = implode( ',', array_fill( 0, count( $statuses ), '%s' ) );
 
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $group_by and $placeholders are safely composed identifiers/placeholders
 		$sql = $wpdb->prepare(
 			"SELECT $group_by AS g,
 				   CASE WHEN pm.meta_id IS NULL THEN 'without' ELSE 'with' END AS w,
@@ -103,6 +104,7 @@ class DashboardDataService {
 			array_merge( array( $meta_key ), $post_types, $statuses )
 		);
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB ops, results are cached above
 		$rows = $wpdb->get_results( $sql, ARRAY_A );
 
 		if ( ! empty( $wpdb->last_error ) ) {
@@ -144,6 +146,7 @@ class DashboardDataService {
 		$placeholders_pt = implode( ',', array_fill( 0, count( $post_types ), '%s' ) );
 		$placeholders_st = implode( ',', array_fill( 0, count( $statuses ), '%s' ) );
 
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $group_by, $placeholders, and META_KEY are safely composed identifiers/placeholders
 		$sql = $wpdb->prepare(
 			"SELECT $group_by AS g,
 				   SUM(CASE WHEN pm_q.meta_id IS NULL THEN 0 ELSE 1 END) AS quiz_with,
@@ -159,6 +162,7 @@ class DashboardDataService {
 			array_merge( $post_types, $statuses )
 		);
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB ops, results are cached above
 		$rows = $wpdb->get_results( $sql, ARRAY_A );
 
 		if ( ! empty( $wpdb->last_error ) ) {
@@ -197,6 +201,7 @@ class DashboardDataService {
 		// Use LIMIT to prevent excessive memory usage
 		$limit = apply_filters( 'nuclen_dashboard_category_limit', 100 );
 
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $placeholders and META_KEY are safely composed identifiers/placeholders
 		$sql = $wpdb->prepare(
 			"SELECT COALESCE(t.term_id, 0) AS term_id,
 		 COALESCE(t.name, 'Uncategorized') AS cat_name,
@@ -218,6 +223,7 @@ class DashboardDataService {
 			array_merge( $post_types, $statuses, array( $limit ) )
 		);
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB ops, results are cached above
 		$rows = $wpdb->get_results( $sql, ARRAY_A );
 
 		if ( ! empty( $wpdb->last_error ) ) {
@@ -296,6 +302,7 @@ class DashboardDataService {
 				'_transient_nuclen_bulk_job_%'
 			);
 
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB ops, transient index fallback
 			$results = $wpdb->get_results( $sql );
 
 			// Check for database errors
@@ -367,6 +374,7 @@ class DashboardDataService {
 			$progress = $total > 0 ? round( ( $processed / $total ) * 100 ) : 0;
 
 			// Determine the title based on whether this is a single post or bulk generation
+			/* translators: %d: number of posts */
 			$post_title = sprintf( __( 'Bulk Generation (%d posts)', 'nuclear-engagement' ), $data['total_posts'] ?? 0 );
 
 			// If this is a single post generation, try to get the actual post title
@@ -402,9 +410,11 @@ class DashboardDataService {
 				if ( isset( $data['completed_at'] ) ) {
 					$job['completed_at'] = date_i18n( $date_format . ' ' . $time_format, $data['completed_at'] );
 				}
+				/* translators: %1$d: success count, %2$d: failure count */
 				$job['details'] = sprintf( __( '%1$d succeeded, %2$d failed', 'nuclear-engagement' ), $success_count, $fail_count );
 			} else {
 				$job['progress'] = $progress . '%';
+				/* translators: %1$d: processed batches, %2$d: total batches */
 				$job['details']  = sprintf( __( '%1$d of %2$d batches processed', 'nuclear-engagement' ), $processed, $total );
 			}
 
@@ -436,6 +446,7 @@ class DashboardDataService {
 			'%"status":"completed_with_errors"%'
 		);
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB ops
 		$results     = $wpdb->get_results( $sql );
 		$cutoff_time = time() - DAY_IN_SECONDS;
 
@@ -470,6 +481,7 @@ class DashboardDataService {
 			}
 
 			// Determine the title based on whether this is a single post or bulk generation
+			/* translators: %d: number of posts */
 			$post_title = sprintf( __( 'Bulk Generation (%d posts)', 'nuclear-engagement' ), $data['total_posts'] ?? 0 );
 
 			// If this is a single post generation, try to get the actual post title
@@ -493,6 +505,7 @@ class DashboardDataService {
 			}
 
 			$status = $data['status'] === 'completed_with_errors' ? 'completed' : 'completed';
+			/* translators: %1$d: success count, %2$d: failure count */
 			$jobs[] = array(
 				'post_title'    => $post_title,
 				'workflow_type' => $data['workflow_type'] ?? 'unknown',
@@ -569,13 +582,15 @@ class DashboardDataService {
 		// Batch fetch cache misses from database
 		if ( ! empty( $cache_misses ) ) {
 			$placeholders = implode( ',', array_fill( 0, count( $cache_misses ), '%s' ) );
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $placeholders is safely composed from %s placeholders
 			$sql          = $wpdb->prepare(
-				"SELECT option_name, option_value 
-				FROM {$wpdb->options} 
+				"SELECT option_name, option_value
+				FROM {$wpdb->options}
 				WHERE option_name IN ($placeholders)",
 				$cache_misses
 			);
 
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB ops, batch transient fetch
 			$db_results = $wpdb->get_results( $sql );
 
 			if ( ! empty( $wpdb->last_error ) ) {
@@ -613,6 +628,7 @@ class DashboardDataService {
 			$pattern
 		);
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB ops, transient index rebuild
 		$results = $wpdb->get_col( $sql );
 
 		if ( ! empty( $wpdb->last_error ) ) {
@@ -633,6 +649,7 @@ class DashboardDataService {
 		global $wpdb;
 
 		// Check if indexes already exist
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- schema inspection, no caching needed
 		$existing_indexes = $wpdb->get_results(
 			"SHOW INDEX FROM {$wpdb->postmeta} WHERE Key_name IN ('nuclen_quiz_idx', 'nuclen_summary_idx')"
 		);
@@ -650,6 +667,7 @@ class DashboardDataService {
 
 		// Create missing indexes with MySQL 5.7 compatibility
 		if ( ! $has_quiz_idx ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.SchemaChange -- intentional schema modification
 			$result = $wpdb->query(
 				"CREATE INDEX nuclen_quiz_idx ON {$wpdb->postmeta} (meta_key(20), post_id)"
 			);
@@ -660,6 +678,7 @@ class DashboardDataService {
 		}
 
 		if ( ! $has_summary_idx ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.SchemaChange -- intentional schema modification
 			$result = $wpdb->query(
 				"CREATE INDEX nuclen_summary_idx ON {$wpdb->postmeta} (meta_key(20), post_id)"
 			);

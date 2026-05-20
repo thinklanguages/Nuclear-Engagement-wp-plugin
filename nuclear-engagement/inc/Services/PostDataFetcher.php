@@ -92,6 +92,7 @@ class PostDataFetcher {
 			 ORDER BY FIELD(p.ID, $placeholders)";
 
 		// Prepare the complete query with all parameters.
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- query is built with $wpdb->prepare() above
 		$sql = $wpdb->prepare(
 			$base_query,
 			array_merge( $ids, $ids )
@@ -99,13 +100,14 @@ class PostDataFetcher {
 
 			// SQL query prepared
 
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB ops, results cached below
 			$rows = $wpdb->get_results( $sql );
 
 		if ( ! empty( $wpdb->last_error ) ) {
 					LoggingService::log( 'Post fetch error: ' . $wpdb->last_error );
 					throw new DatabaseException(
 						'Failed to fetch post data',
-						$wpdb->last_error,
+						esc_html( $wpdb->last_error ),
 						$sql
 					);
 		}

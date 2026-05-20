@@ -48,12 +48,14 @@ class BatchProcessor {
 		do {
 			$batch_size = $this->calculate_safe_batch_size( $processed_total );
 
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $sql_clauses is pre-sanitized SQL clauses
 			$query = $wpdb->prepare(
 				"SELECT DISTINCT p.ID $sql_clauses ORDER BY p.ID ASC LIMIT %d OFFSET %d",
 				$batch_size,
 				$offset
 			);
 
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB ops
 			$batch = $wpdb->get_col( $query );
 
 			if ( empty( $batch ) ) {
@@ -125,7 +127,7 @@ class BatchProcessor {
 		// Check execution time limit
 		$max_execution_time = (int) ini_get( 'max_execution_time' );
 		if ( $max_execution_time > 0 ) {
-			$elapsed_time = microtime( true ) - ( $_SERVER['REQUEST_TIME_FLOAT'] ?? microtime( true ) );
+			$elapsed_time = microtime( true ) - ( isset( $_SERVER['REQUEST_TIME_FLOAT'] ) ? (float) $_SERVER['REQUEST_TIME_FLOAT'] : microtime( true ) );
 			if ( $elapsed_time > ( $max_execution_time * 0.8 ) ) {
 				LoggingService::log( '[WARNING] BatchProcessor: Approaching execution time limit, stopping batch processing' );
 				return true;

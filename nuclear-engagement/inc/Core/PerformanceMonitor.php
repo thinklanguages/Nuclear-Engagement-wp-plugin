@@ -277,6 +277,7 @@ final class PerformanceMonitor {
 	public static function end_page_monitoring(): void {
 		self::stop( 'page_load' );
 
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- admin diagnostic page, read-only
 		if ( current_user_can( 'manage_options' ) && isset( $_GET['nuclen_debug'] ) ) {
 			self::outputDebugInfo();
 		}
@@ -376,18 +377,18 @@ final class PerformanceMonitor {
 
 		echo '<h4>Memory Usage:</h4>';
 		echo '<ul>';
-		echo '<li>Current: ' . size_format( $memory['current'] ) . '</li>';
-		echo '<li>Peak: ' . size_format( $memory['peak'] ) . '</li>';
+		echo '<li>Current: ' . esc_html( size_format( $memory['current'] ) ) . '</li>';
+		echo '<li>Peak: ' . esc_html( size_format( $memory['peak'] ) ) . '</li>';
 		if ( $memory['limit'] > 0 ) {
-			echo '<li>Limit: ' . size_format( $memory['limit'] ) . '</li>';
+			echo '<li>Limit: ' . esc_html( size_format( $memory['limit'] ) ) . '</li>';
 		}
 		echo '</ul>';
 
 		echo '<h4>Database Queries:</h4>';
 		echo '<ul>';
-		echo '<li>Total: ' . $queries['count'] . '</li>';
-		echo '<li>Time: ' . number_format( $queries['time'], 4 ) . 's</li>';
-		echo '<li>Slow (>50ms): ' . $queries['slow_queries'] . '</li>';
+		echo '<li>Total: ' . esc_html( $queries['count'] ) . '</li>';
+		echo '<li>Time: ' . esc_html( number_format( $queries['time'], 4 ) ) . 's</li>';
+		echo '<li>Slow (>50ms): ' . esc_html( $queries['slow_queries'] ) . '</li>';
 		echo '</ul>';
 
 		if ( ! empty( $metrics ) ) {
@@ -398,9 +399,9 @@ final class PerformanceMonitor {
 			foreach ( $metrics as $operation => $metric ) {
 				echo '<tr>';
 				echo '<td style="border: 1px solid #ddd; padding: 8px;">' . esc_html( $operation ) . '</td>';
-				echo '<td style="border: 1px solid #ddd; padding: 8px;">' . number_format( $metric['duration'], 4 ) . 's</td>';
-				echo '<td style="border: 1px solid #ddd; padding: 8px;">' . size_format( $metric['memory_usage'] ) . '</td>';
-				echo '<td style="border: 1px solid #ddd; padding: 8px;">' . $metric['query_count'] . '</td>';
+				echo '<td style="border: 1px solid #ddd; padding: 8px;">' . esc_html( number_format( $metric['duration'], 4 ) ) . 's</td>';
+				echo '<td style="border: 1px solid #ddd; padding: 8px;">' . esc_html( size_format( $metric['memory_usage'] ) ) . '</td>';
+				echo '<td style="border: 1px solid #ddd; padding: 8px;">' . esc_html( $metric['query_count'] ) . '</td>';
 				echo '</tr>';
 			}
 

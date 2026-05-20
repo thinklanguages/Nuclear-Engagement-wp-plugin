@@ -74,10 +74,12 @@ class TaskTransientManager {
 
 		if ( wp_using_ext_object_cache() ) {
 			global $wpdb;
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB ops
 			$wpdb->delete(
 				$wpdb->options,
 				array( 'option_name' => '_transient_' . $transient_key )
 			);
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB ops
 			$wpdb->delete(
 				$wpdb->options,
 				array( 'option_name' => '_transient_timeout_' . $transient_key )
@@ -98,10 +100,11 @@ class TaskTransientManager {
 		global $wpdb;
 
 		// Always query database directly for listing
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB ops
 		$results = $wpdb->get_results(
 			$wpdb->prepare(
-				"SELECT option_name, option_value FROM $wpdb->options 
-				WHERE option_name LIKE %s 
+				"SELECT option_name, option_value FROM $wpdb->options
+				WHERE option_name LIKE %s
 				AND option_name NOT LIKE %s
 				ORDER BY option_id DESC
 				LIMIT %d OFFSET %d",
@@ -133,10 +136,11 @@ class TaskTransientManager {
 	public static function count_task_transients(): int {
 		global $wpdb;
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB ops
 		return (int) $wpdb->get_var(
 			$wpdb->prepare(
-				"SELECT COUNT(*) FROM $wpdb->options 
-				WHERE option_name LIKE %s 
+				"SELECT COUNT(*) FROM $wpdb->options
+				WHERE option_name LIKE %s
 				AND option_name NOT LIKE %s",
 				'_transient_' . self::TRANSIENT_PREFIX . '%',
 				'_transient_timeout_' . self::TRANSIENT_PREFIX . '%'
@@ -200,10 +204,13 @@ class TaskTransientManager {
 		$expiry_time = time() + $expiry;
 
 		// Delete existing to avoid duplicates
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB ops
 		$wpdb->delete( $wpdb->options, array( 'option_name' => $transient ) );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB ops
 		$wpdb->delete( $wpdb->options, array( 'option_name' => $timeout ) );
 
 		// Insert new values
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB ops
 		$result = $wpdb->insert(
 			$wpdb->options,
 			array(
@@ -215,6 +222,7 @@ class TaskTransientManager {
 		);
 
 		if ( $result ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB ops
 			$wpdb->insert(
 				$wpdb->options,
 				array(
@@ -245,6 +253,7 @@ class TaskTransientManager {
 		$timeout   = '_transient_timeout_' . $key;
 
 		// Check timeout first
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB ops
 		$expiry = $wpdb->get_var(
 			$wpdb->prepare(
 				"SELECT option_value FROM $wpdb->options WHERE option_name = %s",
@@ -254,12 +263,15 @@ class TaskTransientManager {
 
 		if ( $expiry && $expiry < time() ) {
 			// Expired, clean up
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB ops
 			$wpdb->delete( $wpdb->options, array( 'option_name' => $transient ) );
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB ops
 			$wpdb->delete( $wpdb->options, array( 'option_name' => $timeout ) );
 			return false;
 		}
 
 		// Get value
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB ops
 		$value = $wpdb->get_var(
 			$wpdb->prepare(
 				"SELECT option_value FROM $wpdb->options WHERE option_name = %s",

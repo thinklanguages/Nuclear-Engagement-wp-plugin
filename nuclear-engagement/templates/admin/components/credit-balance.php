@@ -23,6 +23,7 @@ declare(strict_types=1);
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- template-scoped variables, not global
 
 // Default values
 $element_id      = $element_id ?? 'nuclen-credits-' . uniqid();
@@ -74,7 +75,7 @@ $inline          = $inline ?? false;
 				const remoteData = data.data;
 				
 				if (remoteData && typeof remoteData.remaining_credits !== 'undefined') {
-					const creditsText = '<?php echo esc_js( __( 'You have %d credits remaining', 'nuclear-engagement' ) ); ?>';
+					const creditsText = '<?php echo esc_js( /* translators: %d: number of remaining credits */ __( 'You have %d credits remaining', 'nuclear-engagement' ) ); ?>';
 					msgEl.innerHTML = creditsText.replace('%d', '<strong>' + remoteData.remaining_credits + '</strong>');
 					
 					// Add visual indicator based on credit level
@@ -159,3 +160,4 @@ $inline          = $inline ?? false;
 	font-style: italic;
 }
 </style>
+<?php // phpcs:enable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound ?>

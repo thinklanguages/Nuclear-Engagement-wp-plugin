@@ -42,7 +42,8 @@ final class ServerUtils {
 
 		foreach ( $ip_headers as $header ) {
 			if ( ! empty( $_SERVER[ $header ] ) ) {
-				$ip = sanitize_text_field( $_SERVER[ $header ] );
+				// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- server headers do not contain slashes
+				$ip = sanitize_text_field( wp_unslash( $_SERVER[ $header ] ) );
 
 				// Handle comma-separated IPs (from proxies).
 				if ( strpos( $ip, ',' ) !== false ) {
@@ -74,7 +75,7 @@ final class ServerUtils {
 			return 'unknown';
 		}
 
-		$user_agent = sanitize_text_field( $_SERVER['HTTP_USER_AGENT'] );
+		$user_agent = sanitize_text_field( wp_unslash( $_SERVER['HTTP_USER_AGENT'] ) );
 
 		// Limit length to prevent DoS.
 		$user_agent = substr( $user_agent, 0, 500 );
@@ -95,7 +96,7 @@ final class ServerUtils {
 			return '/';
 		}
 
-		$uri = sanitize_text_field( $_SERVER['REQUEST_URI'] );
+		$uri = sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) );
 
 		// Validate URI format.
 		if ( ! filter_var( $uri, FILTER_VALIDATE_URL, FILTER_FLAG_PATH_REQUIRED ) && $uri[0] !== '/' ) {
@@ -118,7 +119,7 @@ final class ServerUtils {
 			return 'GET';
 		}
 
-		$method = strtoupper( sanitize_text_field( $_SERVER['REQUEST_METHOD'] ) );
+		$method = strtoupper( sanitize_text_field( wp_unslash( $_SERVER['REQUEST_METHOD'] ) ) );
 
 		// Validate against known HTTP methods.
 		$valid_methods = array( 'GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS' );
@@ -136,7 +137,7 @@ final class ServerUtils {
 			return 'localhost';
 		}
 
-		$host = sanitize_text_field( $_SERVER['HTTP_HOST'] );
+		$host = sanitize_text_field( wp_unslash( $_SERVER['HTTP_HOST'] ) );
 
 		// Remove port number for validation.
 		$host_without_port = preg_replace( '/:\d+$/', '', $host );
@@ -162,7 +163,7 @@ final class ServerUtils {
 			return '';
 		}
 
-		$referrer = sanitize_text_field( $_SERVER['HTTP_REFERER'] );
+		$referrer = sanitize_text_field( wp_unslash( $_SERVER['HTTP_REFERER'] ) );
 
 		// Validate URL.
 		if ( ! filter_var( $referrer, FILTER_VALIDATE_URL ) ) {
@@ -202,7 +203,7 @@ final class ServerUtils {
 			return 'unknown';
 		}
 
-		$server = sanitize_text_field( $_SERVER['SERVER_SOFTWARE'] );
+		$server = sanitize_text_field( wp_unslash( $_SERVER['SERVER_SOFTWARE'] ) );
 
 		// Extract only the main server name, remove version details for security.
 		if ( preg_match( '/^(\w+)/', $server, $matches ) ) {

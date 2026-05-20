@@ -174,9 +174,9 @@ class StructuredLogger implements LoggerInterface {
 		// Add request information if available.
 		if ( ! empty( $_SERVER['REQUEST_URI'] ) ) {
 			$entry['request'] = array(
-				'method'     => $_SERVER['REQUEST_METHOD'] ?? 'unknown',
-				'uri'        => $_SERVER['REQUEST_URI'],
-				'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? 'unknown',
+				'method'     => isset( $_SERVER['REQUEST_METHOD'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REQUEST_METHOD'] ) ) : 'unknown',
+				'uri'        => sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ),
+				'user_agent' => isset( $_SERVER['HTTP_USER_AGENT'] ) ? sanitize_text_field( wp_unslash( $_SERVER['HTTP_USER_AGENT'] ) ) : 'unknown',
 				'ip'         => $this->get_client_ip(),
 			);
 		}
@@ -212,7 +212,7 @@ class StructuredLogger implements LoggerInterface {
 
 		foreach ( $ip_keys as $key ) {
 			if ( array_key_exists( $key, $_SERVER ) === true ) {
-				foreach ( explode( ',', $_SERVER[ $key ] ) as $ip ) {
+				foreach ( explode( ',', sanitize_text_field( wp_unslash( $_SERVER[ $key ] ) ) ) as $ip ) {
 					$ip = trim( $ip );
 
 					if ( filter_var( $ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE ) !== false ) {
@@ -222,6 +222,6 @@ class StructuredLogger implements LoggerInterface {
 			}
 		}
 
-		return $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+		return isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : 'unknown';
 	}
 }

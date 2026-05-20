@@ -1,3 +1,9 @@
+<?php
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- template-scoped variables, not global
+?>
 	<div id="nuclen-step-1" class="nuclen-section">
 		<h2 class="nuclen-subheading"><?php esc_html_e( '1. Select filters for posts', 'nuclear-engagement' ); ?></h2>
 		<form id="nuclen-filters-form" class="nuclen-section" method="post">
@@ -155,3 +161,4 @@
 			</button>
 		</form>
 	</div>
+<?php // phpcs:enable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound ?>

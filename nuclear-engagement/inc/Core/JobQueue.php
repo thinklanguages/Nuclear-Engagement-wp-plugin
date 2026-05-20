@@ -107,8 +107,9 @@ final class JobQueue {
 		global $wpdb;
 
 		// First, check how many jobs are currently processing
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.NotPrepared -- low-level DB management, table name is safe
 		$processing_count = $wpdb->get_var(
-			"SELECT COUNT(*) FROM {$wpdb->prefix}nuclen_background_jobs WHERE status = 'processing'"
+			"SELECT COUNT(*) FROM {$wpdb->prefix}nuclen_background_jobs WHERE status = 'processing'" // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- safe table name interpolation
 		);
 
 		$available_slots = self::MAX_CONCURRENT_JOBS - intval( $processing_count );
@@ -117,8 +118,8 @@ final class JobQueue {
 			return array();
 		}
 
-		return // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-		$wpdb->get_results(
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB management
+		return $wpdb->get_results(
 			$wpdb->prepare(
 				"
 			SELECT job_id, type, data, priority, attempts, scheduled, status
@@ -127,7 +128,7 @@ final class JobQueue {
 			AND scheduled <= %d
 			ORDER BY priority ASC, scheduled ASC
 			LIMIT %d
-		",
+		", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- safe table name interpolation
 				time(),
 				$available_slots
 			),
@@ -143,19 +144,19 @@ final class JobQueue {
 	public static function get_statistics(): array {
 		global $wpdb;
 
-		$stats = // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-		$wpdb->get_row(
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.NotPrepared -- low-level DB management, table name is safe
+		$stats = $wpdb->get_row(
 			"
-			SELECT 
+			SELECT
 				COUNT(*) as total,
 				SUM(CASE WHEN status = 'queued' THEN 1 ELSE 0 END) as queued,
 				SUM(CASE WHEN status = 'processing' THEN 1 ELSE 0 END) as processing,
 				SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed,
 				SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) as failed,
 				SUM(CASE WHEN status = 'retrying' THEN 1 ELSE 0 END) as retrying
-			FROM {$wpdb->prefix}nuclen_background_jobs 
+			FROM {$wpdb->prefix}nuclen_background_jobs
 			WHERE created > DATE_SUB(NOW(), INTERVAL 24 HOUR)
-		",
+		", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- safe table name interpolation
 			ARRAY_A
 		);
 
@@ -176,14 +177,10 @@ final class JobQueue {
 		$data_hash = md5( wp_json_encode( $data ) );
 
 		// Check for existing job with same type and data within last hour
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB management
 		$existing_job = $wpdb->get_var(
 			$wpdb->prepare(
-				"SELECT job_id FROM {$wpdb->prefix}nuclen_background_jobs 
-				WHERE type = %s 
-				AND MD5(data) = %s 
-				AND status IN ('queued', 'processing', 'retrying')
-				AND created > %d
-				LIMIT 1",
+				"SELECT job_id FROM {$wpdb->prefix}nuclen_background_jobs WHERE type = %s AND MD5(data) = %s AND status IN ('queued', 'processing', 'retrying') AND created > %d LIMIT 1", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- safe table name interpolation
 				$type,
 				$data_hash,
 				time() - 3600 // Within last hour
@@ -226,7 +223,7 @@ final class JobQueue {
 			\NuclearEngagement\Services\LoggingService::log(
 				"Failed to store background job {$job['id']}: {$error_msg}"
 			);
-			throw new \RuntimeException( "Failed to store background job: {$error_msg}" );
+			throw new \RuntimeException( esc_html( "Failed to store background job: {$error_msg}" ) );
 		}
 	}
 
@@ -238,8 +235,8 @@ final class JobQueue {
 
 		$table_name = $wpdb->prefix . 'nuclen_background_jobs';
 
-		if ( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-		$wpdb->get_var( "SHOW TABLES LIKE '{$table_name}'" ) !== $table_name ) {
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.NotPrepared -- table name is derived from safe wpdb prefix
+		if ( $wpdb->get_var( "SHOW TABLES LIKE '{$table_name}'" ) !== $table_name ) { // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- safe table name interpolation
 			$charset_collate = $wpdb->get_charset_collate();
 
 			$sql = "CREATE TABLE {$table_name} (
@@ -273,16 +270,10 @@ final class JobQueue {
 		global $wpdb;
 
 		// Delete completed jobs older than 7 days.
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
-	// phpcs:ignore WordPress.DB.DirectDatabaseQuery
-
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB management
 		$wpdb->query(
 			$wpdb->prepare(
-				"
-			DELETE FROM {$wpdb->prefix}nuclen_background_jobs 
-			WHERE status IN ('completed', 'failed', 'cancelled') 
-			AND created < %d
-		",
+				"DELETE FROM {$wpdb->prefix}nuclen_background_jobs WHERE status IN ('completed', 'failed', 'cancelled') AND created < %d", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- safe table name interpolation
 				time() - ( 7 * DAY_IN_SECONDS )
 			)
 		);

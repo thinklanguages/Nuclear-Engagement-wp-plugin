@@ -76,12 +76,13 @@ final class ProcessIdentifier {
 			$components[] = bin2hex( random_bytes( 4 ) );
 		} catch ( \Exception $e ) {
 			// Fallback to less secure randomness if random_bytes fails
-			$components[] = substr( md5( (string) mt_rand() ), 0, 8 );
+			$components[] = substr( md5( (string) wp_rand() ), 0, 8 );
 		}
 
 		// Add request-specific context if available
 		if ( php_sapi_name() !== 'cli' && isset( $_SERVER['REQUEST_TIME_FLOAT'] ) ) {
-			$components[] = (string) $_SERVER['REQUEST_TIME_FLOAT'];
+			// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- numeric cast is sufficient sanitization
+			$components[] = (string) (float) $_SERVER['REQUEST_TIME_FLOAT'];
 		}
 
 		return implode( '_', $components );

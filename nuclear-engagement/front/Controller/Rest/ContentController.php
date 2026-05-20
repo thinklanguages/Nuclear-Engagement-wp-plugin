@@ -172,7 +172,7 @@ class ContentController {
 											sprintf(
 												'[ContentController] Updated batch data - BatchID: %s | Success: 1 | UpdatedAt: %s',
 												$batch_id,
-												date( 'Y-m-d H:i:s', $batch_data['updated_at'] )
+												gmdate( 'Y-m-d H:i:s', $batch_data['updated_at'] )
 											)
 										);
 									}
@@ -263,6 +263,7 @@ class ContentController {
 			$stored               = get_post_meta( $firstPostId, $meta_key, true );
 			$date                 = is_array( $stored ) && ! empty( $stored['date'] ) ? $stored['date'] : '';
 
+			/* translators: %s: workflow type (e.g. "quiz" or "summary") */
 			$message = sprintf(
 				__( '%s data received and stored successfully', 'nuclear-engagement' ),
 				ucfirst( $contentRequest->workflow )
@@ -310,7 +311,7 @@ class ContentController {
 						'authentication_failed',
 						array(
 							'reason' => 'service_account_not_found',
-							'ip'     => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
+							'ip'     => isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : '',
 						)
 					);
 					return false;
@@ -365,7 +366,7 @@ class ContentController {
 				'reason'       => 'invalid_credentials',
 				'has_password' => ! empty( $header_pass ),
 				'has_nonce'    => ! empty( $nonce ),
-				'ip'           => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
+				'ip'           => isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : '',
 			)
 		);
 

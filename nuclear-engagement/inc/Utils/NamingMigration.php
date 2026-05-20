@@ -59,6 +59,8 @@ class NamingMigration {
 		$old_keys     = array_keys( self::OPTION_MIGRATIONS );
 		$placeholders = implode( ',', array_fill( 0, count( $old_keys ), '%s' ) );
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB ops
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $wpdb->options is a safe internal table reference; $placeholders contains only %s tokens
 		$old_options = $wpdb->get_results(
 			$wpdb->prepare(
 				"SELECT option_name, option_value FROM {$wpdb->options} WHERE option_name IN ($placeholders)",
@@ -84,6 +86,8 @@ class NamingMigration {
 
 		// Bulk insert new options
 		if ( ! empty( $values_to_insert ) ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB ops
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- values are individually prepared above via $wpdb->prepare
 			$wpdb->query(
 				"INSERT INTO {$wpdb->options} (option_name, option_value, autoload) VALUES " .
 				implode( ',', $values_to_insert ) .
@@ -92,6 +96,8 @@ class NamingMigration {
 
 			// Bulk delete old options
 			$delete_placeholders = implode( ',', array_fill( 0, count( $keys_to_delete ), '%s' ) );
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB ops
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $wpdb->options is a safe internal table reference; $delete_placeholders contains only %s tokens
 			$wpdb->query(
 				$wpdb->prepare(
 					"DELETE FROM {$wpdb->options} WHERE option_name IN ($delete_placeholders)",
@@ -108,6 +114,8 @@ class NamingMigration {
 		global $wpdb;
 
 		foreach ( self::META_KEY_MIGRATIONS as $old_key => $new_key ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB ops
+			// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- intentional meta lookup during migration
 			$wpdb->update(
 				$wpdb->postmeta,
 				array( 'meta_key' => $new_key ),
@@ -142,6 +150,8 @@ class NamingMigration {
 	private static function clear_transients_by_prefix( string $prefix ): void {
 		global $wpdb;
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB ops
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $wpdb->options is a safe internal table reference
 		$wpdb->query(
 			$wpdb->prepare(
 				"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s OR option_name LIKE %s",

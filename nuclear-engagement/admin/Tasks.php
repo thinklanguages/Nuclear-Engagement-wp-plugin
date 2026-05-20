@@ -49,12 +49,14 @@ class Tasks {
 	 */
 	public function handle_early_redirects(): void {
 		// Only process on our tasks page
-		if ( ! isset( $_GET['page'] ) || $_GET['page'] !== 'nuclear-engagement-tasks' ) {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only filter, no state mutation
+		if ( ! isset( $_GET['page'] ) || sanitize_text_field( wp_unslash( $_GET['page'] ) ) !== 'nuclear-engagement-tasks' ) {
 			return;
 		}
 
 		// Check if refresh requested
-		if ( isset( $_GET['refresh'] ) && $_GET['refresh'] === '1' ) {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only filter, no state mutation
+		if ( isset( $_GET['refresh'] ) && sanitize_text_field( wp_unslash( $_GET['refresh'] ) ) === '1' ) {
 			// Clear cache before redirect
 			self::clear_tasks_cache();
 			
@@ -106,15 +108,19 @@ class Tasks {
 		}
 
 		// Verify nonce
-		if ( ! isset( $_GET['_wpnonce'] ) || ! wp_verify_nonce( $_GET['_wpnonce'], 'nuclen_task_action' ) ) {
-			wp_die( __( 'Security check failed.', 'nuclear-engagement' ) );
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Nonce doesn't need sanitization
+		if ( ! isset( $_GET['_wpnonce'] ) || ! wp_verify_nonce( wp_unslash( $_GET['_wpnonce'] ), 'nuclen_task_action' ) ) {
+			wp_die( esc_html( __( 'Security check failed.', 'nuclear-engagement' ) ) );
 		}
 
-		$action = sanitize_text_field( $_GET['action'] );
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- nonce verified above
+		$action = sanitize_text_field( wp_unslash( $_GET['action'] ) );
 
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- nonce verified above
 		if ( isset( $_GET['task_id'] ) ) {
 			// Handle individual task actions
-			$task_id = sanitize_text_field( $_GET['task_id'] );
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- nonce verified above
+			$task_id = sanitize_text_field( wp_unslash( $_GET['task_id'] ) );
 
 			switch ( $action ) {
 				case 'run_now':
@@ -137,8 +143,10 @@ class Tasks {
 
 		// Redirect to remove action parameters but preserve paged
 		$redirect_url = remove_query_arg( array( 'action', 'task_id', '_wpnonce' ) );
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- nonce verified above
 		if ( isset( $_GET['paged'] ) ) {
-			$redirect_url = add_query_arg( 'paged', intval( $_GET['paged'] ), $redirect_url );
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- nonce verified above
+			$redirect_url = add_query_arg( 'paged', absint( $_GET['paged'] ), $redirect_url );
 		}
 		wp_safe_redirect( $redirect_url );
 		exit;
@@ -213,6 +221,7 @@ class Tasks {
 
 			// Add admin notice
 			$this->add_admin_notice(
+				/* translators: %s: batch task ID */
 				sprintf( __( 'Batch %s has been triggered for immediate processing.', 'nuclear-engagement' ), esc_html( $task_id ) ),
 				'success'
 			);
@@ -279,6 +288,7 @@ class Tasks {
 		}
 
 		$this->add_admin_notice(
+			/* translators: %s: task ID */
 			sprintf( __( 'Task %s has been queued for retry.', 'nuclear-engagement' ), esc_html( $task_id ) ),
 			'success'
 		);
@@ -303,6 +313,7 @@ class Tasks {
 				wp_clear_scheduled_hook( 'nuclen_process_batch', array( $task_id ) );
 
 				$this->add_admin_notice(
+					/* translators: %s: batch task ID */
 					sprintf( __( 'Batch %s has been cancelled.', 'nuclear-engagement' ), esc_html( $task_id ) ),
 					'info'
 				);
@@ -326,7 +337,8 @@ class Tasks {
 				}
 
 				$this->add_admin_notice(
-					sprintf( __( 'Generation %s has been cancelled.', 'nuclear-engagement' ), $task_id ),
+					/* translators: %s: generation task ID */
+					sprintf( __( 'Generation %s has been cancelled.', 'nuclear-engagement' ), esc_html( $task_id ) ),
 					'info'
 				);
 			}
@@ -350,9 +362,10 @@ class Tasks {
 		global $wpdb;
 
 		// Clear cache for all users and pages
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- direct query needed for performance
 		$wpdb->query(
-			"DELETE FROM $wpdb->options 
-			WHERE option_name LIKE '_transient_nuclen_tasks_%' 
+			"DELETE FROM $wpdb->options
+			WHERE option_name LIKE '_transient_nuclen_tasks_%'
 			OR option_name LIKE '_transient_timeout_nuclen_tasks_%'"
 		);
 
@@ -374,7 +387,8 @@ class Tasks {
 	private function gather_tasks_data(): array {
 
 		// Get current page
-		$current_page = isset( $_GET['paged'] ) ? max( 1, intval( $_GET['paged'] ) ) : 1;
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only filter, no state mutation
+		$current_page = isset( $_GET['paged'] ) ? max( 1, absint( wp_unslash( $_GET['paged'] ) ) ) : 1;
 
 		// Initialize data array
 		$data = array(
@@ -400,8 +414,10 @@ class Tasks {
 
 			// Get filters if any
 			$filters = array();
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only filter, no state mutation
 			if ( isset( $_GET['status'] ) && ! empty( $_GET['status'] ) ) {
-				$filters['status'] = sanitize_text_field( $_GET['status'] );
+				// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only filter, no state mutation
+				$filters['status'] = sanitize_text_field( wp_unslash( $_GET['status'] ) );
 			}
 
 			// Get paginated tasks
@@ -441,10 +457,11 @@ class Tasks {
 		$tasks = array();
 
 		// First, get total count for pagination
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- direct query needed for performance
 		$total_count = $wpdb->get_var(
 			$wpdb->prepare(
-				"SELECT COUNT(*) FROM $wpdb->options 
-				WHERE option_name LIKE %s 
+				"SELECT COUNT(*) FROM $wpdb->options
+				WHERE option_name LIKE %s
 				AND option_name NOT LIKE %s",
 				'_transient_nuclen_bulk_job_%',
 				'_transient_timeout_nuclen_bulk_job_%'
@@ -455,10 +472,11 @@ class Tasks {
 		$offset = ( $current_page - 1 ) * self::TASKS_PER_PAGE;
 
 		// Find all bulk job transients with pagination
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- direct query needed for performance
 		$bulk_jobs = $wpdb->get_results(
 			$wpdb->prepare(
-				"SELECT option_name, option_value FROM $wpdb->options 
-				WHERE option_name LIKE %s 
+				"SELECT option_name, option_value FROM $wpdb->options
+				WHERE option_name LIKE %s
 				AND option_name NOT LIKE %s
 				ORDER BY option_id DESC
 				LIMIT %d OFFSET %d",
@@ -535,11 +553,13 @@ class Tasks {
 			$handled_posts   = $processed + $failed;
 			$details_message = $failed > 0
 				? sprintf(
+					/* translators: %1$d: succeeded count, %2$d: failed count */
 					__( '%1$d succeeded, %2$d failed', 'nuclear-engagement' ),
 					$processed,
 					$failed
 				)
 				: sprintf(
+					/* translators: %1$d: processed count, %2$d: total posts count */
 					__( '%1$d of %2$d posts successfully processed', 'nuclear-engagement' ),
 					$processed,
 					$total_posts
@@ -731,12 +751,13 @@ class Tasks {
 			'not_found_streak'  => $max_not_found_streak,
 			'details'           => $failed > 0
 				? sprintf(
+					/* translators: %1$d: succeeded count, %2$d: failed count */
 					__( '%1$d succeeded, %2$d failed', 'nuclear-engagement' ),
 					$processed,
 					$failed
 				)
 				: sprintf(
-					/* translators: 1: successfully processed, 2: total */
+					/* translators: %1$d: processed count, %2$d: total posts count */
 					__( '%1$d of %2$d posts successfully processed', 'nuclear-engagement' ),
 					$processed,
 					$total_posts

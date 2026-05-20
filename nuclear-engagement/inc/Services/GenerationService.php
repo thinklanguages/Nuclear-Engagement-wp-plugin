@@ -405,7 +405,7 @@ class GenerationService {
 		// Check execution time
 		$max_execution = (int) ini_get( 'max_execution_time' );
 		if ( $max_execution > 0 ) {
-			$elapsed      = microtime( true ) - ( $_SERVER['REQUEST_TIME_FLOAT'] ?? microtime( true ) );
+			$elapsed      = microtime( true ) - ( isset( $_SERVER['REQUEST_TIME_FLOAT'] ) ? (float) $_SERVER['REQUEST_TIME_FLOAT'] : microtime( true ) );
 			$time_percent = ( $elapsed / $max_execution ) * 100;
 
 			if ( $time_percent > self::MAX_EXECUTION_PERCENT ) {
@@ -643,10 +643,11 @@ class GenerationService {
 		$pending = array();
 
 		// Find all recovery transients
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB ops, transient scan
 		$transients = $wpdb->get_results(
 			$wpdb->prepare(
-				"SELECT option_name FROM $wpdb->options 
-				WHERE option_name LIKE %s 
+				"SELECT option_name FROM $wpdb->options
+				WHERE option_name LIKE %s
 				AND option_name NOT LIKE %s",
 				'_transient_nuclen_partial_generation_%',
 				'_transient_timeout_nuclen_partial_generation_%'

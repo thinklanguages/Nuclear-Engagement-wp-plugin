@@ -58,7 +58,7 @@ class ServiceRegistry {
 	 */
 	public function get( string $id ) {
 		if ( ! isset( $this->services[ $id ] ) ) {
-			throw new \RuntimeException( "Service '{$id}' not found in registry" );
+			throw new \RuntimeException( esc_html( "Service '{$id}' not found in registry" ) );
 		}
 
 		$service_config = $this->services[ $id ];
@@ -148,7 +148,7 @@ class ServiceRegistry {
 			return call_user_func( $fallback );
 		}
 
-		throw new \RuntimeException( "Service '{$id}' not found and no fallback provided" );
+		throw new \RuntimeException( esc_html( "Service '{$id}' not found and no fallback provided" ) );
 	}
 
 	/**

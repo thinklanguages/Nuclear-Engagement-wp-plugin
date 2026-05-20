@@ -67,17 +67,19 @@ class GenerateController extends BaseController {
 			$safe_keys      = array( 'action', 'workflow', 'step', 'batch_size', 'total_items', 'priority', 'source' );
 			foreach ( $safe_keys as $key ) {
 				if ( isset( $_POST[ $key ] ) ) {
-					// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Sanitization happens in next line
+					// phpcs:ignore WordPress.Security.NonceVerification.Missing -- nonce verified by check_ajax_referer above
 					$safe_post_data[ $key ] = sanitize_text_field( wp_unslash( $_POST[ $key ] ) );
 				}
 			}
 
 			// Count selected posts.
 			$post_count = 0;
+			// phpcs:ignore WordPress.Security.NonceVerification.Missing -- nonce verified by check_ajax_referer above
 			if ( ! empty( $_POST['nuclen_selected_post_ids'] ) && is_array( $_POST['nuclen_selected_post_ids'] ) ) {
+				// phpcs:ignore WordPress.Security.NonceVerification.Missing -- nonce verified by check_ajax_referer above
 				$post_count = count( $_POST['nuclen_selected_post_ids'] );
 			} elseif ( ! empty( $_POST['payload'] ) ) {
-				// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Sanitization handled by stripslashes
+				// phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- nonce verified above, sanitization handled by stripslashes
 				$payload_data = json_decode( stripslashes( wp_unslash( $_POST['payload'] ) ), true );
 				if ( isset( $payload_data['postIds'] ) && is_array( $payload_data['postIds'] ) ) {
 					$post_count = count( $payload_data['postIds'] );
@@ -90,6 +92,7 @@ class GenerateController extends BaseController {
 			);
 
 			// Check if we have the required data (either in payload or directly in POST).
+			// phpcs:ignore WordPress.Security.NonceVerification.Missing -- nonce verified by check_ajax_referer above
 			if ( empty( $_POST['payload'] ) && empty( $_POST['nuclen_selected_post_ids'] ) ) {
 				\NuclearEngagement\Services\LoggingService::log(
 					'[ERROR] Invalid request | Missing required data (payload or post_ids)'
@@ -102,6 +105,7 @@ class GenerateController extends BaseController {
 			}
 
 			// Parse request.
+			// phpcs:ignore WordPress.Security.NonceVerification.Missing -- nonce verified by check_ajax_referer above
 			$request = GenerateRequest::from_post( $_POST );
 
 			\NuclearEngagement\Services\LoggingService::log(

@@ -33,6 +33,8 @@ class TransientCleanup {
 		$timeout_pattern   = $wpdb->esc_like( '_transient_timeout_nuclen_' ) . '%';
 
 		// Delete transients
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB ops
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $wpdb->options is a safe internal table reference
 		$deleted = $wpdb->query(
 			$wpdb->prepare(
 				"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s OR option_name LIKE %s",
@@ -105,6 +107,8 @@ class TransientCleanup {
 		);
 
 		foreach ( $patterns as $pattern ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB ops
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $wpdb->options is a safe internal table reference
 			$deleted                      = $wpdb->query(
 				$wpdb->prepare(
 					"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s",
@@ -163,9 +167,11 @@ class TransientCleanup {
 		global $wpdb;
 
 		// Delete expired transients
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB ops
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $wpdb->options is a safe internal table reference; no user input in query
 		$expired = $wpdb->query(
-			"DELETE FROM {$wpdb->options} 
-			WHERE option_name LIKE '_transient_timeout_nuclen_%' 
+			"DELETE FROM {$wpdb->options}
+			WHERE option_name LIKE '_transient_timeout_nuclen_%'
 			AND option_value < UNIX_TIMESTAMP()"
 		);
 

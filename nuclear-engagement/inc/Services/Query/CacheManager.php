@@ -192,10 +192,11 @@ class CacheManager {
 		global $wpdb;
 
 		// Delete expired transients
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB ops
 		$wpdb->query(
 			$wpdb->prepare(
-				"DELETE FROM {$wpdb->options} 
-				WHERE option_name LIKE %s 
+				"DELETE FROM {$wpdb->options}
+				WHERE option_name LIKE %s
 				AND option_value < %d",
 				'_transient_timeout_nuclen_pq_%',
 				time()
@@ -203,9 +204,10 @@ class CacheManager {
 		);
 
 		// Delete orphaned transients
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB ops
 		$wpdb->query(
 			"DELETE o1 FROM {$wpdb->options} o1
-			LEFT JOIN {$wpdb->options} o2 
+			LEFT JOIN {$wpdb->options} o2
 			ON o2.option_name = REPLACE(o1.option_name, '_transient_', '_transient_timeout_')
 			WHERE o1.option_name LIKE '_transient_nuclen_pq_%'
 			AND o2.option_name IS NULL"

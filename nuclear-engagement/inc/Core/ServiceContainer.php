@@ -69,7 +69,7 @@ class ServiceContainer {
 
 		// Check for circular dependencies.
 		if ( isset( $this->resolving[ $service_name ] ) ) {
-			throw new \RuntimeException( "Circular dependency detected for service: {$service_name}" );
+			throw new \RuntimeException( esc_html( "Circular dependency detected for service: {$service_name}" ) );
 		}
 
 		// Return cached instance if available.
@@ -95,7 +95,7 @@ class ServiceContainer {
 			}
 		}
 
-		throw new \RuntimeException( "Service '{$service_name}' not found in container." );
+		throw new \RuntimeException( esc_html( "Service '{$service_name}' not found in container." ) );
 	}
 
 	/**

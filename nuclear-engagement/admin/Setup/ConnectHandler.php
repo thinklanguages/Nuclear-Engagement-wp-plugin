@@ -21,11 +21,11 @@ class ConnectHandler extends BaseSetupHandler {
 	public function handle_connect_app(): void {
 		$this->validate_nonce_and_permissions( 'nuclen_connect_app_nonce', 'nuclen_connect_app_action' );
 
-		if ( ! isset( $_POST['nuclen_api_key'] ) ) {
+		if ( ! isset( $_POST['nuclen_api_key'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing -- nonce verified above via validate_nonce_and_permissions()
 			$this->redirect_with_error( 'Missing API key field.' );
 		}
 
-		$api_key = sanitize_text_field( wp_unslash( $_POST['nuclen_api_key'] ) );
+		$api_key = sanitize_text_field( wp_unslash( $_POST['nuclen_api_key'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing -- nonce verified above via validate_nonce_and_permissions()
 		if ( '' === $api_key ) {
 			$this->redirect_with_error( 'Missing Gold Code.' );
 		}

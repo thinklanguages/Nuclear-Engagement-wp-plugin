@@ -295,6 +295,7 @@ class BatchProcessingHandler {
 				// Set maximum execution time for this request
 				$original_max_time = ini_get( 'max_execution_time' );
 				if ( $original_max_time !== false && intval( $original_max_time ) < 120 ) {
+					// phpcs:ignore Squiz.PHP.DiscouragedFunctions.Discouraged -- long-running batch processor
 					@set_time_limit( 120 ); // 2 minutes should be enough for API call + processing
 				}
 
@@ -345,6 +346,7 @@ class BatchProcessingHandler {
 				} finally {
 					// Restore original max execution time
 					if ( $original_max_time !== false ) {
+						// phpcs:ignore Squiz.PHP.DiscouragedFunctions.Discouraged -- long-running batch processor
 						@set_time_limit( intval( $original_max_time ) );
 					}
 				}
@@ -1196,6 +1198,7 @@ class BatchProcessingHandler {
 			self::$test_hooks->do_action( $hook, ...$args );
 			return;
 		}
+		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.DynamicHooknameFound -- hook name is namespaced
 		do_action( $hook, ...$args );
 	}
 

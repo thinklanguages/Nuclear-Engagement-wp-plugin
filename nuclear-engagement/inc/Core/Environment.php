@@ -157,8 +157,8 @@ class Environment {
 
 		// Only adjust if we're in a safe environment and have permission.
 		if ( ! self::is_production() && function_exists( 'ini_set' ) ) {
-			@ini_set( 'max_execution_time', (string) $max_execution_time );
-			@ini_set( 'memory_limit', $memory_limit );
+			@ini_set( 'max_execution_time', (string) $max_execution_time ); // phpcs:ignore Squiz.PHP.DiscouragedFunctions.Discouraged -- runtime config required for plugin operation
+			@ini_set( 'memory_limit', $memory_limit ); // phpcs:ignore Squiz.PHP.DiscouragedFunctions.Discouraged -- runtime config required for plugin operation
 		}
 	}
 }

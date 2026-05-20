@@ -370,9 +370,10 @@ class TaskIndexService extends BaseService {
 		$count = 0;
 
 		// Get all bulk job transients
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB ops
 		$bulk_jobs = $wpdb->get_results(
-			"SELECT option_name, option_value FROM $wpdb->options 
-			WHERE option_name LIKE '_transient_nuclen_bulk_job_%' 
+			"SELECT option_name, option_value FROM $wpdb->options
+			WHERE option_name LIKE '_transient_nuclen_bulk_job_%'
 			AND option_name NOT LIKE '_transient_timeout_%'
 			ORDER BY option_id DESC
 			LIMIT 1000"
@@ -495,10 +496,11 @@ class TaskIndexService extends BaseService {
 		global $wpdb;
 
 		// Clear all task-related caches from the database
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB ops
 		$wpdb->query(
 			$wpdb->prepare(
-				"DELETE FROM $wpdb->options 
-				WHERE option_name LIKE %s 
+				"DELETE FROM $wpdb->options
+				WHERE option_name LIKE %s
 				OR option_name LIKE %s",
 				'_transient_' . $this->get_service_name() . '_tasks_page_%',
 				'_transient_timeout_' . $this->get_service_name() . '_tasks_page_%'
@@ -540,10 +542,11 @@ class TaskIndexService extends BaseService {
 
 		// Clear specific task-related transients only
 		global $wpdb;
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB ops
 		$wpdb->query(
 			$wpdb->prepare(
-				"DELETE FROM $wpdb->options 
-				WHERE option_name LIKE %s 
+				"DELETE FROM $wpdb->options
+				WHERE option_name LIKE %s
 				OR option_name LIKE %s",
 				'_transient_task_index_%',
 				'_transient_timeout_task_index_%'

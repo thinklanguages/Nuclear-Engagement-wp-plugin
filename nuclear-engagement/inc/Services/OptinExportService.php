@@ -27,12 +27,12 @@ class OptinExportService {
 	 */
 	public function stream_csv(): void {
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( __( 'Insufficient permissions.', 'nuclear-engagement' ), 403 );
+			wp_die( esc_html__( 'Insufficient permissions.', 'nuclear-engagement' ), 403 );
 		}
 
-		$nonce = $_REQUEST['_wpnonce'] ?? '';
+		$nonce = isset( $_REQUEST['_wpnonce'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['_wpnonce'] ) ) : '';
 		if ( ! wp_verify_nonce( $nonce, 'nuclen_export_optin' ) ) {
-			wp_die( __( 'Invalid nonce.', 'nuclear-engagement' ), 400 );
+			wp_die( esc_html__( 'Invalid nonce.', 'nuclear-engagement' ), 400 );
 		}
 
 		global $wpdb;
@@ -47,7 +47,7 @@ class OptinExportService {
 		$out = fopen( 'php://output', 'w' );
 		if ( $out === false ) {
 			LoggingService::log( 'Failed to open output stream for CSV export' );
-			wp_die( __( 'Unable to generate export.', 'nuclear-engagement' ), 500 );
+			wp_die( esc_html__( 'Unable to generate export.', 'nuclear-engagement' ), 500 );
 		}
 
 		if ( false === fputcsv( $out, array( 'datetime', 'url', 'name', 'email' ) ) ) {
@@ -57,8 +57,10 @@ class OptinExportService {
 		$limit  = 500;
 		$offset = 0;
 		do {
-			$rows = $wpdb->get_results(
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB ops, streaming download
+		$rows = $wpdb->get_results(
 				$wpdb->prepare(
+					// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- table name is plugin-defined static method
 					'SELECT submitted_at AS datetime,
 						url,
 						name,
@@ -84,6 +86,7 @@ class OptinExportService {
 			$offset += $limit;
 		} while ( count( $rows ) === $limit );
 
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- streaming download
 		fclose( $out );
 		exit;
 	}

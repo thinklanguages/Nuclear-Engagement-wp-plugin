@@ -239,10 +239,11 @@ class CircuitBreakerService {
 		global $wpdb;
 
 		$prefix  = self::OPTION_PREFIX;
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB ops
 		$options = $wpdb->get_results(
 			$wpdb->prepare(
-				"SELECT option_name, option_value 
-				FROM {$wpdb->options} 
+				"SELECT option_name, option_value
+				FROM {$wpdb->options}
 				WHERE option_name LIKE %s",
 				$prefix . '%'
 			)
@@ -285,10 +286,11 @@ class CircuitBreakerService {
 		$cleaned  = 0;
 
 		// Get all circuit breaker options
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB ops
 		$options = $wpdb->get_results(
 			$wpdb->prepare(
-				"SELECT option_name, option_value 
-				FROM {$wpdb->options} 
+				"SELECT option_name, option_value
+				FROM {$wpdb->options}
 				WHERE option_name LIKE %s",
 				$prefix . '%'
 			)

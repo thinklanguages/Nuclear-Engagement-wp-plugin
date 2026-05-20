@@ -214,6 +214,7 @@ final class DistributedLock {
 				// Create table if not exists
 				self::ensure_lock_table();
 
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB management
 				$result = $wpdb->insert(
 					$table,
 					array(
@@ -255,9 +256,10 @@ final class DistributedLock {
 				global $wpdb;
 				$table = $wpdb->prefix . 'nuclen_locks';
 
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB management
 				$result = $wpdb->get_var(
 					$wpdb->prepare(
-						"SELECT lock_data FROM $table WHERE lock_key = %s AND expires_at > %d",
+						"SELECT lock_data FROM $table WHERE lock_key = %s AND expires_at > %d", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- safe table name interpolation
 						$lock_key,
 						time()
 					)
@@ -293,6 +295,7 @@ final class DistributedLock {
 				global $wpdb;
 				$table = $wpdb->prefix . 'nuclen_locks';
 
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB management
 				$result = $wpdb->update(
 					$table,
 					array(
@@ -333,6 +336,7 @@ final class DistributedLock {
 				global $wpdb;
 				$table = $wpdb->prefix . 'nuclen_locks';
 
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB management
 				$result = $wpdb->delete(
 					$table,
 					array( 'lock_key' => $lock_key ),
@@ -360,10 +364,10 @@ final class DistributedLock {
 			global $wpdb;
 			$table = $wpdb->prefix . 'nuclen_locks';
 
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB management
 			$result = $wpdb->query(
 				$wpdb->prepare(
-					"UPDATE $table SET lock_data = %s, expires_at = %d 
-					WHERE lock_key = %s AND lock_data = %s",
+					"UPDATE $table SET lock_data = %s, expires_at = %d WHERE lock_key = %s AND lock_data = %s", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- safe table name interpolation
 					serialize( $new_data ),
 					$new_data['expires'],
 					$lock_key,
@@ -423,9 +427,10 @@ final class DistributedLock {
 			global $wpdb;
 			$table = $wpdb->prefix . 'nuclen_locks';
 
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB management
 			return $wpdb->query(
 				$wpdb->prepare(
-					"DELETE FROM $table WHERE expires_at < %d",
+					"DELETE FROM $table WHERE expires_at < %d", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- safe table name interpolation
 					time()
 				)
 			);

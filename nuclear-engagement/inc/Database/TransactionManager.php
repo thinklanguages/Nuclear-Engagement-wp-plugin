@@ -47,11 +47,12 @@ class TransactionManager {
 	 */
 	public function begin(): void {
 		if ( $this->transaction_level === 0 ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB management
 			$result = $this->wpdb->query( 'START TRANSACTION' );
 
 			if ( $result === false ) {
 				throw new DatabaseException(
-					'Failed to start database transaction',
+					esc_html( 'Failed to start database transaction' ),
 					$this->wpdb->last_error,
 					'START TRANSACTION'
 				);
@@ -63,13 +64,14 @@ class TransactionManager {
 			$savepoint_id = 'sp_' . intval( $this->transaction_level );
 			// Use backticks to escape identifier and validate format
 			if ( ! preg_match( '/^sp_\d+$/', $savepoint_id ) ) {
-				throw new DatabaseException( 'Invalid savepoint identifier format' );
+				throw new DatabaseException( esc_html( 'Invalid savepoint identifier format' ) );
 			}
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB management
 			$result = $this->wpdb->query( sprintf( 'SAVEPOINT `%s`', $savepoint_id ) );
 
 			if ( $result === false ) {
 				throw new DatabaseException(
-					'Failed to create savepoint',
+					esc_html( 'Failed to create savepoint' ),
 					$this->wpdb->last_error,
 					sprintf( 'SAVEPOINT `%s`', $savepoint_id )
 				);
@@ -94,11 +96,12 @@ class TransactionManager {
 		--$this->transaction_level;
 
 		if ( $this->transaction_level === 0 ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB management
 			$result = $this->wpdb->query( 'COMMIT' );
 
 			if ( $result === false ) {
 				throw new DatabaseException(
-					'Failed to commit transaction',
+					esc_html( 'Failed to commit transaction' ),
 					$this->wpdb->last_error,
 					'COMMIT'
 				);
@@ -125,11 +128,12 @@ class TransactionManager {
 		--$this->transaction_level;
 
 		if ( $this->transaction_level === 0 ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB management
 			$result = $this->wpdb->query( 'ROLLBACK' );
 
 			if ( $result === false ) {
 				throw new DatabaseException(
-					'Failed to rollback transaction',
+					esc_html( 'Failed to rollback transaction' ),
 					$this->wpdb->last_error,
 					'ROLLBACK'
 				);
@@ -142,13 +146,14 @@ class TransactionManager {
 			$savepoint = array_pop( $this->savepoints );
 			// Validate savepoint format before using
 			if ( ! preg_match( '/^sp_\d+$/', $savepoint ) ) {
-				throw new DatabaseException( 'Invalid savepoint identifier format for rollback' );
+				throw new DatabaseException( esc_html( 'Invalid savepoint identifier format for rollback' ) );
 			}
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB management
 			$result = $this->wpdb->query( sprintf( 'ROLLBACK TO SAVEPOINT `%s`', $savepoint ) );
 
 			if ( $result === false ) {
 				throw new DatabaseException(
-					'Failed to rollback to savepoint',
+					esc_html( 'Failed to rollback to savepoint' ),
 					$this->wpdb->last_error,
 					sprintf( 'ROLLBACK TO SAVEPOINT `%s`', $savepoint )
 				);
@@ -216,7 +221,7 @@ class TransactionManager {
 		// If we got here, all retries failed
 		if ( $last_exception ) {
 			throw new DatabaseException(
-				'Transaction failed after ' . $attempts . ' attempts: ' . $last_exception->getMessage(),
+				esc_html( 'Transaction failed after ' . $attempts . ' attempts: ' . $last_exception->getMessage() ),
 				'',
 				'',
 				0,
@@ -224,7 +229,7 @@ class TransactionManager {
 			);
 		}
 
-		throw new DatabaseException( 'Transaction failed after ' . $attempts . ' attempts' );
+		throw new DatabaseException( esc_html( 'Transaction failed after ' . $attempts . ' attempts' ) );
 	}
 
 	/**
@@ -240,11 +245,12 @@ class TransactionManager {
 				$results = array();
 
 				foreach ( $queries as $index => $query ) {
+					// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.NotPrepared -- batch queries are caller-prepared
 					$result = $wpdb->query( $query );
 
 					if ( $result === false ) {
 						throw new DatabaseException(
-							sprintf( 'Query %d failed in batch: %s', $index, $wpdb->last_error ),
+							esc_html( sprintf( 'Query %d failed in batch: %s', $index, $wpdb->last_error ) ),
 							$wpdb->last_error,
 							$query
 						);

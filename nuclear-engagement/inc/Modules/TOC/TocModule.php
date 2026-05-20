@@ -198,7 +198,7 @@ final class TocModule extends AbstractModule {
 		echo '<p>';
 		echo '<label for="nuclen_toc_disabled">';
 		echo '<input type="checkbox" id="nuclen_toc_disabled" name="nuclen_toc_disabled" value="1"' . checked( $disabled, '1', false ) . '>';
-		echo ' ' . __( 'Disable TOC for this post', 'nuclear-engagement' );
+		echo ' ' . esc_html__( 'Disable TOC for this post', 'nuclear-engagement' );
 		echo '</label>';
 		echo '</p>';
 	}
@@ -208,7 +208,7 @@ final class TocModule extends AbstractModule {
 	 */
 	public function saveMetabox( int $post_id ): void {
 		if ( ! isset( $_POST['nuclen_toc_nonce'] ) ||
-			! wp_verify_nonce( $_POST['nuclen_toc_nonce'], 'nuclen_toc_metabox' ) ) {
+			! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['nuclen_toc_nonce'] ?? '' ) ), 'nuclen_toc_metabox' ) ) {
 			return;
 		}
 
@@ -224,8 +224,8 @@ final class TocModule extends AbstractModule {
 	 * Register module settings.
 	 */
 	public function registerSettings(): void {
-		register_setting( 'nuclen_toc_settings', 'nuclen_toc_auto_insert' );
-		register_setting( 'nuclen_toc_settings', 'nuclen_toc_sticky_enabled' );
-		register_setting( 'nuclen_toc_settings', 'nuclen_toc_min_headings' );
+		register_setting( 'nuclen_toc_settings', 'nuclen_toc_auto_insert', array( 'sanitize_callback' => 'rest_sanitize_boolean' ) );
+		register_setting( 'nuclen_toc_settings', 'nuclen_toc_sticky_enabled', array( 'sanitize_callback' => 'rest_sanitize_boolean' ) );
+		register_setting( 'nuclen_toc_settings', 'nuclen_toc_min_headings', array( 'sanitize_callback' => 'absint' ) );
 	}
 }

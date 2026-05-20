@@ -190,7 +190,7 @@ class ThemeCssGenerator {
 		foreach ( $files as $file ) {
 			$filename = basename( $file );
 			if ( ! in_array( $filename, $active_files ) ) {
-				unlink( $file );
+				wp_delete_file( $file );
 			}
 		}
 

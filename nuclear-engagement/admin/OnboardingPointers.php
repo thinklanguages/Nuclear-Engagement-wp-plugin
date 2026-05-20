@@ -42,9 +42,11 @@ final class OnboardingPointers {
 			}
 			foreach ( $pointers as &$ptr ) {
 				if ( isset( $ptr['title'] ) ) {
+					// phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralText -- text already translated upstream
 					$ptr['title'] = esc_html__( $ptr['title'], 'nuclear-engagement' );
 				}
 				if ( isset( $ptr['content'] ) ) {
+					// phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralText -- text already translated upstream
 					$ptr['content'] = esc_html__( $ptr['content'], 'nuclear-engagement' );
 				}
 			}

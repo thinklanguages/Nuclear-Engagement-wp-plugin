@@ -95,28 +95,21 @@ class IndexManager {
 		$description = $index_config['description'];
 
 		// Check if index already exists.
-		$existing_indexes = // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-		$wpdb->get_results(
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB management
+		$existing_indexes = $wpdb->get_results(
 			$wpdb->prepare(
-				'SHOW INDEX FROM `%s` WHERE Key_name = %s',
-				$table,
+				// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- table name is from wpdb properties, safe
+				'SHOW INDEX FROM `' . esc_sql( $table ) . '` WHERE Key_name = %s',
 				$index_name
 			)
 		);
 
 		if ( empty( $existing_indexes ) ) {
-			// Create the index.
-			$sql = $wpdb->prepare(
-				'ALTER TABLE `%s` ADD INDEX `%s` (%s)',
-				$table,
-				$index_name,
-				$columns
-			);
+			// Create the index using manually escaped identifiers for WP 6.1 compatibility.
+			$sql = 'ALTER TABLE `' . esc_sql( $table ) . '` ADD INDEX `' . esc_sql( $index_name ) . '` (' . $columns . ')';
 
-			$result = // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery
-
-			$wpdb->query( $sql );
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.NotPrepared -- low-level DB management, identifiers are escaped
+			$result = $wpdb->query( $sql );
 
 			if ( $result === false ) {
 				\NuclearEngagement\Services\LoggingService::log(
@@ -173,27 +166,21 @@ class IndexManager {
 		global $wpdb;
 
 		// Check if index exists.
-		$existing_indexes = // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-		$wpdb->get_results(
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB management
+		$existing_indexes = $wpdb->get_results(
 			$wpdb->prepare(
-				'SHOW INDEX FROM `%s` WHERE Key_name = %s',
-				$table,
+				// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- table name is from wpdb properties, safe
+				'SHOW INDEX FROM `' . esc_sql( $table ) . '` WHERE Key_name = %s',
 				$index_name
 			)
 		);
 
 		if ( ! empty( $existing_indexes ) ) {
-			// Drop the index.
-			$sql = $wpdb->prepare(
-				'ALTER TABLE `%s` DROP INDEX `%s`',
-				$table,
-				$index_name
-			);
+			// Drop the index using manually escaped identifiers for WP 6.1 compatibility.
+			$sql = 'ALTER TABLE `' . esc_sql( $table ) . '` DROP INDEX `' . esc_sql( $index_name ) . '`';
 
-			$result = // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery
-
-			$wpdb->query( $sql );
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.NotPrepared -- low-level DB management, identifiers are escaped
+			$result = $wpdb->query( $sql );
 
 			if ( $result === false ) {
 				\NuclearEngagement\Services\LoggingService::log(
@@ -228,9 +215,9 @@ class IndexManager {
 		$tables   = array( $wpdb->posts, $wpdb->postmeta, $wpdb->usermeta, $wpdb->options );
 
 		foreach ( $tables as $table ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.NotPrepared -- low-level DB management
 			$analysis[ $table ] = array(
-				'row_count'  => // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-				$wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(*) FROM `%s`', $table ) ),
+				'row_count'  => $wpdb->get_var( 'SELECT COUNT(*) FROM `' . esc_sql( $table ) . '`' ), // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- table name is from wpdb properties, safe
 				'table_size' => self::get_table_size( $table ),
 				'indexes'    => self::get_table_indexes( $table ),
 			);
@@ -248,12 +235,12 @@ class IndexManager {
 	private static function get_table_size( string $table ): float {
 		global $wpdb;
 
-		$result = // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-		$wpdb->get_row(
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB management
+		$result = $wpdb->get_row(
 			$wpdb->prepare(
-				'SELECT 
-				ROUND(((data_length + index_length) / 1024 / 1024), 2) AS size_mb 
-			FROM information_schema.TABLES 
+				'SELECT
+				ROUND(((data_length + index_length) / 1024 / 1024), 2) AS size_mb
+			FROM information_schema.TABLES
 			WHERE table_schema = %s AND table_name = %s',
 				DB_NAME,
 				$table
@@ -272,12 +259,9 @@ class IndexManager {
 	private static function get_table_indexes( string $table ): array {
 		global $wpdb;
 
-		$indexes = // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-		$wpdb->get_results(
-			$wpdb->prepare(
-				'SHOW INDEX FROM `%s`',
-				$table
-			)
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.NotPrepared -- low-level DB management, table name is from wpdb properties
+		$indexes = $wpdb->get_results(
+			'SHOW INDEX FROM `' . esc_sql( $table ) . '`' // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- table name is from wpdb properties, safe
 		);
 
 		$index_list = array();

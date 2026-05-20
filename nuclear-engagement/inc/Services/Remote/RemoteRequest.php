@@ -131,7 +131,7 @@ class RemoteRequest {
 						);
 					}
 
-					throw ApiException::networkError( $url, $error_message );
+					throw ApiException::networkError( esc_html( $url ), esc_html( $error_message ) );
 				}
 
 				// Check HTTP status code
@@ -140,7 +140,7 @@ class RemoteRequest {
 					$body          = wp_remote_retrieve_body( $response );
 					$response_data = json_decode( $body, true ) ?: array();
 
-					throw ApiException::httpError( $url, $status_code, $response_data );
+					throw ApiException::httpError( esc_html( $url ), $status_code, $response_data );
 				}
 
 				return $response;

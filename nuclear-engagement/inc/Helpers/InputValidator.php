@@ -111,7 +111,7 @@ class InputValidator {
 
 			// Protocol validation.
 			if ( isset( $rules['allowed_protocols'] ) ) {
-				$parsed = parse_url( $value );
+				$parsed = wp_parse_url( $value );
 				if ( ! in_array( $parsed['scheme'] ?? '', $rules['allowed_protocols'], true ) ) {
 					self::add_error( $field, sprintf( '%s must use an allowed protocol (%s).', $field, implode( ', ', $rules['allowed_protocols'] ) ) );
 					return false;
@@ -120,7 +120,7 @@ class InputValidator {
 
 			// Domain validation.
 			if ( isset( $rules['allowed_domains'] ) ) {
-				$parsed = parse_url( $value );
+				$parsed = wp_parse_url( $value );
 				$domain = $parsed['host'] ?? '';
 				if ( ! in_array( $domain, $rules['allowed_domains'], true ) ) {
 					self::add_error( $field, sprintf( '%s must be from an allowed domain.', $field ) );

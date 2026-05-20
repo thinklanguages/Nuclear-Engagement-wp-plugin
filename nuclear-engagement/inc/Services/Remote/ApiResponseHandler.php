@@ -32,7 +32,7 @@ class ApiResponseHandler {
 			$error = 'API request failed: ' . $response->get_error_message();
 			LoggingService::log( $error );
 			LoggingService::notify_admin( __( 'Failed to contact the Nuclear Engagement API.', 'nuclear-engagement' ) );
-			throw new ApiException( $error );
+			throw new ApiException( esc_html( $error ) );
 		}
 
 		$code = wp_remote_retrieve_response_code( $response );
@@ -44,13 +44,13 @@ class ApiResponseHandler {
 
 		if ( 401 === $code || 403 === $code ) {
 			$auth = $this->handle_auth_error( $body, $code );
-			throw new ApiException( $auth['error'], $auth['status_code'], $auth['error_code'] ?? null );
+			throw new ApiException( esc_html( $auth['error'] ), $auth['status_code'], $auth['error_code'] ?? null );
 		}
 
 		if ( 200 !== $code ) {
 			$parsed = $this->parse_error_response( $body );
 			$msg    = $parsed['message'] ?? "Failed request, code: {$code}";
-			throw new ApiException( $msg, $code, $parsed['error_code'] );
+			throw new ApiException( esc_html( $msg ), $code, $parsed['error_code'] );
 		}
 
 		$data = json_decode( $body, true );
@@ -60,7 +60,7 @@ class ApiResponseHandler {
 		}
 		if ( isset( $data['success'] ) && false === $data['success'] ) {
 			$msg = $data['error'] ?? 'API error';
-			throw new ApiException( $msg, $code, $data['error_code'] ?? null );
+			throw new ApiException( esc_html( $msg ), $code, $data['error_code'] ?? null );
 		}
 
 		return $data;

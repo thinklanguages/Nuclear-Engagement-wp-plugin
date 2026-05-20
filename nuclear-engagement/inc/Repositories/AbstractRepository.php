@@ -100,9 +100,11 @@ abstract class AbstractRepository implements RepositoryInterface {
 		$table       = $this->get_table_name();
 		$primary_key = $this->get_primary_key();
 
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- table/column names are internal constants
 		$sql    = $wpdb->prepare( "SELECT * FROM {$table} WHERE {$primary_key} = %s", $id );
-		$result = // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-		$wpdb->get_row( $sql );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB ops
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQL.UnescapedDBParameter -- table identifier is escaped/validated
+		$result = $wpdb->get_row( $sql );
 
 		if ( $wpdb->last_error ) {
 			$this->logger->error(
@@ -115,7 +117,8 @@ abstract class AbstractRepository implements RepositoryInterface {
 					'error'       => $wpdb->last_error,
 					'query'       => $sql,
 					'mysql_errno' => $wpdb->last_error_no ?? null,
-					'caller'      => debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS, 2 )[1]['function'] ?? 'unknown',
+					// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_debug_backtrace -- diagnostic on missing record
+				'caller'      => debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS, 2 )[1]['function'] ?? 'unknown',
 				)
 			);
 			return null;
@@ -153,6 +156,7 @@ abstract class AbstractRepository implements RepositoryInterface {
 		if ( ! empty( $criteria ) ) {
 			$where_conditions = array();
 			foreach ( $criteria as $column => $value ) {
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- column names are internal, value is properly prepared
 				$where_conditions[] = $wpdb->prepare( "{$column} = %s", $value );
 			}
 			$sql .= ' WHERE ' . implode( ' AND ', $where_conditions );
@@ -174,9 +178,9 @@ abstract class AbstractRepository implements RepositoryInterface {
 			}
 		}
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-		$results = // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-		$wpdb->get_results( $sql );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB ops
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQL.UnescapedDBParameter -- table identifier is escaped/validated
+		$results = $wpdb->get_results( $sql );
 
 		if ( $wpdb->last_error ) {
 			$this->logger->error(
@@ -228,13 +232,15 @@ abstract class AbstractRepository implements RepositoryInterface {
 		if ( ! empty( $criteria ) ) {
 			$where_conditions = array();
 			foreach ( $criteria as $column => $value ) {
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- column names are internal, value is properly prepared
 				$where_conditions[] = $wpdb->prepare( "{$column} = %s", $value );
 			}
 			$sql .= ' WHERE ' . implode( ' AND ', $where_conditions );
 		}
 
-		$count = (int) // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-		$wpdb->get_var( $sql );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB ops
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQL.UnescapedDBParameter -- table identifier is escaped/validated
+		$count = (int) $wpdb->get_var( $sql );
 
 		if ( $wpdb->last_error ) {
 			$this->logger->error(
@@ -269,6 +275,7 @@ abstract class AbstractRepository implements RepositoryInterface {
 			$id = $data[ $primary_key ];
 			unset( $data[ $primary_key ] );
 
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB ops
 			$result = $wpdb->update( $table, $data, array( $primary_key => $id ) );
 
 			if ( $result === false ) {
@@ -280,13 +287,14 @@ abstract class AbstractRepository implements RepositoryInterface {
 						'data'  => $data,
 					)
 				);
-				throw new \RuntimeException( 'Failed to update entity: ' . $wpdb->last_error );
+				throw new \RuntimeException( 'Failed to update entity: ' . esc_html( $wpdb->last_error ) );
 			}
 
 			$this->invalidate_cache( $id );
 			return $this->find( $id );
 		} else {
 			// Insert new entity.
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB ops
 			$result = $wpdb->insert( $table, $data );
 
 			if ( $result === false ) {
@@ -298,7 +306,7 @@ abstract class AbstractRepository implements RepositoryInterface {
 						'data'  => $data,
 					)
 				);
-				throw new \RuntimeException( 'Failed to insert entity: ' . $wpdb->last_error );
+				throw new \RuntimeException( 'Failed to insert entity: ' . esc_html( $wpdb->last_error ) );
 			}
 
 			$id = $wpdb->insert_id;
@@ -323,7 +331,8 @@ abstract class AbstractRepository implements RepositoryInterface {
 			return false;
 		}
 
-		$id     = $data[ $primary_key ];
+		$id = $data[ $primary_key ];
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB ops
 		$result = $wpdb->delete( $table, array( $primary_key => $id ) );
 
 		if ( $result === false ) {
@@ -356,6 +365,7 @@ abstract class AbstractRepository implements RepositoryInterface {
 		$wpdb  = $this->get_wpdb();
 		$table = $this->get_table_name();
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB ops
 		$result = $wpdb->delete( $table, $criteria );
 
 		if ( $result === false ) {

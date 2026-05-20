@@ -259,6 +259,7 @@ trait AssetsTrait {
 			'script_loader_tag',
 			function ( $tag, $handle, $src ) {
 				if ( $handle === $this->plugin_name . '-front' ) {
+					// phpcs:ignore WordPress.WP.EnqueuedResources.NonEnqueuedScript -- inline init must run at this DOM position
 					return '<script type="module" src="' . esc_url( $src ) . '"></script>' . "\n";
 				}
 				return $tag;

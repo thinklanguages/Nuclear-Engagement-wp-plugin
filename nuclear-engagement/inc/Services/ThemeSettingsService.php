@@ -134,7 +134,7 @@ class ThemeSettingsService {
 		}
 
 		if ( $theme->css_path && file_exists( $theme->get_css_file_path() ) ) {
-			unlink( $theme->get_css_file_path() );
+			wp_delete_file( $theme->get_css_file_path() );
 		}
 
 		$result = $this->repository->delete( $theme_id );

@@ -115,10 +115,11 @@ class HealthCheckService {
 
 				// Check for stuck batches
 				global $wpdb;
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB ops
 				$stuck_batches = $wpdb->get_var(
 					$wpdb->prepare(
-						"SELECT COUNT(*) FROM $wpdb->options 
-					WHERE option_name LIKE %s 
+						"SELECT COUNT(*) FROM $wpdb->options
+					WHERE option_name LIKE %s
 					AND (option_value LIKE %s OR option_value LIKE %s)
 					AND option_value LIKE %s",
 						'_transient_nuclen_batch_%',
@@ -131,10 +132,11 @@ class HealthCheckService {
 				if ( $stuck_batches > 0 ) {
 					// Check if any are actually stuck (not updated in last hour)
 					$one_hour_ago = time() - 3600;
+					// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB ops
 					$transients   = $wpdb->get_results(
 						$wpdb->prepare(
-							"SELECT option_value FROM $wpdb->options 
-						WHERE option_name LIKE %s 
+							"SELECT option_value FROM $wpdb->options
+						WHERE option_name LIKE %s
 						AND (option_value LIKE %s OR option_value LIKE %s)
 						LIMIT 10",
 							'_transient_nuclen_batch_%',

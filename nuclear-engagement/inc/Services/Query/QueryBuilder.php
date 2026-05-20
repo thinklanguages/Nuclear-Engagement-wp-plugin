@@ -45,6 +45,7 @@ class QueryBuilder {
 		$this->add_cache_optimization( $query_args );
 
 		if ( count( $meta_query ) > 1 ) {
+			// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- intentional meta lookup
 			$query_args['meta_query'] = $meta_query;
 		}
 

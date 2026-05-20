@@ -39,7 +39,7 @@ final class ModuleRegistry {
 		$name = $module->getName();
 
 		if ( isset( $this->modules[ $name ] ) ) {
-			throw new \RuntimeException( "Module {$name} is already registered" );
+			throw new \RuntimeException( esc_html( "Module {$name} is already registered" ) );
 		}
 
 		$this->modules[ $name ] = $module;
@@ -143,7 +143,7 @@ final class ModuleRegistry {
 		$name = $module->getName();
 
 		if ( isset( $visiting[ $name ] ) ) {
-			throw new \RuntimeException( "Circular dependency detected for module {$name}" );
+			throw new \RuntimeException( esc_html( "Circular dependency detected for module {$name}" ) );
 		}
 
 		if ( isset( $visited[ $name ] ) ) {

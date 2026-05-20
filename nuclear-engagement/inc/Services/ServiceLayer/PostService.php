@@ -103,7 +103,7 @@ class PostService {
 		);
 
 		if ( ! $validation_result->is_valid() ) {
-			throw new ValidationException( $validation_result->get_errors() );
+			throw new ValidationException( array_map( 'esc_html', $validation_result->get_errors() ) );
 		}
 
 		$this->logger->debug(
@@ -121,6 +121,7 @@ class PostService {
 
 			if ( $workflow_type === 'quiz' ) {
 				$meta_criteria[] = array(
+					// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- intentional meta lookup
 					'key'     => 'nuclen-quiz-data',
 					'compare' => 'NOT EXISTS',
 				);
@@ -128,6 +129,7 @@ class PostService {
 				// Exclude protected posts unless specifically requested.
 				if ( ! ( $criteria['include_protected'] ?? false ) ) {
 					$meta_criteria[] = array(
+						// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- intentional meta lookup
 						'key'     => 'nuclen_quiz_protected',
 						'value'   => '1',
 						'compare' => '!=',
@@ -135,6 +137,7 @@ class PostService {
 				}
 			} elseif ( $workflow_type === 'summary' ) {
 				$meta_criteria[] = array(
+					// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- intentional meta lookup
 					'key'     => 'nuclen-summary-data',
 					'compare' => 'NOT EXISTS',
 				);
@@ -142,6 +145,7 @@ class PostService {
 				// Exclude protected posts unless specifically requested.
 				if ( ! ( $criteria['include_protected'] ?? false ) ) {
 					$meta_criteria[] = array(
+						// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- intentional meta lookup
 						'key'     => 'nuclen_summary_protected',
 						'value'   => '1',
 						'compare' => '!=',
@@ -186,7 +190,7 @@ class PostService {
 					'error'         => $e->getMessage(),
 				)
 			);
-			throw new DatabaseException( 'Failed to find posts for generation', $e->getMessage() );
+			throw new DatabaseException( 'Failed to find posts for generation', esc_html( $e->getMessage() ) );
 		}
 	}
 
@@ -211,7 +215,7 @@ class PostService {
 		);
 
 		if ( ! $validation_result->is_valid() ) {
-			throw new ValidationException( $validation_result->get_errors() );
+			throw new ValidationException( array_map( 'esc_html', $validation_result->get_errors() ) );
 		}
 
 		$this->logger->debug(
@@ -344,6 +348,7 @@ class PostService {
 
 			$quiz_criteria   = array(
 				array(
+					// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- intentional meta lookup
 					'key'     => 'nuclen-quiz-data',
 					'compare' => 'EXISTS',
 				),
@@ -352,6 +357,7 @@ class PostService {
 
 			$summary_criteria   = array(
 				array(
+					// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- intentional meta lookup
 					'key'     => 'nuclen-summary-data',
 					'compare' => 'EXISTS',
 				),
@@ -360,6 +366,7 @@ class PostService {
 
 			$quiz_protected_criteria = array(
 				array(
+					// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- intentional meta lookup
 					'key'     => 'nuclen_quiz_protected',
 					'value'   => '1',
 					'compare' => '=',
@@ -369,6 +376,7 @@ class PostService {
 
 			$summary_protected_criteria = array(
 				array(
+					// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- intentional meta lookup
 					'key'     => 'nuclen_summary_protected',
 					'value'   => '1',
 					'compare' => '=',

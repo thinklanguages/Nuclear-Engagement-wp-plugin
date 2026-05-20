@@ -159,6 +159,7 @@ class GenerationPoller {
 					);
 					\NuclearEngagement\Services\LoggingService::notify_admin(
 						sprintf(
+							/* translators: %s: generation ID */
 							__( 'Failed to schedule event nuclen_poll_generation for generation %s', 'nuclear-engagement' ),
 							$generation_id
 						)

@@ -95,10 +95,10 @@ class RemoteApiService extends BaseService {
 		if ( ! $this->circuit_breaker->is_request_allowed() ) {
 			$status = $this->circuit_breaker->get_status();
 			throw CustomApiException::serviceUnavailable(
-				sprintf(
+				esc_html( sprintf(
 					'API temporarily unavailable. Circuit breaker is open. Retry in %d seconds.',
 					$status['time_until_retry']
-				),
+				) ),
 				$status['time_until_retry']
 			);
 		}
@@ -173,10 +173,10 @@ class RemoteApiService extends BaseService {
 		if ( ! $this->circuit_breaker->is_request_allowed() ) {
 			$status = $this->circuit_breaker->get_status();
 			throw CustomApiException::serviceUnavailable(
-				sprintf(
+				esc_html( sprintf(
 					'API temporarily unavailable. Circuit breaker is open. Retry in %d seconds.',
 					$status['time_until_retry']
-				),
+				) ),
 				$status['time_until_retry']
 			);
 		}
@@ -271,10 +271,10 @@ class RemoteApiService extends BaseService {
 		if ( ! $this->circuit_breaker->is_request_allowed() ) {
 			$status = $this->circuit_breaker->get_status();
 			throw CustomApiException::serviceUnavailable(
-				sprintf(
+				esc_html( sprintf(
 					'API temporarily unavailable. Circuit breaker is open. Retry in %d seconds.',
 					$status['time_until_retry']
-				),
+				) ),
 				$status['time_until_retry']
 			);
 		}

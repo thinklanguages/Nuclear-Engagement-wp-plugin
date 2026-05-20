@@ -16,10 +16,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 trait SetupSecurityTrait {
 	protected function validate_nonce_and_permissions( string $nonce_field, string $nonce_action, string $capability = 'manage_options' ): void {
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- nonce verified by setup handler
 		if ( ! isset( $_POST[ $nonce_field ] ) ) {
 			$this->redirect_with_error( 'Missing security token.' );
 		}
 
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- nonce verified by setup handler
 		$nonce_value = sanitize_text_field( wp_unslash( $_POST[ $nonce_field ] ) );
 		if ( ! ValidationUtils::validate_nonce( $nonce_value, $nonce_action ) ) {
 			$this->redirect_with_error( 'Invalid security token.' );

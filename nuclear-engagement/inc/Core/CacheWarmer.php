@@ -178,11 +178,12 @@ final class CacheWarmer {
 		$items = array();
 
 		// Get recent posts with nuclear engagement content
+		// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- intentional cache warm-up query
 		$posts = get_posts(
 			array(
 				'posts_per_page' => $limit,
 				'post_status'    => 'publish',
-				'meta_query'     => array(
+				'meta_query'     => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- intentional cache warm-up query
 					'relation' => 'OR',
 					array(
 						'key'     => 'nuclen-quiz-data',

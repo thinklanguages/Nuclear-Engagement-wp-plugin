@@ -54,6 +54,7 @@ class PostsCountController extends BaseController {
 			}
 
 			// Parse request.
+			// phpcs:ignore WordPress.Security.NonceVerification.Missing -- nonce verified by check_ajax_referer above
 			$request = PostsCountRequest::fromPost( $_POST );
 
 			// Validate post type against allowed post types.

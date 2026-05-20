@@ -272,7 +272,7 @@ class OptinRepository extends DatabaseRepository {
 	 * @return int|false Number of rows deleted or false on error.
 	 */
 	public function cleanup_old_optins( int $days = 365 ) {
-		$cutoff_date = date( 'Y-m-d H:i:s', time() - ( $days * DAY_IN_SECONDS ) );
+		$cutoff_date = gmdate( 'Y-m-d H:i:s', time() - ( $days * DAY_IN_SECONDS ) );
 		$query       = "DELETE FROM {$this->get_optin_table_name()} WHERE created_at < %s";
 		return $this->execute_query( $query, array( $cutoff_date ) );
 	}
@@ -284,7 +284,7 @@ class OptinRepository extends DatabaseRepository {
 	 * @return array Statistics array.
 	 */
 	public function get_optin_stats( int $days = 30 ): array {
-		$since = date( 'Y-m-d H:i:s', time() - ( $days * DAY_IN_SECONDS ) );
+		$since = gmdate( 'Y-m-d H:i:s', time() - ( $days * DAY_IN_SECONDS ) );
 
 		$total_query   = "SELECT COUNT(*) FROM {$this->get_optin_table_name()}";
 		$recent_query  = "SELECT COUNT(*) FROM {$this->get_optin_table_name()} WHERE created_at >= %s";

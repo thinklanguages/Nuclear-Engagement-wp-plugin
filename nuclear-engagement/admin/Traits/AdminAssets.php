@@ -142,7 +142,8 @@ trait AdminAssets {
 	 * @return bool
 	 */
 	private function is_new_post_supported(): bool {
-		$post_type     = isset( $_GET['post_type'] ) ? sanitize_key( $_GET['post_type'] ) : 'post';
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only context for asset enqueuing
+		$post_type     = isset( $_GET['post_type'] ) ? sanitize_key( wp_unslash( $_GET['post_type'] ) ) : 'post';
 		$allowed_types = $this->get_allowed_post_types_cached();
 		return in_array( $post_type, $allowed_types, true );
 	}
@@ -220,8 +221,10 @@ trait AdminAssets {
 			return $post->post_type;
 		}
 
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only context for asset enqueuing
 		if ( isset( $_GET['post_type'] ) ) {
-			return sanitize_key( $_GET['post_type'] );
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only context for asset enqueuing
+			return sanitize_key( wp_unslash( $_GET['post_type'] ) );
 		}
 
 		$post_type = get_post_type();

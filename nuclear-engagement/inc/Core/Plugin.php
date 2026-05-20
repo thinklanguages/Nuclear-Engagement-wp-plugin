@@ -387,11 +387,10 @@ class Plugin {
 			$batch_size   = 50; // Process in batches to avoid memory issues
 
 			// Find all content lock options with LIMIT for performance
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB management
 			$locks = $wpdb->get_results(
 				$wpdb->prepare(
-					"SELECT option_name, option_value FROM $wpdb->options 
-					WHERE (option_name LIKE %s OR option_name LIKE %s)
-					LIMIT %d",
+					"SELECT option_name, option_value FROM $wpdb->options WHERE (option_name LIKE %s OR option_name LIKE %s) LIMIT %d", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- safe table name interpolation
 					'nuclen_content_lock_quiz_%',
 					'nuclen_content_lock_summary_%',
 					$batch_size
@@ -411,9 +410,10 @@ class Plugin {
 				// Bulk delete for better performance
 				if ( ! empty( $to_delete ) ) {
 					$placeholders = implode( ',', array_fill( 0, count( $to_delete ), '%s' ) );
+					// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB management
 					$cleaned      = $wpdb->query(
 						$wpdb->prepare(
-							"DELETE FROM $wpdb->options WHERE option_name IN ($placeholders)",
+							"DELETE FROM $wpdb->options WHERE option_name IN ($placeholders)", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- safe table name interpolation, placeholders are %s
 							$to_delete
 						)
 					);

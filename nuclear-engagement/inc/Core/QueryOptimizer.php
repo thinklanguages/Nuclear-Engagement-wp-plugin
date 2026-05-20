@@ -103,9 +103,8 @@ final class QueryOptimizer {
 				);
 
 				$start_time = microtime( true );
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-				$results    = // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-				$wpdb->get_results( $sql );
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB management
+				$results    = $wpdb->get_results( $sql );
 				$query_time = microtime( true ) - $start_time;
 
 				self::track_query_performance( 'bulk_metadata', $query_time );
@@ -240,9 +239,8 @@ final class QueryOptimizer {
 				);
 
 				$start_time = microtime( true );
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-				$results    = // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-				$wpdb->get_results( $sql );
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB management
+				$results    = $wpdb->get_results( $sql );
 				$query_time = microtime( true ) - $start_time;
 
 				self::track_query_performance( 'quiz_summary_combined', $query_time );
@@ -302,9 +300,8 @@ final class QueryOptimizer {
 				GROUP BY p.post_type, p.post_status
 			";
 
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-				$results    = // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-				$wpdb->get_results( $sql );
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.NotPrepared -- low-level DB management, table names are safe wpdb properties
+				$results    = $wpdb->get_results( $sql );
 				$query_time = microtime( true ) - $start_time;
 
 				self::track_query_performance( 'dashboard_stats', $query_time );
@@ -399,9 +396,8 @@ final class QueryOptimizer {
 				$prepared_sql = empty( $params ) ? $sql : $wpdb->prepare( $sql, $params );
 
 				$start_time = microtime( true );
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-				$results    = // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-				$wpdb->get_results( $prepared_sql );
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB management
+				$results    = $wpdb->get_results( $prepared_sql );
 				$query_time = microtime( true ) - $start_time;
 
 				self::track_query_performance( 'cached_query', $query_time );
@@ -439,9 +435,8 @@ final class QueryOptimizer {
 		);
 
 		$start_time = microtime( true );
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-		$results    = // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-		$wpdb->get_results( $sql );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB management
+		$results    = $wpdb->get_results( $sql );
 		$query_time = microtime( true ) - $start_time;
 
 		self::track_query_performance( 'posts_batch', $query_time );

@@ -123,9 +123,7 @@ class Installer {
 
 		// Migrate summary meta keys from old to new format.
 		// Old: 'ne-summary-data' -> New: Summary_Service::META_KEY.
-       // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
-   // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB management
 		$wpdb->query(
 			$wpdb->prepare(
 				"UPDATE {$wpdb->postmeta} SET meta_key = %s WHERE meta_key = %s",
@@ -141,9 +139,7 @@ class Installer {
 
 		// Migrate quiz meta keys from old to new format.
 		// Old: 'ne-quiz-data' -> New: 'nuclen-quiz-data'.
-     // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
-   // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB management
 		$wpdb->query(
 			$wpdb->prepare(
 				"UPDATE {$wpdb->postmeta} SET meta_key = %s WHERE meta_key = %s",

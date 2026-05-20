@@ -69,6 +69,7 @@ class UpdatesController extends BaseController {
 				return;
 			}
 
+				// phpcs:ignore WordPress.Security.NonceVerification.Missing -- nonce verified by verify_request above
 				$request = UpdatesRequest::fromPost( $_POST );
 
 				// Credits-check ping uses a dummy generation_id.

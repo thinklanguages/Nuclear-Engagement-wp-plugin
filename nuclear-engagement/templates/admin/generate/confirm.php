@@ -1,3 +1,9 @@
+<?php
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- template-scoped variables, not global
+?>
 	<!-- Step 2 Section (hidden by default) -->
 	<div id="nuclen-step-2" class="nuclen-section nuclen-hidden">
 		<h2 class="nuclen-subheading"><?php esc_html_e( '2. Confirm and Generate', 'nuclear-engagement' ); ?></h2>
@@ -29,3 +35,4 @@
 			</button>
 		</form>
 	</div>
+<?php // phpcs:enable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound ?>

@@ -1,4 +1,4 @@
-=== Nuclear Engagement – Instantly Generate AI Summaries, Quizzes & TOC at Scale ===
+=== Nuclear Engagement ===
 Plugin Name: Nuclear Engagement
 Plugin URI: https://www.nuclearengagement.com?ref=wp_listing&link=plugin_uri
 Author: Stefano Lodola

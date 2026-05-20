@@ -97,8 +97,8 @@ final class Nuclen_TOC_Assets {
 			'nuclen-toc-front',
 			'nuclenTocL10n',
 			array(
-				'hide' => __( 'Hide', 'nuclen-toc-shortcode' ),
-				'show' => __( 'Show', 'nuclen-toc-shortcode' ),
+				'hide' => __( 'Hide', 'nuclear-engagement' ),
+				'show' => __( 'Show', 'nuclear-engagement' ),
 			)
 		);
 	}

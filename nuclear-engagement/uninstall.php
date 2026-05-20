@@ -35,6 +35,8 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 				exit;
 }
 
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- uninstall script local variables
+
 // Load the plugin autoloader when available.
 $autoload = __DIR__ . '/vendor/autoload.php';
 if ( ! file_exists( $autoload ) ) {
@@ -95,7 +97,7 @@ if ( $delete_settings ) {
 
 	// Clean up any remaining options with nuclen prefix.
 	global $wpdb;
-	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.DirectDatabaseQuery.SchemaChange -- uninstall cleanup
 	$result = $wpdb->query(
 		$wpdb->prepare(
 			"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s OR option_name LIKE %s",
@@ -148,13 +150,9 @@ if ( $delete_settings || $delete_generated ) {
 	if ( preg_match( '/^[a-zA-Z0-9_]+$/', $table_suffix ) ) {
 		// Safely escape table name using WordPress standards.
 		$escaped_table = esc_sql( $table_name );
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.SchemaChange
-		$result = $wpdb->query(
-			$wpdb->prepare(
-				'DROP TABLE IF EXISTS %i',
-				$table_name
-			)
-		);
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.DirectDatabaseQuery.SchemaChange -- uninstall cleanup
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- table identifier escaped via esc_sql above
+		$result = $wpdb->query( 'DROP TABLE IF EXISTS `' . $escaped_table . '`' ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- table identifier escaped
 
 		if ( $result === false ) {
 			// Log error but continue with uninstall process
@@ -179,3 +177,5 @@ if ( $delete_settings || $delete_generated ) {
 		error_log( 'Nuclear Engagement: Invalid table name attempted in uninstall: ' . $table_name );
 	}
 }
+
+// phpcs:enable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound

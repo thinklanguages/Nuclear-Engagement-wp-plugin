@@ -225,11 +225,13 @@ class LoggingService {
 	 * @return bool True if writable, false otherwise.
 	 */
 	private function check_write_permissions( string $log_folder, string $log_file, array $messages ): bool {
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_is_writable -- log dir probe requires direct PHP check
 		if ( ! is_writable( $log_folder ) ) {
 			$this->fallback_all( $messages, 'Log directory not writable: ' . $log_folder );
 			return false;
 		}
 
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_is_writable -- log dir probe requires direct PHP check
 		if ( file_exists( $log_file ) && ! is_writable( $log_file ) ) {
 			$this->fallback_all( $messages, 'Log file not writable: ' . $log_file );
 			return false;
@@ -250,6 +252,7 @@ class LoggingService {
 
 		if ( file_exists( $log_file ) && filesize( $log_file ) > $max_size ) {
 			$timestamped = $log_folder . '/log-' . gmdate( 'Y-m-d-His' ) . '.txt';
+			// phpcs:ignore WordPress.WP.AlternativeFunctions.rename_rename -- log rotation requires atomic rename
 			if ( ! rename( $log_file, $timestamped ) ) {
 				$this->fallback_all( $messages, 'Failed to rotate log file: ' . $timestamped );
 			} else {
@@ -284,7 +287,7 @@ class LoggingService {
 		// Remove oldest files
 		$files_to_remove = array_slice( $files, 0, count( $files ) - $max_logs );
 		foreach ( $files_to_remove as $file ) {
-			@unlink( $file );
+			wp_delete_file( $file );
 		}
 	}
 
@@ -409,7 +412,8 @@ class LoggingService {
 			$file_time = filemtime( $file );
 			if ( $file_time !== false && $file_time < $cutoff_time ) {
 				// Delete old log file.
-				if ( ! @unlink( $file ) ) {
+				wp_delete_file( $file );
+				if ( file_exists( $file ) ) {
 					self::debug( 'Failed to delete old log file: ' . basename( $file ) );
 				} else {
 					self::debug( 'Deleted old log file: ' . basename( $file ) );

@@ -246,6 +246,8 @@ final class CacheUtils {
 		global $wpdb;
 
 		// Count transients related to our plugin.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB ops
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $wpdb->options is a safe internal table reference
 		$transient_count = $wpdb->get_var(
 			$wpdb->prepare(
 				"SELECT COUNT(*) FROM {$wpdb->options} WHERE option_name LIKE %s",
@@ -271,13 +273,14 @@ final class CacheUtils {
 		global $wpdb;
 
 		// Clean expired transients.
-		$deleted = // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
-		$wpdb->query(
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB ops
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $wpdb->options is a safe internal table reference
+		$deleted = $wpdb->query(
 			$wpdb->prepare(
-				"DELETE a, b FROM {$wpdb->options} a, {$wpdb->options} b 
-				WHERE a.option_name LIKE %s 
+				"DELETE a, b FROM {$wpdb->options} a, {$wpdb->options} b
+				WHERE a.option_name LIKE %s
 				AND a.option_name = CONCAT('_transient_timeout_', SUBSTRING(b.option_name, 12))
-				AND b.option_name LIKE %s 
+				AND b.option_name LIKE %s
 				AND b.option_value < %d",
 				'_transient_timeout_' . self::KEY_PREFIX . '%',
 				'_transient_' . self::KEY_PREFIX . '%',
@@ -344,8 +347,9 @@ final class CacheUtils {
 
 		$pattern = '_transient_' . $group . '_' . self::KEY_PREFIX . '%';
 
-		$deleted = // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
-		$wpdb->query(
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB ops
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $wpdb->options is a safe internal table reference
+		$deleted = $wpdb->query(
 			$wpdb->prepare(
 				"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s",
 				$pattern
@@ -354,8 +358,9 @@ final class CacheUtils {
 
 		// Also delete timeout transients.
 		$timeout_pattern = '_transient_timeout_' . $group . '_' . self::KEY_PREFIX . '%';
-		$timeout_deleted = // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
-		$wpdb->query(
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB ops
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $wpdb->options is a safe internal table reference
+		$timeout_deleted = $wpdb->query(
 			$wpdb->prepare(
 				"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s",
 				$timeout_pattern
@@ -439,8 +444,9 @@ final class CacheUtils {
 			$safe_pattern      = self::sanitize_key( $pattern );
 			$transient_pattern = '_transient_' . self::get_transient_key( $safe_pattern, $group );
 
-			$deleted = // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
-			$wpdb->query(
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB ops
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $wpdb->options is a safe internal table reference
+			$deleted = $wpdb->query(
 				$wpdb->prepare(
 					"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s",
 					str_replace( '*', '%', $transient_pattern )

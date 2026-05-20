@@ -99,7 +99,7 @@ class TaskTimeoutHandler extends BaseService {
 		}
 
 		// Log statistics every hour (when minute is 0, 5, 10, 15, etc divisible by 60)
-		$current_minute = intval( date( 'i' ) );
+		$current_minute = intval( gmdate( 'i' ) );
 		if ( $current_minute % 60 === 0 ) {
 			$this->log_timeout_statistics();
 		}
@@ -116,9 +116,10 @@ class TaskTimeoutHandler extends BaseService {
 		$count = 0;
 
 		// Find all generation tasks
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB ops
 		$tasks = $wpdb->get_results(
-			"SELECT option_name, option_value FROM $wpdb->options 
-			WHERE option_name LIKE '_transient_nuclen_bulk_job_%' 
+			"SELECT option_name, option_value FROM $wpdb->options
+			WHERE option_name LIKE '_transient_nuclen_bulk_job_%'
 			AND option_name NOT LIKE '_transient_timeout_%'
 			LIMIT 100"
 		);
@@ -151,9 +152,10 @@ class TaskTimeoutHandler extends BaseService {
 		$count = 0;
 
 		// Find all batch tasks
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB ops
 		$batches = $wpdb->get_results(
-			"SELECT option_name, option_value FROM $wpdb->options 
-			WHERE option_name LIKE '_transient_nuclen_batch_%' 
+			"SELECT option_name, option_value FROM $wpdb->options
+			WHERE option_name LIKE '_transient_nuclen_batch_%'
 			AND option_name NOT LIKE '_transient_timeout_%'
 			AND option_name NOT LIKE '%_results_%'
 			LIMIT 200"
@@ -319,6 +321,7 @@ class TaskTimeoutHandler extends BaseService {
 			try {
 				if ( $container && $container->has( 'admin_notice_service' ) ) {
 					$notice_service = $container->get( 'admin_notice_service' );
+					/* translators: %s: task ID */
 					$notice_service->add(
 						sprintf( __( 'Generation task %s timed out and was marked as failed.', 'nuclear-engagement' ), $task_id ),
 						'error'
@@ -452,21 +455,22 @@ class TaskTimeoutHandler extends BaseService {
 		$count = 0;
 		
 		// Find all generation tasks
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB ops
 		$tasks = $wpdb->get_results(
-			"SELECT option_name, option_value FROM $wpdb->options 
-			WHERE option_name LIKE '_transient_nuclen_bulk_job_%' 
+			"SELECT option_name, option_value FROM $wpdb->options
+			WHERE option_name LIKE '_transient_nuclen_bulk_job_%'
 			AND option_name NOT LIKE '_transient_timeout_%'
 			LIMIT 100"
 		);
-		
+
 		foreach ( $tasks as $task ) {
 			$task_id   = str_replace( '_transient_nuclen_bulk_job_', '', $task->option_name );
 			$task_data = maybe_unserialize( $task->option_value );
-			
+
 			if ( ! is_array( $task_data ) ) {
 				continue;
 			}
-			
+
 			// Only check active tasks
 			$status = $task_data['status'] ?? 'unknown';
 			if ( ! in_array( $status, array( 'processing', 'scheduled' ), true ) ) {
@@ -609,6 +613,7 @@ class TaskTimeoutHandler extends BaseService {
 			// Add admin notice
 			if ( $container->has( 'admin_notice_service' ) ) {
 				$notice_service = $container->get( 'admin_notice_service' );
+				/* translators: %s: task ID */
 				$notice_service->add(
 					sprintf( __( 'Generation task %s was orphaned and marked as failed.', 'nuclear-engagement' ), $task_id ),
 					'error'
@@ -717,10 +722,11 @@ class TaskTimeoutHandler extends BaseService {
 		// Clean up timeout records older than 24 hours
 		$cutoff = time() - DAY_IN_SECONDS;
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB ops, transient cleanup
 		$wpdb->query(
 			$wpdb->prepare(
-				"DELETE FROM $wpdb->options 
-				WHERE option_name LIKE %s 
+				"DELETE FROM $wpdb->options
+				WHERE option_name LIKE %s
 				AND option_value LIKE %s",
 				'_transient_nuclen_timeout_%',
 				'%"started_at";i:' . $cutoff . '%'

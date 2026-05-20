@@ -10,6 +10,10 @@ namespace NuclearEngagement\Services;
 use NuclearEngagement\Repositories\ThemeRepository;
 use NuclearEngagement\Models\Theme;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 class ThemeLoader {
 	private $repository;
 	private $loaded_themes    = array();

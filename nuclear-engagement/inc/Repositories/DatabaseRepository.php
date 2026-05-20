@@ -47,10 +47,14 @@ abstract class DatabaseRepository {
 	 */
 	protected function execute_query( string $query, array $params = array() ) {
 		if ( empty( $params ) ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB ops
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- caller is responsible for preparation
 			return $this->wpdb->query( $query );
 		}
 
 		$prepared = $this->wpdb->prepare( $query, ...$params );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB ops
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- query prepared above
 		return $this->wpdb->query( $prepared );
 	}
 
@@ -64,10 +68,14 @@ abstract class DatabaseRepository {
 	 */
 	protected function get_row( string $query, array $params = array(), string $output = OBJECT ) {
 		if ( empty( $params ) ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB ops
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- caller is responsible for preparation
 			return $this->wpdb->get_row( $query, $output );
 		}
 
 		$prepared = $this->wpdb->prepare( $query, ...$params );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB ops
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- query prepared above
 		return $this->wpdb->get_row( $prepared, $output );
 	}
 
@@ -81,10 +89,14 @@ abstract class DatabaseRepository {
 	 */
 	protected function get_results( string $query, array $params = array(), string $output = OBJECT ): array {
 		if ( empty( $params ) ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB ops
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- caller is responsible for preparation
 			return $this->wpdb->get_results( $query, $output ) ?: array();
 		}
 
 		$prepared = $this->wpdb->prepare( $query, ...$params );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB ops
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- query prepared above
 		return $this->wpdb->get_results( $prepared, $output ) ?: array();
 	}
 
@@ -99,10 +111,14 @@ abstract class DatabaseRepository {
 	 */
 	protected function get_var( string $query, array $params = array(), int $col_offset = 0, int $row_offset = 0 ) {
 		if ( empty( $params ) ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB ops
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- caller is responsible for preparation
 			return $this->wpdb->get_var( $query, $col_offset, $row_offset );
 		}
 
 		$prepared = $this->wpdb->prepare( $query, ...$params );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB ops
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- query prepared above
 		return $this->wpdb->get_var( $prepared, $col_offset, $row_offset );
 	}
 
@@ -115,6 +131,7 @@ abstract class DatabaseRepository {
 	 * @return int|false Insert ID on success, false on error.
 	 */
 	protected function insert( string $table, array $data, $format = null ) {
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB ops
 		$result = $this->wpdb->insert( $table, $data, $format );
 
 		if ( $result === false ) {
@@ -135,6 +152,7 @@ abstract class DatabaseRepository {
 	 * @return int|false Number of rows updated or false on error.
 	 */
 	protected function update( string $table, array $data, array $where, $format = null, $where_format = null ) {
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB ops
 		return $this->wpdb->update( $table, $data, $where, $format, $where_format );
 	}
 
@@ -147,6 +165,7 @@ abstract class DatabaseRepository {
 	 * @return int|false Number of rows deleted or false on error.
 	 */
 	protected function delete( string $table, array $where, $where_format = null ) {
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB ops
 		return $this->wpdb->delete( $table, $where, $where_format );
 	}
 

@@ -52,6 +52,7 @@ if ( file_exists( $log_file ) ) :
 <p style="margin-top: 20px;">
 	<?php
 	printf(
+		/* translators: %1$s: opening anchor tag, %2$s: closing anchor tag */
 		esc_html__( 'For faster results, attach this %1$slog file%2$s to your support request.', 'nuclear-engagement' ),
 		'<a href="' . esc_url( $log_url ) . '" target="_blank" rel="noopener noreferrer">',
 		'</a>'

@@ -54,7 +54,7 @@ trait AdminAjax {
 	 */
 	public function nuclen_load_editor_assets() {
 		// Verify nonce
-		if ( ! wp_verify_nonce( $_POST['nonce'] ?? '', 'nuclen_load_assets' ) ) {
+		if ( ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['nonce'] ?? '' ) ), 'nuclen_load_assets' ) ) {
 			wp_die( 'Security check failed' );
 		}
 

@@ -342,6 +342,7 @@ final class RateLimiter {
 		global $wpdb;
 
 		// Get count of active rate limits.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- rate limiter requires direct DB
 		$rate_limit_count = $wpdb->get_var(
 			$wpdb->prepare(
 				"SELECT COUNT(*) FROM {$wpdb->options} WHERE option_name LIKE %s",
@@ -350,6 +351,7 @@ final class RateLimiter {
 		);
 
 		// Get count of active blocks.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- rate limiter requires direct DB
 		$block_count = $wpdb->get_var(
 			$wpdb->prepare(
 				"SELECT COUNT(*) FROM {$wpdb->options} WHERE option_name LIKE %s",
@@ -358,6 +360,7 @@ final class RateLimiter {
 		);
 
 		// Get count of violations.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- rate limiter requires direct DB
 		$violation_count = $wpdb->get_var(
 			$wpdb->prepare(
 				"SELECT COUNT(*) FROM {$wpdb->options} WHERE option_name LIKE %s",
@@ -393,8 +396,8 @@ final class RateLimiter {
 		);
 
 		foreach ( $prefixes as $prefix ) {
-			$deleted = // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
-			$wpdb->query(
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- rate limiter requires direct DB
+			$deleted = $wpdb->query(
 				$wpdb->prepare(
 					"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s AND option_value < %d",
 					$prefix . '%',

@@ -153,7 +153,7 @@ class AdminNoticeService {
 			'<div class="%s" data-notice-id="%s">%s</div>',
 			esc_attr( $class ),
 			esc_attr( $notice['id'] ),
-			$content
+			wp_kses_post( $content )
 		);
 
 		// Add inline script for dismissal handling
@@ -212,7 +212,7 @@ class AdminNoticeService {
 	public function ajax_dismiss_notice(): void {
 		check_ajax_referer( 'nuclen_dismiss_notice' );
 
-		$notice_id = sanitize_text_field( $_POST['notice_id'] ?? '' );
+		$notice_id = sanitize_key( wp_unslash( $_POST['notice_id'] ?? '' ) );
 		if ( empty( $notice_id ) ) {
 			wp_die();
 		}
@@ -259,6 +259,7 @@ class AdminNoticeService {
 
 		if ( $fail_count === 0 ) {
 			// All successful
+			/* translators: %1$s: content type (quizzes/summaries), %2$d: post count, %3$s: dashboard URL */
 			$message = sprintf(
 				__( 'Generation completed successfully! Generated %1$s for %2$d posts. <a href="%3$s">View generation tasks</a>', 'nuclear-engagement' ),
 				$workflow_type === 'quiz' ? __( 'quizzes', 'nuclear-engagement' ) : __( 'summaries', 'nuclear-engagement' ),
@@ -268,6 +269,7 @@ class AdminNoticeService {
 			$type    = 'success';
 		} else {
 			// Some failures
+			/* translators: %1$d: success count, %2$d: failure count, %3$s: dashboard URL */
 			$message = sprintf(
 				__( 'Generation completed with errors. Successfully generated %1$d, failed %2$d. <a href="%3$s">View generation tasks</a>', 'nuclear-engagement' ),
 				$success_count,
@@ -290,6 +292,7 @@ class AdminNoticeService {
 	public function add_generation_failure_notice( string $generation_id, string $error_message ): void {
 		$dashboard_url = admin_url( 'admin.php?page=nuclear-engagement' );
 
+		/* translators: %1$s: error message, %2$s: dashboard URL */
 		$message = sprintf(
 			__( 'Generation failed: %1$s. <a href="%2$s">View generation tasks</a>', 'nuclear-engagement' ),
 			esc_html( $error_message ),

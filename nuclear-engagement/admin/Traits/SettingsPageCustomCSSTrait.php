@@ -48,114 +48,101 @@ trait SettingsPageCustomCSSTrait {
 		/* ── Security fix: Sanitize all CSS values to prevent injection attacks ── */
 		$s = CssSanitizer::sanitize_css_settings( $s );
 
-		$css = <<<CSS
-:root{
-/* ───── Modern Design System Integration ───── */
-/* Map user settings to design tokens while maintaining backward compatibility */
-
-/* ───── Quiz container ───── */
---nuclen-fg-color: {$s['font_color']};
-	--nuclen-quiz-font-color: {$s['font_color']};
-	--nuclen-quiz-bg-color: {$s['bg_color']};
-	--nuclen-quiz-border-color: {$s['quiz_border_color']};
-	--nuclen-quiz-border-style: {$s['quiz_border_style']};
-	--nuclen-quiz-border-width: {$s['quiz_border_width']}px;
-	--nuclen-quiz-border-radius: {$s['quiz_border_radius']}px;
-	--nuclen-quiz-shadow-color: {$s['quiz_shadow_color']};
-	--nuclen-quiz-shadow-blur: {$s['quiz_shadow_blur']}px;
-
-	/* ───── Quiz answer buttons ───── */
-	--nuclen-quiz-button-bg: {$s['quiz_answer_button_bg_color']};
-	--nuclen-quiz-button-border-color: {$s['quiz_answer_button_border_color']};
-	--nuclen-quiz-button-border-width: {$s['quiz_answer_button_border_width']}px;
-	--nuclen-quiz-button-border-radius: {$s['quiz_answer_button_border_radius']}px;
-
-	/* ───── Progress bar ───── */
-	--nuclen-quiz-progress-fg: {$s['quiz_progress_bar_fg_color']};
-	--nuclen-quiz-progress-bg: {$s['quiz_progress_bar_bg_color']};
-	--nuclen-quiz-progress-height: {$s['quiz_progress_bar_height']}px;
-
-	/* ───── Summary container ───── */
-	--nuclen-summary-font-color: {$s['summary_font_color']};
-	--nuclen-summary-bg-color: {$s['summary_bg_color']};
-	--nuclen-summary-border-color: {$s['summary_border_color']};
-	--nuclen-summary-border-style: {$s['summary_border_style']};
-	--nuclen-summary-border-width: {$s['summary_border_width']}px;
-	--nuclen-summary-border-radius: {$s['summary_border_radius']}px;
-	--nuclen-summary-shadow-color: {$s['summary_shadow_color']};
-	--nuclen-summary-shadow-blur: {$s['summary_shadow_blur']}px;
-
-	/* ───── TOC container ───── */
-	--nuclen-toc-font-size: {$s['toc_font_size']}px;
-	--nuclen-toc-font-color: {$s['toc_font_color']};
-	--nuclen-toc-bg-color: {$s['toc_bg_color']};
-	--nuclen-toc-border-color: {$s['toc_border_color']};
-	--nuclen-toc-border-style: {$s['toc_border_style']};
-	--nuclen-toc-border-width: {$s['toc_border_width']}px;
-	--nuclen-toc-border-radius: {$s['toc_border_radius']}px;
-	--nuclen-toc-shadow-color: {$s['toc_shadow_color']};
-	--nuclen-toc-shadow-blur: {$s['toc_shadow_blur']}px;
-	--nuclen-toc-link: {$s['toc_link_color']};
-	--nuclen-toc-sticky-max-width: {$s['toc_sticky_max_width']}px;
-
-	/* ───── Design System Overrides ───── */
-	/* Override design tokens with user customizations */
-	--ne-text-primary: {$s['font_color']};
-	--ne-bg-primary: {$s['bg_color']};
-	--ne-border-primary: {$s['quiz_border_color']};
-	--ne-color-primary-500: {$s['quiz_answer_button_border_color']};
-	--ne-color-primary-100: color-mix(in srgb, {$s['quiz_answer_button_border_color']} 20%, transparent);
-	--ne-color-primary-050: color-mix(in srgb, {$s['quiz_answer_button_border_color']} 10%, transparent);
-
-	/* ───── Legacy fallbacks ───── */
-	--nuclen-fg-color: var(--nuclen-quiz-font-color);
-	--nuclen-border-color: var(--nuclen-quiz-border-color);
-	--nuclen-border-style: var(--nuclen-quiz-border-style);
-	--nuclen-border-width: var(--nuclen-quiz-border-width);
-	--nuclen-border-radius: var(--nuclen-quiz-border-radius);
-	--nuclen-progress-fg: var(--nuclen-quiz-progress-fg);
-	--nuclen-progress-bg: var(--nuclen-quiz-progress-bg);
-}
-
-/* ─── Apply variables to actual elements ─── */
-.nuclen-root .nuclen-quiz{
-	border: var(--nuclen-quiz-border-width) var(--nuclen-quiz-border-style) var(--nuclen-quiz-border-color);
-	border-radius: var(--nuclen-quiz-border-radius);
-	box-shadow: 0 0 var(--nuclen-quiz-shadow-blur) var(--nuclen-quiz-shadow-color);
-	background: var(--nuclen-quiz-bg-color);
-	color: var(--nuclen-quiz-font-color, var(--nuclen-fg-color));
-}
-
-.nuclen-root .nuclen-summary{
-	border: var(--nuclen-summary-border-width) var(--nuclen-summary-border-style) var(--nuclen-summary-border-color);
-	border-radius: var(--nuclen-summary-border-radius);
-	box-shadow: 0 0 var(--nuclen-summary-shadow-blur) var(--nuclen-summary-shadow-color);
-	background: var(--nuclen-summary-bg-color);
-	color: var(--nuclen-summary-font-color, var(--nuclen-fg-color));
-}
-
-.nuclen-root .nuclen-toc-wrapper{
-	font-size: var(--nuclen-toc-font-size);
-	border: var(--nuclen-toc-border-width) var(--nuclen-toc-border-style) var(--nuclen-toc-border-color);
-	border-radius: var(--nuclen-toc-border-radius);
-	box-shadow: 0 0 var(--nuclen-toc-shadow-blur) var(--nuclen-toc-shadow-color);
-	background: var(--nuclen-toc-bg-color);
-	color: var(--nuclen-toc-font-color);
-}
-.nuclen-root .nuclen-toc-wrapper a{
-	color: var(--nuclen-toc-link);
-}
-
-.nuclen-root #nuclen-quiz-progress-bar-container{
-	background: var(--nuclen-quiz-progress-bg);
-	height: var(--nuclen-quiz-progress-height);
-}
-.nuclen-root #nuclen-quiz-progress-bar{
-	background: var(--nuclen-quiz-progress-fg);
-	height: 100%;
-width: 0;
-}
-CSS;
+		$css  = ':root{' . "\n";
+		$css .= '/* ───── Modern Design System Integration ───── */' . "\n";
+		$css .= '/* Map user settings to design tokens while maintaining backward compatibility */' . "\n\n";
+		$css .= '/* ───── Quiz container ───── */' . "\n";
+		$css .= '--nuclen-fg-color: ' . $s['font_color'] . ';' . "\n";
+		$css .= '	--nuclen-quiz-font-color: ' . $s['font_color'] . ';' . "\n";
+		$css .= '	--nuclen-quiz-bg-color: ' . $s['bg_color'] . ';' . "\n";
+		$css .= '	--nuclen-quiz-border-color: ' . $s['quiz_border_color'] . ';' . "\n";
+		$css .= '	--nuclen-quiz-border-style: ' . $s['quiz_border_style'] . ';' . "\n";
+		$css .= '	--nuclen-quiz-border-width: ' . $s['quiz_border_width'] . 'px;' . "\n";
+		$css .= '	--nuclen-quiz-border-radius: ' . $s['quiz_border_radius'] . 'px;' . "\n";
+		$css .= '	--nuclen-quiz-shadow-color: ' . $s['quiz_shadow_color'] . ';' . "\n";
+		$css .= '	--nuclen-quiz-shadow-blur: ' . $s['quiz_shadow_blur'] . 'px;' . "\n\n";
+		$css .= '	/* ───── Quiz answer buttons ───── */' . "\n";
+		$css .= '	--nuclen-quiz-button-bg: ' . $s['quiz_answer_button_bg_color'] . ';' . "\n";
+		$css .= '	--nuclen-quiz-button-border-color: ' . $s['quiz_answer_button_border_color'] . ';' . "\n";
+		$css .= '	--nuclen-quiz-button-border-width: ' . $s['quiz_answer_button_border_width'] . 'px;' . "\n";
+		$css .= '	--nuclen-quiz-button-border-radius: ' . $s['quiz_answer_button_border_radius'] . 'px;' . "\n\n";
+		$css .= '	/* ───── Progress bar ───── */' . "\n";
+		$css .= '	--nuclen-quiz-progress-fg: ' . $s['quiz_progress_bar_fg_color'] . ';' . "\n";
+		$css .= '	--nuclen-quiz-progress-bg: ' . $s['quiz_progress_bar_bg_color'] . ';' . "\n";
+		$css .= '	--nuclen-quiz-progress-height: ' . $s['quiz_progress_bar_height'] . 'px;' . "\n\n";
+		$css .= '	/* ───── Summary container ───── */' . "\n";
+		$css .= '	--nuclen-summary-font-color: ' . $s['summary_font_color'] . ';' . "\n";
+		$css .= '	--nuclen-summary-bg-color: ' . $s['summary_bg_color'] . ';' . "\n";
+		$css .= '	--nuclen-summary-border-color: ' . $s['summary_border_color'] . ';' . "\n";
+		$css .= '	--nuclen-summary-border-style: ' . $s['summary_border_style'] . ';' . "\n";
+		$css .= '	--nuclen-summary-border-width: ' . $s['summary_border_width'] . 'px;' . "\n";
+		$css .= '	--nuclen-summary-border-radius: ' . $s['summary_border_radius'] . 'px;' . "\n";
+		$css .= '	--nuclen-summary-shadow-color: ' . $s['summary_shadow_color'] . ';' . "\n";
+		$css .= '	--nuclen-summary-shadow-blur: ' . $s['summary_shadow_blur'] . 'px;' . "\n\n";
+		$css .= '	/* ───── TOC container ───── */' . "\n";
+		$css .= '	--nuclen-toc-font-size: ' . $s['toc_font_size'] . 'px;' . "\n";
+		$css .= '	--nuclen-toc-font-color: ' . $s['toc_font_color'] . ';' . "\n";
+		$css .= '	--nuclen-toc-bg-color: ' . $s['toc_bg_color'] . ';' . "\n";
+		$css .= '	--nuclen-toc-border-color: ' . $s['toc_border_color'] . ';' . "\n";
+		$css .= '	--nuclen-toc-border-style: ' . $s['toc_border_style'] . ';' . "\n";
+		$css .= '	--nuclen-toc-border-width: ' . $s['toc_border_width'] . 'px;' . "\n";
+		$css .= '	--nuclen-toc-border-radius: ' . $s['toc_border_radius'] . 'px;' . "\n";
+		$css .= '	--nuclen-toc-shadow-color: ' . $s['toc_shadow_color'] . ';' . "\n";
+		$css .= '	--nuclen-toc-shadow-blur: ' . $s['toc_shadow_blur'] . 'px;' . "\n";
+		$css .= '	--nuclen-toc-link: ' . $s['toc_link_color'] . ';' . "\n";
+		$css .= '	--nuclen-toc-sticky-max-width: ' . $s['toc_sticky_max_width'] . 'px;' . "\n\n";
+		$css .= '	/* ───── Design System Overrides ───── */' . "\n";
+		$css .= '	/* Override design tokens with user customizations */' . "\n";
+		$css .= '	--ne-text-primary: ' . $s['font_color'] . ';' . "\n";
+		$css .= '	--ne-bg-primary: ' . $s['bg_color'] . ';' . "\n";
+		$css .= '	--ne-border-primary: ' . $s['quiz_border_color'] . ';' . "\n";
+		$css .= '	--ne-color-primary-500: ' . $s['quiz_answer_button_border_color'] . ';' . "\n";
+		$css .= '	--ne-color-primary-100: color-mix(in srgb, ' . $s['quiz_answer_button_border_color'] . ' 20%, transparent);' . "\n";
+		$css .= '	--ne-color-primary-050: color-mix(in srgb, ' . $s['quiz_answer_button_border_color'] . ' 10%, transparent);' . "\n\n";
+		$css .= '	/* ───── Legacy fallbacks ───── */' . "\n";
+		$css .= '	--nuclen-fg-color: var(--nuclen-quiz-font-color);' . "\n";
+		$css .= '	--nuclen-border-color: var(--nuclen-quiz-border-color);' . "\n";
+		$css .= '	--nuclen-border-style: var(--nuclen-quiz-border-style);' . "\n";
+		$css .= '	--nuclen-border-width: var(--nuclen-quiz-border-width);' . "\n";
+		$css .= '	--nuclen-border-radius: var(--nuclen-quiz-border-radius);' . "\n";
+		$css .= '	--nuclen-progress-fg: var(--nuclen-quiz-progress-fg);' . "\n";
+		$css .= '	--nuclen-progress-bg: var(--nuclen-quiz-progress-bg);' . "\n";
+		$css .= '}' . "\n\n";
+		$css .= '/* ─── Apply variables to actual elements ─── */' . "\n";
+		$css .= '.nuclen-root .nuclen-quiz{' . "\n";
+		$css .= '	border: var(--nuclen-quiz-border-width) var(--nuclen-quiz-border-style) var(--nuclen-quiz-border-color);' . "\n";
+		$css .= '	border-radius: var(--nuclen-quiz-border-radius);' . "\n";
+		$css .= '	box-shadow: 0 0 var(--nuclen-quiz-shadow-blur) var(--nuclen-quiz-shadow-color);' . "\n";
+		$css .= '	background: var(--nuclen-quiz-bg-color);' . "\n";
+		$css .= '	color: var(--nuclen-quiz-font-color, var(--nuclen-fg-color));' . "\n";
+		$css .= '}' . "\n\n";
+		$css .= '.nuclen-root .nuclen-summary{' . "\n";
+		$css .= '	border: var(--nuclen-summary-border-width) var(--nuclen-summary-border-style) var(--nuclen-summary-border-color);' . "\n";
+		$css .= '	border-radius: var(--nuclen-summary-border-radius);' . "\n";
+		$css .= '	box-shadow: 0 0 var(--nuclen-summary-shadow-blur) var(--nuclen-summary-shadow-color);' . "\n";
+		$css .= '	background: var(--nuclen-summary-bg-color);' . "\n";
+		$css .= '	color: var(--nuclen-summary-font-color, var(--nuclen-fg-color));' . "\n";
+		$css .= '}' . "\n\n";
+		$css .= '.nuclen-root .nuclen-toc-wrapper{' . "\n";
+		$css .= '	font-size: var(--nuclen-toc-font-size);' . "\n";
+		$css .= '	border: var(--nuclen-toc-border-width) var(--nuclen-toc-border-style) var(--nuclen-toc-border-color);' . "\n";
+		$css .= '	border-radius: var(--nuclen-toc-border-radius);' . "\n";
+		$css .= '	box-shadow: 0 0 var(--nuclen-toc-shadow-blur) var(--nuclen-toc-shadow-color);' . "\n";
+		$css .= '	background: var(--nuclen-toc-bg-color);' . "\n";
+		$css .= '	color: var(--nuclen-toc-font-color);' . "\n";
+		$css .= '}' . "\n";
+		$css .= '.nuclen-root .nuclen-toc-wrapper a{' . "\n";
+		$css .= '	color: var(--nuclen-toc-link);' . "\n";
+		$css .= '}' . "\n\n";
+		$css .= '.nuclen-root #nuclen-quiz-progress-bar-container{' . "\n";
+		$css .= '	background: var(--nuclen-quiz-progress-bg);' . "\n";
+		$css .= '	height: var(--nuclen-quiz-progress-height);' . "\n";
+		$css .= '}' . "\n";
+		$css .= '.nuclen-root #nuclen-quiz-progress-bar{' . "\n";
+		$css .= '	background: var(--nuclen-quiz-progress-fg);' . "\n";
+		$css .= '	height: 100%;' . "\n";
+		$css .= '	width: 0;' . "\n";
+		$css .= '}' . "\n";
 		return $css;
 	}
 

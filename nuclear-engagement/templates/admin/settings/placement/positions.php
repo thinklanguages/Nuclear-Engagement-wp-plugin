@@ -1,3 +1,9 @@
+<?php
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- template-scoped variables, not global
+?>
 <!-- Display positions -->
 <!-- SUMMARY -->
 <div class="nuclen-form-group nuclen-row">
@@ -10,7 +16,7 @@
 						<option value="before" <?php selected( $settings['display_summary'], 'before' ); ?>><?php esc_html_e( 'Before post content', 'nuclear-engagement' ); ?></option>
 						<option value="after"  <?php selected( $settings['display_summary'], 'after' ); ?>><?php esc_html_e( 'After post content', 'nuclear-engagement' ); ?></option>
 				</select>
-				<p class="description"><?php printf( wp_kses( __( 'Shortcode: <b>%s</b>.', 'nuclear-engagement' ), array( 'b' => array() ) ), '[nuclear_engagement_summary]' ); ?></p>
+				<p class="description"><?php printf( wp_kses( /* translators: %s: shortcode tag */ __( 'Shortcode: <b>%s</b>.', 'nuclear-engagement' ), array( 'b' => array() ) ), '[nuclear_engagement_summary]' ); ?></p>
 		</div>
 </div>
 
@@ -25,7 +31,7 @@
 						<option value="before" <?php selected( $settings['display_quiz'], 'before' ); ?>><?php esc_html_e( 'Before post content', 'nuclear-engagement' ); ?></option>
 						<option value="after"  <?php selected( $settings['display_quiz'], 'after' ); ?>><?php esc_html_e( 'After post content', 'nuclear-engagement' ); ?></option>
 				</select>
-				<p class="description"><?php printf( wp_kses( __( 'Shortcode: <b>%s</b>.', 'nuclear-engagement' ), array( 'b' => array() ) ), '[nuclear_engagement_quiz]' ); ?></p>
+				<p class="description"><?php printf( wp_kses( /* translators: %s: shortcode tag */ __( 'Shortcode: <b>%s</b>.', 'nuclear-engagement' ), array( 'b' => array() ) ), '[nuclear_engagement_quiz]' ); ?></p>
 		</div>
 </div>
 
@@ -40,6 +46,7 @@
 						<option value="before" <?php selected( $settings['display_toc'] ?? 'manual', 'before' ); ?>><?php esc_html_e( 'Before post content', 'nuclear-engagement' ); ?></option>
 						<option value="after"  <?php selected( $settings['display_toc'] ?? 'manual', 'after' ); ?>><?php esc_html_e( 'After post content', 'nuclear-engagement' ); ?></option>
 				</select>
-				<p class="description"><?php printf( wp_kses( __( 'Shortcode: <b>%s</b>.', 'nuclear-engagement' ), array( 'b' => array() ) ), '[nuclear_engagement_toc]' ); ?></p>
+				<p class="description"><?php printf( wp_kses( /* translators: %s: shortcode tag */ __( 'Shortcode: <b>%s</b>.', 'nuclear-engagement' ), array( 'b' => array() ) ), '[nuclear_engagement_toc]' ); ?></p>
 		</div>
 </div>
+<?php // phpcs:enable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound ?>

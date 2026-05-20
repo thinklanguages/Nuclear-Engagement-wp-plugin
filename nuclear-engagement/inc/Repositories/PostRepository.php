@@ -72,6 +72,7 @@ class PostRepository extends AbstractRepository {
 			'posts_per_page'         => $limit > 0 ? $limit : -1,
 			'offset'                 => $offset,
 			'fields'                 => 'ids',
+			// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- intentional meta lookup
 			'meta_query'             => $this->build_meta_query( $meta_criteria ),
 			'orderby'                => $order_by,
 			'update_post_meta_cache' => false,
@@ -140,6 +141,7 @@ class PostRepository extends AbstractRepository {
 			'post_status'            => $criteria['post_status'] ?? 'publish',
 			'posts_per_page'         => -1,
 			'fields'                 => 'ids',
+			// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- intentional meta lookup
 			'meta_query'             => $this->build_meta_query( $meta_criteria ),
 			'update_post_meta_cache' => false,
 			'update_post_term_cache' => false,

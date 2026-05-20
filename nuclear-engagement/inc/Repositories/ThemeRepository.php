@@ -20,8 +20,9 @@ class ThemeRepository {
 	public function find( $id ) {
 		global $wpdb;
 
-		$row = // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-		$wpdb->get_row(
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB ops
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- table name is a validated internal value
+		$row = $wpdb->get_row(
 			$wpdb->prepare(
 				"SELECT * FROM {$this->table_name} WHERE id = %d",
 				$id
@@ -35,8 +36,9 @@ class ThemeRepository {
 	public function find_by_name( $name ) {
 		global $wpdb;
 
-		$row = // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-		$wpdb->get_row(
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB ops
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- table name is a validated internal value
+		$row = $wpdb->get_row(
 			$wpdb->prepare(
 				"SELECT * FROM {$this->table_name} WHERE name = %s",
 				$name
@@ -50,8 +52,9 @@ class ThemeRepository {
 	public function get_active() {
 		global $wpdb;
 
-		$row = // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-		$wpdb->get_row(
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB ops
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- table name is a validated internal value, no user input
+		$row = $wpdb->get_row(
 			"SELECT * FROM {$this->table_name} WHERE is_active = 1 LIMIT 1",
 			ARRAY_A
 		);
@@ -62,14 +65,17 @@ class ThemeRepository {
 	public function get_all( $type = null ) {
 		global $wpdb;
 
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- table name is a validated internal value
 		$query = "SELECT * FROM {$this->table_name}";
 		if ( $type ) {
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- base SQL is safe, only user value is prepared
 			$query = $wpdb->prepare( $query . ' WHERE type = %s', $type );
 		}
 		$query .= ' ORDER BY name ASC';
 
-		$rows = // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-		$wpdb->get_results( $query, ARRAY_A );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB ops
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQL.UnescapedDBParameter -- table identifier is escaped/validated
+		$rows = $wpdb->get_results( $query, ARRAY_A );
 
 		return array_map(
 			function ( $row ) {
@@ -92,6 +98,7 @@ class ThemeRepository {
 		);
 
 		if ( $theme->id ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB ops
 			$result = $wpdb->update(
 				$this->table_name,
 				$data,
@@ -104,6 +111,7 @@ class ThemeRepository {
 				return false;
 			}
 		} else {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB ops
 			$result = $wpdb->insert(
 				$this->table_name,
 				$data,
@@ -123,6 +131,7 @@ class ThemeRepository {
 	public function delete( $id ) {
 		global $wpdb;
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB ops
 		return $wpdb->delete(
 			$this->table_name,
 			array( 'id' => $id ),
@@ -138,11 +147,14 @@ class ThemeRepository {
 
 		try {
 			// First deactivate all themes
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB ops
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- table name is a validated internal value, no user input
 			$deactivate_result = $wpdb->query(
 				"UPDATE {$this->table_name} SET is_active = 0 WHERE is_active = 1"
 			);
 
 			// Then activate the selected theme
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB ops
 			$activate_result = $wpdb->update(
 				$this->table_name,
 				array( 'is_active' => 1 ),
@@ -169,10 +181,9 @@ class ThemeRepository {
 		global $wpdb;
 
 		// Use prepared statement for security.
-		return // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery
-
-		$wpdb->query(
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB ops
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- table name is a validated internal value
+		return $wpdb->query(
 			$wpdb->prepare(
 				"UPDATE {$this->table_name} SET is_active = 0"
 			)

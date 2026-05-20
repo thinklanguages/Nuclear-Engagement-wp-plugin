@@ -34,17 +34,21 @@ class BulkGenerationTimeoutHandler {
 
 		// Set extended timeout for bulk operations
 		if ( function_exists( 'set_time_limit' ) ) {
+			// phpcs:ignore Squiz.PHP.DiscouragedFunctions.Discouraged -- long-running batch processor
 			@set_time_limit( 300 ); // 5 minutes
 		}
 
 		// Increase memory limit for bulk operations
 		if ( function_exists( 'ini_set' ) ) {
+			// phpcs:ignore Squiz.PHP.DiscouragedFunctions.Discouraged -- long-running batch processor
 			@ini_set( 'memory_limit', '512M' );
 		}
 
 		// Disable output compression to prevent buffering issues
 		if ( ! headers_sent() ) {
+			// phpcs:ignore Squiz.PHP.DiscouragedFunctions.Discouraged -- long-running batch processor
 			@ini_set( 'zlib.output_compression', '0' );
+			// phpcs:ignore Squiz.PHP.DiscouragedFunctions.Discouraged -- long-running batch processor
 			@ini_set( 'implicit_flush', '1' );
 			@ob_implicit_flush( true );
 		}
@@ -64,9 +68,11 @@ class BulkGenerationTimeoutHandler {
 	public static function restore_timeout( array $original_values ): void {
 		if ( function_exists( 'ini_set' ) && ! empty( $original_values ) ) {
 			if ( isset( $original_values['max_execution_time'] ) ) {
+				// phpcs:ignore Squiz.PHP.DiscouragedFunctions.Discouraged -- long-running batch processor
 				@ini_set( 'max_execution_time', $original_values['max_execution_time'] );
 			}
 			if ( isset( $original_values['memory_limit'] ) ) {
+				// phpcs:ignore Squiz.PHP.DiscouragedFunctions.Discouraged -- long-running batch processor
 				@ini_set( 'memory_limit', $original_values['memory_limit'] );
 			}
 		}

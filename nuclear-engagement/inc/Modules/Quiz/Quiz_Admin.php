@@ -79,7 +79,7 @@ final class Quiz_Admin {
 
 	/** Save quiz meta on post save. */
 	public function save_meta( int $post_id ): void {
-		$nonce = $_POST['nuclen_quiz_data_nonce'] ?? '';
+		$nonce = sanitize_text_field( wp_unslash( $_POST['nuclen_quiz_data_nonce'] ?? '' ) );
 		if ( ! wp_verify_nonce( $nonce, 'nuclen_quiz_data_nonce' ) ) {
 			return;
 		}
@@ -90,8 +90,9 @@ final class Quiz_Admin {
 			return;
 		}
 
-		$raw_quiz_data = $_POST['nuclen_quiz_data'] ?? array();
-		$raw_quiz_data = is_array( $raw_quiz_data ) ? wp_unslash( $raw_quiz_data ) : array();
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- sanitized structurally by save_quiz_data
+		$raw_quiz_data = wp_unslash( $_POST['nuclen_quiz_data'] ?? array() );
+		$raw_quiz_data = is_array( $raw_quiz_data ) ? $raw_quiz_data : array();
 
 		$this->service->save_quiz_data( $post_id, $raw_quiz_data );
 

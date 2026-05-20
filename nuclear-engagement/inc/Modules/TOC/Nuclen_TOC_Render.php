@@ -50,18 +50,6 @@ final class Nuclen_TOC_Render {
 		$this->settings = $settings;
 
 		add_shortcode( 'nuclear_engagement_toc', array( $this, 'nuclen_toc_shortcode' ) );
-
-		// i18n for strings inside this class.
-		add_action(
-			'init',
-			static function () {
-				load_plugin_textdomain(
-					'nuclen-toc-shortcode',
-					false,
-					dirname( plugin_basename( NUCLEN_TOC_DIR ) ) . '/languages'
-				);
-			}
-		);
 	}
 
 	/**

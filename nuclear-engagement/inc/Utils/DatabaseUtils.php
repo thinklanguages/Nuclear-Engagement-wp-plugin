@@ -45,7 +45,7 @@ final class DatabaseUtils {
 	public static function get_table_name( string $suffix ): string {
 		// Validate suffix is in allowed list.
 		if ( ! in_array( $suffix, self::ALLOWED_TABLE_SUFFIXES, true ) ) {
-			throw new \InvalidArgumentException( "Table suffix '{$suffix}' is not allowed" );
+			throw new \InvalidArgumentException( esc_html( "Table suffix '{$suffix}' is not allowed" ) );
 		}
 
 		global $wpdb;
@@ -86,7 +86,7 @@ final class DatabaseUtils {
 
 		// Validate the table name format.
 		if ( ! preg_match( '/^[a-zA-Z0-9_]+$/', $table_name ) ) {
-			throw new \InvalidArgumentException( 'Invalid table name format' );
+			throw new \InvalidArgumentException( esc_html( 'Invalid table name format' ) );
 		}
 
 		// Use WordPress escaping.
@@ -122,7 +122,7 @@ final class DatabaseUtils {
 			} else {
 				// Validate column name format.
 				if ( ! preg_match( '/^[a-zA-Z0-9_]+$/', $column ) ) {
-					throw new \InvalidArgumentException( "Invalid column name: {$column}" );
+					throw new \InvalidArgumentException( esc_html( "Invalid column name: {$column}" ) );
 				}
 				$escaped_columns[] = esc_sql( $column );
 			}
@@ -136,7 +136,7 @@ final class DatabaseUtils {
 			foreach ( $where as $column => $value ) {
 				// Validate column name.
 				if ( ! preg_match( '/^[a-zA-Z0-9_]+$/', $column ) ) {
-					throw new \InvalidArgumentException( "Invalid WHERE column: {$column}" );
+					throw new \InvalidArgumentException( esc_html( "Invalid WHERE column: {$column}" ) );
 				}
 
 				$escaped_column = esc_sql( $column );
@@ -158,7 +158,7 @@ final class DatabaseUtils {
 			foreach ( $order_by as $column => $direction ) {
 				// Validate column name.
 				if ( ! preg_match( '/^[a-zA-Z0-9_]+$/', $column ) ) {
-					throw new \InvalidArgumentException( "Invalid ORDER BY column: {$column}" );
+					throw new \InvalidArgumentException( esc_html( "Invalid ORDER BY column: {$column}" ) );
 				}
 
 				// Validate direction.
@@ -190,9 +190,10 @@ final class DatabaseUtils {
 	public static function execute_query( string $query, string $operation = 'database_operation' ) {
 		global $wpdb;
 
-		$start_time     = microtime( true );
-		$result         = // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
-		$wpdb->query( $query );
+		$start_time = microtime( true );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB ops
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- caller is responsible for preparation
+		$result = $wpdb->query( $query );
 		$execution_time = microtime( true ) - $start_time;
 
 		// Log query execution.
@@ -249,6 +250,8 @@ final class DatabaseUtils {
 		$escaped_table = self::escape_table_name( $table_name );
 		$query         = $wpdb->prepare( 'SHOW TABLES LIKE %s', $escaped_table );
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB ops
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- query prepared above
 		$result = $wpdb->get_var( $query );
 
 		return $result === $escaped_table;

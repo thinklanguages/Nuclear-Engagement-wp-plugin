@@ -8,6 +8,7 @@
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- template-scoped variables, not global
 
 wp_nonce_field( 'nuclen_quiz_data_nonce', 'nuclen_quiz_data_nonce' );
 ?>
@@ -40,7 +41,7 @@ for ( $q_index = 0; $q_index < 10; $q_index++ ) :
 	$answers = array_pad( $answers, 4, '' );
 	?>
 	<div class="nuclen-quiz-metabox-question">
-		<h4><?php printf( esc_html__( 'Question %d', 'nuclear-engagement' ), $q_index + 1 ); ?></h4>
+		<h4><?php printf( /* translators: %d: question number */ esc_html__( 'Question %d', 'nuclear-engagement' ), esc_attr( $q_index + 1 ) ); ?></h4>
 		<input type="text" name="nuclen_quiz_data[questions][<?php echo esc_attr( $q_index ); ?>][question]" value="<?php echo esc_attr( $q_text ); ?>" class="nuclen-width-full" />
 		<p><strong><?php esc_html_e( 'Answers', 'nuclear-engagement' ); ?></strong></p>
 		<?php
@@ -52,7 +53,7 @@ for ( $q_index = 0; $q_index < 10; $q_index++ ) :
 					<?php esc_html_e( 'Correct answer', 'nuclear-engagement' ); ?>
 					<span nuclen-tooltip="<?php esc_attr_e( 'Enter the correct answer here. Its position will be randomized when visitors open the page.', 'nuclear-engagement' ); ?>">🛈</span>
 				<?php else : ?>
-					<?php printf( esc_html__( 'Answer %d', 'nuclear-engagement' ), $a_index + 1 ); ?>
+					<?php printf( /* translators: %d: answer number */ esc_html__( 'Answer %d', 'nuclear-engagement' ), esc_attr( $a_index + 1 ) ); ?>
 				<?php endif; ?>
 				<br>
 				<input type="text" name="nuclen_quiz_data[questions][<?php echo esc_attr( $q_index ); ?>][answers][<?php echo esc_attr( $a_index ); ?>]" value="<?php echo esc_attr( $answer ); ?>" class="nuclen-width-full" />
@@ -63,3 +64,4 @@ for ( $q_index = 0; $q_index < 10; $q_index++ ) :
 		</p>
 	</div>
 <?php endfor; ?>
+<?php // phpcs:enable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound ?>

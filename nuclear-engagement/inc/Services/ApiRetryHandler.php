@@ -66,7 +66,7 @@ class ApiRetryHandler {
 
 		if ( $circuit_state === 'open' ) {
 			throw ApiException::httpError(
-				$service_name,
+				esc_html( $service_name ),
 				503,
 				array( 'error' => 'Service temporarily unavailable (circuit open)' )
 			)->setUserMessage( __( 'Service is temporarily unavailable. Please try again later.', 'nuclear-engagement' ) );
@@ -152,7 +152,7 @@ class ApiRetryHandler {
 			throw $last_exception;
 		}
 
-		throw ApiException::networkError( $service_name, 'All retry attempts failed' );
+		throw ApiException::networkError( esc_html( $service_name ), 'All retry attempts failed' );
 	}
 
 	/**
@@ -181,7 +181,7 @@ class ApiRetryHandler {
 			$total_count = count( $api_calls );
 
 			throw new ApiException(
-				sprintf( '%d of %d API calls failed', $error_count, $total_count ),
+				esc_html( sprintf( '%d of %d API calls failed', $error_count, $total_count ) ),
 				0,
 				array(
 					'errors'  => $errors,
@@ -218,7 +218,7 @@ class ApiRetryHandler {
 
 		// Add jitter (±25%) to prevent thundering herd
 		$jitter = $base_delay * 0.25;
-		$delay  = $base_delay + mt_rand( (int) ( -$jitter ), (int) $jitter );
+		$delay  = $base_delay + wp_rand( (int) ( -$jitter ), (int) $jitter );
 
 		LoggingService::log(
 			sprintf(
@@ -359,6 +359,7 @@ class ApiRetryHandler {
 		$prefix = $wpdb->prefix . 'options';
 		$like   = $wpdb->esc_like( '_transient_nuclen_circuit_' ) . '%';
 
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $prefix is a safely composed table identifier
 		$circuits = $wpdb->get_results(
 			$wpdb->prepare(
 				"SELECT option_name, option_value FROM $prefix WHERE option_name LIKE %s",

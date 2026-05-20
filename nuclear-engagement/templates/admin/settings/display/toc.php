@@ -10,6 +10,7 @@ declare(strict_types=1);
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- template-scoped variables, not global
 ?>
 <!-- ────────── Table of Contents settings ────────── -->
 <h2 class="nuclen-subheading"><?php esc_html_e( 'Table of Contents', 'nuclear-engagement' ); ?></h2>
@@ -36,7 +37,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 						name="nuclear_engagement_settings[toc_heading_levels][]"
 						value="<?php echo esc_attr( $i ); ?>"
 						<?php echo esc_attr( $checked ); ?>>
-				<?php printf( 'H%d', $i ); ?>
+				<?php printf( 'H%d', esc_html( $i ) ); ?>
 			</label>
 		<?php endfor; ?>
 		<p class="description" style="margin-top:5px;">
@@ -99,3 +100,4 @@ document.addEventListener('DOMContentLoaded', () => {
 	updateTocToggleState();
 });
 </script>
+<?php // phpcs:enable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound ?>

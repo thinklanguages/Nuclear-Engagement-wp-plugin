@@ -180,7 +180,7 @@ class GenerateRequest {
 		$payload = json_decode( wp_unslash( $post['payload'] ), true );
 		if ( json_last_error() !== JSON_ERROR_NONE ) {
 			throw new \InvalidArgumentException(
-				sprintf( 'Invalid JSON payload: %s', json_last_error_msg() )
+				esc_html( sprintf( 'Invalid JSON payload: %s', json_last_error_msg() ) )
 			);
 		}
 
@@ -331,6 +331,7 @@ class GenerateRequest {
 		);
 
 		\NuclearEngagement\Services\LoggingService::log(
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_var_export -- diagnostic logging only
 			'Filtered post IDs: ' . var_export( array_values( $filtered ), true )
 		);
 

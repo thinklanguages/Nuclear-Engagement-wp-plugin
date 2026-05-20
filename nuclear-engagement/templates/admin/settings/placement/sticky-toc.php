@@ -1,3 +1,8 @@
+<?php
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+?>
 <!-- Sticky TOC settings -->
 <!-- Sticky toggle -->
 <div class="nuclen-form-group nuclen-row">

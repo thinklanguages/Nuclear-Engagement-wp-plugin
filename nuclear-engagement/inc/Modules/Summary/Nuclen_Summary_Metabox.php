@@ -97,7 +97,7 @@ final class Nuclen_Summary_Metabox {
 	public function nuclen_save_summary_data_meta( $post_id ) {
 
 		/* ---- Capability / nonce / autosave checks ------------------------ */
-		$nonce = $_POST['nuclen_summary_data_nonce'] ?? '';
+		$nonce = sanitize_text_field( wp_unslash( $_POST['nuclen_summary_data_nonce'] ?? '' ) );
 		if ( ! wp_verify_nonce( $nonce, 'nuclen_summary_data_nonce' ) ) {
 			return;
 		}
@@ -109,8 +109,9 @@ final class Nuclen_Summary_Metabox {
 		}
 
 		/* ---- Raw input ---------------------------------------------------- */
-		$raw = $_POST['nuclen_summary_data'] ?? array();
-		$raw = is_array( $raw ) ? wp_unslash( $raw ) : array();
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- sanitized structurally in $formatted below
+		$raw = wp_unslash( $_POST['nuclen_summary_data'] ?? array() );
+		$raw = is_array( $raw ) ? $raw : array();
 
 		/* ---- Sanitise & format ------------------------------------------- */
 		$formatted = array(

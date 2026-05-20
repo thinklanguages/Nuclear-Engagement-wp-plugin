@@ -644,7 +644,7 @@ class BulkGenerationBatchProcessor extends BaseService {
 				'error'
 			);
 			throw new ResourceException(
-				'Failed to acquire batch processing lock - another process may be running',
+				esc_html( 'Failed to acquire batch processing lock - another process may be running' ),
 				503,
 				null,
 				array(
@@ -677,7 +677,8 @@ class BulkGenerationBatchProcessor extends BaseService {
 				// Validate post ID
 				if ( ! is_numeric( $post_id ) || $post_id <= 0 ) {
 					\NuclearEngagement\Services\LoggingService::log(
-						sprintf( '[BulkGenerationBatchProcessor::queue_generation] WARNING: Invalid post ID: %s', var_export( $post_id, true ) ),
+						// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_var_export -- diagnostic logging
+					sprintf( '[BulkGenerationBatchProcessor::queue_generation] WARNING: Invalid post ID: %s', var_export( $post_id, true ) ),
 						'warning'
 					);
 					$skipped_posts[] = array(
@@ -1174,7 +1175,7 @@ class BulkGenerationBatchProcessor extends BaseService {
 
 					if ( ! is_array( $batch_data ) ) {
 							\NuclearEngagement\Services\LoggingService::log( "update_batch_status: No batch data found for {$batch_id}" );
-							throw new \RuntimeException( "No batch data found for {$batch_id}" );
+							throw new \RuntimeException( esc_html( "No batch data found for {$batch_id}" ) );
 					}
 
 					// Validate state transition
@@ -1257,7 +1258,7 @@ class BulkGenerationBatchProcessor extends BaseService {
 							sprintf( 'Failed to acquire parent lock for %s after 20 attempts', $parent_id ),
 							'error'
 						);
-						throw new \RuntimeException( sprintf( 'Failed to acquire parent lock for %s', $parent_id ) );
+						throw new \RuntimeException( esc_html( sprintf( 'Failed to acquire parent lock for %s', $parent_id ) ) );
 					}
 
 					try {
@@ -1635,6 +1636,7 @@ class BulkGenerationBatchProcessor extends BaseService {
 		$count = 0;
 
 		// Query for batch transients that are in running/processing state
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB ops
 		$transients = $wpdb->get_results(
 			$wpdb->prepare(
 				"SELECT option_value FROM $wpdb->options 
@@ -1769,6 +1771,7 @@ class BulkGenerationBatchProcessor extends BaseService {
 				global $wpdb;
 
 				// Direct DB update with WHERE clause for atomic operation
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB ops
 				$updated = $wpdb->update(
 					$wpdb->options,
 					array(
@@ -1909,7 +1912,7 @@ class BulkGenerationBatchProcessor extends BaseService {
 
 			// Add jitter to prevent thundering herd
 			$jitter = $delay * 0.1; // 10% jitter
-			$delay  = $delay + mt_rand( (int) ( -$jitter ), (int) $jitter );
+			$delay  = $delay + wp_rand( (int) ( -$jitter ), (int) $jitter );
 
 			$scheduled_time = time() + $delay;
 			wp_schedule_single_event(
@@ -1924,7 +1927,7 @@ class BulkGenerationBatchProcessor extends BaseService {
 					$retry_count,
 					$max_retries,
 					$batch_id,
-					date( 'Y-m-d H:i:s', $scheduled_time ),
+					gmdate( 'Y-m-d H:i:s', $scheduled_time ),
 					$delay
 				)
 			);

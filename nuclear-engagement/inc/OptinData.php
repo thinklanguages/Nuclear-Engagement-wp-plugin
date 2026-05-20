@@ -80,8 +80,8 @@ class OptinData {
 		// Only run the query if not cached
 		global $wpdb;
 		$table  = self::table_name();
-		$exists = // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-			$wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table ) ) === $table;
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB ops
+		$exists = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table ) ) === $table;
 
 		// Cache the result
 		self::$table_exists_cache = $exists;
@@ -143,6 +143,7 @@ class OptinData {
 		}
 
 		global $wpdb;
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level DB ops
 		$ok = $wpdb->insert(
 			self::table_name(),
 			array(

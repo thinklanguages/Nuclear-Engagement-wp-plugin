@@ -123,6 +123,7 @@ class TasksController extends BaseController {
 
 				wp_send_json_success(
 					array(
+						/* translators: %s: batch task ID */
 						'message' => sprintf( __( 'Batch %s has been triggered for immediate processing.', 'nuclear-engagement' ), $task_id ),
 					)
 				);
@@ -206,6 +207,7 @@ class TasksController extends BaseController {
 
 			wp_send_json_success(
 				array(
+					/* translators: %s: task ID */
 					'message' => sprintf( __( 'Task %s has been cancelled.', 'nuclear-engagement' ), $task_id ),
 				)
 			);
@@ -292,10 +294,11 @@ class TasksController extends BaseController {
 					sprintf( '[TasksController::run_generation_task] Task %s is already running - rejecting request', $task_id ),
 					'warning'
 				);
-				throw new \Exception( __( 'This task is already running. Please wait for it to complete or cancel it first.', 'nuclear-engagement' ) );
+				throw new \Exception( esc_html( __( 'This task is already running. Please wait for it to complete or cancel it first.', 'nuclear-engagement' ) ) );
 			}
 		} catch ( \Exception $e ) {
-			throw new \Exception( sprintf( __( 'Failed to retrieve task data: %s', 'nuclear-engagement' ), $e->getMessage() ) );
+			/* translators: %s: error message */
+			throw new \Exception( esc_html( sprintf( __( 'Failed to retrieve task data: %s', 'nuclear-engagement' ), $e->getMessage() ) ) );
 		}
 
 		// Extract post IDs from batches
@@ -361,6 +364,7 @@ class TasksController extends BaseController {
 
 		wp_send_json_success(
 			array(
+				/* translators: %s: generation task ID */
 				'message' => sprintf( __( 'Generation %s has been queued for immediate processing.', 'nuclear-engagement' ), $task_id ),
 			)
 		);
@@ -754,7 +758,7 @@ class TasksController extends BaseController {
 		if ( strpos( $task_id, '_batch_' ) !== false ) {
 			$batch_data = TaskTransientManager::get_batch_transient( $task_id );
 			if ( ! $batch_data ) {
-				throw new \Exception( __( 'Task not found', 'nuclear-engagement' ) );
+				throw new \Exception( esc_html( __( 'Task not found', 'nuclear-engagement' ) ) );
 			}
 
 			return array(
@@ -764,7 +768,7 @@ class TasksController extends BaseController {
 		} else {
 			$job_data = TaskTransientManager::get_task_transient( $task_id );
 			if ( ! $job_data ) {
-				throw new \Exception( __( 'Task not found', 'nuclear-engagement' ) );
+				throw new \Exception( esc_html( __( 'Task not found', 'nuclear-engagement' ) ) );
 			}
 
 			// Calculate progress
@@ -902,6 +906,7 @@ class TasksController extends BaseController {
 
 			wp_send_json_success(
 				array(
+					/* translators: %s: task ID */
 					'message' => sprintf( __( 'Task %s has been queued for retry.', 'nuclear-engagement' ), $task_id ),
 				)
 			);
@@ -1004,11 +1009,13 @@ class TasksController extends BaseController {
 
 				$details = $failed > 0
 					? sprintf(
+						/* translators: %1$d: succeeded count, %2$d: failed count */
 						__( '%1$d succeeded, %2$d failed', 'nuclear-engagement' ),
 						$processed,
 						$failed
 					)
 					: sprintf(
+						/* translators: %1$d: processed count, %2$d: total posts count */
 						__( '%1$d of %2$d posts successfully processed', 'nuclear-engagement' ),
 						$processed,
 						$total_posts

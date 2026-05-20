@@ -24,7 +24,8 @@ class StreamController {
 			wp_die( 'Invalid request', 403 );
 		}
 
-		$task_id = sanitize_text_field( $_GET['task_id'] ?? '' );
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- authenticated SSE stream
+		$task_id = sanitize_key( wp_unslash( $_GET['task_id'] ?? '' ) );
 		if ( empty( $task_id ) ) {
 			wp_die( 'Task ID required', 400 );
 		}
@@ -143,7 +144,7 @@ class StreamController {
 	 * Send SSE event
 	 */
 	private function send_event( string $event, array $data ): void {
-		echo "event: {$event}\n";
+		echo 'event: ' . esc_html( $event ) . "\n"; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- newline literal is safe
 		echo 'data: ' . json_encode( $data ) . "\n\n";
 		flush();
 	}

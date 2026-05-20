@@ -51,6 +51,7 @@ class PointerController extends BaseController {
 				return;
 			}
 
+			// phpcs:ignore WordPress.Security.NonceVerification.Missing -- nonce verified by check_ajax_referer above
 			$pointer_id = isset( $_POST['pointer'] ) ? sanitize_text_field( wp_unslash( $_POST['pointer'] ) ) : '';
 			$user_id    = get_current_user_id();
 
