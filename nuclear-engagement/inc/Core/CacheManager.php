@@ -170,7 +170,6 @@ final class CacheManager {
 
 		if ( $success ) {
 			self::record_set( $group );
-			self::enforce_cache_limits( $group );
 		}
 
 		return $success;
@@ -495,22 +494,6 @@ final class CacheManager {
 	private static function should_compress_value( $value ): bool {
 		return is_array( $value ) || is_object( $value ) ||
 				( is_string( $value ) && strlen( $value ) > 1024 );
-	}
-
-	/**
-	 * Enforce cache size limits.
-	 *
-	 * @param string $group Cache group.
-	 */
-	private static function enforce_cache_limits( string $group ): void {
-		$config = self::get_group_config( $group );
-
-		// This is a simplified version - in production you'd want.
-		// more sophisticated LRU cache management.
-		if ( isset( $config['max_items'] ) ) {
-			// WordPress cache doesn't provide direct size management,.
-			// but we can track and periodically clean up.
-		}
 	}
 
 	/**
