@@ -6,7 +6,7 @@ This directory contains the core business logic, services, and infrastructure fo
 
 ### Core Infrastructure (`Core/`)
 - **Plugin bootstrapping** - `Plugin.php`, `PluginBootstrap.php`
-- **Service management** - `ServiceContainer.php`, `ServiceRegistry.php`, `ServiceDiscovery.php`
+- **Service management** - `ServiceContainer.php`
 - **Logging** - Simple error logging via WordPress error_log
 - **Background processing** - `BackgroundProcessor.php`, `JobQueue.php`, `JobHandler.php`
 - **Module system** - `LazyModuleLoader.php` (primary), `ModuleLoader.php` (legacy), module interfaces and registry
