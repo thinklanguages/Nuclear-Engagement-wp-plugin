@@ -1146,8 +1146,22 @@ class BulkGenerationBatchProcessor extends BaseService {
 				$existing = get_option( $lock_option );
 				if ( is_array( $existing ) && isset( $existing['time'] ) ) {
 					if ( time() - $existing['time'] > 30 ) {
-						// Try to take over expired lock
-						if ( update_option( $lock_option, $lock_data ) ) {
+						// Take over the expired lock atomically with a single
+						// conditional UPDATE keyed on the existing value, instead
+						// of a racy get_option()+update_option() that lets two
+						// workers both pass the expiry check and both proceed.
+						global $wpdb;
+						// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level lock management
+						$took_over = $wpdb->update(
+							$wpdb->options,
+							array( 'option_value' => maybe_serialize( $lock_data ) ),
+							array(
+								'option_name'  => $lock_option,
+								'option_value' => maybe_serialize( $existing ),
+							)
+						);
+						if ( $took_over ) {
+							wp_cache_delete( $lock_option, 'options' );
 							$lock_acquired = true;
 							continue;
 						}

@@ -378,9 +378,27 @@ final class DistributedLock {
 			return $result > 0;
 		}
 
-		// For option storage, delete and re-add
-		if ( self::delete_lock( $lock_key ) ) {
-			return self::try_acquire_lock( $lock_key, $new_data );
+		// For option storage, take over atomically with a single conditional
+		// UPDATE keyed on the existing serialized value, mirroring the proven
+		// compare-and-swap in BulkGenerationBatchProcessor::acquire_lock(). The
+		// previous delete-then-add was a check-then-act race: two processes could
+		// both delete and re-add and each believe it owned the lock.
+		global $wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level lock management
+		$updated = $wpdb->update(
+			$wpdb->options,
+			array( 'option_value' => maybe_serialize( $new_data ) ),
+			array(
+				'option_name'  => $lock_key,
+				'option_value' => maybe_serialize( $existing ),
+			)
+		);
+
+		if ( $updated ) {
+			// Keep the option cache coherent after the raw write.
+			wp_cache_delete( $lock_key, 'options' );
+			return true;
 		}
 
 		return false;

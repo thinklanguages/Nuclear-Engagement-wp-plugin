@@ -352,15 +352,26 @@ class CentralizedPollingQueue extends BaseService {
 		$existing = get_option( self::LOCK_OPTION );
 		if ( is_array( $existing ) && isset( $existing['time'] ) ) {
 			if ( time() - $existing['time'] > 60 ) { // 1 minute timeout
-				// Try to take over expired lock
-				if ( update_option(
-					self::LOCK_OPTION,
+				// Take over the expired lock atomically with a single conditional
+				// UPDATE keyed on the existing value, instead of a racy
+				// get_option()+update_option() that two workers can both pass.
+				global $wpdb;
+				$new_lock = array(
+					'value'      => $lock_value,
+					'time'       => time(),
+					'process_id' => ProcessIdentifier::get(),
+				);
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- low-level lock management
+				$took_over = $wpdb->update(
+					$wpdb->options,
+					array( 'option_value' => maybe_serialize( $new_lock ) ),
 					array(
-						'value'      => $lock_value,
-						'time'       => time(),
-						'process_id' => ProcessIdentifier::get(),
+						'option_name'  => self::LOCK_OPTION,
+						'option_value' => maybe_serialize( $existing ),
 					)
-				) ) {
+				);
+				if ( $took_over ) {
+					wp_cache_delete( self::LOCK_OPTION, 'options' );
 					$this->lock_value = $lock_value;
 					return true;
 				}
