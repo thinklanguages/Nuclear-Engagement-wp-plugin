@@ -64,6 +64,31 @@ $delete_optins    = ! empty( $settings['delete_optin_data_on_uninstall'] );
 $delete_log       = ! empty( $settings['delete_log_file_on_uninstall'] );
 $delete_css       = ! empty( $settings['delete_custom_css_on_uninstall'] );
 
+// Always clear the plugin's scheduled cron events. These live in the `cron`
+// option (not a nuclen_* option), so the option/transient cleanup below does
+// not remove them. Left behind, they keep firing against callbacks that no
+// longer exist once the plugin files are gone. Unscheduling is pure cleanup of
+// dangling jobs and is not gated behind the delete_* preferences.
+if ( function_exists( 'wp_unschedule_hook' ) ) {
+	$cron_array = _get_cron_array();
+	if ( is_array( $cron_array ) ) {
+		$nuclen_hooks = array();
+		foreach ( $cron_array as $timestamp_events ) {
+			if ( ! is_array( $timestamp_events ) ) {
+				continue;
+			}
+			foreach ( array_keys( $timestamp_events ) as $hook ) {
+				if ( is_string( $hook ) && 0 === strpos( $hook, 'nuclen' ) ) {
+					$nuclen_hooks[ $hook ] = true;
+				}
+			}
+		}
+		foreach ( array_keys( $nuclen_hooks ) as $hook ) {
+			wp_unschedule_hook( $hook );
+		}
+	}
+}
+
 // Delete generated content from post meta if requested.
 if ( $delete_generated ) {
 								$meta_keys = array(
@@ -116,6 +141,25 @@ if ( $delete_settings ) {
 		} else {
 			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 			error_log( 'Nuclear Engagement: Failed to delete plugin options during uninstall. Database error: ' . $wpdb->last_error );
+		}
+	}
+
+	// Drop the distributed-lock table created by DistributedLock when using the
+	// database storage backend. It is never dropped elsewhere, so without this
+	// a full uninstall would leave an orphaned {prefix}nuclen_locks table behind.
+	$locks_table = $wpdb->prefix . 'nuclen_locks';
+	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.DirectDatabaseQuery.SchemaChange -- uninstall cleanup
+	// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- table identifier escaped via esc_sql below
+	$locks_dropped = $wpdb->query( 'DROP TABLE IF EXISTS `' . esc_sql( $locks_table ) . '`' );
+	if ( false === $locks_dropped && '' !== $wpdb->last_error ) {
+		if ( class_exists( '\NuclearEngagement\Services\LoggingService' ) ) {
+			\NuclearEngagement\Services\LoggingService::log(
+				sprintf( '[ERROR] Failed to drop table %s during uninstall. Database error: %s', $locks_table, $wpdb->last_error ),
+				'error'
+			);
+		} else {
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+			error_log( 'Nuclear Engagement: Failed to drop table ' . $locks_table . ' during uninstall. Database error: ' . $wpdb->last_error );
 		}
 	}
 }

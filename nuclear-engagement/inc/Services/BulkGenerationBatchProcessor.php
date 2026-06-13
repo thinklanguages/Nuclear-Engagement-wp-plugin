@@ -346,7 +346,7 @@ class BulkGenerationBatchProcessor extends BaseService {
 			// The parent task tracks all batch progress
 
 			// For autogen tasks, ensure immediate visibility by forcing cache refresh
-			if ( $source === 'auto' ) {
+			if ( ( $workflow['source'] ?? '' ) === 'auto' ) {
 				\NuclearEngagement\Services\LoggingService::debug(
 					sprintf(
 						'[BulkGenerationBatchProcessor] Forcing immediate cache refresh for autogen task: %s',
@@ -1863,6 +1863,38 @@ class BulkGenerationBatchProcessor extends BaseService {
 	}
 
 	/**
+	 * Clear the stored retry counts for the given batch IDs.
+	 *
+	 * Used by manual retry so a batch that previously exhausted its automatic
+	 * retries gets a fresh set of attempts instead of being permanently failed
+	 * on the first new error.
+	 *
+	 * @param string[] $batch_ids Batch IDs whose retry tracking should be reset.
+	 */
+	public function clear_retry_counts( array $batch_ids ): void {
+		if ( empty( $batch_ids ) ) {
+			return;
+		}
+
+		$retries = $this->get_site_option( self::RETRY_OPTION, array() );
+		if ( ! is_array( $retries ) ) {
+			return;
+		}
+
+		$changed = false;
+		foreach ( $batch_ids as $batch_id ) {
+			if ( isset( $retries[ $batch_id ] ) ) {
+				unset( $retries[ $batch_id ] );
+				$changed = true;
+			}
+		}
+
+		if ( $changed ) {
+			$this->update_site_option( self::RETRY_OPTION, $retries, 'no' );
+		}
+	}
+
+	/**
 	 * Handle failed batch with retry logic
 	 *
 	 * @param string $batch_id Batch ID that failed
@@ -1904,6 +1936,20 @@ class BulkGenerationBatchProcessor extends BaseService {
 				'last_attempt' => time(),
 			);
 			$this->update_site_option( self::RETRY_OPTION, $retries, 'no' );
+
+			// Reset the batch status back to 'pending' so the rescheduled
+			// process_batch() passes the pending-only guard and the retry
+			// actually runs. The batch is currently 'processing' (set when the
+			// failed attempt started); without this reset the scheduled retry is
+			// rejected and the batch sits stranded until the timeout handler
+			// eventually fails it (~1 hour later), defeating the retry logic.
+			$current_batch = TaskTransientManager::get_batch_transient( $batch_id );
+			if ( is_array( $current_batch ) ) {
+				$current_batch['status']      = 'pending';
+				$current_batch['retry_count'] = $retry_count;
+				$current_batch['updated_at']  = time();
+				TaskTransientManager::set_batch_transient( $batch_id, $current_batch, DAY_IN_SECONDS );
+			}
 
 			// Schedule retry with exponential backoff
 			$base_delay = self::RETRY_DELAY; // 300 seconds (5 minutes)

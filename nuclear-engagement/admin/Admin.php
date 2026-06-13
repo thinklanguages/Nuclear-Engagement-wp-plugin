@@ -156,6 +156,14 @@ class Admin {
 			return;
 		}
 
+		// Match the capability required by the Tasks page itself. This runs on
+		// admin_init (before the page's own capability gate), so without this
+		// check any authenticated user could trigger the cache-clear / index
+		// rebuild work done in handle_early_redirects() by visiting the URL.
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
 		// Check if we're on the tasks page.
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Nonce not needed for read-only check
 		if ( isset( $_GET['page'] ) && 'nuclear-engagement-tasks' === $_GET['page'] ) {

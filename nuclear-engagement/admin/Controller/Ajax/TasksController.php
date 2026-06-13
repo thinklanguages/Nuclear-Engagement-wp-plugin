@@ -314,7 +314,7 @@ class TasksController extends BaseController {
 						$all_post_ids[] = $post['id'];
 					}
 				}
-				if ( $batch['status'] !== 'completed' ) {
+				if ( ! $this->is_terminal_batch_status( $batch['status'] ?? '' ) ) {
 					++$active_batches;
 				}
 			}
@@ -341,7 +341,7 @@ class TasksController extends BaseController {
 		// Trigger immediate processing for all batches
 		$triggered_count = 0;
 		foreach ( $batch_data['batch_jobs'] ?? array() as $batch ) {
-			if ( $batch['status'] !== 'completed' ) {
+			if ( ! $this->is_terminal_batch_status( $batch['status'] ?? '' ) ) {
 				\NuclearEngagement\Services\LoggingService::log(
 					sprintf(
 						'[TasksController::run_generation_task] Triggering batch %s for task %s',
@@ -777,12 +777,30 @@ class TasksController extends BaseController {
 
 			foreach ( $job_data['batch_jobs'] ?? array() as $batch ) {
 				$batch_data = TaskTransientManager::get_batch_transient( $batch['batch_id'] );
-				if ( $batch_data ) {
-					if ( $batch_data['status'] === 'completed' ) {
-						$processed += $batch['post_count'];
-					} elseif ( $batch_data['status'] === 'failed' ) {
-						$failed += $batch['post_count'];
-					}
+				if ( ! $batch_data ) {
+					continue;
+				}
+
+				$status     = $batch_data['status'] ?? '';
+				$post_count = (int) ( $batch['post_count'] ?? 0 );
+
+				// Only count terminal batches, but count ALL terminal states
+				// (completed, completed_with_errors/failures, failed, cancelled)
+				// so processed + failed reaches the total and progress can reach
+				// 100%. Previously only 'completed'/'failed' were counted, which
+				// left completed_with_errors/cancelled batches uncounted and
+				// understated the reported percentage.
+				if ( ! $this->is_terminal_batch_status( $status ) ) {
+					continue;
+				}
+
+				if ( isset( $batch_data['success_count'] ) || isset( $batch_data['fail_count'] ) ) {
+					$processed += (int) ( $batch_data['success_count'] ?? 0 );
+					$failed    += (int) ( $batch_data['fail_count'] ?? 0 );
+				} elseif ( 'failed' === $status || 'cancelled' === $status ) {
+					$failed += $post_count;
+				} else {
+					$processed += $post_count;
 				}
 			}
 
@@ -886,6 +904,38 @@ class TasksController extends BaseController {
 			$task_data['retry_at']   = time();
 			$task_data['retried_by'] = $user_id;
 
+			// Reset the child batch statuses too. schedule_next_batch() only
+			// schedules batches whose status is 'pending', but after a
+			// failure/cancel the child batches are 'failed'/'cancelled' — so
+			// without this reset the retry would be a silent no-op while still
+			// reporting success. Reset both the parent's batch_jobs entries and
+			// each child batch transient back to 'pending'.
+			$reset_batch_ids = array();
+			if ( ! empty( $task_data['batch_jobs'] ) && is_array( $task_data['batch_jobs'] ) ) {
+				foreach ( $task_data['batch_jobs'] as &$job ) {
+					if ( ! isset( $job['status'] ) || ! in_array( $job['status'], array( 'failed', 'cancelled' ), true ) ) {
+						continue;
+					}
+					$job['status'] = 'pending';
+
+					$batch_id = $job['batch_id'] ?? '';
+					if ( '' === $batch_id ) {
+						continue;
+					}
+
+					$batch_data = TaskTransientManager::get_batch_transient( $batch_id );
+					if ( is_array( $batch_data ) ) {
+						$batch_data['status']     = 'pending';
+						$batch_data['updated_at'] = time();
+						unset( $batch_data['error'], $batch_data['non_retryable'] );
+						TaskTransientManager::set_batch_transient( $batch_id, $batch_data, DAY_IN_SECONDS );
+					}
+
+					$reset_batch_ids[] = $batch_id;
+				}
+				unset( $job );
+			}
+
 			TaskTransientManager::set_task_transient( $task_id, $task_data, DAY_IN_SECONDS );
 
 			// Update task index if available
@@ -897,17 +947,24 @@ class TasksController extends BaseController {
 			// Trigger immediate processing
 			if ( $this->container->has( 'bulk_generation_batch_processor' ) ) {
 				$processor = $this->container->get( 'bulk_generation_batch_processor' );
+				// Give the re-queued batches a fresh set of automatic retries.
+				$processor->clear_retry_counts( $reset_batch_ids );
 				$processor->schedule_next_batch( $task_id );
 			}
 
 			\NuclearEngagement\Services\LoggingService::log(
-				sprintf( '[TasksController::retry_task] SUCCESS: Task %s queued for retry', $task_id )
+				sprintf(
+					'[TasksController::retry_task] SUCCESS: Task %s queued for retry (%d batch(es) re-queued)',
+					$task_id,
+					count( $reset_batch_ids )
+				)
 			);
 
 			wp_send_json_success(
 				array(
 					/* translators: %s: task ID */
-					'message' => sprintf( __( 'Task %s has been queued for retry.', 'nuclear-engagement' ), $task_id ),
+					'message'         => sprintf( __( 'Task %s has been queued for retry.', 'nuclear-engagement' ), $task_id ),
+					'batches_requeued' => count( $reset_batch_ids ),
 				)
 			);
 		} catch ( \Exception $e ) {

@@ -47,7 +47,7 @@ class OptinData {
 	---------------------------------------------------------------------
 	 *  Helpers
 	 * ------------------------------------------------------------------- */
-	private static function table_name(): string {
+	public static function table_name(): string {
 		global $wpdb;
 		return $wpdb->prefix . self::TABLE_SLUG;
 	}
@@ -168,7 +168,7 @@ class OptinData {
 	 * Spreadsheet applications may interpret values starting with =,+,-,@ as
 	 * formulas. Prefix with a single quote so the value is treated as text.
 	 */
-	private static function escape_csv_field( string $value ): string {
+	public static function escape_csv_field( string $value ): string {
 		return preg_match( '/^[=+\-@]/', $value ) ? "'{$value}" : $value;
 	}
 

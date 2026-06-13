@@ -200,17 +200,20 @@ class CentralizedPollingQueue extends BaseService {
 	 */
 	private function poll_single_generation( array $item ): void {
 		try {
-			// Call the poller directly
+			// Poll the generation. GenerationPoller::poll_generation() owns the
+			// lifecycle: it calls mark_generation_complete() itself once results
+			// are stored, and otherwise leaves the item in the queue for the next
+			// cycle. Do NOT mark complete here — a normal (non-throwing) return
+			// can also mean "still in progress" (results not ready yet), and
+			// evicting on it would drop in-flight generations. Items that never
+			// complete are aged out by the attempts >= NUCLEN_MAX_POLL_ATTEMPTS
+			// guard + cleanup_queue() in process_queue().
 			$this->poller->poll_generation(
 				$item['generation_id'],
 				$item['workflow_type'],
 				$item['post_ids'],
 				$item['attempts']
 			);
-
-			// If we get here without exception, mark as complete
-			$this->mark_generation_complete( $item['generation_id'] );
-
 		} catch ( \Exception $e ) {
 			$this->log_exception(
 				$e,

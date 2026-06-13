@@ -297,6 +297,7 @@ class TaskTimeoutHandler extends BaseService {
 			}
 
 			// Update task index
+			$container = null;
 			try {
 				$container = \NuclearEngagement\Core\ServiceContainer::getInstance();
 				if ( $container->has( 'task_index_service' ) ) {
