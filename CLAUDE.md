@@ -98,7 +98,7 @@ npm run dev       # Development with watch
 # Run tests
 composer test     # All PHP tests
 npm test          # JavaScript tests
-./scripts/run-e2e.sh  # E2E tests
+npm run test:e2e  # E2E tests (Playwright)
 
 # Code quality
 composer lint     # PHP linting
@@ -109,7 +109,7 @@ composer phpstan  # Static analysis
 
 - **PHPUnit** with WP_Mock for unit testing
 - **PHPCS** with WordPress coding standards
-- **PHPStan** level 6 for static analysis
+- **PHPStan** level 8 for static analysis
 - **Vitest** for JavaScript testing
 - **Playwright** for E2E testing
 - **GitHub Actions** CI on every PR

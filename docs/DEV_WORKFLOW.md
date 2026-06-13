@@ -72,15 +72,12 @@ npm run lint
   npm run test
   ```
  - **Run end-to-end flows**
-   Install the [Maestro](https://maestro.mobile.dev) CLI and execute the YAML
-   flows from the `e2e/` folder. The CLI can be installed with:
+   End-to-end tests use [Playwright](https://playwright.dev). Install the
+   browsers once, then run the suite:
    ```bash
-   curl -Ls "https://get.maestro.mobile.dev" | bash
+   npx playwright install --with-deps
+   npm run test:e2e
    ```
-   Then run the flows with:
-  ```bash
-  bash scripts/run-e2e.sh
-  ```
 
 ## Typical workflow
 

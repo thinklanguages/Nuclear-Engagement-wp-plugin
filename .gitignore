@@ -28,3 +28,11 @@ build
 
 nuclear-engagement.zip
 nuclear-engagement/logger-*.js*
+
+# Generated test / coverage / build artifacts (should never be committed)
+coverage/
+playwright-report/
+test-results/
+test-results.json
+.phpunit.result.cache
+composer.phar

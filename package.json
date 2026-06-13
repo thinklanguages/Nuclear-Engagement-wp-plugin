@@ -6,7 +6,7 @@
   "scripts": {
     "test": "vitest",
     "test:coverage": "vitest --coverage",
-    "test:e2e": "playwright test",
+    "test:e2e": "playwright test tests/e2e",
     "test:accessibility": "playwright test tests/accessibility/",
     "lint": "eslint .",
     "build": "vite build",

@@ -12,10 +12,7 @@ This directory contains utility scripts for development, testing, and deployment
   - Validates build integrity
 
 ### Testing
-- `run-e2e.sh` - Executes end-to-end tests
-  - Sets up test environment
-  - Runs Playwright tests
-  - Generates test reports
+- End-to-end tests run via Playwright (`npm run test:e2e`), not a shell script.
 
 - `validate-tests.sh` - Validates test suite integrity
   - Checks for test file naming conventions
@@ -34,7 +31,6 @@ All scripts should be run from the project root:
 
 ```bash
 ./scripts/build-release.sh
-./scripts/run-e2e.sh
 ./scripts/validate-tests.sh
 ./scripts/update-translations.sh
 ```

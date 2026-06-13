@@ -4,7 +4,11 @@ import { defineConfig, devices } from '@playwright/test';
  * @see https://playwright.dev/docs/test-configuration
  */
 export default defineConfig({
-  testDir: './tests/e2e',
+  testDir: './tests',
+  /* Match e2e specs and the accessibility suite (.cjs). Each npm script scopes
+   * itself by path (test:e2e -> tests/e2e, test:accessibility -> tests/accessibility)
+   * so this single config serves both without double-running. */
+  testMatch: ['**/*.spec.js', '**/*.spec.ts', '**/*.spec.cjs'],
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
