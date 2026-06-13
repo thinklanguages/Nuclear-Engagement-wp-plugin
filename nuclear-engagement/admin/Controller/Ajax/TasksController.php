@@ -43,26 +43,42 @@ class TasksController extends BaseController {
 	}
 
 	/**
-	 * Handle run task request
+	 * Verify the current AJAX request: manage_options capability plus a valid
+	 * task-action nonce. Sends a JSON error and returns false on failure.
+	 *
+	 * Centralises the guard that every task endpoint previously duplicated.
+	 *
+	 * @param string $context Calling method name, for log context.
+	 * @return bool True when the request may proceed.
 	 */
-	public function run_task(): void {
-		// Custom nonce verification for tasks
+	private function verify_task_request( string $context ): bool {
 		if ( ! current_user_can( 'manage_options' ) ) {
 			\NuclearEngagement\Services\LoggingService::log(
-				'[TasksController::run_task] Access denied - insufficient permissions',
+				sprintf( '[TasksController::%s] Access denied - insufficient permissions', $context ),
 				'warning'
 			);
 			$this->send_error( __( 'Insufficient permissions', 'nuclear-engagement' ), 403 );
-			return;
+			return false;
 		}
 
 		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Nonce doesn't need sanitization
 		if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( wp_unslash( $_POST['nonce'] ), 'nuclen_task_action' ) ) {
 			\NuclearEngagement\Services\LoggingService::log(
-				'[TasksController::run_task] Security check failed - invalid nonce',
+				sprintf( '[TasksController::%s] Security check failed - invalid nonce', $context ),
 				'warning'
 			);
 			$this->send_error( __( 'Security check failed', 'nuclear-engagement' ), 403 );
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Handle run task request
+	 */
+	public function run_task(): void {
+		if ( ! $this->verify_task_request( 'run_task' ) ) {
 			return;
 		}
 
@@ -152,23 +168,7 @@ class TasksController extends BaseController {
 	 * Handle cancel task request
 	 */
 	public function cancel_task(): void {
-		// Custom nonce verification for tasks
-		if ( ! current_user_can( 'manage_options' ) ) {
-			\NuclearEngagement\Services\LoggingService::log(
-				'[TasksController::cancel_task] Access denied - insufficient permissions',
-				'warning'
-			);
-			$this->send_error( __( 'Insufficient permissions', 'nuclear-engagement' ), 403 );
-			return;
-		}
-
-		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Nonce doesn't need sanitization
-		if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( wp_unslash( $_POST['nonce'] ), 'nuclen_task_action' ) ) {
-			\NuclearEngagement\Services\LoggingService::log(
-				'[TasksController::cancel_task] Security check failed - invalid nonce',
-				'warning'
-			);
-			$this->send_error( __( 'Security check failed', 'nuclear-engagement' ), 403 );
+		if ( ! $this->verify_task_request( 'cancel_task' ) ) {
 			return;
 		}
 
@@ -229,15 +229,7 @@ class TasksController extends BaseController {
 	 * Get task status
 	 */
 	public function get_task_status(): void {
-		// Custom nonce verification for tasks
-		if ( ! current_user_can( 'manage_options' ) ) {
-			$this->send_error( __( 'Insufficient permissions', 'nuclear-engagement' ), 403 );
-			return;
-		}
-
-		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Nonce doesn't need sanitization
-		if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( wp_unslash( $_POST['nonce'] ), 'nuclen_task_action' ) ) {
-			$this->send_error( __( 'Security check failed', 'nuclear-engagement' ), 403 );
+		if ( ! $this->verify_task_request( 'get_task_status' ) ) {
 			return;
 		}
 
@@ -470,22 +462,7 @@ class TasksController extends BaseController {
 	 * refunded credit count to the UI.
 	 */
 	public function handle_cancel(): void {
-		if ( ! current_user_can( 'manage_options' ) ) {
-			\NuclearEngagement\Services\LoggingService::log(
-				'[TasksController::handle_cancel] Access denied - insufficient permissions',
-				'warning'
-			);
-			$this->send_error( __( 'Insufficient permissions', 'nuclear-engagement' ), 403 );
-			return;
-		}
-
-		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Nonce doesn't need sanitization
-		if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( wp_unslash( $_POST['nonce'] ), 'nuclen_task_action' ) ) {
-			\NuclearEngagement\Services\LoggingService::log(
-				'[TasksController::handle_cancel] Security check failed - invalid nonce',
-				'warning'
-			);
-			$this->send_error( __( 'Security check failed', 'nuclear-engagement' ), 403 );
+		if ( ! $this->verify_task_request( 'handle_cancel' ) ) {
 			return;
 		}
 
@@ -822,15 +799,7 @@ class TasksController extends BaseController {
 	 * Get recent task completions
 	 */
 	public function get_recent_completions(): void {
-		// Custom nonce verification for tasks
-		if ( ! current_user_can( 'manage_options' ) ) {
-			$this->send_error( __( 'Insufficient permissions', 'nuclear-engagement' ), 403 );
-			return;
-		}
-
-		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Nonce doesn't need sanitization
-		if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( wp_unslash( $_POST['nonce'] ), 'nuclen_task_action' ) ) {
-			$this->send_error( __( 'Security check failed', 'nuclear-engagement' ), 403 );
+		if ( ! $this->verify_task_request( 'get_recent_completions' ) ) {
 			return;
 		}
 
@@ -860,23 +829,7 @@ class TasksController extends BaseController {
 	 * Retry a failed task
 	 */
 	public function retry_task(): void {
-		// Custom nonce verification for tasks
-		if ( ! current_user_can( 'manage_options' ) ) {
-			\NuclearEngagement\Services\LoggingService::log(
-				'[TasksController::retry_task] Access denied - insufficient permissions',
-				'warning'
-			);
-			$this->send_error( __( 'Insufficient permissions', 'nuclear-engagement' ), 403 );
-			return;
-		}
-
-		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Nonce doesn't need sanitization
-		if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( wp_unslash( $_POST['nonce'] ), 'nuclen_task_action' ) ) {
-			\NuclearEngagement\Services\LoggingService::log(
-				'[TasksController::retry_task] Security check failed - invalid nonce',
-				'warning'
-			);
-			$this->send_error( __( 'Security check failed', 'nuclear-engagement' ), 403 );
+		if ( ! $this->verify_task_request( 'retry_task' ) ) {
 			return;
 		}
 
@@ -981,15 +934,7 @@ class TasksController extends BaseController {
 	 * Get all tasks data for refresh
 	 */
 	public function refresh_tasks_data(): void {
-		// Custom nonce verification for tasks
-		if ( ! current_user_can( 'manage_options' ) ) {
-			$this->send_error( __( 'Insufficient permissions', 'nuclear-engagement' ), 403 );
-			return;
-		}
-
-		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Nonce doesn't need sanitization
-		if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( wp_unslash( $_POST['nonce'] ), 'nuclen_task_action' ) ) {
-			$this->send_error( __( 'Security check failed', 'nuclear-engagement' ), 403 );
+		if ( ! $this->verify_task_request( 'refresh_tasks_data' ) ) {
 			return;
 		}
 
