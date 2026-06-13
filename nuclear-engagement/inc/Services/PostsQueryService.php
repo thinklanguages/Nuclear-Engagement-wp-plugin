@@ -12,10 +12,10 @@ namespace NuclearEngagement\Services;
 use NuclearEngagement\Requests\PostsCountRequest;
 use NuclearEngagement\Services\LoggingService;
 use NuclearEngagement\Services\Query\QueryBuilder;
-use NuclearEngagement\Services\Query\CacheManager;
+use NuclearEngagement\Services\Query\PostsCountCache;
 use NuclearEngagement\Services\Query\BatchProcessor;
 use NuclearEngagement\Traits\CacheInvalidationTrait;
-use NuclearEngagement\Core\Query\QueryOptimizer;
+use NuclearEngagement\Core\Query\QueryExecutor;
 use NuclearEngagement\Utils\DatabaseUtils;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -31,7 +31,7 @@ class PostsQueryService {
 	/** @var QueryBuilder */
 	private $query_builder;
 
-	/** @var CacheManager */
+	/** @var PostsCountCache */
 	private $cache_manager;
 
 	/** @var BatchProcessor */
@@ -42,7 +42,7 @@ class PostsQueryService {
 	 */
 	public function __construct() {
 		$this->query_builder   = new QueryBuilder();
-		$this->cache_manager   = new CacheManager();
+		$this->cache_manager   = new PostsCountCache();
 		$this->batch_processor = new BatchProcessor();
 	}
 
@@ -58,7 +58,7 @@ class PostsQueryService {
 	 * Clear all cached query results.
 	 */
 	public static function clear_cache(): void {
-		$cache_manager = new CacheManager();
+		$cache_manager = new PostsCountCache();
 		$cache_manager->clear_cache();
 	}
 
@@ -124,7 +124,7 @@ class PostsQueryService {
 	}
 
 	/**
-	 * Optimized posts query using QueryOptimizer.
+	 * Optimized posts query using QueryExecutor.
 	 *
 	 * @param PostsCountRequest $request The posts count request.
 	 * @param bool              $use_cache Whether to use cache (default: true).
@@ -147,7 +147,7 @@ class PostsQueryService {
 		$offset       = 0;
 
 		while ( $offset < $total_count ) {
-			$optimizer = QueryOptimizer::getInstance();
+			$optimizer = QueryExecutor::getInstance();
 			$sql       = $this->build_optimized_sql( $request, $batch_size, $offset );
 			$params    = $this->get_query_params( $request );
 

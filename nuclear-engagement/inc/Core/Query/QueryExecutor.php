@@ -1,6 +1,6 @@
 <?php
 /**
- * QueryOptimizer.php - Part of the Nuclear Engagement plugin.
+ * QueryExecutor.php - Part of the Nuclear Engagement plugin.
  *
  * @package NuclearEngagement_Core_Query
  */
@@ -18,7 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @package NuclearEngagement\Core\Query
  */
-final class QueryOptimizer {
+final class QueryExecutor {
 	private const CACHE_GROUP = 'nuclen_queries';
 	private const CACHE_TTL   = 300; // 5 minutes.
 

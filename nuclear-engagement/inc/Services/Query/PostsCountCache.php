@@ -1,6 +1,6 @@
 <?php
 /**
- * CacheManager.php - Part of the Nuclear Engagement plugin.
+ * PostsCountCache.php - Part of the Nuclear Engagement plugin.
  *
  * @package NuclearEngagement_Services_Query
  */
@@ -18,7 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Manages caching for posts queries
  */
-class CacheManager {
+class PostsCountCache {
 
 	/** Cache group for query results. */
 	private const CACHE_GROUP = 'nuclen_posts_query';
