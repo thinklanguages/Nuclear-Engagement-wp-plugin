@@ -40,7 +40,9 @@ if (!function_exists('get_the_ID')) { function get_the_ID() { return $GLOBALS['c
 }
 
 namespace NuclearEngagement\Modules\TOC {
-	if (!function_exists('apply_filters')) {
+	// NB: check the namespaced name, not the bare 'apply_filters' (which resolves to the
+	// global stub and would skip this override, leaving the disable-filter path untestable).
+	if (!function_exists(__NAMESPACE__ . '\\apply_filters')) {
 		function apply_filters($hook, $value) {
 			if ($hook === 'nuclen_toc_enable_heading_ids' && array_key_exists('toc_enable_heading_ids', $GLOBALS)) {
 				return $GLOBALS['toc_enable_heading_ids'];
@@ -67,7 +69,6 @@ namespace {
 		}
 
 		public function test_injects_unique_ids(): void {
-			$this->markTestSkipped('Environment-sensitive: TOC heading-ID injection relies on DOMDocument::loadHTML() with LIBXML_HTML_NOIMPLIED, which drops nodes on libxml >= 2.10 (this build is 2.11.x). Quarantined as a suspected libxml-version-dependent production issue in HeadingExtractor::parse_headings().');
 			$headings = new \NuclearEngagement\Modules\TOC\Nuclen_TOC_Headings();
 			$html = '<h2>Intro</h2><h2>Intro</h2><h2 id="custom">X</h2>';
 			$out = $headings->add_heading_ids($html);

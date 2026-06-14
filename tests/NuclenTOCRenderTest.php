@@ -53,6 +53,7 @@ if (!function_exists('wp_add_inline_style')) { function wp_add_inline_style($h,$
 if (!function_exists('wp_register_style')) { function wp_register_style($h,$s,$d=[],$v='') {} }
 if (!function_exists('wp_register_script')) { function wp_register_script($h,$s,$d=[],$v='',$f=false) {} }
 if (!function_exists('wp_localize_script')) { function wp_localize_script($h,$o,$l) {} }
+if (!function_exists('wp_script_add_data')) { function wp_script_add_data($h,$k,$v) {} }
 if (!function_exists('is_singular')) { function is_singular(){ return true; } }
 if (!function_exists('get_the_ID')) { function get_the_ID(){ return $GLOBALS['current_post_id'] ?? 0; } }
 
@@ -91,7 +92,6 @@ if (!function_exists('get_the_ID')) { function get_the_ID(){ return $GLOBALS['cu
 		}
 
 		public function test_shortcode_outputs_markup(): void {
-			$this->markTestSkipped('SUSPECTED REAL REGRESSION (reported, not masked): HeadingExtractor::parse_headings() prepends a <meta charset> tag and calls DOMDocument::loadHTML() with LIBXML_HTML_NOIMPLIED. On libxml >= 2.10 (this env has 2.11.9) that combination drops every sibling after the leading void <meta> element, so the //h1..//h6 XPath query finds 0 nodes and the shortcode returns "". Verified: removing either the <meta> prefix or LIBXML_HTML_NOIMPLIED makes both headings parse. Needs a production fix in HeadingExtractor (move charset handling off the <meta>-prefix hack, e.g. loadHTML($html, ...) with an encoding arg) before this can be asserted honestly.');
 			global $wp_posts, $current_post_id;
 			$current_post_id = 1;
 			$wp_posts[1] = (object)[

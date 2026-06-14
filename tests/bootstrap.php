@@ -553,6 +553,37 @@ if (!function_exists('get_post_meta')) {
 		return $GLOBALS['wp_meta'][$post_id][$key] ?? '';
 	}
 }
+if (!function_exists('wp_list_pluck')) {
+	function wp_list_pluck($list, $field, $index_key = null) {
+		$out = [];
+		foreach ((array) $list as $key => $item) {
+			$value = is_object($item) ? ($item->$field ?? null) : ($item[$field] ?? null);
+			if ($index_key === null) {
+				$out[] = $value;
+			} else {
+				$idx = is_object($item) ? ($item->$index_key ?? $key) : ($item[$index_key] ?? $key);
+				$out[$idx] = $value;
+			}
+		}
+		return $out;
+	}
+}
+if (!function_exists('sanitize_title')) {
+	function sanitize_title($text) {
+		$text = strtolower(trim((string) $text));
+		$text = preg_replace('/[^a-z0-9_-]+/', '-', $text);
+		return trim($text, '-');
+	}
+}
+if (!function_exists('sanitize_html_class')) {
+	// Matches the per-test-file stubs (lowercase + dash) so existing green tests are unaffected.
+	function sanitize_html_class($text, $fallback = '') {
+		$text = strtolower(trim((string) $text));
+		$text = preg_replace('/[^a-z0-9_-]+/', '-', $text);
+		$text = trim($text, '-');
+		return ('' === $text) ? $fallback : $text;
+	}
+}
 if (!function_exists('current_time')) {
 	function current_time($type) { return date('Y-m-d H:i:s'); }
 }
@@ -658,6 +689,23 @@ if (!class_exists('WP_User')) {
 		public function add_role($role) { $this->roles[] = $role; }
 		public function remove_role($role) { $this->roles = array_diff($this->roles, [$role]); }
 		public function set_role($role) { $this->roles = [$role]; }
+	}
+}
+
+if (!class_exists('WP_Post')) {
+	class WP_Post {
+		public $ID = 0;
+		public $post_content = '';
+		public $post_title = '';
+		public $post_excerpt = '';
+		public $post_status = 'publish';
+		public $post_type = 'post';
+
+		public function __construct($data = []) {
+			foreach ((array) $data as $key => $value) {
+				$this->$key = $value;
+			}
+		}
 	}
 }
 

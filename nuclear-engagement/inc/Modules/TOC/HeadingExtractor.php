@@ -97,7 +97,16 @@ final class HeadingExtractor {
 		if ( nuclen_str_contains( $html, '<h' ) ) {
 			libxml_use_internal_errors( true );
 			$dom = new \DOMDocument();
-			$dom->loadHTML( '<meta http-equiv="Content-Type" content="text/html; charset=utf-8">' . $html, \LIBXML_HTML_NOIMPLIED | \LIBXML_HTML_NODEFDTD );
+			/*
+			 * NB: do NOT pass LIBXML_HTML_NOIMPLIED here. With NOIMPLIED, libxml >= 2.10
+			 * treats the leading <meta> (a <head> element) as the whole document and
+			 * discards every sibling that follows it, so the heading nodes vanish and the
+			 * XPath query below returns nothing. We only read each heading's inner HTML via
+			 * XPath and never serialize the whole document, so the implied <html>/<body>
+			 * wrappers are harmless. The <meta> still forces UTF-8 decoding; NODEFDTD keeps
+			 * the parser from injecting a DOCTYPE.
+			 */
+			$dom->loadHTML( '<meta http-equiv="Content-Type" content="text/html; charset=utf-8">' . $html, \LIBXML_HTML_NODEFDTD );
 			libxml_clear_errors();
 
 			$xpath = new \DOMXPath( $dom );

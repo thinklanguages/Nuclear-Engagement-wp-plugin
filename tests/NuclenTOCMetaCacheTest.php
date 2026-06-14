@@ -28,7 +28,6 @@ require_once NUCLEN_TOC_DIR.'HeadingExtractor.php';
 		}
 
 		public function test_extract_returns_meta_when_available(): void {
-			$this->markTestSkipped( 'needs WP stub: wp_list_pluck — HeadingExtractor::extract() calls wp_list_pluck() on the stored-meta path, but that WP core function is not provided by the test harness.' );
 			$post = (object)[ 'ID' => 1, 'post_content' => '<h2>One</h2>' ];
 			$stored = [ [ 'tag'=>'h2','level'=>2,'text'=>'One','inner'=>'One','id'=>'one' ] ];
 			$GLOBALS['wp_posts'][1] = $post;
@@ -38,8 +37,7 @@ require_once NUCLEN_TOC_DIR.'HeadingExtractor.php';
 		}
 
 		public function test_cache_saved_on_save_post(): void {
-			$this->markTestSkipped( 'needs WP stub: WP_Post — Nuclen_TOC_Headings::cache_headings_on_save() requires a \\WP_Post typed argument, but the test harness provides no WP_Post class so the stdClass passed by the test fails the typehint.' );
-			$post = (object)[ 'ID' => 2, 'post_content' => '<h2>Two</h2>' ];
+			$post = new \WP_Post( [ 'ID' => 2, 'post_content' => '<h2>Two</h2>' ] );
 			$handler = new Nuclen_TOC_Headings();
 			$handler->cache_headings_on_save(2, $post, true);
 			$this->assertArrayHasKey(Nuclen_TOC_Headings::META_KEY, $GLOBALS['wp_meta'][2]);

@@ -161,6 +161,9 @@ if ( ! function_exists( 'wp_register_script' ) ) {
 if ( ! function_exists( 'wp_localize_script' ) ) {
 	function wp_localize_script( $handle, $object_name, $l10n ) {}
 }
+if ( ! function_exists( 'wp_script_add_data' ) ) {
+	function wp_script_add_data( $handle, $key, $value ) {}
+}
 if ( ! function_exists( 'is_singular' ) ) {
 	function is_singular() { return true; }
 }
@@ -209,7 +212,6 @@ class TocModuleTest extends TestCase {
 	}
 
 	public function test_heading_ids_are_injected() {
-		$this->markTestSkipped('ENV: HeadingExtractor relies on DOMDocument::loadHTML() with LIBXML_HTML_NOIMPLIED|NODEFDTD; libxml 2.11 (this harness) returns 0 heading nodes for the <meta>-prefixed fragment, so no IDs are injected. Passes under the libxml version WordPress targets; quarantined pending WP-integration run.');
 		$this->registerSettings();
 		$headings = new \NuclearEngagement\Modules\TOC\Nuclen_TOC_Headings();
 		$html = '<h2>Intro</h2><h2>Intro</h2><h3 class="no-toc">Skip</h3><h2 id="existing">X</h2>';
@@ -221,7 +223,6 @@ class TocModuleTest extends TestCase {
 	}
 
 	public function test_shortcode_outputs_expected_markup() {
-		$this->markTestSkipped('ENV: TOC render depends on HeadingExtractor DOM parsing; libxml 2.11 (this harness) returns 0 heading nodes for the <meta>-prefixed fragment under LIBXML_HTML_NOIMPLIED|NODEFDTD, so the shortcode emits no nav. Passes under the libxml version WordPress targets; quarantined pending WP-integration run.');
 		global $wp_posts, $current_post_id;
 		$current_post_id = 1;
 		$wp_posts[1] = (object)[
@@ -244,25 +245,33 @@ class TocModuleTest extends TestCase {
 	}
 
 	public function test_cache_is_cleared_for_post() {
-		$this->markTestSkipped('STALE expectation: HeadingExtractor now keys its cache via CacheUtils::generate_key() (SHA-256 based) instead of the old md5($content)."_23" scheme, so the asserted cache key no longer exists. (Also depends on the libxml-2.11 DOM behavior noted in the sibling tests.)');
-		global $wp_posts, $wp_cache, $transients;
+		global $wp_posts;
 
+		$content     = '<h2>One</h2>';
 		$wp_posts[1] = (object) [
 			'ID'           => 1,
-			'post_content' => '<h2>One</h2>',
+			'post_content' => $content,
 		];
 
+		// Levels [2,3] match the registered toc_heading_levels setting, so the cache key
+		// produced here lines up with the one clear_cache_for_post() derives from settings.
 		$this->registerSettings();
 
-\NuclearEngagement\Modules\TOC\HeadingExtractor::extract( $wp_posts[1]->post_content, [2, 3] );
-		$key = md5( $wp_posts[1]->post_content ) . '_23';
+		\NuclearEngagement\Modules\TOC\HeadingExtractor::extract( $content, [2, 3] );
 
-		$this->assertArrayHasKey( $key, $wp_cache['nuclen_toc'] );
-		$this->assertArrayHasKey( 'nuclen_toc_' . $key, $transients );
+		// Recompute the key exactly as HeadingExtractor/TocCache do, then assert via the
+		// same accessors production uses (avoids coupling to a specific stub backing store).
+		$key       = \NuclearEngagement\Utils\CacheUtils::generate_key(
+			array( 'toc', hash( 'sha256', $content ), '23' )
+		);
+		$transient = 'nuclen_toc_' . substr( $key, 0, 40 );
 
-\NuclearEngagement\Modules\TOC\TocCache::clear_cache_for_post( 1 );
+		$this->assertNotFalse( wp_cache_get( $key, 'nuclen_toc' ), 'extract() should populate the object cache' );
+		$this->assertNotFalse( get_transient( $transient ), 'extract() should populate a transient' );
 
-		$this->assertArrayNotHasKey( $key, $wp_cache['nuclen_toc'] );
-		$this->assertArrayNotHasKey( 'nuclen_toc_' . $key, $transients );
+		\NuclearEngagement\Modules\TOC\TocCache::clear_cache_for_post( 1 );
+
+		$this->assertFalse( wp_cache_get( $key, 'nuclen_toc' ), 'object-cache entry should be cleared' );
+		$this->assertFalse( get_transient( $transient ), 'transient should be cleared' );
 	}
 }
