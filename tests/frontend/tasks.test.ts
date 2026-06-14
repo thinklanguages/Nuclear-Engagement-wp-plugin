@@ -112,7 +112,7 @@ const setupDOM = (): void => {
         { url: 'http://localhost' }
     );
 
-    global.window = dom.window as typeof global.window;
+    global.window = dom.window as unknown as typeof global.window;
     global.document = dom.window.document;
     global.Element = dom.window.Element;
     global.HTMLElement = dom.window.HTMLElement;

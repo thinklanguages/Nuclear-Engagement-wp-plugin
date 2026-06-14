@@ -521,7 +521,6 @@ class TasksManager {
 
                 if (row) {
                     const statusCell = row.querySelector('.column-status');
-                    const actionsCell = row.querySelector('.column-actions');
 
                     if (finalStatus === 'cancelled' || finalStatus === 'completed'
                         || finalStatus === 'completed_with_errors' || finalStatus === 'failed') {
