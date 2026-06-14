@@ -27,8 +27,9 @@
         }
     },
     "scripts": {
-        "test": "@php vendor/bin/phpunit",
-        "test:coverage": "@php vendor/bin/phpunit --coverage-html coverage/html --coverage-clover coverage.xml",
+        "test": "@php scripts/run-tests.php",
+        "test:phpunit": "@php vendor/bin/phpunit",
+        "test:coverage": "@php scripts/run-tests.php --coverage",
         "lint": "@php vendor/bin/phpcs",
         "lint:fix": "@php vendor/bin/phpcbf",
         "analyse": "@php vendor/bin/phpstan analyse"

@@ -17,6 +17,9 @@ if ( ! defined( 'NUCLEN_PLUGIN_FILE' ) ) {
 if ( ! defined( 'NUCLEN_VERSION' ) ) {
 	define( 'NUCLEN_VERSION', '1.0.0' );
 }
+if ( ! defined( 'NUCLEN_PLUGIN_VERSION' ) ) {
+	define( 'NUCLEN_PLUGIN_VERSION', '1.0' );
+}
 // NUCLEN_ASSET_VERSION is loaded from constants.php
 
 // Load composer autoloader
@@ -546,7 +549,7 @@ if (!function_exists('wp_strip_all_tags')) {
 	function wp_strip_all_tags($text) { return strip_tags($text); }
 }
 if (!function_exists('get_post_meta')) {
-	function get_post_meta($post_id, $key, $single) {
+	function get_post_meta($post_id, $key = '', $single = false) {
 		return $GLOBALS['wp_meta'][$post_id][$key] ?? '';
 	}
 }
@@ -1698,6 +1701,234 @@ if (!class_exists('WP_UnitTestCase')) {
 			$GLOBALS['wp_events'] = [];
 			$GLOBALS['wp_user_meta'] = [];
 		}
+	}
+}
+
+// ---------------------------------------------------------------------------
+// Named WordPress types + additional function stubs.
+//
+// PHPUnit 9 cannot create a test double for a type that is not declared, so the
+// repository/query tests that call createMock('wpdb') / createMock('WP_Query')
+// need these as REAL named classes (the global $wpdb above stays an instance
+// for code that uses it directly). Bodies are intentionally minimal — for
+// mocked instances PHPUnit replaces them anyway.
+// ---------------------------------------------------------------------------
+if ( ! class_exists( 'wpdb' ) ) {
+	class wpdb {
+		public $prefix = 'wp_';
+		public $base_prefix = 'wp_';
+		public $posts = 'wp_posts';
+		public $postmeta = 'wp_postmeta';
+		public $options = 'wp_options';
+		public $users = 'wp_users';
+		public $usermeta = 'wp_usermeta';
+		public $terms = 'wp_terms';
+		public $tables = array();
+		public $queries = array();
+		public $last_error = '';
+		public $last_query = '';
+		public $insert_id = 0;
+		public $num_rows = 0;
+		public $rows_affected = 0;
+
+		public function prepare( $query, ...$args ) {
+			if ( empty( $args ) ) {
+				return $query;
+			}
+			return vsprintf( str_replace( array( '%s', '%d', '%f' ), array( "'%s'", '%d', '%f' ), $query ), $args );
+		}
+		public function query( $query ) { $this->queries[] = $query; return true; }
+		public function get_results( $query = null, $output = OBJECT ) { $this->queries[] = $query; return array(); }
+		public function get_row( $query = null, $output = OBJECT, $row_offset = 0 ) { $this->queries[] = $query; return null; }
+		public function get_col( $query = null, $col_offset = 0 ) { $this->queries[] = $query; return array(); }
+		public function get_var( $query = null, $col_offset = 0, $row_offset = 0 ) { $this->queries[] = $query; return null; }
+		public function insert( $table, $data, $format = null ) { $this->queries[] = "INSERT INTO $table"; $this->insert_id = 1; return 1; }
+		public function replace( $table, $data, $format = null ) { $this->queries[] = "REPLACE INTO $table"; return 1; }
+		public function update( $table, $data, $where, $format = null, $where_format = null ) { $this->queries[] = "UPDATE $table"; $this->rows_affected = 1; return 1; }
+		public function delete( $table, $where, $where_format = null ) { $this->queries[] = "DELETE FROM $table"; $this->rows_affected = 1; return 1; }
+		public function get_charset_collate() { return 'DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci'; }
+		public function esc_like( $text ) { return addcslashes( $text, '_%\\' ); }
+		public function _escape( $data ) { return addslashes( (string) $data ); }
+		public function _real_escape( $text ) { return addslashes( (string) $text ); }
+	}
+}
+
+if ( ! class_exists( 'WP_Query' ) ) {
+	class WP_Query {
+		public $posts = array();
+		public $found_posts = 0;
+		public $post_count = 0;
+		public $query_vars = array();
+		public $request = '';
+		public function __construct( $query = '' ) { if ( ! empty( $query ) ) { $this->query( $query ); } }
+		public function query( $query ) { $this->query_vars = is_array( $query ) ? $query : array(); return $this->posts; }
+		public function get( $key, $default = '' ) { return $this->query_vars[ $key ] ?? $default; }
+		public function set( $key, $value ) { $this->query_vars[ $key ] = $value; }
+		public function have_posts() { return $this->post_count > 0; }
+		public function the_post() {}
+		public function rewind_posts() {}
+	}
+}
+
+if ( ! function_exists( 'esc_sql' ) ) {
+	function esc_sql( $data ) {
+		if ( is_array( $data ) ) {
+			return array_map( 'esc_sql', $data );
+		}
+		return addslashes( (string) $data );
+	}
+}
+
+if ( ! function_exists( 'add_option' ) ) {
+	function add_option( $name, $value = '', $deprecated = '', $autoload = 'yes' ) {
+		if ( ! isset( $GLOBALS['wp_options'] ) ) {
+			$GLOBALS['wp_options'] = array();
+		}
+		// add_option must be atomic: fail if the option already exists.
+		if ( array_key_exists( $name, $GLOBALS['wp_options'] ) ) {
+			return false;
+		}
+		$GLOBALS['wp_options'][ $name ]  = $value;
+		$GLOBALS['wp_autoload'][ $name ] = $autoload;
+		return true;
+	}
+}
+
+if ( ! function_exists( 'get_posts' ) ) {
+	function get_posts( $args = array() ) { return array(); }
+}
+
+if ( ! function_exists( 'wp_delete_post' ) ) {
+	function wp_delete_post( $postid = 0, $force_delete = false ) { return true; }
+}
+
+if ( ! function_exists( 'add_shortcode' ) ) {
+	function add_shortcode( $tag, $callback ) { return true; }
+}
+
+if ( ! function_exists( 'remove_shortcode' ) ) {
+	function remove_shortcode( $tag ) { return true; }
+}
+
+if ( ! function_exists( 'shortcode_exists' ) ) {
+	function shortcode_exists( $tag ) { return false; }
+}
+
+if ( ! function_exists( 'selected' ) ) {
+	function selected( $selected, $current = true, $echo = true ) {
+		$result = ( (string) $selected === (string) $current ) ? ' selected="selected"' : '';
+		if ( $echo ) {
+			echo $result;
+		}
+		return $result;
+	}
+}
+
+if ( ! function_exists( 'checked' ) ) {
+	function checked( $checked, $current = true, $echo = true ) {
+		$result = ( (string) $checked === (string) $current ) ? ' checked="checked"' : '';
+		if ( $echo ) {
+			echo $result;
+		}
+		return $result;
+	}
+}
+
+if ( ! function_exists( '_get_cron_array' ) ) {
+	function _get_cron_array() { return $GLOBALS['wp_cron_array'] ?? array(); }
+}
+
+if ( ! function_exists( 'rest_get_server' ) ) {
+	function rest_get_server() {
+		static $server = null;
+		if ( null === $server ) {
+			$server = new class() {
+				public function get_routes() { return array(); }
+				public function dispatch( $request ) { return null; }
+				public function register_route( ...$args ) {}
+			};
+		}
+		return $server;
+	}
+}
+
+if ( ! function_exists( 'wp_count_posts' ) ) {
+	function wp_count_posts( $type = 'post', $perm = '' ) {
+		return (object) array(
+			'publish'    => 0,
+			'future'     => 0,
+			'draft'      => 0,
+			'pending'    => 0,
+			'private'    => 0,
+			'trash'      => 0,
+			'auto-draft' => 0,
+			'inherit'    => 0,
+		);
+	}
+}
+
+if ( ! function_exists( 'wp_editor' ) ) {
+	function wp_editor( $content, $editor_id, $settings = array() ) {
+		echo '<textarea id="' . $editor_id . '">' . $content . '</textarea>';
+	}
+}
+
+if ( ! function_exists( 'get_post_types' ) ) {
+	function get_post_types( $args = array(), $output = 'names', $operator = 'and' ) {
+		$types = array( 'post', 'page' );
+		if ( 'objects' === $output ) {
+			$objects = array();
+			foreach ( $types as $t ) {
+				$objects[ $t ] = (object) array(
+					'name'   => $t,
+					'label'  => ucfirst( $t ),
+					'public' => true,
+				);
+			}
+			return $objects;
+		}
+		return array_combine( $types, $types );
+	}
+}
+
+if ( ! function_exists( 'update_post_meta' ) ) {
+	function update_post_meta( $post_id, $meta_key, $meta_value, $prev_value = '' ) {
+		$GLOBALS['wp_meta'][ $post_id ][ $meta_key ] = $meta_value;
+		return true;
+	}
+}
+
+if ( ! function_exists( 'delete_post_meta' ) ) {
+	function delete_post_meta( $post_id, $meta_key, $meta_value = '' ) {
+		unset( $GLOBALS['wp_meta'][ $post_id ][ $meta_key ] );
+		return true;
+	}
+}
+
+if ( ! function_exists( 'add_query_arg' ) ) {
+	function add_query_arg( ...$args ) {
+		// Minimal stub: return a string so callers that echo/redirect don't fatal.
+		if ( isset( $args[0] ) && is_array( $args[0] ) ) {
+			$url = $args[1] ?? '';
+			return $url . '?' . http_build_query( $args[0] );
+		}
+		$key = $args[0] ?? '';
+		$val = $args[1] ?? '';
+		$url = $args[2] ?? '';
+		return $url . '?' . rawurlencode( (string) $key ) . '=' . rawurlencode( (string) $val );
+	}
+}
+
+if ( ! function_exists( 'remove_query_arg' ) ) {
+	function remove_query_arg( $key, $query = '' ) { return is_string( $query ) ? $query : ''; }
+}
+
+if ( ! function_exists( 'wp_json_file_decode' ) ) {
+	function wp_json_file_decode( $filename, $options = array() ) {
+		if ( ! is_readable( $filename ) ) {
+			return null;
+		}
+		return json_decode( (string) file_get_contents( $filename ), ! empty( $options['associative'] ) );
 	}
 }
 
