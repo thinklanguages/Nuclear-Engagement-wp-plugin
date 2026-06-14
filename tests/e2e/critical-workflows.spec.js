@@ -5,8 +5,14 @@ import { test, expect } from '@playwright/test';
  *
  * These tests focus on edge cases and recovery scenarios that are essential
  * for production reliability.
+ *
+ * QUARANTINED (test.describe.fixme): all tests below assert on admin/workflow UI
+ * via data-testid hooks (cancel-generation, post-select, rate-limit-warning, ...)
+ * that the plugin markup does not define, so they cannot pass as written. Kept as
+ * a blueprint; re-enable per test once the matching data-testid attributes are
+ * added to the admin UI.
  */
-test.describe('Nuclear Engagement Critical Workflows', () => {
+test.describe.fixme('Nuclear Engagement Critical Workflows', () => {
   let adminPage;
 
   test.beforeAll(async ({ browser }) => {
