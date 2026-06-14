@@ -1,20 +1,24 @@
 /**
  * WordPress-specific E2E test utilities
+ *
+ * Updated for @wordpress/e2e-test-utils-playwright >= 1.x, which exposes only
+ * class-based utilities (Admin/Editor/PageUtils/RequestUtils). The old free
+ * functions (login, logout, visitAdminPage, createNewPost) were removed, so the
+ * page-based helpers below are implemented against the class API / raw page.
  */
 import { test as base, expect } from '@playwright/test';
-import { 
-  Admin, 
-  Editor, 
+import {
+  Admin,
+  Editor,
+  PageUtils,
   RequestUtils,
-  login,
-  logout,
-  visitAdminPage,
-  createNewPost
 } from '@wordpress/e2e-test-utils-playwright';
 
+const BASE_URL = process.env.WP_BASE_URL || 'http://localhost:8080';
+
 export const test = base.extend({
-  admin: async ({ page, requestUtils }, use) => {
-    await use(new Admin({ page, requestUtils }));
+  pageUtils: async ({ page }, use) => {
+    await use(new PageUtils({ page }));
   },
   editor: async ({ page }, use) => {
     await use(new Editor({ page }));
@@ -22,40 +26,59 @@ export const test = base.extend({
   requestUtils: async ({ playwright }, use) => {
     const requestUtils = await RequestUtils.setup({
       playwright,
-      baseURL: process.env.WP_BASE_URL || 'http://localhost:8080',
+      baseURL: BASE_URL,
     });
     await use(requestUtils);
+  },
+  admin: async ({ page, pageUtils, editor }, use) => {
+    await use(new Admin({ page, pageUtils, editor }));
   },
 });
 
 export { expect };
 
 /**
- * WordPress login helper
+ * WordPress login helper.
+ *
+ * Submits the wp-login.php form directly so it works against any install
+ * without relying on the removed library `login` free function.
  */
 export async function wpLogin(page, username = 'admin', password = 'password') {
-  await login(page, username, password);
+  await page.goto(`${BASE_URL}/wp-login.php`);
+  await page.fill('#user_login', username);
+  await page.fill('#user_pass', password);
+  await page.click('#wp-submit');
+  await page.waitForURL(/wp-admin/);
 }
 
 /**
- * WordPress logout helper
+ * WordPress logout helper.
  */
 export async function wpLogout(page) {
-  await logout(page);
+  await page.goto(`${BASE_URL}/wp-login.php?action=logout`);
+  const confirm = page.locator('a:has-text("log out")');
+  if (await confirm.count()) {
+    await confirm.first().click();
+  }
 }
 
 /**
- * Navigate to admin page helper
+ * Navigate to admin page helper.
  */
 export async function visitWPAdminPage(page, path) {
-  await visitAdminPage(page, path);
+  await page.goto(`${BASE_URL}/wp-admin/${path}`);
 }
 
 /**
- * Create new WordPress post helper
+ * Create new WordPress post helper.
  */
 export async function createWPPost(page, title, content = '') {
-  await createNewPost(page, { title, content });
+  const admin = new Admin({
+    page,
+    pageUtils: new PageUtils({ page }),
+    editor: new Editor({ page }),
+  });
+  await admin.createNewPost({ title, content });
 }
 
 /**
