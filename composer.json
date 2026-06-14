@@ -32,7 +32,7 @@
         "test:coverage": "@php scripts/run-tests.php --coverage",
         "lint": "@php vendor/bin/phpcs",
         "lint:fix": "@php vendor/bin/phpcbf",
-        "analyse": "@php vendor/bin/phpstan analyse"
+        "analyse": "@php vendor/bin/phpstan analyse --memory-limit=2G"
     },
     "config": {
         "allow-plugins": {

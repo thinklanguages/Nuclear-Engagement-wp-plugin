@@ -347,13 +347,21 @@ class LoggingService {
 	 * Empty messages are ignored. Messages over 1000 chars are truncated.
 	 *
 	 * @param string $message Message to log.
+	 * @param string $level   Severity level (e.g. 'info', 'warning', 'error'). For
+	 *                        non-info levels a "[LEVEL]" tag is prefixed unless the
+	 *                        caller already tagged the message with a bracket.
 	 */
-	public static function log( string $message ): void {
+	public static function log( string $message, string $level = 'info' ): void {
 		if ( $message === '' ) {
 				return;
 		}
 
 			$instance = self::instance();
+
+			$level = strtolower( trim( $level ) );
+		if ( '' !== $level && 'info' !== $level && strncmp( $message, '[', 1 ) !== 0 ) {
+				$message = '[' . strtoupper( $level ) . '] ' . $message;
+		}
 
 			$message = wp_strip_all_tags( $message );
 		if ( strlen( $message ) > 1000 ) {

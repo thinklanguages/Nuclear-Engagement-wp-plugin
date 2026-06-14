@@ -53,15 +53,17 @@ namespace NuclearEngagement\Modules\TOC {
 }
 
 namespace {
-	use PHPUnit\Framework\TestCase;
-	
+	// TestCase is already imported in the first global-namespace block above; PHPStan
+	// treats both blocks as one scope, so re-importing it here is a duplicate. Reference
+	// it by FQCN below instead (PHP scopes `use` per bracketed block at runtime).
+
 	require_once NUCLEN_TOC_DIR . 'includes/polyfills.php';
        require_once NUCLEN_TOC_DIR . 'SlugGenerator.php';
        require_once NUCLEN_TOC_DIR . 'TocCache.php';
        require_once NUCLEN_TOC_DIR . 'HeadingExtractor.php';
 	require_once NUCLEN_TOC_DIR . 'Nuclen_TOC_Headings.php';
 
-	class NuclenTOCHeadingsTest extends TestCase {
+	class NuclenTOCHeadingsTest extends \PHPUnit\Framework\TestCase {
 		protected function setUp(): void {
 			$GLOBALS['toc_enable_heading_ids'] = true;
 			$GLOBALS['wp_cache'] = [];

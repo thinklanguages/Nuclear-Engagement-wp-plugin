@@ -1,5 +1,8 @@
 parameters:
     level: 8
+    # Pin analysis semantics so every CI matrix job (PHP 7.4-8.3) and local runs
+    # produce identical results that match the committed baseline.
+    phpVersion: 80300
     paths:
         - nuclear-engagement
         - tests
@@ -8,9 +11,18 @@ parameters:
     bootstrapFiles:
         - tests/wp-stubs.php
     ignoreErrors:
-        # Baseline for existing code - remove these as issues are fixed
+        # WordPress core symbols the hand-rolled stubs don't declare.
         - '#Call to an undefined method WP_.*#'
         - '#Function wp_.* not found#'
         - '#Class WP_.* not found#'
         - '#Constant WP_.* not found#'
+        # WordPress / plugin constants that are defined at runtime, not in the stubs.
+        - '#Constant [A-Z]+_IN_SECONDS not found#'
+        - '#Constant (MB|KB|GB)_IN_BYTES not found#'
+        - '#Constant (ARRAY_A|ARRAY_N|OBJECT|OBJECT_K) not found#'
+        - '#Constant FS_CHMOD_(FILE|DIR) not found#'
+        - '#Constant NUCLEN_[A-Z0-9_]+ not found#'
     reportUnmatchedIgnoredErrors: false
+
+includes:
+    - phpstan-baseline.neon
