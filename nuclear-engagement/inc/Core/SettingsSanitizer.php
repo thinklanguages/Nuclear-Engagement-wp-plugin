@@ -34,6 +34,7 @@ final class SettingsSanitizer {
 	 *
 	 * @since 1.0.0
 	 * @var array<string, callable|string>
+	 */
 	private const SANITIZATION_RULES = array(
 		'api_key'                              => 'sanitize_text_field',
 		'theme'                              => 'sanitize_text_field',

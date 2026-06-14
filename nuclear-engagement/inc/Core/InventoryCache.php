@@ -37,6 +37,15 @@ final class InventoryCache {
 		/** Timestamp key for last clear operation. */
 	private const CLEAR_TS_KEY = 'nuclen_inventory_last_clear';
 
+		/**
+		 * Cache group for the clear-debounce timestamp.
+		 *
+		 * MUST be different from CACHE_GROUP: clear() flushes CACHE_GROUP via
+		 * wp_cache_flush_group(), which would otherwise wipe the timestamp it
+		 * just wrote and defeat the debounce entirely.
+		 */
+	private const CLEAR_TS_GROUP = 'nuclen_inventory_ctrl';
+
 		/** Seconds to debounce consecutive clears. */
 	public const CLEAR_DEBOUNCE = 2;
 
@@ -84,13 +93,13 @@ final class InventoryCache {
 	 */
 	public static function clear(): void {
 			$now  = time();
-			$last = (int) wp_cache_get( self::CLEAR_TS_KEY, self::CACHE_GROUP );
+			$last = (int) wp_cache_get( self::CLEAR_TS_KEY, self::CLEAR_TS_GROUP );
 
 		if ( $last && ( $now - $last ) < self::CLEAR_DEBOUNCE ) {
 				return;
 		}
 
-			wp_cache_set( self::CLEAR_TS_KEY, $now, self::CACHE_GROUP, self::CLEAR_DEBOUNCE * 2 );
+			wp_cache_set( self::CLEAR_TS_KEY, $now, self::CLEAR_TS_GROUP, self::CLEAR_DEBOUNCE * 2 );
 
 			$key = self::get_cache_key();
 

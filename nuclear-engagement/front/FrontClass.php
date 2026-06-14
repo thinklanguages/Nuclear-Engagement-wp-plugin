@@ -46,7 +46,7 @@ class FrontClass {
 		private $utils;
 		/** @var SettingsRepository */
 		private $settings_repository;
-		/** @var Container */
+		/** @var ServiceContainer */
 		private $container;
 
 	/**
@@ -86,9 +86,9 @@ class FrontClass {
 		/**
 		 * Get the container instance.
 		 *
-		 * @return Container
+		 * @return ServiceContainer
 		 */
-	protected function get_container(): Container {
+	protected function get_container(): ServiceContainer {
 			return $this->container;
 	}
 }

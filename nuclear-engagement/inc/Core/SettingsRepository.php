@@ -29,7 +29,9 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @since 1.0.0
  */
-final class SettingsRepository {
+// Not declared `final`: it is injected as a dependency (e.g. into Settings) and
+// the unit tests need to create a test double for it.
+class SettingsRepository {
 
 	/**
 	 * The option name used to store settings in the database.

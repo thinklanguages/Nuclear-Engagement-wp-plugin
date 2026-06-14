@@ -285,11 +285,11 @@ class GenerateRequest {
 
 		if ( empty( $sanitized ) ) {
 			throw new ValidationException(
-				'No valid post IDs after sanitization',
 				array(
 					'original_count'  => count( $post_ids ),
 					'sanitized_count' => 0,
-				)
+				),
+				'No valid post IDs after sanitization'
 			);
 		}
 

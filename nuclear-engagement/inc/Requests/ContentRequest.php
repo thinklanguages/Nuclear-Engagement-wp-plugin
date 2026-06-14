@@ -41,22 +41,22 @@ class ContentRequest {
 	 *
 	 * @param array $data JSON data
 	 * @return self
-	 * @throws \InvalidArgumentException On validation errors
+	 * @throws \NuclearEngagement\Exceptions\ValidationException On validation errors
 	 */
 	public static function fromJson( array $data ): self {
 		$request = new self();
 
 		if ( empty( $data['workflow'] ) ) {
 			throw new ValidationException(
-				'No workflow found in request',
-				array( 'request_keys' => array_keys( $data ) )
+				array( 'request_keys' => array_keys( $data ) ),
+				'No workflow found in request'
 			);
 		}
 
 		if ( empty( $data['results'] ) || ! is_array( $data['results'] ) ) {
 			throw new ValidationException(
-				'No results data found in request',
-				array( 'request_keys' => array_keys( $data ) )
+				array( 'request_keys' => array_keys( $data ) ),
+				'No results data found in request'
 			);
 		}
 
@@ -65,11 +65,11 @@ class ContentRequest {
 		// Validate workflow.
 		if ( ! in_array( $request->workflow, array( 'quiz', 'summary' ), true ) ) {
 			throw new ValidationException(
-				'Invalid workflow type',
 				array(
 					'workflow'      => $request->workflow,
 					'allowed_types' => array( 'quiz', 'summary' ),
-				)
+				),
+				'Invalid workflow type'
 			);
 		}
 

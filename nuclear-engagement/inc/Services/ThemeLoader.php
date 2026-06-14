@@ -195,7 +195,7 @@ class ThemeLoader {
 			if ( isset( $config[ $component ] ) ) {
 				foreach ( $props as $prop ) {
 					if ( isset( $config[ $component ][ $prop ] ) ) {
-						$var_name              = "--nuclen-{$component}-" . str_replace( '_', '-', $prop );
+						$var_name              = '--nuclen-' . str_replace( '_', '-', $component ) . '-' . str_replace( '_', '-', $prop );
 						$critical[ $var_name ] = $config[ $component ][ $prop ];
 					}
 				}
