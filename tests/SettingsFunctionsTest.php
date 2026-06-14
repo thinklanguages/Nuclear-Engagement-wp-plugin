@@ -2,25 +2,27 @@
 use PHPUnit\Framework\TestCase;
 use NuclearEngagement\Helpers\SettingsHelper;
 use NuclearEngagement\Helpers\SettingsFunctions;
+use NuclearEngagement\Core\SettingsRepository;
 
 require_once dirname(__DIR__) . '/nuclear-engagement/inc/Helpers/SettingsHelper.php';
 require_once dirname(__DIR__) . '/nuclear-engagement/inc/Helpers/SettingsFunctions.php';
 
-class DummyRepo2 {
-public function all(): array { return ['baz' => 'qux']; }
-public function get(string $key, $default = null) { return 'g_' . $key; }
-public function get_bool(string $key, bool $default = false): bool { return false; }
-public function get_int(string $key, int $default = 0): int { return 7; }
-public function get_string(string $key, string $default = ''): string { return 'ok'; }
-public function get_array(string $key, array $default = array()): array { return ['x']; }
-}
-
 class SettingsFunctionsTest extends TestCase {
-private DummyRepo2 $repo;
+private $repo;
 private \ReflectionProperty $prop;
 
 protected function setUp(): void {
-$this->repo = new DummyRepo2();
+// SettingsHelper::$repo is now strictly typed as ?SettingsRepository,
+// so the injected fake must be a SettingsRepository instance. Use a mock
+// (constructor is private; createMock bypasses it) configured to return
+// the same canned values the old duck-typed DummyRepo2 returned.
+$this->repo = $this->createMock(SettingsRepository::class);
+$this->repo->method('all')->willReturn(['baz' => 'qux']);
+$this->repo->method('get')->willReturnCallback(fn($key, $default = null) => 'g_' . $key);
+$this->repo->method('get_bool')->willReturn(false);
+$this->repo->method('get_int')->willReturn(7);
+$this->repo->method('get_string')->willReturn('ok');
+$this->repo->method('get_array')->willReturn(['x']);
 $this->prop = new \ReflectionProperty(SettingsHelper::class, 'repo');
 $this->prop->setAccessible(true);
 $this->prop->setValue(null, $this->repo);

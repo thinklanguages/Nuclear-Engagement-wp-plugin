@@ -124,7 +124,8 @@ namespace {
 			'workflow' => 'quiz',
 			'results'  => [2 => ['questions' => [], 'date' => '2025-01-02']],
 		];
-		$req = new DummyRequest($data, ['X-WP-Nonce' => 'valid']);
+		// Harness wp_verify_nonce stub (tests/wp-stubs.php) only accepts 'valid_nonce'.
+		$req = new DummyRequest($data, ['X-WP-Nonce' => 'valid_nonce']);
 
 		$this->assertTrue($controller->permissions($req));
 		$res = $controller->handle($req);
@@ -164,7 +165,8 @@ namespace {
 			'workflow' => 'summary',
 			'results'  => [4 => ['summary' => 'bad']],
 		];
-		$req = new DummyRequest($data, ['X-WP-Nonce' => 'valid']);
+		// Harness wp_verify_nonce stub (tests/wp-stubs.php) only accepts 'valid_nonce'.
+		$req = new DummyRequest($data, ['X-WP-Nonce' => 'valid_nonce']);
 
 		$this->assertTrue($controller->permissions($req));
 		$res = $controller->handle($req);

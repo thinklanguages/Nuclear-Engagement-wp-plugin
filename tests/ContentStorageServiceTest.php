@@ -19,11 +19,11 @@ namespace {
 		protected function setUp(): void {
 			global $wp_options, $wp_autoload, $wp_meta;
 			$wp_options = $wp_autoload = $wp_meta = [];
-			NuclearEngagement\SettingsRepository::reset_for_tests();
+			\NuclearEngagement\Core\SettingsRepository::reset_for_tests();
 		}
 
 		public function test_store_quiz_data_filters_and_limits_answers(): void {
-			$settings = NuclearEngagement\SettingsRepository::get_instance();
+			$settings = \NuclearEngagement\Core\SettingsRepository::get_instance();
 			$settings->set_int('answers_per_question', 2)->save();
 			$service = new NuclearEngagement\Services\ContentStorageService($settings);
 			$data = [
@@ -64,7 +64,7 @@ namespace {
 		}
 
 		public function test_store_quiz_data_throws_when_no_valid_question(): void {
-			$settings = NuclearEngagement\SettingsRepository::get_instance();
+			$settings = \NuclearEngagement\Core\SettingsRepository::get_instance();
 			$service = new NuclearEngagement\Services\ContentStorageService($settings);
 			$data = [
 				'questions' => [
@@ -77,7 +77,7 @@ namespace {
 		}
 
 		public function test_store_quiz_data_sanitizes_and_adds_date(): void {
-			$settings = NuclearEngagement\SettingsRepository::get_instance();
+			$settings = \NuclearEngagement\Core\SettingsRepository::get_instance();
 			$service  = new NuclearEngagement\Services\ContentStorageService($settings);
 			$data = [
 				'questions' => [

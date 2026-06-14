@@ -130,8 +130,8 @@ global $wp_cache;
 		$repo->set_array('toc_heading_levels', ['1','7','2'])->save();
 
 		$this->assertEmpty($wp_cache[SettingsCache::CACHE_GROUP] ?? []);
-		// The values remain as strings after sanitization
-		$this->assertSame(['1','7','2'], $repo->get_array('toc_heading_levels'));
+		// Sanitization drops the invalid heading level 7 and casts the rest to int.
+		$this->assertSame([1, 2], $repo->get_array('toc_heading_levels'));
 }
 
 	public function test_save_clears_inventory_cache(): void {

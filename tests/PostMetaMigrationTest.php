@@ -1,5 +1,15 @@
 <?php
 namespace NuclearEngagement\Services {
+	// Spy logger so the migration-failure path can be asserted: the real
+	// LoggingService writes to a file and exposes no public $logs array.
+	if ( ! class_exists( 'NuclearEngagement\\Services\\LoggingService', false ) ) {
+		class LoggingService {
+			public static array $logs = array();
+			public static function log( string $message ): void {
+				self::$logs[] = $message;
+			}
+		}
+	}
 }
 
 namespace {

@@ -23,17 +23,17 @@ class ContentRequestTest extends TestCase {
 	}
 
 	public function test_from_json_missing_workflow_throws(): void {
-		$this->expectException(InvalidArgumentException::class);
+		$this->expectException(\NuclearEngagement\Exceptions\ValidationException::class);
 		ContentRequest::fromJson(['results' => []]);
 	}
 
 	public function test_from_json_missing_results_throws(): void {
-		$this->expectException(InvalidArgumentException::class);
+		$this->expectException(\NuclearEngagement\Exceptions\ValidationException::class);
 		ContentRequest::fromJson(['workflow' => 'summary']);
 	}
 
 	public function test_from_json_nonarray_results_throws(): void {
-		$this->expectException(InvalidArgumentException::class);
+		$this->expectException(\NuclearEngagement\Exceptions\ValidationException::class);
 		ContentRequest::fromJson(['workflow' => 'summary', 'results' => 'fail']);
 	}
 }

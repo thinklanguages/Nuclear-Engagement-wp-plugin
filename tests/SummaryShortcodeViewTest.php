@@ -23,8 +23,13 @@ namespace {
 	}
 	if (!function_exists('esc_attr')) { function esc_attr($t){ return $t; } }
 
-	class DummyFrontSummary {
+	// Extends the real FrontClass to satisfy the now-strict constructor type hint
+	// (Nuclen_Summary_Shortcode::__construct requires FrontClass). The parent
+	// constructor is intentionally not invoked; render() only calls
+	// nuclen_force_enqueue_assets(), which is overridden here to count calls.
+	class DummyFrontSummary extends \NuclearEngagement\Front\FrontClass {
 		public int $calls = 0;
+		public function __construct() {}
 		public function nuclen_force_enqueue_assets(): void { $this->calls++; }
 	}
 

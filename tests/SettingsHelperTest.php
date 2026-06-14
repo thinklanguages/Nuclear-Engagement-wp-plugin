@@ -5,7 +5,12 @@ use NuclearEngagement\Helpers\SettingsHelper;
 require_once dirname(__DIR__) . '/nuclear-engagement/inc/Helpers/SettingsHelper.php';
 require_once dirname(__DIR__) . '/nuclear-engagement/inc/Core/SettingsRepository.php';
 
-class DummySettingsRepository {
+// SettingsHelper::$repo is typed ?SettingsRepository, so the test double must
+// be a SettingsRepository subclass. The parent constructor is private (singleton),
+// so we declare a public no-arg constructor that skips parent initialisation and
+// override only the getters the helper proxies to.
+class DummySettingsRepository extends \NuclearEngagement\Core\SettingsRepository {
+public function __construct() { /* bypass private singleton constructor */ }
 public function all(): array { return ['foo' => 'bar']; }
 public function get(string $key, $default = null) { return 'val_' . $key; }
 public function get_bool(string $key, bool $default = false): bool { return true; }

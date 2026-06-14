@@ -111,7 +111,12 @@ class DatabaseRepositoryTest extends TestCase {
 	 * Test constructor initializes wpdb properly
 	 */
 	public function test_constructor_initializes_wpdb() {
-		$this->assertInstanceOf('wpdb', $this->repository->wpdb);
+		// $wpdb is a protected property (see test_wpdb_property_is_protected),
+		// so read it via reflection rather than direct external access.
+		$reflection = new \ReflectionClass(DatabaseRepository::class);
+		$property   = $reflection->getProperty('wpdb');
+		$property->setAccessible(true);
+		$this->assertInstanceOf('wpdb', $property->getValue($this->repository));
 	}
 
 	/**

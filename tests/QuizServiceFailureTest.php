@@ -8,6 +8,20 @@ namespace NuclearEngagement\Modules\Quiz {
 }
 
 namespace NuclearEngagement\Services {
+	// Test double for the logger: the production LoggingService no longer exposes
+	// public $logs/$notices spy arrays, so this file declares its own shim (same
+	// pattern as BlocksTest) before the real class is autoloaded. log()/notify_admin()
+	// remain real production entry points exercised by Quiz_Service on failure.
+	class LoggingService {
+		public static array $logs    = [];
+		public static array $notices = [];
+		public static function log( string $message ): void {
+			self::$logs[] = $message;
+		}
+		public static function notify_admin( string $message ): void {
+			self::$notices[] = $message;
+		}
+	}
 }
 
 namespace {

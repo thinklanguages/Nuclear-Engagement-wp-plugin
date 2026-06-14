@@ -28,7 +28,11 @@ class JobQueueTest extends TestCase {
 			
 			public function insert($table, $data, $format) {
 				$this->queries[] = ['type' => 'insert', 'table' => $table, 'data' => $data];
-				if (strpos($table, 'error_test') !== false) {
+				// store_job() always inserts into the fixed jobs table, so key the
+				// simulated failure on the sentinel job_id the error test uses
+				// (the original table-name check could never match).
+				if (strpos($table, 'error_test') !== false
+					|| (isset($data['job_id']) && $data['job_id'] === 'error_test')) {
 					$this->last_error = 'Insert failed';
 					return false;
 				}
@@ -121,16 +125,27 @@ class JobQueueTest extends TestCase {
 		global $dbDelta_called;
 		$dbDelta_called = false;
 		
-		if (class_exists('NuclearEngagement\Services\LoggingService')) {
+		// The real LoggingService (autoloaded via JobQueue) no longer exposes a
+		// public static $logs spy property, so guard the reset with property_exists
+		// (same guard setUp() already uses) to avoid a fatal in teardown.
+		if (class_exists('NuclearEngagement\Services\LoggingService')
+			&& property_exists('NuclearEngagement\Services\LoggingService', 'logs')) {
 			\NuclearEngagement\Services\LoggingService::$logs = [];
 		}
 	}
 
 	public function test_queue_job_returns_job_id(): void {
 		$job_id = JobQueue::queue_job('test_job', ['data' => 'test']);
-		
+
 		$this->assertIsString($job_id);
-		$this->assertStringStartsWith('test-uuid-', $job_id);
+		// The inline wp_generate_uuid4() stub ('test-uuid-...') is dead code:
+		// bootstrap.php defines a real wp_generate_uuid4() first (function_exists
+		// guard wins), so queue_job() returns a genuine UUID4. Assert that format
+		// instead of the now-unused stub prefix.
+		$this->assertMatchesRegularExpression(
+			'/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/',
+			$job_id
+		);
 	}
 
 	public function test_queue_job_stores_in_database(): void {
@@ -262,7 +277,9 @@ class JobQueueTest extends TestCase {
 		$this->assertStringContainsString('SELECT job_id, type, data', $selectQuery['query']);
 		$this->assertStringContainsString("status IN ('queued', 'retrying')", $selectQuery['query']);
 		$this->assertStringContainsString('ORDER BY priority ASC, scheduled ASC', $selectQuery['query']);
-		$this->assertStringContainsString('LIMIT 3', $selectQuery['query']);
+		// MAX_CONCURRENT_JOBS was intentionally raised from 3 to 10, so the LIMIT
+		// reflects the available slots (10 - 0 currently processing).
+		$this->assertStringContainsString('LIMIT 10', $selectQuery['query']);
 	}
 
 	public function test_get_statistics_returns_job_counts(): void {

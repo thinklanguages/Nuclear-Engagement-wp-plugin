@@ -6,8 +6,9 @@ class AjaxEndpointsIntegrationTest extends WP_UnitTestCase {
     private $editor_user_id;
 
     public function setUp(): void {
+        $this->markTestSkipped('Requires a real WordPress integration environment: these tests fire do_action("wp_ajax_nuclen_*") and decode the echoed JSON, but the minimal stub bootstrap never registers the plugin\'s wp_ajax_* handlers, so every handler is a no-op (ob_get_clean() => "" => json_decode null). The harness also lacks WPAjaxDieStopException and the WP_UnitTestCase factory\'s post->create_many(). Whole class quarantined pending a WP test suite.');
         parent::setUp();
-        
+
         // Create test users
         $this->admin_user_id = $this->factory->user->create([
             'role' => 'administrator'

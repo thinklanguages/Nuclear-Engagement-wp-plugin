@@ -30,8 +30,15 @@ if (!function_exists('esc_sql')) {
 
 class DummyWPDB {
 	public string $prefix = 'wp_';
+	public string $options = 'wp_options';
+	public string $last_error = '';
 	public array $queries = [];
-	public function query($sql) { $this->queries[] = $sql; }
+	// uninstall.php now calls $wpdb->prepare( ... ) before $wpdb->query();
+	// the double previously only implemented query(), causing a fatal.
+	public function prepare($sql, ...$args) {
+		return vsprintf(str_replace(['%s', '%d', '%f'], ["'%s'", '%d', '%f'], $sql), $args);
+	}
+	public function query($sql) { $this->queries[] = $sql; return 0; }
 }
 
 class UninstallTest extends TestCase {

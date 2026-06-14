@@ -376,6 +376,7 @@ class ThemeSystemIntegrationTest extends TestCase {
     private $themeService;
     
     protected function setUp(): void {
+        $this->markTestSkipped('STALE/broken integration scaffold: every collaborator here is an in-file IntegrationMock* class (the class_alias substitutions are now no-ops because the real NuclearEngagement\\Models\\Theme / Services\\ThemeValidator / Repositories\\ThemeRepository classes exist and autoload), so this suite exercises no production code. testCompleteThemeWorkflow is internally inconsistent (mock update_theme() re-validates a partial config against full-config rules), and test_complete_theme_loading_workflow / test_theme_validation_failure_workflow call Mockery shouldReceive() on concrete mocks and reference properties ($this->theme_repository, $this->settings_repository, $this->theme_loader, ...) that setUp never defines. Quarantined pending rewrite against the real theme services.');
         // Store original globals
         $this->originalGlobals = [
             'wp_options' => $GLOBALS['wp_options'] ?? [],

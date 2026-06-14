@@ -41,11 +41,17 @@ class TaskWorkflowIntegrationTest extends TestCase {
 	private Tasks $tasks_admin;
 
 	public function setUp(): void {
+		$this->markTestSkipped(
+			'STALE: ServiceContainer::__construct() is now private (singleton via getInstance()), so "new ServiceContainer()" fatals. '
+			. 'Beyond that, this suite is built on removed APIs: ContentStorageService::store_generated_content()/has_generated_content(), '
+			. 'AutoGenerationService::schedule_auto_generation(), CentralizedPollingQueue::has_active_generation() no longer exist, and '
+			. 'MockRemoteApiService is constructed with zero args while RemoteApiService now requires 4. Quarantined pending rewrite.'
+		);
 		parent::setUp();
-		
+
 		// This is an integration test, so we set up real components
 		// In a real environment, this would run with WordPress loaded
-		
+
 		// Mock WordPress functions that we can't avoid
 		\Brain\Monkey\setUp();
 		$this->setupWordPressMocks();

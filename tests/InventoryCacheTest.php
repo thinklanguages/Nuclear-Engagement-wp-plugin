@@ -29,6 +29,10 @@ if ( ! function_exists( 'wp_cache_delete' ) ) {
 }
 if ( ! function_exists( 'wp_cache_flush_group' ) ) {
 	function wp_cache_flush_group( $group ) {
+		// Count actual flushes here: the bootstrap defines wp_cache_delete (which this
+		// file cannot override), so the debounce is observed via the group flush that
+		// clear() performs exactly once per non-debounced call.
+		$GLOBALS['flush_count']++;
 		unset( $GLOBALS['wp_cache'][ $group ] );
 	}
 }
@@ -59,22 +63,30 @@ if ( ! function_exists( 'get_current_blog_id' ) ) {
 
 class InventoryCacheTest extends TestCase {
 	protected function setUp(): void {
-		global $wp_cache, $flush_count, $transients;
-		$wp_cache   = [];
-		$flush_count = 0;
-		$transients = [];
+		// The central bootstrap stubs back wp_cache_* with $wp_cache and *_transient
+		// with $wp_transients, so reset those (the test's own guarded stubs above are
+		// never installed because the central ones already exist).
+		global $wp_cache, $wp_transients, $flush_count;
+		$wp_cache      = [];
+		$wp_transients = [];
+		$flush_count   = 0;
 	}
 
 	public function test_clear_is_debounced() {
+		// clear() performs more than one group flush (InventoryCache + DashboardDataService),
+		// so assert the debounce relatively rather than with hard-coded counts.
 		InventoryCache::clear();
-		$this->assertSame( 1, $GLOBALS['flush_count'] );
+		$first = $GLOBALS['flush_count'];
+		$this->assertGreaterThan( 0, $first, 'first clear() flushes' );
 
+		// A second immediate clear() is debounced: no additional flush.
 		InventoryCache::clear();
-		$this->assertSame( 1, $GLOBALS['flush_count'] );
+		$this->assertSame( $first, $GLOBALS['flush_count'], 'second clear() within the window is debounced' );
 
+		// After the debounce window elapses, clear() flushes again.
 		usleep( ( InventoryCache::CLEAR_DEBOUNCE + 1 ) * 1000000 );
 		InventoryCache::clear();
-		$this->assertSame( 2, $GLOBALS['flush_count'] );
+		$this->assertGreaterThan( $first, $GLOBALS['flush_count'], 'clear() flushes again after the debounce window' );
 	}
 
 	public function test_set_get_and_clear() {
@@ -85,7 +97,7 @@ class InventoryCacheTest extends TestCase {
 		$key = InventoryCache::CACHE_KEY . '_' . get_current_blog_id();
 
 		$this->assertSame( $data, $GLOBALS['wp_cache'][ InventoryCache::CACHE_GROUP ][ $key ] );
-		$this->assertSame( $data, $GLOBALS['transients'][ $key ] );
+		$this->assertSame( $data, $GLOBALS['wp_transients'][ $key ] );
 
 		$this->assertSame( $data, InventoryCache::get() );
 
@@ -95,7 +107,7 @@ class InventoryCacheTest extends TestCase {
 		InventoryCache::clear();
 
 		$this->assertArrayNotHasKey( $key, $GLOBALS['wp_cache'][ InventoryCache::CACHE_GROUP ] ?? array() );
-		$this->assertArrayNotHasKey( $key, $GLOBALS['transients'] );
+		$this->assertArrayNotHasKey( $key, $GLOBALS['wp_transients'] );
 		$this->assertNull( InventoryCache::get() );
 	}
 }

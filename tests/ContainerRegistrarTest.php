@@ -29,7 +29,8 @@ class ContainerRegistrarTest extends TestCase {
 			'remote_api',
 			'content_storage',
 			'generation_poller',
-			'auto_generation_queue',
+			// Renamed from 'auto_generation_queue' to 'centralized_polling_queue'.
+			'centralized_polling_queue',
 			'auto_generation_scheduler',
 			'publish_generation_handler',
 			'auto_generation_service',

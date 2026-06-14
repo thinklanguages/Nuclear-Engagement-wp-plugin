@@ -17,10 +17,13 @@ namespace {
 	class RemoteRequestTest extends TestCase {
 		protected function setUp(): void {
 			unset($GLOBALS['rr_called']);
+			\NuclearEngagement\Core\SettingsRepository::reset_for_tests();
 		}
 
 		public function test_post_sends_json_request_with_headers(): void {
-			$req = new RemoteRequest();
+			// RemoteRequest now requires a SettingsRepository (used by get_api_base());
+			// with no api_base_url configured it falls back to the default API base.
+			$req = new RemoteRequest(\NuclearEngagement\Core\SettingsRepository::get_instance());
 			$req->post('/path', ['data' => 1], 'key');
 
 			$this->assertArrayHasKey('rr_called', $GLOBALS);

@@ -15,6 +15,7 @@ namespace {
 
 use PHPUnit\Framework\TestCase;
 use NuclearEngagement\Requests\GenerateRequest;
+use NuclearEngagement\Exceptions\ValidationException;
 
 if ( ! defined( 'NUCLEN_SUMMARY_LENGTH_MIN' ) ) {
 	define( 'NUCLEN_SUMMARY_LENGTH_MIN', 20 );
@@ -91,7 +92,9 @@ class GenerateRequestTest extends TestCase {
 	}
 
 	public function test_invalid_json_triggers_exception(): void {
-		$this->expectException( \InvalidArgumentException::class );
+		// STALE expectation modernized: invalid input now raises the dedicated
+		// ValidationException (extends BaseException, not InvalidArgumentException).
+		$this->expectException( ValidationException::class );
 		GenerateRequest::from_post( array( 'payload' => '{bad' ) );
 	}
 
@@ -102,7 +105,7 @@ class GenerateRequestTest extends TestCase {
 				'nuclen_selected_generate_workflow' => 'quiz',
 			) )
 		);
-		$this->expectException( \InvalidArgumentException::class );
+		$this->expectException( ValidationException::class );
 		GenerateRequest::from_post( $post );
 	}
 
@@ -113,7 +116,9 @@ class GenerateRequestTest extends TestCase {
 				'nuclen_selected_generate_workflow' => 'foo',
 			) )
 		);
-		$this->expectException( \InvalidArgumentException::class );
+		// STALE expectation modernized: invalid workflow now raises the dedicated
+		// ValidationException (extends BaseException, not InvalidArgumentException).
+		$this->expectException( ValidationException::class );
 		GenerateRequest::from_post( $post );
 	}
 }

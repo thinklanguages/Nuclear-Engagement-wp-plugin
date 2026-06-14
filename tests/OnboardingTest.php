@@ -135,8 +135,19 @@ namespace NuclearEngagement\Admin {
 		function plugin_dir_url($file) { return ''; }
 	}
 	if (!function_exists('NuclearEngagement\Admin\get_user_meta')) {
-		function get_user_meta($user_id, $meta_key, $single = false) {
-			return $GLOBALS['wp_user_meta'][$user_id][$meta_key] ?? '';
+		function get_user_meta($user_id, $meta_key = '', $single = false) {
+			$user_meta = $GLOBALS['wp_user_meta'][$user_id] ?? array();
+			// WordPress: get_user_meta($id) with no key returns ALL meta as
+			// [ meta_key => [ value, ... ] ]. Onboarding::enqueue_* calls it
+			// single-arg and reads $all_user_meta[$key][0], so mirror that shape.
+			if ($meta_key === '') {
+				$all = array();
+				foreach ($user_meta as $key => $value) {
+					$all[$key] = is_array($value) ? $value : array($value);
+				}
+				return $all;
+			}
+			return $user_meta[$meta_key] ?? '';
 		}
 	}
 }

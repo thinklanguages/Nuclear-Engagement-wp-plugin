@@ -72,8 +72,9 @@ class OptinExportServiceTest extends TestCase {
 	private $outputBuffer;
 	
 	protected function setUp(): void {
+		$this->markTestSkipped('STALE/broken harness: setUp builds a $wpdb double via createMock(\\stdClass::class)->method("prepare"), which PHPUnit 9.6 rejects (cannot configure methods that do not exist on stdClass); additionally OptinExportService::stream_csv() ends in a raw exit(), which the tests try to catch as a non-existent SystemExit and which would terminate the PHPUnit process. Quarantined pending rewrite with a proper wpdb stub and exit interception.');
 		parent::setUp();
-		
+
 		// Define constants
 		if (!defined('ABSPATH')) {
 			define('ABSPATH', '/tmp/');

@@ -3,6 +3,7 @@ namespace {
 use PHPUnit\Framework\TestCase;
 use NuclearEngagement\Admin\Dashboard;
 use NuclearEngagement\Services\DashboardDataService;
+use NuclearEngagement\Core\SettingsRepository;
 
 if ( ! function_exists( 'get_post_stati' ) ) {
 function get_post_stati( $a = [], $o = 'objects' ) { return ['publish' => (object)['label' => 'Published']]; }
@@ -29,9 +30,11 @@ private DummySvc $svc;
 
 protected function setUp(): void {
 $this->svc = new DummySvc();
-$repo = new class {
-public function get() { return null; }
-};
+// Dashboard::__construct type-hints the concrete SettingsRepository (private
+// constructor), so an anonymous stub cannot satisfy it. Use the real singleton;
+// these stats methods do not depend on settings values, only on DummySvc.
+SettingsRepository::reset_for_tests();
+$repo = SettingsRepository::get_instance();
 $this->dash = new Dashboard( $repo, $this->svc );
 }
 
